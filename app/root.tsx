@@ -2,6 +2,7 @@ import {
   isRouteErrorResponse,
   Links,
   Meta,
+  NavLink,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -32,7 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -41,35 +42,83 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  [
+    "rounded px-2 py-1 text-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2",
+    isActive ? "text-blue-800 dark:text-blue-300" : "text-gray-700 dark:text-gray-300",
+  ].join(" ");
+
+function SiteHeader() {
+  return (
+    <header className="border-b border-gray-200 dark:border-gray-800">
+      <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
+        <NavLink to="/" className="text-base font-semibold">
+          Texas Branch ASM
+        </NavLink>
+        <nav aria-label="Primary" className="flex items-center gap-1">
+          <NavLink to="/" end className={navLinkClass}>
+            Home
+          </NavLink>
+          <NavLink to="/officers" className={navLinkClass}>
+            Officers
+          </NavLink>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="border-t border-gray-200 dark:border-gray-800">
+      <div className="mx-auto max-w-4xl px-4 py-6 text-sm text-gray-600 dark:text-gray-400">
+        Texas Branch of the American Society for Microbiology
+      </div>
+    </footer>
+  );
+}
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <div className="flex min-h-screen flex-col">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:shadow dark:focus:bg-gray-900"
+      >
+        Skip to content
+      </a>
+      <SiteHeader />
+      <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
+        <Outlet />
+      </main>
+      <SiteFooter />
+    </div>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
-  let stack: string | undefined;
+  let heading = "Something went wrong";
+  let detail = "An unexpected error occurred. Try again, or head back home.";
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
+    if (error.status === 404) {
+      heading = "Page not found";
+      detail = "That page does not exist. Check the address or head back home.";
+    } else {
+      heading = `Error ${error.status}`;
+      detail = error.statusText || detail;
+    }
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
+    <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-16">
+      <h1 className="text-2xl font-semibold">{heading}</h1>
+      <p className="mt-3 text-gray-700 dark:text-gray-300">{detail}</p>
+      {import.meta.env.DEV && error instanceof Error && error.stack ? (
+        <pre className="mt-6 overflow-x-auto rounded bg-gray-100 p-4 text-sm dark:bg-gray-900">
+          <code>{error.stack}</code>
         </pre>
-      )}
+      ) : null}
     </main>
   );
 }
