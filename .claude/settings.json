@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); if echo \"$cmd\" | grep -qE 'git add[[:space:]]+(-A|--all|\\.([[:space:]]|$))'; then echo 'ERROR: scoped commits only. Use git add with named paths, never -A, --all, or .'; exit 1; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if [ -n \"$file\" ] && echo \"$file\" | grep -qE '\\.(tsx|ts|jsx|js|md|mdx|jsonc|css|html)$'; then if grep -q '\\xe2\\x80\\x94' \"$file\" 2>/dev/null; then echo \"ERROR: em dash found in $file. Remove it before continuing.\"; exit 1; fi; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && npm run -s typecheck 2>&1 | tail -20; exit ${PIPESTATUS[0]}"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude Code is done\" with title \"txasm\"' 2>/dev/null || notify-send 'txasm' 'Claude Code is done' 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

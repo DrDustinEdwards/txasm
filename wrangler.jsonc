@@ -1,41 +1,33 @@
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "txasm",
-	"compatibility_date": "2026-06-28",
 	"main": "./workers/app.ts",
-	"vars": {
-		"VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
-	},
-	"observability": {
-		"enabled": true
-	},
+	"compatibility_date": "2026-06-21",
+	"compatibility_flags": ["nodejs_compat"],
+	// Keep dashboard-set secrets (BETTER_AUTH_SECRET, BETTER_AUTH_URL, RESEND_API_KEY,
+	// STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ADMIN_EMAIL) from being wiped on deploy.
+	"keep_vars": true,
+	"observability": { "enabled": true },
 	"upload_source_maps": true,
-	"compatibility_flags": [
-		"nodejs_compat"
-	]
-	/**
-	 * Smart Placement
-	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": {  "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
-	 * Static Assets
-	 * https://developers.cloudflare.com/workers/static-assets/binding/
-	 */
-	// "assets": {  "directory": "./public/",  "binding": "ASSETS" }
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+	// Native bindings, reached only via context.cloudflare.env in loaders/actions.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "txasm",
+			"database_id": "278762e5-7319-4786-946b-4dff49b46d32",
+			"migrations_dir": "drizzle"
+		}
+	],
+	"r2_buckets": [
+		{ "binding": "UPLOADS", "bucket_name": "txasm-uploads" },
+		{ "binding": "BOOKS", "bucket_name": "txasm-books" }
+	],
+	"kv_namespaces": [
+		{ "binding": "APP_KV", "id": "b58a10950cf54fb6a54ca8808123d211" }
+	],
+	// Browser Rendering for the abstract book PDF. Generate in a batch job, not a
+	// user request, to stay inside the quota. May want the paid Workers plan for headroom.
+	"browser": { "binding": "BROWSER" },
+	// Deadline jobs and reminders. 13:00 UTC daily; tune per edition windows.
+	"triggers": { "crons": ["0 13 * * *"] }
 }

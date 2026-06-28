@@ -1,0 +1,17 @@
+# Copy to .dev.vars for local dev. Real values go in wrangler secrets, never in git.
+# Generate a fresh secret: openssl rand -base64 32
+
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:5173
+APP_BASE_URL=http://localhost:5173
+
+# Resend (REST). From address must be on a verified domain before cutover.
+RESEND_API_KEY=
+RESEND_FROM=TXASM <noreply@txasm.org>
+
+# Stripe (REST). Use test keys locally; the webhook secret is per endpoint.
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# First platform admin. Seeds an admin role_grant on bootstrap.
+ADMIN_EMAIL=
