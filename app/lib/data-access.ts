@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import * as schema from "./schema";
+import * as schema from "../db/schema";
+import { getDb } from "../db/index.server";
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
 // Enforce with an eslint no-restricted-imports rule on every other module so
@@ -326,3 +327,10 @@ export function createDataAccess(db: DB) {
 }
 
 export type DataAccess = ReturnType<typeof createDataAccess>;
+
+// Entry point for loaders and actions: build the data-access layer from the
+// request environment (context.cloudflare.env). This is the only data path the
+// rest of the app imports; nothing else reaches the Drizzle client or schema.
+export function getDataAccess(env: Env) {
+  return createDataAccess(getDb(env));
+}
