@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
@@ -35,6 +35,18 @@ export class NotFoundError extends Error {
   constructor(message = "not found") {
     super(message);
     this.name = "NotFoundError";
+  }
+}
+export class ValidationError extends Error {
+  constructor(message = "invalid input") {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+export class AlreadyExistsError extends Error {
+  constructor(message = "already exists") {
+    super(message);
+    this.name = "AlreadyExistsError";
   }
 }
 
@@ -109,6 +121,25 @@ export interface ReviewSubmission {
   scores: Array<{ criterionId: string; score: number }>;
   overallComment?: string;
   confidentialComment?: string;
+}
+
+export type Season = "spring" | "fall";
+
+export type EditionStatus =
+  | "draft"
+  | "registration_open"
+  | "submission_open"
+  | "review"
+  | "decisions"
+  | "scheduled"
+  | "complete"
+  | "archived";
+
+export interface EditionInput {
+  name: string;
+  season: Season;
+  year: number;
+  status?: EditionStatus;
 }
 
 export function createDataAccess(db: DB) {
@@ -307,14 +338,59 @@ export function createDataAccess(db: DB) {
   };
 
   const editions = {
+    // Admin view: every edition, newest first. The public listing (listPublic)
+    // is a separate, narrower query added later.
+    async list(actor: Actor) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      return db
+        .select()
+        .from(schema.edition)
+        .orderBy(desc(schema.edition.year), desc(schema.edition.createdAt));
+    },
+
+    // Admin only. Season must be one of the two values and (season, year) must be
+    // unique. The slug is derived from both, e.g. "spring-2027".
+    async create(actor: Actor, input: EditionInput) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+
+      if (input.season !== "spring" && input.season !== "fall") {
+        throw new ValidationError("Season must be spring or fall.");
+      }
+      if (!Number.isInteger(input.year)) {
+        throw new ValidationError("Year must be a whole number.");
+      }
+      const name = input.name.trim();
+      if (!name) throw new ValidationError("Name is required.");
+
+      const existing = await db.query.edition.findFirst({
+        where: and(
+          eq(schema.edition.season, input.season),
+          eq(schema.edition.year, input.year),
+        ),
+      });
+      if (existing) {
+        throw new AlreadyExistsError(
+          `An edition for ${input.season} ${input.year} already exists.`,
+        );
+      }
+
+      const [created] = await db
+        .insert(schema.edition)
+        .values({
+          slug: `${input.season}-${input.year}`,
+          name,
+          season: input.season,
+          year: input.year,
+          status: input.status ?? "draft",
+        })
+        .returning();
+      return created;
+    },
+
     listPublic(): Promise<unknown[]> {
       throw new Error("not implemented");
     },
     get(slug: string): Promise<unknown> {
-      throw new Error("not implemented");
-    },
-    create(actor: Actor, input: unknown): Promise<unknown> {
-      // admin only
       throw new Error("not implemented");
     },
     update(actor: Actor, editionId: string, patch: unknown): Promise<unknown> {
@@ -333,4 +409,10 @@ export type DataAccess = ReturnType<typeof createDataAccess>;
 // rest of the app imports; nothing else reaches the Drizzle client or schema.
 export function getDataAccess(env: Env) {
   return createDataAccess(getDb(env));
+}
+
+// Resolve the acting user's grants through the data-access layer. Used by the
+// auth helpers to decide admin access without touching the Drizzle client.
+export function getActor(env: Env, userId: string): Promise<Actor> {
+  return loadActor(getDb(env), userId);
 }
