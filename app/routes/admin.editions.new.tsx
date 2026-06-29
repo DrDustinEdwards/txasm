@@ -4,6 +4,7 @@ import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
   AlreadyExistsError,
+  EDITION_STATUSES,
   ValidationError,
   getDataAccess,
   type EditionStatus,
@@ -13,17 +14,6 @@ import {
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "New edition | Texas Branch ASM" }];
 }
-
-const STATUSES: EditionStatus[] = [
-  "draft",
-  "registration_open",
-  "submission_open",
-  "review",
-  "decisions",
-  "scheduled",
-  "complete",
-  "archived",
-];
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAdmin(request);
@@ -48,7 +38,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (!yearRaw || !Number.isInteger(year) || year < 2000 || year > 2100) {
     return { error: "Enter a four digit year between 2000 and 2100." };
   }
-  if (!STATUSES.includes(status as EditionStatus)) {
+  if (!EDITION_STATUSES.includes(status as EditionStatus)) {
     return { error: "Choose a valid status." };
   }
 
@@ -158,7 +148,7 @@ export default function NewEdition() {
             defaultValue="draft"
             className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
           >
-            {STATUSES.map((status) => (
+            {EDITION_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {titleCase(status)}
               </option>

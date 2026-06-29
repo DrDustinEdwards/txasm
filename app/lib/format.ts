@@ -1,0 +1,30 @@
+// Display helpers shared by routes. No data or server imports, so this is safe
+// on both sides of the server/client boundary.
+
+// Money is stored in cents. Format to a currency string only for display.
+export function formatMoney(amountCents: number, currency: string) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(amountCents / 100);
+}
+
+// Cents to a plain dollars string for a number input value, e.g. 4500 to "45.00".
+export function centsToDollarsInput(amountCents: number): string {
+  return (amountCents / 100).toFixed(2);
+}
+
+// A dollars string from a form back to integer cents. Returns null when the
+// value is not a non-negative number.
+export function parseDollarsToCents(value: string): number | null {
+  const dollars = Number(value.trim());
+  if (!Number.isFinite(dollars) || dollars < 0) return null;
+  return Math.round(dollars * 100);
+}
+
+// A timestamp to the value a datetime-local input expects, in UTC. The Worker
+// runtime is UTC, so this round-trips with new Date(value) in actions.
+export function toDateTimeLocal(date: Date | null | undefined): string {
+  if (!date) return "";
+  return date.toISOString().slice(0, 16);
+}

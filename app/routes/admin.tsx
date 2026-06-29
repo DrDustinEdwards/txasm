@@ -54,8 +54,11 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
               <th scope="col" className="py-2 pr-4 font-medium">
                 Year
               </th>
-              <th scope="col" className="py-2 font-medium">
+              <th scope="col" className="py-2 pr-4 font-medium">
                 Status
+              </th>
+              <th scope="col" className="py-2 text-right font-medium">
+                <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
@@ -65,10 +68,25 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
                 key={edition.id}
                 className="border-b border-gray-100 dark:border-gray-900"
               >
-                <td className="py-2 pr-4">{edition.name}</td>
+                <td className="py-2 pr-4">
+                  <Link
+                    to={`/admin/editions/${edition.id}`}
+                    className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+                  >
+                    {edition.name}
+                  </Link>
+                </td>
                 <td className="py-2 pr-4">{titleCase(edition.season)}</td>
                 <td className="py-2 pr-4">{edition.year}</td>
-                <td className="py-2">{titleCase(edition.status)}</td>
+                <td className="py-2 pr-4">{titleCase(edition.status)}</td>
+                <td className="py-2 text-right">
+                  <Link
+                    to={`/admin/editions/${edition.id}/categories`}
+                    className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+                  >
+                    Categories
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>
