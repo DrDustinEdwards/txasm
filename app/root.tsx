@@ -9,6 +9,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { getUserContext } from "~/lib/auth.server";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -23,6 +24,11 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const { user, isAdmin } = await getUserContext(request);
+  return { email: user?.email ?? null, isAdmin };
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -48,7 +54,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "text-blue-800 dark:text-blue-300" : "text-gray-700 dark:text-gray-300",
   ].join(" ");
 
-function SiteHeader() {
+function SiteHeader({
+  email,
+  isAdmin,
+}: {
+  email: string | null;
+  isAdmin: boolean;
+}) {
   return (
     <header className="border-b border-gray-200 dark:border-gray-800">
       <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
@@ -62,6 +74,20 @@ function SiteHeader() {
           <NavLink to="/officers" className={navLinkClass}>
             Officers
           </NavLink>
+          {isAdmin ? (
+            <NavLink to="/admin" className={navLinkClass}>
+              Admin
+            </NavLink>
+          ) : null}
+          {email ? (
+            <span className="px-2 py-1 text-sm text-gray-600 dark:text-gray-400">
+              {email}
+            </span>
+          ) : (
+            <NavLink to="/signin" className={navLinkClass}>
+              Sign in
+            </NavLink>
+          )}
         </nav>
       </div>
     </header>
@@ -78,7 +104,7 @@ function SiteFooter() {
   );
 }
 
-export default function App() {
+export default function App({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <a
@@ -87,7 +113,7 @@ export default function App() {
       >
         Skip to content
       </a>
-      <SiteHeader />
+      <SiteHeader email={loaderData.email} isAdmin={loaderData.isAdmin} />
       <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
         <Outlet />
       </main>
