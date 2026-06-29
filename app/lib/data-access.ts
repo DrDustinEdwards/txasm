@@ -125,21 +125,64 @@ export interface ReviewSubmission {
 
 export type Season = "spring" | "fall";
 
-export type EditionStatus =
-  | "draft"
-  | "registration_open"
-  | "submission_open"
-  | "review"
-  | "decisions"
-  | "scheduled"
-  | "complete"
-  | "archived";
+export const EDITION_STATUSES = [
+  "draft",
+  "registration_open",
+  "submission_open",
+  "review",
+  "decisions",
+  "scheduled",
+  "complete",
+  "archived",
+] as const;
+
+export type EditionStatus = (typeof EDITION_STATUSES)[number];
 
 export interface EditionInput {
   name: string;
   season: Season;
   year: number;
   status?: EditionStatus;
+}
+
+// Edition edit patch. Only the registration and submission windows and the
+// lifecycle status are editable here. Dates are optional; null clears a date.
+export interface EditionPatch {
+  status?: EditionStatus;
+  registrationOpensAt?: Date | null;
+  registrationClosesAt?: Date | null;
+  submissionOpensAt?: Date | null;
+  submissionDeadline?: Date | null;
+}
+
+export type RegistrationCategoryKey = "member" | "student" | "nonmember";
+
+export interface RegistrationCategoryInput {
+  editionId: string;
+  key: RegistrationCategoryKey;
+  label: string;
+  amountCents: number; // money is stored in cents, formatted to dollars in the UI
+  currency?: string;
+  sortOrder?: number;
+}
+
+export interface RegistrationCategoryPatch {
+  label?: string;
+  amountCents?: number;
+  currency?: string;
+  sortOrder?: number;
+  active?: boolean;
+}
+
+function assertAmountCents(amountCents: number) {
+  if (!Number.isInteger(amountCents) || amountCents < 0) {
+    throw new ValidationError("Fee must be a whole, non-negative number of cents.");
+  }
+}
+
+function normalizeCurrency(currency?: string) {
+  const value = currency?.trim().toLowerCase();
+  return value && value.length > 0 ? value : "usd";
 }
 
 export function createDataAccess(db: DB) {
@@ -387,19 +430,191 @@ export function createDataAccess(db: DB) {
       return created;
     },
 
+    // Admin read of a single edition by id, for the edit and category screens.
+    async getById(actor: Actor, editionId: string) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const row = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, editionId),
+      });
+      if (!row) throw new NotFoundError();
+      return row;
+    },
+
+    // Admin edit of status and the registration and submission windows. A
+    // deadline cannot fall before its matching opens-at when both are set.
+    async update(actor: Actor, editionId: string, patch: EditionPatch) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const row = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, editionId),
+      });
+      if (!row) throw new NotFoundError();
+
+      if (patch.status && !EDITION_STATUSES.includes(patch.status)) {
+        throw new ValidationError("Unknown edition status.");
+      }
+
+      const regOpens =
+        patch.registrationOpensAt !== undefined
+          ? patch.registrationOpensAt
+          : row.registrationOpensAt;
+      const regCloses =
+        patch.registrationClosesAt !== undefined
+          ? patch.registrationClosesAt
+          : row.registrationClosesAt;
+      if (regOpens && regCloses && regCloses.getTime() < regOpens.getTime()) {
+        throw new ValidationError(
+          "Registration deadline cannot be before registration opens.",
+        );
+      }
+
+      const subOpens =
+        patch.submissionOpensAt !== undefined
+          ? patch.submissionOpensAt
+          : row.submissionOpensAt;
+      const subDeadline =
+        patch.submissionDeadline !== undefined
+          ? patch.submissionDeadline
+          : row.submissionDeadline;
+      if (subOpens && subDeadline && subDeadline.getTime() < subOpens.getTime()) {
+        throw new ValidationError(
+          "Submission deadline cannot be before submission opens.",
+        );
+      }
+
+      const set: Partial<typeof schema.edition.$inferInsert> = {};
+      if (patch.status !== undefined) set.status = patch.status;
+      if (patch.registrationOpensAt !== undefined) {
+        set.registrationOpensAt = patch.registrationOpensAt;
+      }
+      if (patch.registrationClosesAt !== undefined) {
+        set.registrationClosesAt = patch.registrationClosesAt;
+      }
+      if (patch.submissionOpensAt !== undefined) {
+        set.submissionOpensAt = patch.submissionOpensAt;
+      }
+      if (patch.submissionDeadline !== undefined) {
+        set.submissionDeadline = patch.submissionDeadline;
+      }
+
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.edition)
+          .set(set)
+          .where(eq(schema.edition.id, editionId));
+      }
+      return this.getById(actor, editionId);
+    },
+
     listPublic(): Promise<unknown[]> {
       throw new Error("not implemented");
     },
     get(slug: string): Promise<unknown> {
       throw new Error("not implemented");
     },
-    update(actor: Actor, editionId: string, patch: unknown): Promise<unknown> {
-      // chair/admin of the edition
-      throw new Error("not implemented");
+  };
+
+  // Registration categories and fees, per edition. Admin only. Money is stored
+  // in cents; the UI formats to dollars.
+  const registrationCategories = {
+    async listForEdition(actor: Actor, editionId: string) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      return db
+        .select()
+        .from(schema.registrationCategory)
+        .where(eq(schema.registrationCategory.editionId, editionId))
+        .orderBy(
+          schema.registrationCategory.sortOrder,
+          schema.registrationCategory.key,
+        );
+    },
+
+    async create(actor: Actor, input: RegistrationCategoryInput) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+
+      const label = input.label.trim();
+      if (!label) throw new ValidationError("Label is required.");
+      assertAmountCents(input.amountCents);
+      if (!["member", "student", "nonmember"].includes(input.key)) {
+        throw new ValidationError(
+          "Category type must be member, student, or nonmember.",
+        );
+      }
+
+      const existing = await db.query.registrationCategory.findFirst({
+        where: and(
+          eq(schema.registrationCategory.editionId, input.editionId),
+          eq(schema.registrationCategory.key, input.key),
+        ),
+      });
+      if (existing) {
+        throw new AlreadyExistsError(
+          `A ${input.key} category already exists for this edition.`,
+        );
+      }
+
+      const [created] = await db
+        .insert(schema.registrationCategory)
+        .values({
+          editionId: input.editionId,
+          key: input.key,
+          label,
+          amountCents: input.amountCents,
+          currency: normalizeCurrency(input.currency),
+          sortOrder: input.sortOrder ?? 0,
+        })
+        .returning();
+      return created;
+    },
+
+    async update(actor: Actor, id: string, patch: RegistrationCategoryPatch) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const row = await db.query.registrationCategory.findFirst({
+        where: eq(schema.registrationCategory.id, id),
+      });
+      if (!row) throw new NotFoundError();
+
+      if (patch.label !== undefined && !patch.label.trim()) {
+        throw new ValidationError("Label is required.");
+      }
+      if (patch.amountCents !== undefined) assertAmountCents(patch.amountCents);
+
+      const set: Partial<typeof schema.registrationCategory.$inferInsert> = {};
+      if (patch.label !== undefined) set.label = patch.label.trim();
+      if (patch.amountCents !== undefined) set.amountCents = patch.amountCents;
+      if (patch.currency !== undefined) {
+        set.currency = normalizeCurrency(patch.currency);
+      }
+      if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
+      if (patch.active !== undefined) set.active = patch.active;
+
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.registrationCategory)
+          .set(set)
+          .where(eq(schema.registrationCategory.id, id));
+      }
+      return db.query.registrationCategory.findFirst({
+        where: eq(schema.registrationCategory.id, id),
+      });
+    },
+
+    // Soft delete: the schema carries an active flag, so the row stays for
+    // history and for any registration that already referenced it.
+    async deactivate(actor: Actor, id: string) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const row = await db.query.registrationCategory.findFirst({
+        where: eq(schema.registrationCategory.id, id),
+      });
+      if (!row) throw new NotFoundError();
+      await db
+        .update(schema.registrationCategory)
+        .set({ active: false })
+        .where(eq(schema.registrationCategory.id, id));
+      return { id, active: false };
     },
   };
 
-  return { abstracts, reviews, registrations, editions };
+  return { abstracts, reviews, registrations, editions, registrationCategories };
 }
 
 export type DataAccess = ReturnType<typeof createDataAccess>;
