@@ -4,6 +4,7 @@ export default [
   index("routes/home.tsx"),
   route("officers", "routes/officers.tsx"),
   route("signin", "routes/signin.tsx"),
+  route("signout", "routes/signout.tsx"),
   route("admin", "routes/admin.tsx"),
   route("admin/editions/new", "routes/admin.editions.new.tsx"),
   route("admin/editions/:editionId", "routes/admin.editions.$editionId.tsx"),

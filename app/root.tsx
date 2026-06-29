@@ -1,4 +1,5 @@
 import {
+  Form,
   isRouteErrorResponse,
   Links,
   Meta,
@@ -80,9 +81,19 @@ function SiteHeader({
             </NavLink>
           ) : null}
           {email ? (
-            <span className="px-2 py-1 text-sm text-gray-600 dark:text-gray-400">
-              {email}
-            </span>
+            <>
+              <span className="px-2 py-1 text-sm text-gray-600 dark:text-gray-400">
+                {email}
+              </span>
+              <Form method="post" action="/signout">
+                <button
+                  type="submit"
+                  className="rounded px-2 py-1 text-sm font-medium text-gray-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-gray-300"
+                >
+                  Sign out
+                </button>
+              </Form>
+            </>
           ) : (
             <NavLink to="/signin" className={navLinkClass}>
               Sign in
