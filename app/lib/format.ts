@@ -28,3 +28,14 @@ export function toDateTimeLocal(date: Date | null | undefined): string {
   if (!date) return "";
   return date.toISOString().slice(0, 16);
 }
+
+// A timestamp for display, in UTC so it matches what admins entered.
+export function formatDateTime(date: Date | null | undefined): string {
+  if (!date) return "";
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC",
+  }).format(date);
+  return `${formatted} UTC`;
+}

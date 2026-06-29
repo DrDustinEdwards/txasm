@@ -245,6 +245,10 @@ export function createDataAccess(db: DB) {
     // each) and affiliations, for the edit form. Authorized like get.
     async getForEdit(actor: Actor, abstractId: string) {
       const abstract = await this.get(actor, abstractId);
+      const edition = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, abstract.editionId),
+      });
+      if (!edition) throw new NotFoundError("meeting not found");
       const authors = await db
         .select()
         .from(schema.author)
@@ -279,6 +283,7 @@ export function createDataAccess(db: DB) {
 
       return {
         abstract,
+        edition,
         authors: authors.map((a) => ({
           ...a,
           affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort(

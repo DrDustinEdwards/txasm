@@ -82,6 +82,9 @@ function SiteHeader({
           ) : null}
           {email ? (
             <>
+              <NavLink to="/my/abstracts" className={navLinkClass}>
+                My abstracts
+              </NavLink>
               <span className="px-2 py-1 text-sm text-gray-600 dark:text-gray-400">
                 {email}
               </span>
