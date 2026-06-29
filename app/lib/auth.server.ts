@@ -48,10 +48,9 @@ function buildAuth(env: Env) {
     plugins: [
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          // TODO(phase-2): send this through Resend (email.server.ts) once the
-          // sending domain is verified. Resend is the chosen provider; do not
-          // add another. Until then, log the link so dev sign-in is testable
-          // without an email provider.
+          // TODO(phase-2): send this through Cloudflare Email Service
+          // (email.server.ts) once the sending domain is verified. Until then,
+          // log the link so dev sign-in is testable without an email provider.
           console.log(`[auth] magic link for ${email}: ${url}`);
         },
       }),

@@ -351,7 +351,8 @@ export function createDataAccess(db: DB) {
 
   const registrations = {
     // Attendee scoping: a user reads their own registration; a chair reads any
-    // in the edition. Stripe webhook flips status to paid out of band.
+    // in the edition. The PayPal capture webhook flips status to paid out of band.
+    // Bodies land in Part B once PayPal credentials exist.
     listForEdition(actor: Actor, editionId: string): Promise<unknown[]> {
       throw new Error("not implemented");
     },
@@ -361,13 +362,12 @@ export function createDataAccess(db: DB) {
     startCheckout(
       actor: Actor,
       input: { editionId: string; categoryId: string },
-    ): Promise<{ checkoutUrl: string }> {
+    ): Promise<{ approveUrl: string }> {
+      // Creates a PayPal order and returns its approval link for the payer.
       throw new Error("not implemented");
     },
-    markPaidFromWebhook(input: {
-      stripeCheckoutSessionId: string;
-    }): Promise<unknown> {
-      // Called by the verified webhook, not by a user, so it has no Actor.
+    markPaidFromWebhook(input: { paypalOrderId: string }): Promise<unknown> {
+      // Called by the verified PayPal webhook, not by a user, so it has no Actor.
       throw new Error("not implemented");
     },
   };
