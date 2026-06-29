@@ -1,0 +1,2 @@
+ALTER TABLE `registration` RENAME COLUMN `stripe_checkout_session_id` TO `paypal_order_id`;--> statement-breakpoint
+ALTER TABLE `registration` RENAME COLUMN `stripe_payment_intent_id` TO `paypal_capture_id`;
