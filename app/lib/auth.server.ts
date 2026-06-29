@@ -1,8 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink } from "better-auth/plugins";
+import { redirect } from "react-router";
+import { env } from "cloudflare:workers";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
+import { getActor, isAdmin, type Actor } from "./data-access";
 
 // Better Auth on D1/Drizzle. Sign-in is magic-link only (no Google): academics
 // use many providers, so a link to their inbox is the lowest-friction path.
@@ -91,3 +94,70 @@ export function getAuth(env: Env): AuthInstance {
 }
 
 export type Auth = AuthInstance;
+
+// ---------------------------------------------------------------------------
+// Request helpers. These read env from the Cloudflare-native module so callers
+// pass only the request. They stay inside the data/auth boundary: admin status
+// is resolved through getActor in the data-access layer, never raw queries.
+// ---------------------------------------------------------------------------
+
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
+export interface AdminContext {
+  user: SessionUser;
+  actor: Actor;
+}
+
+export interface UserContext {
+  user: SessionUser | null;
+  isAdmin: boolean;
+}
+
+// Non-throwing session read. Returns null when signed out, and also when auth is
+// not configured yet (no secret) so public pages still render before cutover.
+export async function getSessionUser(
+  request: Request,
+): Promise<SessionUser | null> {
+  if (!env.BETTER_AUTH_SECRET) return null;
+  try {
+    const session = await getAuth(env).api.getSession({
+      headers: request.headers,
+    });
+    if (!session?.user) return null;
+    const { id, email, name } = session.user;
+    return { id, email, name: name ?? null };
+  } catch (error) {
+    console.error("[auth] getSession failed", error);
+    return null;
+  }
+}
+
+// Redirect to sign-in when there is no session.
+export async function requireUser(request: Request): Promise<SessionUser> {
+  const user = await getSessionUser(request);
+  if (!user) throw redirect("/signin");
+  return user;
+}
+
+// Require a platform-wide admin role_grant. Signed-out users go to sign-in;
+// signed-in non-admins get a 403.
+export async function requireAdmin(request: Request): Promise<AdminContext> {
+  const user = await requireUser(request);
+  const actor = await getActor(env, user.id);
+  if (!isAdmin(actor)) {
+    throw new Response("Forbidden", { status: 403 });
+  }
+  return { user, actor };
+}
+
+// For chrome that adapts to auth state (the header). Never throws.
+export async function getUserContext(request: Request): Promise<UserContext> {
+  const user = await getSessionUser(request);
+  if (!user) return { user: null, isAdmin: false };
+  const actor = await getActor(env, user.id);
+  return { user, isAdmin: isAdmin(actor) };
+}
