@@ -3,13 +3,12 @@ import type { Route } from "./+types/admin.editions.$editionId";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
-  EDITION_STATUSES,
   NotFoundError,
   ValidationError,
   getDataAccess,
   type EditionPatch,
-  type EditionStatus,
 } from "~/lib/data-access";
+import { EDITION_STATUSES, type EditionStatus } from "~/lib/editions";
 import { toDateTimeLocal } from "~/lib/format";
 
 export function meta(_args: Route.MetaArgs) {

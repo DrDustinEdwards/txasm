@@ -2,6 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
+import { EDITION_STATUSES, type EditionStatus, type Season } from "./editions";
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
 // Enforce with an eslint no-restricted-imports rule on every other module so
@@ -123,20 +124,11 @@ export interface ReviewSubmission {
   confidentialComment?: string;
 }
 
-export type Season = "spring" | "fall";
-
-export const EDITION_STATUSES = [
-  "draft",
-  "registration_open",
-  "submission_open",
-  "review",
-  "decisions",
-  "scheduled",
-  "complete",
-  "archived",
-] as const;
-
-export type EditionStatus = (typeof EDITION_STATUSES)[number];
+// Edition status constants and the Season/EditionStatus types live in
+// ./editions so route components can import them without pulling this
+// server-only module into the client bundle. Re-export the types here for
+// callers that already reach the data-access layer for related types.
+export type { EditionStatus, Season } from "./editions";
 
 export interface EditionInput {
   name: string;
