@@ -606,7 +606,123 @@ export function createDataAccess(db: DB) {
     },
   };
 
-  return { abstracts, reviews, registrations, editions, registrationCategories };
+  // Abstract categories, per edition. Admin manages them; authors read them to
+  // pick one on the submission form. Hard delete is fine (no active flag).
+  const abstractCategories = {
+    async listForEdition(actor: Actor, editionId: string) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      return db
+        .select()
+        .from(schema.abstractCategory)
+        .where(eq(schema.abstractCategory.editionId, editionId))
+        .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
+    },
+
+    // Author-facing read for the submission form. Any signed-in user picks one,
+    // so this is not admin-gated; it exposes only category names.
+    async listForSubmission(editionId: string) {
+      return db
+        .select()
+        .from(schema.abstractCategory)
+        .where(eq(schema.abstractCategory.editionId, editionId))
+        .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
+    },
+
+    async create(
+      actor: Actor,
+      input: { editionId: string; name: string; sortOrder?: number },
+    ) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const name = input.name.trim();
+      if (!name) throw new ValidationError("Name is required.");
+
+      const existing = await db.query.abstractCategory.findFirst({
+        where: and(
+          eq(schema.abstractCategory.editionId, input.editionId),
+          eq(schema.abstractCategory.name, name),
+        ),
+      });
+      if (existing) {
+        throw new AlreadyExistsError(
+          `A category named "${name}" already exists for this meeting.`,
+        );
+      }
+
+      const [created] = await db
+        .insert(schema.abstractCategory)
+        .values({
+          editionId: input.editionId,
+          name,
+          sortOrder: input.sortOrder ?? 0,
+        })
+        .returning();
+      return created;
+    },
+
+    async update(
+      actor: Actor,
+      id: string,
+      patch: { name?: string; sortOrder?: number },
+    ) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const row = await db.query.abstractCategory.findFirst({
+        where: eq(schema.abstractCategory.id, id),
+      });
+      if (!row) throw new NotFoundError();
+
+      const set: Partial<typeof schema.abstractCategory.$inferInsert> = {};
+      if (patch.name !== undefined) {
+        const name = patch.name.trim();
+        if (!name) throw new ValidationError("Name is required.");
+        if (name !== row.name) {
+          const dupe = await db.query.abstractCategory.findFirst({
+            where: and(
+              eq(schema.abstractCategory.editionId, row.editionId),
+              eq(schema.abstractCategory.name, name),
+            ),
+          });
+          if (dupe) {
+            throw new AlreadyExistsError(
+              `A category named "${name}" already exists for this meeting.`,
+            );
+          }
+        }
+        set.name = name;
+      }
+      if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
+
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.abstractCategory)
+          .set(set)
+          .where(eq(schema.abstractCategory.id, id));
+      }
+      return db.query.abstractCategory.findFirst({
+        where: eq(schema.abstractCategory.id, id),
+      });
+    },
+
+    async remove(actor: Actor, id: string) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const row = await db.query.abstractCategory.findFirst({
+        where: eq(schema.abstractCategory.id, id),
+      });
+      if (!row) throw new NotFoundError();
+      await db
+        .delete(schema.abstractCategory)
+        .where(eq(schema.abstractCategory.id, id));
+      return { id };
+    },
+  };
+
+  return {
+    abstracts,
+    reviews,
+    registrations,
+    editions,
+    registrationCategories,
+    abstractCategories,
+  };
 }
 
 export type DataAccess = ReturnType<typeof createDataAccess>;

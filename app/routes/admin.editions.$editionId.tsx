@@ -92,6 +92,13 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
             Registration categories
+          </Link>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/abstract-categories`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Abstract categories
           </Link>
         </p>
       </div>

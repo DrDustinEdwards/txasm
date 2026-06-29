@@ -16,5 +16,9 @@ export default [
     "admin/editions/:editionId/categories/:categoryId",
     "routes/admin.editions.$editionId.categories.$categoryId.tsx",
   ),
+  route(
+    "admin/editions/:editionId/abstract-categories",
+    "routes/admin.editions.$editionId.abstract-categories.tsx",
+  ),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;
