@@ -23,8 +23,8 @@ export default function Home() {
         abstract submission, and the meeting program all live here.
       </p>
       <p className="text-gray-600 dark:text-gray-400">
-        Meeting details for the next edition are on the way. Check back soon, or
-        see the people who run the branch.
+        Details for the next meeting are on the way. Check back soon, or see the
+        people who run the branch.
       </p>
     </div>
   );

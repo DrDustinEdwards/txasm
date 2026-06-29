@@ -28,18 +28,18 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight">Editions</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Meetings</h1>
         <Link
           to="/admin/editions/new"
           className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2"
         >
-          Create edition
+          Create meeting
         </Link>
       </div>
 
       {editions.length === 0 ? (
         <p className="text-gray-700 dark:text-gray-300">
-          No editions yet. Create the first one to start a meeting cycle.
+          No meetings yet. Create the first one to get started.
         </p>
       ) : (
         <table className="w-full border-collapse text-left text-sm">

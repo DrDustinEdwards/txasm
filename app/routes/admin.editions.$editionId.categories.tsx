@@ -102,7 +102,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
             to={`/admin/editions/${edition.id}`}
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
-            Edit edition
+            Edit meeting
           </Link>
         </p>
       </div>

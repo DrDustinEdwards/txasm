@@ -12,7 +12,7 @@ import { EDITION_STATUSES, type EditionStatus } from "~/lib/editions";
 import { toDateTimeLocal } from "~/lib/format";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Edit edition | Texas Branch ASM" }];
+  return [{ title: "Edit meeting | Texas Branch ASM" }];
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

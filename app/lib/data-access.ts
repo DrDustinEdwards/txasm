@@ -405,7 +405,7 @@ export function createDataAccess(db: DB) {
       });
       if (existing) {
         throw new AlreadyExistsError(
-          `An edition for ${input.season} ${input.year} already exists.`,
+          `A meeting for ${input.season} ${input.year} already exists.`,
         );
       }
 
@@ -442,7 +442,7 @@ export function createDataAccess(db: DB) {
       if (!row) throw new NotFoundError();
 
       if (patch.status && !EDITION_STATUSES.includes(patch.status)) {
-        throw new ValidationError("Unknown edition status.");
+        throw new ValidationError("Unknown meeting status.");
       }
 
       const regOpens =
@@ -540,7 +540,7 @@ export function createDataAccess(db: DB) {
       });
       if (existing) {
         throw new AlreadyExistsError(
-          `A ${input.key} category already exists for this edition.`,
+          `A ${input.key} category already exists for this meeting.`,
         );
       }
 

@@ -14,7 +14,7 @@ import {
 } from "~/lib/editions";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "New edition | Texas Branch ASM" }];
+  return [{ title: "New meeting | Texas Branch ASM" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -78,9 +78,9 @@ export default function NewEdition() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">New edition</h1>
+        <h1 className="text-2xl font-semibold">New meeting</h1>
         <p className="text-gray-700 dark:text-gray-300">
-          One edition per meeting. Season and year together must be unique.
+          Each meeting has a season and year, and the two together must be unique.
         </p>
       </div>
 
@@ -164,7 +164,7 @@ export default function NewEdition() {
             disabled={submitting}
             className="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
           >
-            {submitting ? "Creating..." : "Create edition"}
+            {submitting ? "Creating..." : "Create meeting"}
           </button>
           <Link
             to="/admin"
