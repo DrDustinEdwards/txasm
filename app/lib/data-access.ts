@@ -3,6 +3,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import { EDITION_STATUSES, type EditionStatus, type Season } from "./editions";
+import { isEmptyRichText, sanitizeBody, sanitizeTitle } from "./richtext";
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
 // Enforce with an eslint no-restricted-imports rule on every other module so
@@ -124,6 +125,24 @@ export interface ReviewSubmission {
   confidentialComment?: string;
 }
 
+// The submission form sends the whole author and affiliation lists; the
+// data-access layer replaces them as a set, assigning ordinals by position.
+export interface AuthorInput {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  isPresenting?: boolean;
+  isCorresponding?: boolean;
+  affiliationOrdinals?: number[]; // which affiliation numbers attach to this author
+}
+
+export interface AffiliationInput {
+  institution: string;
+  department?: string;
+  city?: string;
+  country?: string;
+}
+
 // Edition status constants and the Season/EditionStatus types live in
 // ./editions so route components can import them without pulling this
 // server-only module into the client bundle. Re-export the types here for
@@ -178,6 +197,25 @@ function normalizeCurrency(currency?: string) {
 }
 
 export function createDataAccess(db: DB) {
+  // Shared guard: the abstract exists and the actor may edit it now. A chair of
+  // the meeting may edit any time; the submitter may edit only before the
+  // submission deadline. Returns the row.
+  async function requireEditableAbstract(actor: Actor, abstractId: string) {
+    const row = await db.query.abstract.findFirst({
+      where: eq(schema.abstract.id, abstractId),
+    });
+    if (!row) throw new NotFoundError();
+    if (isChair(actor, row.editionId)) return row;
+    if (row.submitterId !== actor.userId) throw new ForbiddenError();
+    const ed = await db.query.edition.findFirst({
+      where: eq(schema.edition.id, row.editionId),
+    });
+    if (ed?.submissionDeadline && Date.now() > ed.submissionDeadline.getTime()) {
+      throw new DeadlinePassedError("The submission deadline has passed.");
+    }
+    return row;
+  }
+
   const abstracts = {
     // Read scoping: chair/admin see any abstract in the edition, the submitter
     // sees their own, an assigned reviewer sees assigned abstracts. Everyone
@@ -203,48 +241,310 @@ export function createDataAccess(db: DB) {
       throw new ForbiddenError();
     },
 
-    // Edit until deadline. Submitter may edit their own draft before the
-    // edition submission deadline. A chair may edit at any time.
+    // The abstract plus its authors (with the affiliation numbers attached to
+    // each) and affiliations, for the edit form. Authorized like get.
+    async getForEdit(actor: Actor, abstractId: string) {
+      const abstract = await this.get(actor, abstractId);
+      const authors = await db
+        .select()
+        .from(schema.author)
+        .where(eq(schema.author.abstractId, abstractId))
+        .orderBy(schema.author.ordinal);
+      const affiliations = await db
+        .select()
+        .from(schema.affiliation)
+        .where(eq(schema.affiliation.abstractId, abstractId))
+        .orderBy(schema.affiliation.ordinal);
+
+      const ordinalById = new Map(affiliations.map((a) => [a.id, a.ordinal]));
+      const ordinalsByAuthor = new Map<string, number[]>();
+      if (authors.length > 0) {
+        const links = await db
+          .select()
+          .from(schema.authorAffiliation)
+          .where(
+            inArray(
+              schema.authorAffiliation.authorId,
+              authors.map((a) => a.id),
+            ),
+          );
+        for (const link of links) {
+          const ord = ordinalById.get(link.affiliationId);
+          if (ord === undefined) continue;
+          const list = ordinalsByAuthor.get(link.authorId) ?? [];
+          list.push(ord);
+          ordinalsByAuthor.set(link.authorId, list);
+        }
+      }
+
+      return {
+        abstract,
+        authors: authors.map((a) => ({
+          ...a,
+          affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort(
+            (x, y) => x - y,
+          ),
+        })),
+        affiliations,
+      };
+    },
+
+    // The actor's own abstracts in one meeting, drafts and submitted.
+    async listMine(actor: Actor, editionId: string) {
+      return db
+        .select()
+        .from(schema.abstract)
+        .where(
+          and(
+            eq(schema.abstract.editionId, editionId),
+            eq(schema.abstract.submitterId, actor.userId),
+          ),
+        )
+        .orderBy(desc(schema.abstract.updatedAt));
+    },
+
+    // The actor's abstracts across every meeting, with meeting name and slug,
+    // for the author dashboard.
+    async listMineAll(actor: Actor) {
+      return db
+        .select({
+          id: schema.abstract.id,
+          title: schema.abstract.title,
+          status: schema.abstract.status,
+          updatedAt: schema.abstract.updatedAt,
+          editionId: schema.abstract.editionId,
+          editionName: schema.edition.name,
+          editionSlug: schema.edition.slug,
+        })
+        .from(schema.abstract)
+        .innerJoin(schema.edition, eq(schema.abstract.editionId, schema.edition.id))
+        .where(eq(schema.abstract.submitterId, actor.userId))
+        .orderBy(desc(schema.abstract.updatedAt));
+    },
+
+    // Start a new draft owned by the actor. The meeting's submission window must
+    // be open: opens-at (if set) has passed and the deadline (if set) has not.
+    async create(actor: Actor, input: { editionId: string; title: string }) {
+      const ed = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, input.editionId),
+      });
+      if (!ed) throw new NotFoundError("meeting not found");
+      const now = Date.now();
+      if (ed.submissionOpensAt && now < ed.submissionOpensAt.getTime()) {
+        throw new ValidationError("Submission is not open yet for this meeting.");
+      }
+      if (ed.submissionDeadline && now > ed.submissionDeadline.getTime()) {
+        throw new DeadlinePassedError("The submission deadline has passed.");
+      }
+      const [created] = await db
+        .insert(schema.abstract)
+        .values({
+          editionId: input.editionId,
+          submitterId: actor.userId,
+          title: sanitizeTitle(input.title ?? ""),
+          status: "draft",
+        })
+        .returning();
+      return created;
+    },
+
+    // Edit until deadline. Sanitizes the title (em only) and section text
+    // (em, sup, sub) on every write. editionId and status are not editable here.
     async update(actor: Actor, abstractId: string, patch: Partial<AbstractInput>) {
+      await requireEditableAbstract(actor, abstractId);
+
+      const set: Partial<typeof schema.abstract.$inferInsert> = {};
+      if (patch.title !== undefined) set.title = sanitizeTitle(patch.title);
+      if (patch.background !== undefined) {
+        set.background = sanitizeBody(patch.background);
+      }
+      if (patch.methods !== undefined) set.methods = sanitizeBody(patch.methods);
+      if (patch.results !== undefined) set.results = sanitizeBody(patch.results);
+      if (patch.conclusions !== undefined) {
+        set.conclusions = sanitizeBody(patch.conclusions);
+      }
+      if (patch.bodyText !== undefined) {
+        set.bodyText = sanitizeBody(patch.bodyText);
+      }
+      if (patch.presentationPreference !== undefined) {
+        set.presentationPreference = patch.presentationPreference;
+      }
+      if (patch.categoryId !== undefined) {
+        set.categoryId = patch.categoryId ? patch.categoryId : null;
+      }
+
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.abstract)
+          .set(set)
+          .where(eq(schema.abstract.id, abstractId));
+      }
+      return this.get(actor, abstractId);
+    },
+
+    // Replace the abstract's affiliations as a set, ordinals by position. Run
+    // this before setAuthors, since author links reference affiliation ordinals.
+    async setAffiliations(
+      actor: Actor,
+      abstractId: string,
+      affiliations: AffiliationInput[],
+    ) {
+      await requireEditableAbstract(actor, abstractId);
+      await db
+        .delete(schema.affiliation)
+        .where(eq(schema.affiliation.abstractId, abstractId));
+
+      const cleaned = affiliations
+        .map((a) => ({
+          institution: a.institution?.trim() ?? "",
+          department: a.department?.trim() || null,
+          city: a.city?.trim() || null,
+          country: a.country?.trim() || null,
+        }))
+        .filter((a) => a.institution.length > 0);
+
+      if (cleaned.length > 0) {
+        await db.insert(schema.affiliation).values(
+          cleaned.map((a, i) => ({
+            abstractId,
+            ordinal: i + 1,
+            institution: a.institution,
+            department: a.department,
+            city: a.city,
+            country: a.country,
+          })),
+        );
+      }
+      return cleaned.length;
+    },
+
+    // Replace the abstract's authors as a set, ordinals by position, and rebuild
+    // their author-affiliation links by affiliation ordinal. Call setAffiliations
+    // first so the ordinals resolve.
+    async setAuthors(actor: Actor, abstractId: string, authors: AuthorInput[]) {
+      await requireEditableAbstract(actor, abstractId);
+      await db
+        .delete(schema.author)
+        .where(eq(schema.author.abstractId, abstractId));
+
+      const cleaned = authors
+        .map((a) => ({
+          firstName: a.firstName?.trim() ?? "",
+          lastName: a.lastName?.trim() ?? "",
+          email: a.email?.trim() || null,
+          isPresenting: !!a.isPresenting,
+          isCorresponding: !!a.isCorresponding,
+          affiliationOrdinals: Array.isArray(a.affiliationOrdinals)
+            ? a.affiliationOrdinals
+            : [],
+        }))
+        .filter((a) => a.firstName.length > 0 || a.lastName.length > 0);
+
+      if (cleaned.length === 0) return 0;
+
+      const inserted = await db
+        .insert(schema.author)
+        .values(
+          cleaned.map((a, i) => ({
+            abstractId,
+            ordinal: i + 1,
+            firstName: a.firstName,
+            lastName: a.lastName,
+            email: a.email,
+            isPresenting: a.isPresenting,
+            isCorresponding: a.isCorresponding,
+          })),
+        )
+        .returning();
+
+      const affs = await db
+        .select({
+          id: schema.affiliation.id,
+          ordinal: schema.affiliation.ordinal,
+        })
+        .from(schema.affiliation)
+        .where(eq(schema.affiliation.abstractId, abstractId));
+      const affIdByOrdinal = new Map(affs.map((a) => [a.ordinal, a.id]));
+
+      const links: { authorId: string; affiliationId: string }[] = [];
+      for (const authorRow of inserted) {
+        const source = cleaned[authorRow.ordinal - 1];
+        if (!source) continue;
+        for (const ord of source.affiliationOrdinals) {
+          const affId = affIdByOrdinal.get(ord);
+          if (affId) links.push({ authorId: authorRow.id, affiliationId: affId });
+        }
+      }
+      if (links.length > 0) {
+        await db.insert(schema.authorAffiliation).values(links);
+      }
+      return inserted.length;
+    },
+
+    // Move a draft to submitted. Only the submitter, only before the deadline,
+    // and only with a title, at least one author, and content in a section.
+    async submit(actor: Actor, abstractId: string) {
       const row = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, abstractId),
       });
       if (!row) throw new NotFoundError();
+      if (row.submitterId !== actor.userId) throw new ForbiddenError();
 
-      const chair = isChair(actor, row.editionId);
-      if (!chair && row.submitterId !== actor.userId) throw new ForbiddenError();
-
-      if (!chair) {
-        const ed = await db.query.edition.findFirst({
-          where: eq(schema.edition.id, row.editionId),
-        });
-        const deadline = ed?.submissionDeadline;
-        if (deadline && Date.now() > deadline.getTime()) {
-          throw new DeadlinePassedError();
-        }
+      const ed = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, row.editionId),
+      });
+      if (ed?.submissionDeadline && Date.now() > ed.submissionDeadline.getTime()) {
+        throw new DeadlinePassedError("The submission deadline has passed.");
       }
 
-      const { editionId: _ignore, ...safe } = patch; // editionId is not editable here
+      if (isEmptyRichText(row.title)) {
+        throw new ValidationError("Add a title before submitting.");
+      }
+      const authorRows = await db
+        .select({ id: schema.author.id })
+        .from(schema.author)
+        .where(eq(schema.author.abstractId, abstractId));
+      if (authorRows.length < 1) {
+        throw new ValidationError("Add at least one author before submitting.");
+      }
+      const sections = [
+        row.background,
+        row.methods,
+        row.results,
+        row.conclusions,
+        row.bodyText,
+      ];
+      if (!sections.some((s) => s && !isEmptyRichText(s))) {
+        throw new ValidationError(
+          "Add abstract content in at least one section before submitting.",
+        );
+      }
+
       await db
         .update(schema.abstract)
-        .set(safe)
+        .set({ status: "submitted", submittedAt: new Date() })
         .where(eq(schema.abstract.id, abstractId));
       return this.get(actor, abstractId);
     },
 
-    // Signatures for review, implemented later.
+    // The submitter or a chair withdraws the abstract.
+    async withdraw(actor: Actor, abstractId: string) {
+      const row = await db.query.abstract.findFirst({
+        where: eq(schema.abstract.id, abstractId),
+      });
+      if (!row) throw new NotFoundError();
+      if (!isChair(actor, row.editionId) && row.submitterId !== actor.userId) {
+        throw new ForbiddenError();
+      }
+      await db
+        .update(schema.abstract)
+        .set({ status: "withdrawn", withdrawnAt: new Date() })
+        .where(eq(schema.abstract.id, abstractId));
+      return this.get(actor, abstractId);
+    },
+
+    // Implemented in the review phase.
     listForEdition(actor: Actor, editionId: string): Promise<unknown[]> {
-      throw new Error("not implemented");
-    },
-    create(actor: Actor, input: AbstractInput): Promise<unknown> {
-      // Will check edition window. Whether a paid registration is required to
-      // submit is an open decision (Q1) and gets enforced here once locked.
-      throw new Error("not implemented");
-    },
-    submit(actor: Actor, abstractId: string): Promise<unknown> {
-      throw new Error("not implemented");
-    },
-    withdraw(actor: Actor, abstractId: string): Promise<unknown> {
       throw new Error("not implemented");
     },
   };
@@ -500,8 +800,15 @@ export function createDataAccess(db: DB) {
     listPublic(): Promise<unknown[]> {
       throw new Error("not implemented");
     },
-    get(slug: string): Promise<unknown> {
-      throw new Error("not implemented");
+
+    // Public read by slug, used by the author submission routes to resolve a
+    // meeting. No actor: it exposes only meeting metadata, not abstracts.
+    async get(slug: string) {
+      const row = await db.query.edition.findFirst({
+        where: eq(schema.edition.slug, slug),
+      });
+      if (!row) throw new NotFoundError();
+      return row;
     },
   };
 
