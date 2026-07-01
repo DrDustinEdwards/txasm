@@ -5,7 +5,13 @@ import { redirect } from "react-router";
 import { env } from "cloudflare:workers";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
-import { getActor, isAdmin, type Actor } from "./data-access";
+import {
+  getActor,
+  isAdmin,
+  isChair,
+  isReviewerAnywhere,
+  type Actor,
+} from "./data-access";
 
 // Better Auth on D1/Drizzle. Sign-in is magic-link only (no Google): academics
 // use many providers, so a link to their inbox is the lowest-friction path.
@@ -114,6 +120,12 @@ export interface AdminContext {
 export interface UserContext {
   user: SessionUser | null;
   isAdmin: boolean;
+  isReviewer: boolean;
+}
+
+export interface ChairContext {
+  user: SessionUser;
+  actor: Actor;
 }
 
 // Non-throwing session read. Returns null when signed out, and also when auth is
@@ -153,10 +165,29 @@ export async function requireAdmin(request: Request): Promise<AdminContext> {
   return { user, actor };
 }
 
+// Require a chair (or admin) of a specific meeting. Signed-out users go to
+// sign-in; signed-in users without the grant get a 403. isChair already treats a
+// platform admin as a chair of every meeting.
+export async function requireChair(
+  request: Request,
+  editionId: string,
+): Promise<ChairContext> {
+  const user = await requireUser(request);
+  const actor = await getActor(env, user.id);
+  if (!isChair(actor, editionId)) {
+    throw new Response("Forbidden", { status: 403 });
+  }
+  return { user, actor };
+}
+
 // For chrome that adapts to auth state (the header). Never throws.
 export async function getUserContext(request: Request): Promise<UserContext> {
   const user = await getSessionUser(request);
-  if (!user) return { user: null, isAdmin: false };
+  if (!user) return { user: null, isAdmin: false, isReviewer: false };
   const actor = await getActor(env, user.id);
-  return { user, isAdmin: isAdmin(actor) };
+  return {
+    user,
+    isAdmin: isAdmin(actor),
+    isReviewer: isReviewerAnywhere(actor),
+  };
 }
