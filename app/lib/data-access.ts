@@ -159,6 +159,21 @@ const RECOMMENDATIONS: readonly ReviewSubmission["recommendation"][] = [
   "revise",
 ];
 
+export type DecisionOutcome = "accept" | "reject" | "revise";
+export type PresentationType = "oral" | "poster";
+const DECISION_OUTCOMES: readonly DecisionOutcome[] = [
+  "accept",
+  "reject",
+  "revise",
+];
+
+export interface DecisionInput {
+  abstractId: string;
+  outcome: DecisionOutcome;
+  presentationType?: PresentationType | null;
+  decisionMessage?: string;
+}
+
 // The submission form sends the whole author and affiliation lists; the
 // data-access layer replaces them as a set, assigning ordinals by position.
 export interface AuthorInput {
@@ -1170,6 +1185,244 @@ export function createDataAccess(db: DB) {
     },
   };
 
+  // Decisions: the chair reads the reviews and records accept/reject/revise per
+  // abstract. One decision per abstract. Email is deferred, so the decision is
+  // shown to the author in-app; notifyState stays none until mail is built.
+  const decisions = {
+    // Chair/admin of the meeting records or updates the decision for one
+    // abstract. presentationType is required on accept and dropped otherwise.
+    // The message is sanitized with the body allowlist. Side effect on the
+    // abstract status: accept -> accepted, reject -> rejected, revise leaves it.
+    async setDecision(actor: Actor, input: DecisionInput) {
+      const abs = await db.query.abstract.findFirst({
+        where: eq(schema.abstract.id, input.abstractId),
+      });
+      if (!abs) throw new NotFoundError();
+      if (!isChair(actor, abs.editionId)) throw new ForbiddenError();
+
+      if (!DECISION_OUTCOMES.includes(input.outcome)) {
+        throw new ValidationError("Choose accept, reject, or revise.");
+      }
+
+      let presentationType: PresentationType | null = null;
+      if (input.outcome === "accept") {
+        if (
+          input.presentationType !== "oral" &&
+          input.presentationType !== "poster"
+        ) {
+          throw new ValidationError(
+            "Choose oral or poster for an accepted abstract.",
+          );
+        }
+        presentationType = input.presentationType;
+      }
+
+      const sanitized = input.decisionMessage
+        ? sanitizeBody(input.decisionMessage)
+        : null;
+      const message =
+        sanitized && !isEmptyRichText(sanitized) ? sanitized : null;
+
+      const existing = await db.query.decision.findFirst({
+        where: eq(schema.decision.abstractId, input.abstractId),
+      });
+      if (existing) {
+        await db
+          .update(schema.decision)
+          .set({
+            outcome: input.outcome,
+            presentationType,
+            decisionMessage: message,
+            decidedById: actor.userId,
+            decidedAt: new Date(),
+          })
+          .where(eq(schema.decision.id, existing.id));
+      } else {
+        await db.insert(schema.decision).values({
+          editionId: abs.editionId,
+          abstractId: input.abstractId,
+          outcome: input.outcome,
+          presentationType,
+          decisionMessage: message,
+          decidedById: actor.userId,
+        });
+      }
+
+      // Move the abstract to match an accept or reject. A revise decision leaves
+      // the abstract as it is (submitted or under_review) so the author can act.
+      if (input.outcome === "accept") {
+        await db
+          .update(schema.abstract)
+          .set({ status: "accepted" })
+          .where(eq(schema.abstract.id, input.abstractId));
+      } else if (input.outcome === "reject") {
+        await db
+          .update(schema.abstract)
+          .set({ status: "rejected" })
+          .where(eq(schema.abstract.id, input.abstractId));
+      }
+
+      return this.getForAbstract(actor, input.abstractId);
+    },
+
+    // Chair/admin dashboard: every non-draft abstract in the meeting with its
+    // decision (if any), the author names, the count of submitted reviews, and a
+    // compact tally of review recommendations so the chair can decide at a glance.
+    async listForEdition(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+
+      const rows = await db
+        .select()
+        .from(schema.abstract)
+        .where(
+          and(
+            eq(schema.abstract.editionId, editionId),
+            ne(schema.abstract.status, "draft"),
+          ),
+        )
+        .orderBy(desc(schema.abstract.submittedAt), desc(schema.abstract.createdAt));
+
+      if (rows.length === 0) return [];
+      const ids = rows.map((r) => r.id);
+
+      const authors = await db
+        .select({
+          abstractId: schema.author.abstractId,
+          firstName: schema.author.firstName,
+          lastName: schema.author.lastName,
+        })
+        .from(schema.author)
+        .where(inArray(schema.author.abstractId, ids))
+        .orderBy(schema.author.ordinal);
+
+      const submittedReviews = await db
+        .select({
+          abstractId: schema.review.abstractId,
+          recommendation: schema.review.recommendation,
+        })
+        .from(schema.review)
+        .where(
+          and(
+            inArray(schema.review.abstractId, ids),
+            eq(schema.review.status, "submitted"),
+          ),
+        );
+
+      const decisionRows = await db
+        .select()
+        .from(schema.decision)
+        .where(inArray(schema.decision.abstractId, ids));
+
+      const namesByAbstract = new Map<string, string[]>();
+      for (const a of authors) {
+        const name = `${a.firstName} ${a.lastName}`.trim();
+        const list = namesByAbstract.get(a.abstractId) ?? [];
+        if (name) list.push(name);
+        namesByAbstract.set(a.abstractId, list);
+      }
+
+      const summaryByAbstract = new Map<
+        string,
+        { accept: number; reject: number; revise: number; total: number }
+      >();
+      for (const r of submittedReviews) {
+        const s =
+          summaryByAbstract.get(r.abstractId) ??
+          { accept: 0, reject: 0, revise: 0, total: 0 };
+        s.total += 1;
+        if (r.recommendation === "accept") s.accept += 1;
+        else if (r.recommendation === "reject") s.reject += 1;
+        else if (r.recommendation === "revise") s.revise += 1;
+        summaryByAbstract.set(r.abstractId, s);
+      }
+
+      const decisionByAbstract = new Map(
+        decisionRows.map((d) => [d.abstractId, d]),
+      );
+
+      return rows.map((r) => {
+        const decisionRow = decisionByAbstract.get(r.id);
+        const summary =
+          summaryByAbstract.get(r.id) ??
+          { accept: 0, reject: 0, revise: 0, total: 0 };
+        return {
+          id: r.id,
+          title: r.title,
+          status: r.status,
+          submittedAt: r.submittedAt,
+          authorNames: namesByAbstract.get(r.id) ?? [],
+          reviewCount: summary.total,
+          recommendationSummary: {
+            accept: summary.accept,
+            reject: summary.reject,
+            revise: summary.revise,
+          },
+          decision: decisionRow
+            ? {
+                outcome: decisionRow.outcome,
+                presentationType: decisionRow.presentationType,
+                decisionMessage: decisionRow.decisionMessage,
+                decidedAt: decisionRow.decidedAt,
+                notifyState: decisionRow.notifyState,
+              }
+            : null,
+        };
+      });
+    },
+
+    // One abstract's decision, for the chair or the abstract's own submitter. The
+    // author sees their own decision this way; the visibility rule lives here, not
+    // only in the UI. Returns null when no decision has been recorded.
+    async getForAbstract(actor: Actor, abstractId: string) {
+      const abs = await db.query.abstract.findFirst({
+        where: eq(schema.abstract.id, abstractId),
+      });
+      if (!abs) throw new NotFoundError();
+      if (!isChair(actor, abs.editionId) && abs.submitterId !== actor.userId) {
+        throw new ForbiddenError();
+      }
+      const row = await db.query.decision.findFirst({
+        where: eq(schema.decision.abstractId, abstractId),
+      });
+      if (!row) return null;
+      return {
+        outcome: row.outcome,
+        presentationType: row.presentationType,
+        decisionMessage: row.decisionMessage,
+        decidedAt: row.decidedAt,
+        notifyState: row.notifyState,
+        notifiedAt: row.notifiedAt,
+      };
+    },
+
+    // Chair/admin removes a decision, for corrections, and reverts the abstract
+    // status to under_review when reviewers are still assigned, otherwise to
+    // submitted.
+    async clearDecision(actor: Actor, abstractId: string) {
+      const abs = await db.query.abstract.findFirst({
+        where: eq(schema.abstract.id, abstractId),
+      });
+      if (!abs) throw new NotFoundError();
+      if (!isChair(actor, abs.editionId)) throw new ForbiddenError();
+
+      await db
+        .delete(schema.decision)
+        .where(eq(schema.decision.abstractId, abstractId));
+
+      const assignments = await db
+        .select({ id: schema.reviewAssignment.id })
+        .from(schema.reviewAssignment)
+        .where(eq(schema.reviewAssignment.abstractId, abstractId));
+      const revert = assignments.length > 0 ? "under_review" : "submitted";
+      await db
+        .update(schema.abstract)
+        .set({ status: revert })
+        .where(eq(schema.abstract.id, abstractId));
+
+      return { abstractId };
+    },
+  };
+
   const registrations = {
     // Attendee scoping: a user reads their own registration; a chair reads any
     // in the edition. The PayPal capture webhook flips status to paid out of band.
@@ -1547,6 +1800,7 @@ export function createDataAccess(db: DB) {
     abstracts,
     reviews,
     roles,
+    decisions,
     registrations,
     editions,
     registrationCategories,
