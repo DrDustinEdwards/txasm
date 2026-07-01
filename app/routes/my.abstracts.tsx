@@ -12,8 +12,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await requireUser(request);
   const { env } = context.get(cloudflareContext);
   const actor = await getActor(env, user.id);
-  const abstracts = await getDataAccess(env).abstracts.listMineAll(actor);
-  return { abstracts };
+  const da = getDataAccess(env);
+  const abstracts = await da.abstracts.listMineAll(actor);
+  // Read each decision through getForAbstract so the author-visibility rule is
+  // enforced in the data layer, not the UI. These are the actor's own abstracts.
+  const withDecision = await Promise.all(
+    abstracts.map(async (abstract) => ({
+      ...abstract,
+      decision: await da.decisions.getForAbstract(actor, abstract.id),
+    })),
+  );
+  return { abstracts: withDecision };
 }
 
 function titleCase(value: string) {
@@ -21,6 +30,13 @@ function titleCase(value: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function outcomeLabel(value: string) {
+  if (value === "accept") return "Accepted";
+  if (value === "reject") return "Rejected";
+  if (value === "revise") return "Revise and resubmit";
+  return value;
 }
 
 export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
@@ -48,6 +64,9 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
               <th scope="col" className="py-2 pr-4 font-medium">
                 Status
               </th>
+              <th scope="col" className="py-2 pr-4 font-medium">
+                Decision
+              </th>
               <th scope="col" className="py-2 text-right font-medium">
                 <span className="sr-only">Actions</span>
               </th>
@@ -70,6 +89,18 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                 </td>
                 <td className="py-2 pr-4">{abstract.editionName}</td>
                 <td className="py-2 pr-4">{titleCase(abstract.status)}</td>
+                <td className="py-2 pr-4">
+                  {abstract.decision ? (
+                    <span>
+                      {outcomeLabel(abstract.decision.outcome)}
+                      {abstract.decision.presentationType
+                        ? ` (${titleCase(abstract.decision.presentationType)})`
+                        : ""}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">Pending</span>
+                  )}
+                </td>
                 <td className="py-2 text-right">
                   <Link
                     to={`/abstracts/${abstract.id}/edit`}

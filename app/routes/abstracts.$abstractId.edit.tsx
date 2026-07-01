@@ -48,6 +48,16 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const editable =
     isChair(actor, data.abstract.editionId) || !deadlinePassed;
 
+  // Surface the decision to the submitter (or a chair). getForAbstract enforces
+  // the same rule; the pre-check keeps an assigned reviewer viewing this page
+  // from tripping a forbidden read.
+  const canSeeDecision =
+    isChair(actor, data.abstract.editionId) ||
+    data.abstract.submitterId === actor.userId;
+  const decision = canSeeDecision
+    ? await da.decisions.getForAbstract(actor, params.abstractId)
+    : null;
+
   return {
     abstract: {
       id: data.abstract.id,
@@ -81,6 +91,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     })),
     editable,
     deadlinePassed,
+    decision,
   };
 }
 
@@ -195,7 +206,7 @@ function titleCase(value: string) {
 }
 
 export default function EditAbstract({ loaderData }: Route.ComponentProps) {
-  const { abstract, edition, categories, editable } = loaderData;
+  const { abstract, edition, categories, editable, decision } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
@@ -282,6 +293,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             "Untitled abstract"
           )}
         </h1>
+        <DecisionPanel decision={decision} />
         <p
           role="status"
           className="rounded border border-gray-200 bg-gray-50 p-3 text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
@@ -315,6 +327,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             : ""}
         </p>
       </div>
+
+      <DecisionPanel decision={decision} />
 
       <p
         ref={statusRef}
@@ -680,6 +694,52 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         </div>
       </Form>
     </div>
+  );
+}
+
+function outcomeLabel(value: string) {
+  if (value === "accept") return "Accepted";
+  if (value === "reject") return "Rejected";
+  if (value === "revise") return "Revise and resubmit";
+  return value;
+}
+
+function DecisionPanel({
+  decision,
+}: {
+  decision: {
+    outcome: string;
+    presentationType: string | null;
+    decisionMessage: string | null;
+  } | null;
+}) {
+  if (!decision) return null;
+  const tone =
+    decision.outcome === "accept"
+      ? "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950"
+      : decision.outcome === "reject"
+        ? "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950"
+        : "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950";
+  return (
+    <section role="status" className={`space-y-2 rounded border p-4 ${tone}`}>
+      <h2 className="text-lg font-medium">Decision</h2>
+      <p className="text-sm">
+        <span className="font-medium">Outcome:</span>{" "}
+        {outcomeLabel(decision.outcome)}
+        {decision.presentationType
+          ? ` (${titleCase(decision.presentationType)} presentation)`
+          : ""}
+      </p>
+      {decision.decisionMessage ? (
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium">Message from the organizers</h3>
+          <div
+            className="text-sm"
+            dangerouslySetInnerHTML={{ __html: decision.decisionMessage }}
+          />
+        </div>
+      ) : null}
+    </section>
   );
 }
 
