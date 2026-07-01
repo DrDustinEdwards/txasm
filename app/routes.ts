@@ -23,5 +23,19 @@ export default [
     "admin/editions/:editionId/abstract-categories",
     "routes/admin.editions.$editionId.abstract-categories.tsx",
   ),
+  route(
+    "admin/editions/:editionId/roles",
+    "routes/admin.editions.$editionId.roles.tsx",
+  ),
+  route(
+    "admin/editions/:editionId/review",
+    "routes/admin.editions.$editionId.review.tsx",
+  ),
+  route(
+    "admin/editions/:editionId/review/:abstractId",
+    "routes/admin.editions.$editionId.review.$abstractId.tsx",
+  ),
+  route("review", "routes/review.tsx"),
+  route("review/:assignmentId", "routes/review.$assignmentId.tsx"),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;

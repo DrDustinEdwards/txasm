@@ -99,6 +99,20 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
             Abstract categories
+          </Link>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/roles`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Chairs and reviewers
+          </Link>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/review`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Assign reviewers
           </Link>
         </p>
       </div>
