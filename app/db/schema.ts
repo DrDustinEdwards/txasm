@@ -549,7 +549,38 @@ export const decision = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Abstract book. The printed proceedings for a meeting. Part A renders the
+// accepted abstracts to print-ready HTML on demand; no row is written yet. Part
+// B (gated on the Workers plan) converts that HTML to a PDF via Browser
+// Rendering and stores it in R2, writing r2Key/fileName and moving status to
+// ready. The row exists now so Part B is a pure addition.
+// ---------------------------------------------------------------------------
+
+export const abstractBook = sqliteTable(
+  "abstract_book",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" }),
+    r2Key: text("r2_key"), // set when a PDF is generated in Part B
+    fileName: text("file_name"),
+    status: text("status", {
+      enum: ["pending", "generating", "ready", "failed"],
+    })
+      .notNull()
+      .default("pending"),
+    abstractCount: integer("abstract_count"),
+    generatedById: text("generated_by_id").references(() => user.id),
+    generatedAt: tsMs("generated_at"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_abstract_book_edition").on(t.editionId)],
+);
+
+// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
-// this review: decision, program_session, program_item, abstract_book, officer,
-// newsletter, award. Add once the core above is agreed.
+// this review: program_session, program_item, officer, newsletter, award. Add
+// once the core above is agreed.
 // ---------------------------------------------------------------------------
