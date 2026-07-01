@@ -27,8 +27,8 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const { user, isAdmin } = await getUserContext(request);
-  return { email: user?.email ?? null, isAdmin };
+  const { user, isAdmin, isReviewer } = await getUserContext(request);
+  return { email: user?.email ?? null, isAdmin, isReviewer };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -58,9 +58,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 function SiteHeader({
   email,
   isAdmin,
+  isReviewer,
 }: {
   email: string | null;
   isAdmin: boolean;
+  isReviewer: boolean;
 }) {
   return (
     <header className="border-b border-gray-200 dark:border-gray-800">
@@ -78,6 +80,11 @@ function SiteHeader({
           {isAdmin ? (
             <NavLink to="/admin" className={navLinkClass}>
               Admin
+            </NavLink>
+          ) : null}
+          {isReviewer ? (
+            <NavLink to="/review" className={navLinkClass}>
+              Review
             </NavLink>
           ) : null}
           {email ? (
@@ -127,7 +134,11 @@ export default function App({ loaderData }: Route.ComponentProps) {
       >
         Skip to content
       </a>
-      <SiteHeader email={loaderData.email} isAdmin={loaderData.isAdmin} />
+      <SiteHeader
+        email={loaderData.email}
+        isAdmin={loaderData.isAdmin}
+        isReviewer={loaderData.isReviewer}
+      />
       <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
         <Outlet />
       </main>
