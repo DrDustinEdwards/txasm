@@ -15,6 +15,13 @@
       "when": 1782698074419,
       "tag": "0001_rename_stripe_to_paypal",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782878575002,
+      "tag": "0002_wild_inhumans",
+      "breakpoints": true
     }
   ]
 }

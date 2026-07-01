@@ -503,6 +503,52 @@ export const reviewScore = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Decisions. One per abstract: the chair records accept/reject/revise after
+// reading the reviews. presentation_type is set only on accept. decision_message
+// is an optional note to the author, stored sanitized. notify_state tracks how
+// the author was told; email is deferred, so in-app display is the notification
+// for now and the state stays "none" until a later additive step sends mail.
+// ---------------------------------------------------------------------------
+
+export const decision = sqliteTable(
+  "decision",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" }),
+    abstractId: text("abstract_id")
+      .notNull()
+      .references(() => abstract.id, { onDelete: "cascade" }),
+    outcome: text("outcome", {
+      enum: ["accept", "reject", "revise"],
+    }).notNull(),
+    presentationType: text("presentation_type", {
+      enum: ["oral", "poster"],
+    }), // set only when outcome is accept
+    decisionMessage: text("decision_message"), // optional note to the author, sanitized
+    decidedById: text("decided_by_id")
+      .notNull()
+      .references(() => user.id),
+    decidedAt: integer("decided_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    notifyState: text("notify_state", {
+      enum: ["none", "in_app", "emailed"],
+    })
+      .notNull()
+      .default("none"),
+    notifiedAt: tsMs("notified_at"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique("uq_decision_abstract").on(t.abstractId),
+    index("ix_decision_edition").on(t.editionId),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: decision, program_session, program_item, abstract_book, officer,
 // newsletter, award. Add once the core above is agreed.
