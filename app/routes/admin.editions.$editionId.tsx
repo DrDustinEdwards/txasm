@@ -113,6 +113,13 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
             Assign reviewers
+          </Link>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/decisions`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Decisions
           </Link>
         </p>
       </div>

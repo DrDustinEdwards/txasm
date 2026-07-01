@@ -35,6 +35,10 @@ export default [
     "admin/editions/:editionId/review/:abstractId",
     "routes/admin.editions.$editionId.review.$abstractId.tsx",
   ),
+  route(
+    "admin/editions/:editionId/decisions",
+    "routes/admin.editions.$editionId.decisions.tsx",
+  ),
   route("review", "routes/review.tsx"),
   route("review/:assignmentId", "routes/review.$assignmentId.tsx"),
   route("api/auth/*", "routes/api.auth.$.ts"),
