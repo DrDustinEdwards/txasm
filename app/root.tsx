@@ -1,9 +1,7 @@
 import {
-  Form,
   isRouteErrorResponse,
   Links,
   Meta,
-  NavLink,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -11,9 +9,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import { getUserContext } from "~/lib/auth.server";
 import { parseThemeCookie } from "~/lib/theme";
-import { ThemeToggle } from "~/components/theme-toggle";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -29,16 +25,16 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+// Root provides the document and the theme. The public and admin shells (their
+// own layout routes) provide the chrome. Only the theme is read here.
 export async function loader({ request }: Route.LoaderArgs) {
-  const { user, isAdmin, isReviewer } = await getUserContext(request);
   const theme = parseThemeCookie(request.headers.get("Cookie"));
-  return { email: user?.email ?? null, isAdmin, isReviewer, theme };
+  return { theme };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Read the chosen theme from the root loader so data-theme is set server-side,
-  // matching the SSR render with no flash. Absent (no cookie) leaves the
-  // attribute off and prefers-color-scheme decides.
+  // data-theme is set server-side from the cookie so the SSR render matches the
+  // chosen theme with no flash. When absent, prefers-color-scheme decides.
   const data = useRouteLoaderData<typeof loader>("root");
   const theme = data?.theme ?? undefined;
   return (
@@ -58,102 +54,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  [
-    "rounded px-2 py-1 text-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2",
-    isActive ? "text-blue-800 dark:text-blue-300" : "text-gray-700 dark:text-gray-300",
-  ].join(" ");
-
-function SiteHeader({
-  email,
-  isAdmin,
-  isReviewer,
-}: {
-  email: string | null;
-  isAdmin: boolean;
-  isReviewer: boolean;
-}) {
+export default function App() {
   return (
-    <header className="border-b border-gray-200 dark:border-gray-800">
-      <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
-        <NavLink to="/" className="text-base font-semibold">
-          Texas Branch ASM
-        </NavLink>
-        <nav aria-label="Primary" className="flex items-center gap-1">
-          <NavLink to="/" end className={navLinkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/officers" className={navLinkClass}>
-            Officers
-          </NavLink>
-          {isAdmin ? (
-            <NavLink to="/admin" className={navLinkClass}>
-              Admin
-            </NavLink>
-          ) : null}
-          {isReviewer ? (
-            <NavLink to="/review" className={navLinkClass}>
-              Review
-            </NavLink>
-          ) : null}
-          {email ? (
-            <>
-              <NavLink to="/my/abstracts" className={navLinkClass}>
-                My abstracts
-              </NavLink>
-              <span className="px-2 py-1 text-sm text-gray-600 dark:text-gray-400">
-                {email}
-              </span>
-              <Form method="post" action="/signout">
-                <button
-                  type="submit"
-                  className="rounded px-2 py-1 text-sm font-medium text-gray-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-gray-300"
-                >
-                  Sign out
-                </button>
-              </Form>
-            </>
-          ) : (
-            <NavLink to="/signin" className={navLinkClass}>
-              Sign in
-            </NavLink>
-          )}
-          <ThemeToggle />
-        </nav>
-      </div>
-    </header>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer className="border-t border-gray-200 dark:border-gray-800">
-      <div className="mx-auto max-w-4xl px-4 py-6 text-sm text-gray-600 dark:text-gray-400">
-        Texas Branch of the American Society for Microbiology
-      </div>
-    </footer>
-  );
-}
-
-export default function App({ loaderData }: Route.ComponentProps) {
-  return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:shadow dark:focus:bg-gray-900"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface-raised focus:px-3 focus:py-2 focus:text-text focus:shadow"
       >
         Skip to content
       </a>
-      <SiteHeader
-        email={loaderData.email}
-        isAdmin={loaderData.isAdmin}
-        isReviewer={loaderData.isReviewer}
-      />
-      <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
-        <Outlet />
-      </main>
-      <SiteFooter />
-    </div>
+      <Outlet />
+    </>
   );
 }
 
@@ -172,11 +83,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-16">
-      <h1 className="text-2xl font-semibold">{heading}</h1>
-      <p className="mt-3 text-gray-700 dark:text-gray-300">{detail}</p>
+    <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-16">
+      <h1 className="text-2xl font-semibold text-text">{heading}</h1>
+      <p className="mt-3 text-text-muted">{detail}</p>
       {import.meta.env.DEV && error instanceof Error && error.stack ? (
-        <pre className="mt-6 overflow-x-auto rounded bg-gray-100 p-4 text-sm dark:bg-gray-900">
+        <pre className="mt-6 overflow-x-auto rounded bg-panel p-4 text-sm text-text">
           <code>{error.stack}</code>
         </pre>
       ) : null}

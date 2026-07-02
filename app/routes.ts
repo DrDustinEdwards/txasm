@@ -1,13 +1,18 @@
-import { type RouteConfig, index, route } from "@react-router/dev/routes";
+import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
 
 export default [
-  index("routes/home.tsx"),
-  route("officers", "routes/officers.tsx"),
-  route("signin", "routes/signin.tsx"),
-  route("signout", "routes/signout.tsx"),
-  route("my/abstracts", "routes/my.abstracts.tsx"),
-  route("submit/:slug", "routes/submit.$slug.tsx"),
-  route("abstracts/:abstractId/edit", "routes/abstracts.$abstractId.edit.tsx"),
+  layout("routes/public.layout.tsx", [
+    index("routes/home.tsx"),
+    route("officers", "routes/officers.tsx"),
+    route("signin", "routes/signin.tsx"),
+    route("signout", "routes/signout.tsx"),
+    route("my/abstracts", "routes/my.abstracts.tsx"),
+    route("submit/:slug", "routes/submit.$slug.tsx"),
+    route("abstracts/:abstractId/edit", "routes/abstracts.$abstractId.edit.tsx"),
+    route("review", "routes/review.tsx"),
+    route("review/:assignmentId", "routes/review.$assignmentId.tsx"),
+    route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
+  ]),
   route("admin", "routes/admin.tsx"),
   route("admin/editions/new", "routes/admin.editions.new.tsx"),
   route("admin/editions/:editionId", "routes/admin.editions.$editionId.tsx"),
@@ -55,8 +60,5 @@ export default [
     "admin/editions/:editionId/program",
     "routes/admin.editions.$editionId.program.tsx",
   ),
-  route("review", "routes/review.tsx"),
-  route("review/:assignmentId", "routes/review.$assignmentId.tsx"),
-  route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;

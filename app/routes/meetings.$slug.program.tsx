@@ -2,6 +2,7 @@ import type { Route } from "./+types/meetings.$slug.program";
 import { cloudflareContext } from "~/load-context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { Breadcrumbs } from "~/components/breadcrumbs";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Program | Texas Branch ASM" }];
@@ -66,6 +67,13 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
+      <Breadcrumbs
+        trail={[
+          { label: "Home", to: "/" },
+          { label: "Meetings", to: "/meetings" },
+          { label: `${edition.name} program` },
+        ]}
+      />
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">
           {edition.name}
