@@ -157,6 +157,11 @@ function SessionBlock({
         {timeLine ? (
           <p className="text-sm text-gray-600 dark:text-gray-400">{timeLine}</p>
         ) : null}
+        {session.moderator ? (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Moderated by {session.moderator}
+          </p>
+        ) : null}
       </div>
       {session.items.length === 0 ? (
         <p className="text-sm text-gray-600 dark:text-gray-400">

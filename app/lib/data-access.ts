@@ -357,6 +357,7 @@ export interface ProgramSessionInput {
   startsAt?: Date | null;
   endsAt?: Date | null;
   location?: string | null;
+  moderator?: string | null;
 }
 
 export interface ProgramSessionPatch {
@@ -365,6 +366,7 @@ export interface ProgramSessionPatch {
   startsAt?: Date | null;
   endsAt?: Date | null;
   location?: string | null;
+  moderator?: string | null;
 }
 
 // The ProgramItemKind vocabulary lives in ./vocab (imported above). Validate a
@@ -406,6 +408,7 @@ export interface ProgramSessionResolved {
   startsAt: Date | null;
   endsAt: Date | null;
   location: string | null;
+  moderator: string | null; // plain text, escaped at render time
   sortOrder: number;
   items: ProgramItemResolved[];
 }
@@ -2461,6 +2464,7 @@ export function createDataAccess(db: DB) {
         startsAt: s.startsAt,
         endsAt: s.endsAt,
         location: s.location,
+        moderator: s.moderator,
         sortOrder: s.sortOrder,
         items: (itemsBySession.get(s.id) ?? [])
           .slice()
@@ -2540,6 +2544,7 @@ export function createDataAccess(db: DB) {
           startsAt: input.startsAt ?? null,
           endsAt: input.endsAt ?? null,
           location: input.location?.trim() || null,
+          moderator: input.moderator?.trim() || null,
           sortOrder: nextOrder,
         })
         .returning();
@@ -2564,6 +2569,9 @@ export function createDataAccess(db: DB) {
       if (patch.endsAt !== undefined) set.endsAt = patch.endsAt;
       if (patch.location !== undefined) {
         set.location = patch.location?.trim() || null;
+      }
+      if (patch.moderator !== undefined) {
+        set.moderator = patch.moderator?.trim() || null;
       }
       if (Object.keys(set).length > 0) {
         await db

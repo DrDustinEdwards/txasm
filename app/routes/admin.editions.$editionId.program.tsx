@@ -96,6 +96,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
         startsAt: parseWhen(form.get("startsAt")),
         endsAt: parseWhen(form.get("endsAt")),
         location: String(form.get("location") ?? ""),
+        moderator: String(form.get("moderator") ?? ""),
       });
       return { ok: "Session added." };
     }
@@ -116,6 +117,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
         startsAt: parseWhen(form.get("startsAt")),
         endsAt: parseWhen(form.get("endsAt")),
         location: String(form.get("location") ?? ""),
+        moderator: String(form.get("moderator") ?? ""),
       });
       return { ok: "Session saved." };
     }
@@ -409,6 +411,19 @@ function SessionFields({
           name="endsAt"
           type="datetime-local"
           defaultValue={toDateTimeLocal(session?.endsAt ?? null)}
+          className={inputClass}
+        />
+      </div>
+      <div className="space-y-1 sm:col-span-2">
+        <label htmlFor={`mod-${idBase}`} className="block text-sm font-medium">
+          Moderator (optional)
+        </label>
+        <input
+          id={`mod-${idBase}`}
+          name="moderator"
+          type="text"
+          defaultValue={session?.moderator ?? ""}
+          placeholder="Dr. Jane Rivera"
           className={inputClass}
         />
       </div>
@@ -737,6 +752,11 @@ function SessionColumn({
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {session.location ? session.location : "No room set"} . {slotTimeLine(session)}
           </p>
+          {session.moderator ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Moderated by {session.moderator}
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <Form method="post">
