@@ -2,6 +2,7 @@ import { Form, Link, NavLink, Outlet } from "react-router";
 import type { Route } from "./+types/public.layout";
 import { getUserContext } from "~/lib/auth.server";
 import { NavMenu, type NavMenuGroup } from "~/components/nav-menu";
+import { OffCanvas } from "~/components/off-canvas";
 import { ThemeToggle } from "~/components/theme-toggle";
 
 // Public shell: sticky top bar and footer around every public page. Auth state
@@ -54,6 +55,110 @@ const utilityLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "text-link" : "text-text-muted hover:text-text",
   ].join(" ");
 
+function MobileGroup({ group }: { group: NavMenuGroup }) {
+  return (
+    <div>
+      {group.heading ? (
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+          {group.heading}
+        </p>
+      ) : null}
+      <ul className="space-y-0.5">
+        {group.items.map((item) => (
+          <li key={`${item.to}-${item.label}`}>
+            <Link
+              to={item.to}
+              className="block rounded px-2 py-1.5 text-sm text-text hover:bg-panel hover:text-link focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function MobileNav({
+  email,
+  isAdmin,
+  isReviewer,
+}: {
+  email: string | null;
+  isAdmin: boolean;
+  isReviewer: boolean;
+}) {
+  return (
+    <div className="space-y-5">
+      <nav aria-label="Sections" className="space-y-4">
+        <Link
+          to="/officers"
+          className="block rounded px-2 py-1.5 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          Officers
+        </Link>
+        <div className="space-y-2">
+          <p className="px-2 text-sm font-semibold text-text">Meetings</p>
+          {MEETINGS_GROUPS.map((group, index) => (
+            <MobileGroup key={group.heading ?? index} group={group} />
+          ))}
+        </div>
+        <div className="space-y-2">
+          <p className="px-2 text-sm font-semibold text-text">Awards</p>
+          {AWARDS_GROUPS.map((group, index) => (
+            <MobileGroup key={group.heading ?? index} group={group} />
+          ))}
+        </div>
+      </nav>
+
+      <div className="space-y-1 border-t border-border pt-4">
+        {email ? (
+          <>
+            <Link
+              to="/my/abstracts"
+              className="block rounded px-2 py-1.5 text-sm text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              My abstracts
+            </Link>
+            {isReviewer ? (
+              <Link
+                to="/review"
+                className="block rounded px-2 py-1.5 text-sm text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Review
+              </Link>
+            ) : null}
+            {isAdmin ? (
+              <Link
+                to="/admin"
+                className="block rounded px-2 py-1.5 text-sm text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Admin
+              </Link>
+            ) : null}
+            <p className="px-2 pt-1 text-sm text-text-muted">{email}</p>
+            <Form method="post" action="/signout">
+              <button
+                type="submit"
+                className="w-full rounded px-2 py-1.5 text-left text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Sign out
+              </button>
+            </Form>
+          </>
+        ) : (
+          <Link
+            to="/signin"
+            className="block rounded-md bg-primary px-3 py-2 text-center text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PublicHeader({
   email,
   isAdmin,
@@ -67,6 +172,15 @@ function PublicHeader({
     <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-1">
+          <div className="md:hidden">
+            <OffCanvas triggerLabel="Open menu" title="Menu" side="left">
+              <MobileNav
+                email={email}
+                isAdmin={isAdmin}
+                isReviewer={isReviewer}
+              />
+            </OffCanvas>
+          </div>
           <Link
             to="/"
             className="rounded-md px-2 py-1 text-base font-semibold tracking-tight text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
@@ -83,44 +197,43 @@ function PublicHeader({
         </div>
 
         <div className="flex items-center gap-1">
-          {email ? (
-            <>
+          <div className="hidden items-center gap-1 md:flex">
+            {email ? (
+              <>
+                <NavLink to="/my/abstracts" className={utilityLinkClass}>
+                  My abstracts
+                </NavLink>
+                {isReviewer ? (
+                  <NavLink to="/review" className={utilityLinkClass}>
+                    Review
+                  </NavLink>
+                ) : null}
+                {isAdmin ? (
+                  <NavLink to="/admin" className={utilityLinkClass}>
+                    Admin
+                  </NavLink>
+                ) : null}
+                <span className="hidden px-2 text-sm text-text-muted lg:inline">
+                  {email}
+                </span>
+                <Form method="post" action="/signout">
+                  <button
+                    type="submit"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                  >
+                    Sign out
+                  </button>
+                </Form>
+              </>
+            ) : (
               <NavLink
-                to="/my/abstracts"
-                className={utilityLinkClass}
+                to="/signin"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                My abstracts
+                Sign in
               </NavLink>
-              {isReviewer ? (
-                <NavLink to="/review" className={utilityLinkClass}>
-                  Review
-                </NavLink>
-              ) : null}
-              {isAdmin ? (
-                <NavLink to="/admin" className={utilityLinkClass}>
-                  Admin
-                </NavLink>
-              ) : null}
-              <span className="hidden px-2 text-sm text-text-muted lg:inline">
-                {email}
-              </span>
-              <Form method="post" action="/signout">
-                <button
-                  type="submit"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
-                  Sign out
-                </button>
-              </Form>
-            </>
-          ) : (
-            <NavLink
-              to="/signin"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            >
-              Sign in
-            </NavLink>
-          )}
+            )}
+          </div>
           <ThemeToggle />
         </div>
       </div>

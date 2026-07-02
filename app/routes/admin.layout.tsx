@@ -1,6 +1,7 @@
 import { Form, Link, NavLink, Outlet, useMatches, useParams } from "react-router";
 import type { Route } from "./+types/admin.layout";
 import { getUserContext } from "~/lib/auth.server";
+import { OffCanvas } from "~/components/off-canvas";
 import { ThemeToggle } from "~/components/theme-toggle";
 
 // Admin shell. This layout does NOT gate; each wrapped route keeps its own
@@ -193,6 +194,15 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="flex items-center justify-between gap-4 px-4 py-2">
           <div className="flex items-center gap-3">
+            <div className="md:hidden">
+              <OffCanvas triggerLabel="Open admin menu" title="Admin menu" side="left">
+                <AdminNav
+                  isAdmin={isAdmin}
+                  isReviewer={isReviewer}
+                  editionId={editionId}
+                />
+              </OffCanvas>
+            </div>
             <Link
               to="/"
               className="rounded-md px-2 py-1 text-sm font-semibold tracking-tight text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
