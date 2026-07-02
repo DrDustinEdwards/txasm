@@ -597,10 +597,65 @@ export const abstractBook = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Invited speakers and sponsors, per edition. Invited speakers are keynotes and
+// award lectures a program item can point to; sponsors show on the public
+// program. Both carry an r2Key for an image (headshot, logo) that stays nullable
+// now: the upload UI comes with the later assets work, and seeding needs only the
+// text. Bios are stored sanitized to the abstract body allowlist (em/sup/sub).
+// ---------------------------------------------------------------------------
+
+export const invitedSpeaker = sqliteTable(
+  "invited_speaker",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    affiliation: text("affiliation"),
+    role: text("role", {
+      enum: [
+        "keynote",
+        "goldschmidt_lecture",
+        "award_lecture",
+        "career",
+        "other",
+      ],
+    }),
+    talkTitle: text("talk_title"),
+    bio: text("bio"), // sanitized HTML (em/sup/sub)
+    headshotR2Key: text("headshot_r2_key"), // upload deferred; key stays nullable
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_invited_speaker_edition").on(t.editionId)],
+);
+
+export const sponsor = sqliteTable(
+  "sponsor",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    tier: text("tier"), // e.g. "Gold", free text per meeting
+    url: text("url"),
+    logoR2Key: text("logo_r2_key"), // upload deferred; key stays nullable
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_sponsor_edition").on(t.editionId)],
+);
+
+// ---------------------------------------------------------------------------
 // Program. The meeting schedule: ordered sessions, each holding ordered items.
-// An item is either an accepted abstract (abstractId set) or a custom entry like
-// a keynote or a break (customTitle set). That "one or the other" rule is
-// enforced in the data-access layer, not by a DB constraint.
+// An item is exactly one of: an accepted abstract (abstractId set), an invited
+// speaker (speakerId set), or a plain custom entry like a break (customTitle
+// set). That one-of rule is enforced in the data-access layer, not by a DB
+// constraint. kind drives the label and public rendering (keynote, break, meal).
 // ---------------------------------------------------------------------------
 
 export const programSession = sqliteTable(
@@ -632,7 +687,28 @@ export const programItem = sqliteTable(
     abstractId: text("abstract_id").references(() => abstract.id, {
       onDelete: "set null",
     }), // set for an abstract item
-    customTitle: text("custom_title"), // set for a non-abstract item (keynote, break)
+    speakerId: text("speaker_id").references(() => invitedSpeaker.id, {
+      onDelete: "set null",
+    }), // set for an invited-speaker item
+    customTitle: text("custom_title"), // set for a plain custom item (break, meal)
+    kind: text("kind", {
+      enum: [
+        "talk",
+        "poster",
+        "keynote",
+        "award",
+        "meal",
+        "break",
+        "business",
+        "social",
+        "panel",
+        "networking",
+        "career",
+        "other",
+      ],
+    })
+      .notNull()
+      .default("talk"),
     note: text("note"),
     startsAt: tsMs("starts_at"), // optional per-item time
     sortOrder: integer("sort_order").notNull().default(0),

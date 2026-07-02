@@ -57,6 +57,13 @@
       "when": 1783002706842,
       "tag": "0007_omniscient_demogoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1783005965247,
+      "tag": "0008_curious_thunderbolt_ross",
+      "breakpoints": true
     }
   ]
 }
