@@ -642,6 +642,28 @@ export const programItem = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Institutions. A shared master list that powers the affiliation autocomplete on
+// the submission form. It self-grows: when an author types a new institution it
+// is appended here (deduped by normalized_name). Affiliation rows still store
+// their own institution/city/country text; this table is the type-ahead source.
+// ---------------------------------------------------------------------------
+
+export const institution = sqliteTable(
+  "institution",
+  {
+    id: pk(),
+    name: text("name").notNull(),
+    city: text("city"),
+    region: text("region"), // state or province
+    country: text("country").default("USA"),
+    normalizedName: text("normalized_name").notNull(), // lowercased, trimmed
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [unique("uq_institution_normalized").on(t.normalizedName)],
+);
+
+// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter, award. Add once the core above is agreed.
 // ---------------------------------------------------------------------------

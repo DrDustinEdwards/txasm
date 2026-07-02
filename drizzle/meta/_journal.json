@@ -43,6 +43,13 @@
       "when": 1782982995818,
       "tag": "0005_lowly_wallflower",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1783001222888,
+      "tag": "0006_narrow_dragon_man",
+      "breakpoints": true
     }
   ]
 }
