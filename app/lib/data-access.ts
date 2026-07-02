@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like, ne } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
@@ -330,6 +330,17 @@ function assertAmountCents(amountCents: number) {
 function normalizeCurrency(currency?: string) {
   const value = currency?.trim().toLowerCase();
   return value && value.length > 0 ? value : "usd";
+}
+
+// Institution dedup key: lowercased, trimmed, whitespace collapsed, and LIKE
+// wildcards removed so it is safe to interpolate into a search pattern. The seed
+// and the ensure path use this same function so the unique index lines up.
+export function normalizeInstitutionName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[%_]/g, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -2901,6 +2912,65 @@ export function createDataAccess(db: DB) {
     },
   };
 
+  // Institution master list. Part of authoring, so any signed-in user may search
+  // it and append to it (read-and-append only, no admin gating). The affiliation
+  // autocomplete searches it; ensure is the self-grow path when an author types a
+  // new institution. Dedup is by normalized_name.
+  const institutions = {
+    // Up to ten matches by substring on the normalized name, ordered by name.
+    async search(actor: Actor, query: string) {
+      const normalized = normalizeInstitutionName(query);
+      if (!normalized) return [];
+      // The normalized name has no % or _ (stripped in normalize), so it is safe
+      // to interpolate into the LIKE pattern.
+      return db
+        .select({
+          id: schema.institution.id,
+          name: schema.institution.name,
+          city: schema.institution.city,
+          region: schema.institution.region,
+          country: schema.institution.country,
+        })
+        .from(schema.institution)
+        .where(like(schema.institution.normalizedName, `%${normalized}%`))
+        .orderBy(schema.institution.name)
+        .limit(10);
+    },
+
+    // Find by normalized name or insert a new one, then return it. Used on submit
+    // when an author picked a free-text institution not already in the list.
+    async ensure(
+      actor: Actor,
+      input: { name: string; city?: string; region?: string; country?: string },
+    ) {
+      const name = input.name.trim();
+      if (!name) throw new ValidationError("Institution name is required.");
+      const normalized = normalizeInstitutionName(name);
+
+      const existing = await db.query.institution.findFirst({
+        where: eq(schema.institution.normalizedName, normalized),
+      });
+      if (existing) return existing;
+
+      await db
+        .insert(schema.institution)
+        .values({
+          name,
+          city: input.city?.trim() || null,
+          region: input.region?.trim() || null,
+          country: input.country?.trim() || "USA",
+          normalizedName: normalized,
+        })
+        .onConflictDoNothing();
+
+      const row = await db.query.institution.findFirst({
+        where: eq(schema.institution.normalizedName, normalized),
+      });
+      if (!row) throw new ValidationError("Could not save the institution.");
+      return row;
+    },
+  };
+
   return {
     abstracts,
     reviews,
@@ -2909,6 +2979,7 @@ export function createDataAccess(db: DB) {
     books,
     programSessions,
     programItems,
+    institutions,
     registrations,
     editions,
     registrationCategories,

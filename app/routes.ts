@@ -63,5 +63,6 @@ export default [
     "admin/editions/:editionId/book/download",
     "routes/admin.editions.$editionId.book.download.tsx",
   ),
+  route("api/institutions", "routes/api.institutions.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;
