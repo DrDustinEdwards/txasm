@@ -122,14 +122,12 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             Decisions
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <a
-            href={`/admin/editions/${edition.id}/book/preview`}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            to={`/admin/editions/${edition.id}/book`}
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
-            Preview abstract book
-          </a>{" "}
+            Abstract book
+          </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
           <Link
             to={`/admin/editions/${edition.id}/program`}

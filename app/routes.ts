@@ -40,8 +40,16 @@ export default [
     "routes/admin.editions.$editionId.decisions.tsx",
   ),
   route(
+    "admin/editions/:editionId/book",
+    "routes/admin.editions.$editionId.book.tsx",
+  ),
+  route(
     "admin/editions/:editionId/book/preview",
     "routes/admin.editions.$editionId.book.preview.tsx",
+  ),
+  route(
+    "admin/editions/:editionId/book/download",
+    "routes/admin.editions.$editionId.book.download.tsx",
   ),
   route(
     "admin/editions/:editionId/program",
