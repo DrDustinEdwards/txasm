@@ -116,15 +116,37 @@ export function isReviewerAnywhere(actor: Actor): boolean {
 // are written.
 // ---------------------------------------------------------------------------
 
+// The three organizing axes: topic (categoryId), level, and format. bodyText is
+// the single freeform body. The four section fields are still accepted for now
+// but are optional and unused by default.
+export type AbstractLevel =
+  | "undergraduate"
+  | "graduate"
+  | "education"
+  | "high_school"
+  | "postdoctoral";
+export type AbstractFormat = "oral" | "poster";
+
+const ABSTRACT_LEVELS: readonly AbstractLevel[] = [
+  "undergraduate",
+  "graduate",
+  "education",
+  "high_school",
+  "postdoctoral",
+];
+const ABSTRACT_FORMATS: readonly AbstractFormat[] = ["oral", "poster"];
+
 export interface AbstractInput {
   editionId: string;
   title: string;
-  categoryId?: string;
+  categoryId?: string; // topic axis
+  level?: AbstractLevel | null;
+  format?: AbstractFormat | null;
+  bodyText?: string;
   background?: string;
   methods?: string;
   results?: string;
   conclusions?: string;
-  bodyText?: string;
   presentationPreference?: "oral" | "poster" | "either";
 }
 
@@ -560,6 +582,18 @@ export function createDataAccess(db: DB) {
       if (patch.categoryId !== undefined) {
         set.categoryId = patch.categoryId ? patch.categoryId : null;
       }
+      if (patch.level !== undefined) {
+        if (patch.level !== null && !ABSTRACT_LEVELS.includes(patch.level)) {
+          throw new ValidationError("Choose a valid level.");
+        }
+        set.level = patch.level ?? null;
+      }
+      if (patch.format !== undefined) {
+        if (patch.format !== null && !ABSTRACT_FORMATS.includes(patch.format)) {
+          throw new ValidationError("Format must be oral or poster.");
+        }
+        set.format = patch.format ?? null;
+      }
 
       if (Object.keys(set).length > 0) {
         await db
@@ -670,7 +704,7 @@ export function createDataAccess(db: DB) {
     },
 
     // Move a draft to submitted. Only the submitter, only before the deadline,
-    // and only with a title, at least one author, and content in a section.
+    // and only with a title, at least one author, and a non-empty body.
     async submit(actor: Actor, abstractId: string) {
       const row = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, abstractId),
@@ -695,16 +729,9 @@ export function createDataAccess(db: DB) {
       if (authorRows.length < 1) {
         throw new ValidationError("Add at least one author before submitting.");
       }
-      const sections = [
-        row.background,
-        row.methods,
-        row.results,
-        row.conclusions,
-        row.bodyText,
-      ];
-      if (!sections.some((s) => s && !isEmptyRichText(s))) {
+      if (!row.bodyText || isEmptyRichText(row.bodyText)) {
         throw new ValidationError(
-          "Add abstract content in at least one section before submitting.",
+          "Add the abstract body before submitting.",
         );
       }
 
