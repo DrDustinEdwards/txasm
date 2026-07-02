@@ -129,7 +129,14 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
             Preview abstract book
-          </a>
+          </a>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/program`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Program
+          </Link>
         </p>
       </div>
 

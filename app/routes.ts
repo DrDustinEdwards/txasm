@@ -43,7 +43,12 @@ export default [
     "admin/editions/:editionId/book/preview",
     "routes/admin.editions.$editionId.book.preview.tsx",
   ),
+  route(
+    "admin/editions/:editionId/program",
+    "routes/admin.editions.$editionId.program.tsx",
+  ),
   route("review", "routes/review.tsx"),
   route("review/:assignmentId", "routes/review.$assignmentId.tsx"),
+  route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;
