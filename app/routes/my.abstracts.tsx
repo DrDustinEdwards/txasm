@@ -3,6 +3,13 @@ import type { Route } from "./+types/my.abstracts";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
+import {
+  ABSTRACT_STATUS_LABELS,
+  DECISION_OUTCOME_LABELS,
+  PRESENTATION_TYPE_LABELS,
+  type DecisionOutcome,
+  type PresentationType,
+} from "~/lib/vocab";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "My abstracts | Texas Branch ASM" }];
@@ -23,20 +30,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     })),
   );
   return { abstracts: withDecision };
-}
-
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function outcomeLabel(value: string) {
-  if (value === "accept") return "Accepted";
-  if (value === "reject") return "Rejected";
-  if (value === "revise") return "Revise and resubmit";
-  return value;
 }
 
 export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
@@ -88,13 +81,21 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                   )}
                 </td>
                 <td className="py-2 pr-4">{abstract.editionName}</td>
-                <td className="py-2 pr-4">{titleCase(abstract.status)}</td>
+                <td className="py-2 pr-4">
+                  {ABSTRACT_STATUS_LABELS[abstract.status]}
+                </td>
                 <td className="py-2 pr-4">
                   {abstract.decision ? (
                     <span>
-                      {outcomeLabel(abstract.decision.outcome)}
+                      {DECISION_OUTCOME_LABELS[
+                        abstract.decision.outcome as DecisionOutcome
+                      ] ?? abstract.decision.outcome}
                       {abstract.decision.presentationType
-                        ? ` (${titleCase(abstract.decision.presentationType)})`
+                        ? ` (${
+                            PRESENTATION_TYPE_LABELS[
+                              abstract.decision.presentationType as PresentationType
+                            ] ?? abstract.decision.presentationType
+                          })`
                         : ""}
                     </span>
                   ) : (

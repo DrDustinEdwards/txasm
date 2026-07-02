@@ -18,7 +18,7 @@ import {
   PROGRAM_ITEM_KINDS,
   programKindLabel,
   speakerRoleLabel,
-} from "~/lib/program-format";
+} from "~/lib/vocab";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Program | Texas Branch ASM" }];

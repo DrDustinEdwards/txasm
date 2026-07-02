@@ -6,19 +6,17 @@ import {
   AlreadyExistsError,
   ValidationError,
   getDataAccess,
-  type RegistrationCategoryKey,
 } from "~/lib/data-access";
+import {
+  REGISTRATION_CATEGORY_KEYS,
+  REGISTRATION_CATEGORY_KEY_LABELS,
+  type RegistrationCategoryKey,
+} from "~/lib/vocab";
 import { formatMoney, parseDollarsToCents } from "~/lib/format";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Registration categories | Texas Branch ASM" }];
 }
-
-const CATEGORY_KEYS: RegistrationCategoryKey[] = [
-  "member",
-  "student",
-  "nonmember",
-];
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { actor } = await requireAdmin(request);
@@ -51,7 +49,9 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
     const amountCents = parseDollarsToCents(String(form.get("fee") ?? ""));
 
-    if (!CATEGORY_KEYS.includes(key as RegistrationCategoryKey)) {
+    if (
+      !(REGISTRATION_CATEGORY_KEYS as readonly string[]).includes(key)
+    ) {
       return { error: "Choose a category type." };
     }
     if (amountCents === null) {
@@ -148,7 +148,9 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                 className="border-b border-gray-100 dark:border-gray-900"
               >
                 <td className="py-2 pr-4">{category.label}</td>
-                <td className="py-2 pr-4">{category.key}</td>
+                <td className="py-2 pr-4">
+                  {REGISTRATION_CATEGORY_KEY_LABELS[category.key]}
+                </td>
                 <td className="py-2 pr-4">
                   {formatMoney(category.amountCents, category.currency)}
                 </td>
@@ -194,9 +196,11 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               Type
             </label>
             <select id="key" name="key" defaultValue="member" className={inputClass}>
-              <option value="member">Member</option>
-              <option value="student">Student</option>
-              <option value="nonmember">Nonmember</option>
+              {REGISTRATION_CATEGORY_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {REGISTRATION_CATEGORY_KEY_LABELS[key]}
+                </option>
+              ))}
             </select>
           </div>
           <div className="space-y-1">

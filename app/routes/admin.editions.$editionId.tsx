@@ -8,7 +8,13 @@ import {
   getDataAccess,
   type EditionPatch,
 } from "~/lib/data-access";
-import { EDITION_STATUSES, type EditionStatus } from "~/lib/editions";
+import {
+  EDITION_STATUSES,
+  EDITION_STATUS_LABELS,
+  SEASON_LABELS,
+  type EditionStatus,
+  type Season,
+} from "~/lib/vocab";
 import { toDateTimeLocal } from "~/lib/format";
 
 export function meta(_args: Route.MetaArgs) {
@@ -64,13 +70,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return redirect("/admin");
 }
 
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 const inputClass =
   "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
 
@@ -86,7 +85,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">{edition.name}</h1>
         <p className="text-gray-700 dark:text-gray-300">
-          {titleCase(edition.season)} {edition.year}.{" "}
+          {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
           <Link
             to={`/admin/editions/${edition.id}/categories`}
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
@@ -174,7 +173,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           >
             {EDITION_STATUSES.map((status) => (
               <option key={status} value={status}>
-                {titleCase(status)}
+                {EDITION_STATUS_LABELS[status]}
               </option>
             ))}
           </select>

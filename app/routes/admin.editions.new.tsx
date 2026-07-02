@@ -9,9 +9,12 @@ import {
 } from "~/lib/data-access";
 import {
   EDITION_STATUSES,
+  EDITION_STATUS_LABELS,
+  SEASONS,
+  SEASON_LABELS,
   type EditionStatus,
   type Season,
-} from "~/lib/editions";
+} from "~/lib/vocab";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "New meeting | Texas Branch ASM" }];
@@ -34,7 +37,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const year = Number(yearRaw);
 
   if (!name) return { error: "Name is required." };
-  if (season !== "spring" && season !== "fall") {
+  if (!(SEASONS as readonly string[]).includes(season)) {
     return { error: "Season must be spring or fall." };
   }
   if (!yearRaw || !Number.isInteger(year) || year < 2000 || year > 2100) {
@@ -60,13 +63,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   return redirect("/admin");
-}
-
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 export default function NewEdition() {
@@ -118,8 +114,11 @@ export default function NewEdition() {
             defaultValue="spring"
             className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
           >
-            <option value="spring">Spring</option>
-            <option value="fall">Fall</option>
+            {SEASONS.map((season) => (
+              <option key={season} value={season}>
+                {SEASON_LABELS[season]}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -152,7 +151,7 @@ export default function NewEdition() {
           >
             {EDITION_STATUSES.map((status) => (
               <option key={status} value={status}>
-                {titleCase(status)}
+                {EDITION_STATUS_LABELS[status]}
               </option>
             ))}
           </select>

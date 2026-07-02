@@ -2,7 +2,29 @@ import { and, asc, desc, eq, inArray, like, ne } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
-import { EDITION_STATUSES, type EditionStatus, type Season } from "./editions";
+import {
+  ABSTRACT_FORMATS,
+  ABSTRACT_LEVELS,
+  CONFLICT_REASONS,
+  DECISION_OUTCOMES,
+  DEFAULT_CURRENCY,
+  DEFAULT_WORD_LIMIT,
+  EDITION_STATUSES,
+  PROGRAM_ITEM_KINDS,
+  REGISTRATION_CATEGORY_KEYS,
+  REVIEW_RECOMMENDATIONS,
+  SPEAKER_ROLES,
+  type AbstractFormat,
+  type AbstractLevel,
+  type ConflictReason,
+  type DecisionOutcome,
+  type EditionStatus,
+  type PresentationType,
+  type ProgramItemKind,
+  type RegistrationCategoryKey,
+  type Season,
+  type SpeakerRole,
+} from "./vocab";
 import {
   countWords,
   extractPlainText,
@@ -11,8 +33,9 @@ import {
   sanitizeTitle,
 } from "./richtext";
 
-// Default hard word limit for the abstract body when a meeting sets none.
-export const DEFAULT_BODY_WORD_LIMIT = 250;
+// Default hard word limit for the abstract body when a meeting sets none. Named
+// config lives in ./vocab; this alias keeps the existing call sites.
+export const DEFAULT_BODY_WORD_LIMIT = DEFAULT_WORD_LIMIT;
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
 // Enforce with an eslint no-restricted-imports rule on every other module so
@@ -122,24 +145,8 @@ export function isReviewerAnywhere(actor: Actor): boolean {
 
 // The three organizing axes: topic (categoryId), level, and format. bodyText is
 // the single freeform body. The four section fields are still accepted for now
-// but are optional and unused by default.
-export type AbstractLevel =
-  | "undergraduate"
-  | "graduate"
-  | "education"
-  | "high_school"
-  | "postdoctoral";
-export type AbstractFormat = "oral" | "poster";
-
-const ABSTRACT_LEVELS: readonly AbstractLevel[] = [
-  "undergraduate",
-  "graduate",
-  "education",
-  "high_school",
-  "postdoctoral",
-];
-const ABSTRACT_FORMATS: readonly AbstractFormat[] = ["oral", "poster"];
-
+// but are optional and unused by default. The level and format vocabularies live
+// in ./vocab and are imported above.
 export interface AbstractInput {
   editionId: string;
   title: string;
@@ -176,27 +183,8 @@ export interface RoleRevokeInput {
   role: GrantableRole;
 }
 
-export type ConflictReason = "author" | "coauthor" | "colleague" | "other";
-const CONFLICT_REASONS: readonly ConflictReason[] = [
-  "author",
-  "coauthor",
-  "colleague",
-  "other",
-];
-
-const RECOMMENDATIONS: readonly ReviewSubmission["recommendation"][] = [
-  "accept",
-  "reject",
-  "revise",
-];
-
-export type DecisionOutcome = "accept" | "reject" | "revise";
-export type PresentationType = "oral" | "poster";
-const DECISION_OUTCOMES: readonly DecisionOutcome[] = [
-  "accept",
-  "reject",
-  "revise",
-];
+// ConflictReason, the review recommendations, DecisionOutcome, and
+// PresentationType vocabularies live in ./vocab and are imported above.
 
 export interface DecisionInput {
   abstractId: string;
@@ -283,11 +271,21 @@ export interface AffiliationInput {
   country?: string;
 }
 
-// Edition status constants and the Season/EditionStatus types live in
-// ./editions so route components can import them without pulling this
-// server-only module into the client bundle. Re-export the types here for
-// callers that already reach the data-access layer for related types.
-export type { EditionStatus, Season } from "./editions";
+// The controlled-vocabulary types live in ./vocab (client-safe, one source).
+// Re-export the ones callers reach for through the data-access layer so their
+// imports keep resolving here.
+export type {
+  AbstractFormat,
+  AbstractLevel,
+  ConflictReason,
+  DecisionOutcome,
+  EditionStatus,
+  PresentationType,
+  ProgramItemKind,
+  RegistrationCategoryKey,
+  Season,
+  SpeakerRole,
+} from "./vocab";
 
 export interface EditionInput {
   name: string;
@@ -305,8 +303,6 @@ export interface EditionPatch {
   submissionOpensAt?: Date | null;
   submissionDeadline?: Date | null;
 }
-
-export type RegistrationCategoryKey = "member" | "student" | "nonmember";
 
 export interface RegistrationCategoryInput {
   editionId: string;
@@ -333,7 +329,7 @@ function assertAmountCents(amountCents: number) {
 
 function normalizeCurrency(currency?: string) {
   const value = currency?.trim().toLowerCase();
-  return value && value.length > 0 ? value : "usd";
+  return value && value.length > 0 ? value : DEFAULT_CURRENCY;
 }
 
 // Institution dedup key: lowercased, trimmed, whitespace collapsed, and LIKE
@@ -371,37 +367,8 @@ export interface ProgramSessionPatch {
   location?: string | null;
 }
 
-// The kinds a program item can carry. Drives the item label and public
-// rendering. Kept in sync with the program_item kind enum in the schema.
-export type ProgramItemKind =
-  | "talk"
-  | "poster"
-  | "keynote"
-  | "award"
-  | "meal"
-  | "break"
-  | "business"
-  | "social"
-  | "panel"
-  | "networking"
-  | "career"
-  | "other";
-
-const PROGRAM_ITEM_KINDS: readonly ProgramItemKind[] = [
-  "talk",
-  "poster",
-  "keynote",
-  "award",
-  "meal",
-  "break",
-  "business",
-  "social",
-  "panel",
-  "networking",
-  "career",
-  "other",
-];
-
+// The ProgramItemKind vocabulary lives in ./vocab (imported above). Validate a
+// raw kind string against it before writing.
 function assertKind(kind: string): ProgramItemKind {
   if (!PROGRAM_ITEM_KINDS.includes(kind as ProgramItemKind)) {
     throw new ValidationError("Choose a valid item kind.");
@@ -549,21 +516,7 @@ const PROGRAM_PUBLIC_STATUSES: readonly EditionStatus[] = [
 // out of the write path for now (upload UI is deferred).
 // ---------------------------------------------------------------------------
 
-export type SpeakerRole =
-  | "keynote"
-  | "goldschmidt_lecture"
-  | "award_lecture"
-  | "career"
-  | "other";
-
-const SPEAKER_ROLES: readonly SpeakerRole[] = [
-  "keynote",
-  "goldschmidt_lecture",
-  "award_lecture",
-  "career",
-  "other",
-];
-
+// The SpeakerRole vocabulary lives in ./vocab and is imported above.
 export interface InvitedSpeakerInput {
   editionId: string;
   name: string;
@@ -605,6 +558,95 @@ export interface SponsorPublic {
   tier: string | null;
   url: string | null;
   logoR2Key: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Platform settings. A single row of org identity and tunable defaults, read by
+// the shell and edited on the admin settings screen. footerLinks is stored as a
+// JSON array and returned parsed. The single row is enforced by a fixed id.
+// ---------------------------------------------------------------------------
+
+export const PLATFORM_SETTINGS_ID = "default";
+
+export interface FooterLink {
+  label: string;
+  url: string;
+}
+
+export interface PlatformSettings {
+  orgName: string;
+  shortName: string;
+  orgFullName: string;
+  tagline: string;
+  foundingYear: number | null;
+  contactEmail: string | null;
+  facebookUrl: string | null;
+  footerLinks: FooterLink[];
+  defaultCurrency: string;
+  defaultAbstractWordLimit: number;
+}
+
+export interface PlatformSettingsPatch {
+  orgName?: string;
+  shortName?: string;
+  orgFullName?: string;
+  tagline?: string;
+  foundingYear?: number | null;
+  contactEmail?: string | null;
+  facebookUrl?: string | null;
+  footerLinks?: FooterLink[];
+  defaultCurrency?: string;
+  defaultAbstractWordLimit?: number;
+}
+
+// Parse the stored footerLinks JSON into a clean {label,url} array, dropping
+// anything malformed so a bad value never breaks the shell.
+function parseFooterLinks(raw: string | null): FooterLink[] {
+  if (!raw) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  const links: FooterLink[] = [];
+  for (const entry of parsed) {
+    if (entry && typeof entry === "object") {
+      const label = String((entry as Record<string, unknown>).label ?? "").trim();
+      const url = String((entry as Record<string, unknown>).url ?? "").trim();
+      if (label && url) links.push({ label, url });
+    }
+  }
+  return links;
+}
+
+// Clean a submitted footerLinks list the same way, for writes.
+function cleanFooterLinks(links: FooterLink[]): FooterLink[] {
+  const cleaned: FooterLink[] = [];
+  for (const link of links) {
+    const label = (link?.label ?? "").trim();
+    const url = (link?.url ?? "").trim();
+    if (label && url) cleaned.push({ label, url });
+  }
+  return cleaned;
+}
+
+function resolveSettings(
+  row: typeof schema.platformSettings.$inferSelect,
+): PlatformSettings {
+  return {
+    orgName: row.orgName ?? "",
+    shortName: row.shortName ?? "",
+    orgFullName: row.orgFullName ?? "",
+    tagline: row.tagline ?? "",
+    foundingYear: row.foundingYear,
+    contactEmail: row.contactEmail,
+    facebookUrl: row.facebookUrl,
+    footerLinks: parseFooterLinks(row.footerLinks),
+    defaultCurrency: row.defaultCurrency,
+    defaultAbstractWordLimit: row.defaultAbstractWordLimit,
+  };
 }
 
 export function createDataAccess(db: DB) {
@@ -1114,7 +1156,7 @@ export function createDataAccess(db: DB) {
       if (!assignment) throw new NotFoundError();
       if (assignment.reviewerId !== actor.userId) throw new ForbiddenError();
 
-      if (!RECOMMENDATIONS.includes(input.recommendation)) {
+      if (!REVIEW_RECOMMENDATIONS.includes(input.recommendation)) {
         throw new ValidationError("Choose a recommendation.");
       }
 
@@ -3031,7 +3073,7 @@ export function createDataAccess(db: DB) {
       const label = input.label.trim();
       if (!label) throw new ValidationError("Label is required.");
       assertAmountCents(input.amountCents);
-      if (!["member", "student", "nonmember"].includes(input.key)) {
+      if (!REGISTRATION_CATEGORY_KEYS.includes(input.key)) {
         throw new ValidationError(
           "Category type must be member, student, or nonmember.",
         );
@@ -3437,6 +3479,106 @@ export function createDataAccess(db: DB) {
     },
   };
 
+  // Platform settings: the single org-identity-and-defaults row. get() is a
+  // public read used by the shell, creating the row with named defaults on first
+  // read if it is missing. update() is platform-admin only.
+  const settings = {
+    async get(): Promise<PlatformSettings> {
+      const existing = await db.query.platformSettings.findFirst({
+        where: eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID),
+      });
+      if (existing) return resolveSettings(existing);
+      // First-read fallback for an unseeded database. Identity stays blank for an
+      // admin to fill in; the tunable defaults come from the named vocab config.
+      const [created] = await db
+        .insert(schema.platformSettings)
+        .values({
+          id: PLATFORM_SETTINGS_ID,
+          defaultCurrency: DEFAULT_CURRENCY,
+          defaultAbstractWordLimit: DEFAULT_WORD_LIMIT,
+        })
+        .onConflictDoNothing()
+        .returning();
+      if (created) return resolveSettings(created);
+      // A concurrent first read won the insert; read it back.
+      const row = await db.query.platformSettings.findFirst({
+        where: eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID),
+      });
+      if (!row) throw new NotFoundError("settings not found");
+      return resolveSettings(row);
+    },
+
+    async update(
+      actor: Actor,
+      patch: PlatformSettingsPatch,
+    ): Promise<PlatformSettings> {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+
+      const set: Partial<typeof schema.platformSettings.$inferInsert> = {};
+      if (patch.orgName !== undefined) set.orgName = patch.orgName.trim() || null;
+      if (patch.shortName !== undefined) {
+        set.shortName = patch.shortName.trim() || null;
+      }
+      if (patch.orgFullName !== undefined) {
+        set.orgFullName = patch.orgFullName.trim() || null;
+      }
+      if (patch.tagline !== undefined) set.tagline = patch.tagline.trim() || null;
+      if (patch.foundingYear !== undefined) {
+        if (patch.foundingYear !== null) {
+          if (
+            !Number.isInteger(patch.foundingYear) ||
+            patch.foundingYear < 1800 ||
+            patch.foundingYear > 2200
+          ) {
+            throw new ValidationError("Enter a valid founding year.");
+          }
+        }
+        set.foundingYear = patch.foundingYear;
+      }
+      if (patch.contactEmail !== undefined) {
+        const email = patch.contactEmail?.trim() ?? "";
+        if (email && !email.includes("@")) {
+          throw new ValidationError("Enter a valid contact email.");
+        }
+        set.contactEmail = email || null;
+      }
+      if (patch.facebookUrl !== undefined) {
+        const url = patch.facebookUrl?.trim() ?? "";
+        if (url && !/^https?:\/\//i.test(url)) {
+          throw new ValidationError("The Facebook URL must start with http.");
+        }
+        set.facebookUrl = url || null;
+      }
+      if (patch.footerLinks !== undefined) {
+        set.footerLinks = JSON.stringify(cleanFooterLinks(patch.footerLinks));
+      }
+      if (patch.defaultCurrency !== undefined) {
+        set.defaultCurrency = normalizeCurrency(patch.defaultCurrency);
+      }
+      if (patch.defaultAbstractWordLimit !== undefined) {
+        if (
+          !Number.isInteger(patch.defaultAbstractWordLimit) ||
+          patch.defaultAbstractWordLimit < 1
+        ) {
+          throw new ValidationError(
+            "The default word limit must be a whole number of one or more.",
+          );
+        }
+        set.defaultAbstractWordLimit = patch.defaultAbstractWordLimit;
+      }
+
+      // Ensure the row exists, then apply. get() handles create-on-first-read.
+      await this.get();
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.platformSettings)
+          .set(set)
+          .where(eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID));
+      }
+      return this.get();
+    },
+  };
+
   return {
     abstracts,
     reviews,
@@ -3452,6 +3594,7 @@ export function createDataAccess(db: DB) {
     editions,
     registrationCategories,
     abstractCategories,
+    settings,
   };
 }
 

@@ -8,7 +8,7 @@ import {
   getDataAccess,
   type SpeakerRole,
 } from "~/lib/data-access";
-import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/program-format";
+import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichEditor } from "~/components/rich-editor";
 
 export function meta(_args: Route.MetaArgs) {

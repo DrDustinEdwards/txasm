@@ -8,7 +8,7 @@ import {
   type SponsorPublic,
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
-import { programKindLabel } from "~/lib/program-format";
+import { programKindLabel } from "~/lib/vocab";
 import { Breadcrumbs } from "~/components/breadcrumbs";
 
 export function meta(_args: Route.MetaArgs) {

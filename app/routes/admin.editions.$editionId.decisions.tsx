@@ -7,9 +7,15 @@ import {
   NotFoundError,
   ValidationError,
   getDataAccess,
+} from "~/lib/data-access";
+import {
+  ABSTRACT_STATUS_LABELS,
+  DECISION_OUTCOMES,
+  PRESENTATION_TYPES,
+  PRESENTATION_TYPE_LABELS,
   type DecisionOutcome,
   type PresentationType,
-} from "~/lib/data-access";
+} from "~/lib/vocab";
 import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
@@ -55,18 +61,15 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 
     if (intent === "decide") {
       const outcomeRaw = String(form.get("outcome") ?? "");
-      if (
-        outcomeRaw !== "accept" &&
-        outcomeRaw !== "reject" &&
-        outcomeRaw !== "revise"
-      ) {
+      if (!(DECISION_OUTCOMES as readonly string[]).includes(outcomeRaw)) {
         return { error: "Choose accept, reject, or revise.", abstractId };
       }
       const presentationRaw = String(form.get("presentationType") ?? "");
-      const presentationType: PresentationType | null =
-        presentationRaw === "oral" || presentationRaw === "poster"
-          ? presentationRaw
-          : null;
+      const presentationType: PresentationType | null = (
+        PRESENTATION_TYPES as readonly string[]
+      ).includes(presentationRaw)
+        ? (presentationRaw as PresentationType)
+        : null;
 
       await da.decisions.setDecision(actor, {
         abstractId,
@@ -86,18 +89,17 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action.", abstractId };
 }
 
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
+// Imperative labels for the decision action UI, deliberately distinct from the
+// past-tense author-facing DECISION_OUTCOME_LABELS in vocab. Ordered for the
+// radio group.
+const OUTCOME_ACTION_LABELS: Record<DecisionOutcome, string> = {
+  accept: "Accept",
+  revise: "Revise",
+  reject: "Reject",
+};
 
 function outcomeLabel(value: string) {
-  if (value === "accept") return "Accept";
-  if (value === "reject") return "Reject";
-  if (value === "revise") return "Revise";
-  return value;
+  return OUTCOME_ACTION_LABELS[value as DecisionOutcome] ?? value;
 }
 
 type AbstractRow = Route.ComponentProps["loaderData"]["abstracts"][number];
@@ -177,11 +179,10 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
 const inputClass =
   "rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
 
-const OUTCOME_OPTIONS = [
-  { value: "accept", label: "Accept" },
-  { value: "revise", label: "Revise" },
-  { value: "reject", label: "Reject" },
-] as const;
+// Deliberate radio order for the decision action, labeled from the action map.
+const OUTCOME_OPTIONS = (["accept", "revise", "reject"] as const).map(
+  (value) => ({ value, label: OUTCOME_ACTION_LABELS[value] }),
+);
 
 function DecisionRow({
   editionId,
@@ -215,7 +216,8 @@ function DecisionRow({
               : "No authors listed"}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Status: {titleCase(abstract.status)} . Reviews: {abstract.reviewCount}{" "}
+            Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews:{" "}
+            {abstract.reviewCount}{" "}
             (accept {summary.accept} / revise {summary.revise} / reject{" "}
             {summary.reject}) .{" "}
             <Link
@@ -230,7 +232,11 @@ function DecisionRow({
           <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
             {outcomeLabel(decision.outcome)}
             {decision.presentationType
-              ? ` . ${titleCase(decision.presentationType)}`
+              ? ` . ${
+                  PRESENTATION_TYPE_LABELS[
+                    decision.presentationType as PresentationType
+                  ] ?? decision.presentationType
+                }`
               : ""}
           </span>
         ) : null}
@@ -313,8 +319,11 @@ function DecisionRow({
               defaultValue={decision?.presentationType ?? "oral"}
               className={inputClass}
             >
-              <option value="oral">Oral</option>
-              <option value="poster">Poster</option>
+              {PRESENTATION_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {PRESENTATION_TYPE_LABELS[type]}
+                </option>
+              ))}
             </select>
           </div>
         ) : null}

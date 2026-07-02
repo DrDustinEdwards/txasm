@@ -10,6 +10,7 @@ import {
   getDataAccess,
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Submit an abstract | Texas Branch ASM" }];
@@ -84,13 +85,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   }
 }
 
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 export default function SubmitStart({ loaderData }: Route.ComponentProps) {
   const { edition, open, notYet, closed, mine } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -151,7 +145,7 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
                     <span className="text-gray-500">Untitled</span>
                   )}{" "}
                   <span className="text-sm text-gray-500">
-                    ({titleCase(abstract.status)})
+                    ({ABSTRACT_STATUS_LABELS[abstract.status]})
                   </span>
                 </span>
                 <Link

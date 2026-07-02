@@ -4,7 +4,6 @@ import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
-  DEFAULT_BODY_WORD_LIMIT,
   DeadlinePassedError,
   ForbiddenError,
   NotFoundError,
@@ -12,10 +11,23 @@ import {
   getActor,
   getDataAccess,
   isChair,
-  type AbstractLevel,
   type AffiliationInput,
   type AuthorInput,
 } from "~/lib/data-access";
+import {
+  ABSTRACT_LEVELS,
+  ABSTRACT_LEVEL_LABELS,
+  ABSTRACT_STATUS_LABELS,
+  DECISION_OUTCOME_LABELS,
+  DEFAULT_WORD_LIMIT,
+  PRESENTATION_PREFERENCES,
+  PRESENTATION_PREFERENCE_LABELS,
+  PRESENTATION_TYPE_LABELS,
+  type AbstractLevel,
+  type DecisionOutcome,
+  type PresentationPreference,
+  type PresentationType,
+} from "~/lib/vocab";
 import { formatDateTime } from "~/lib/format";
 import { countWords } from "~/lib/richtext";
 import { RichEditor } from "~/components/rich-editor";
@@ -27,16 +39,6 @@ import {
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Edit abstract | Texas Branch ASM" }];
 }
-
-const LEVEL_OPTIONS = [
-  { value: "undergraduate", label: "Undergraduate" },
-  { value: "graduate", label: "Graduate" },
-  { value: "education", label: "Education" },
-  { value: "high_school", label: "High school" },
-  { value: "postdoctoral", label: "Postdoctoral" },
-] as const;
-
-const LEVEL_VALUES = LEVEL_OPTIONS.map((option) => option.value);
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -84,7 +86,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     edition: {
       name: data.edition.name,
       submissionDeadline: deadline,
-      wordLimit: data.edition.abstractWordLimit ?? DEFAULT_BODY_WORD_LIMIT,
+      wordLimit: data.edition.abstractWordLimit ?? DEFAULT_WORD_LIMIT,
     },
     categories: categories.map((c) => ({ id: c.id, name: c.name })),
     authors: data.authors.map((a) => ({
@@ -135,11 +137,14 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     }
 
     const prefRaw = String(form.get("presentationPreference") ?? "either");
-    const presentationPreference: "oral" | "poster" | "either" =
-      prefRaw === "oral" || prefRaw === "poster" ? prefRaw : "either";
+    const presentationPreference: PresentationPreference = (
+      PRESENTATION_PREFERENCES as readonly string[]
+    ).includes(prefRaw)
+      ? (prefRaw as PresentationPreference)
+      : "either";
 
     const levelRaw = String(form.get("level") ?? "");
-    const level = (LEVEL_VALUES as readonly string[]).includes(levelRaw)
+    const level = (ABSTRACT_LEVELS as readonly string[]).includes(levelRaw)
       ? (levelRaw as AbstractLevel)
       : null;
 
@@ -235,13 +240,6 @@ const inputClass =
 
 const smallButton =
   "rounded-md border border-border-strong px-2 py-1 text-sm text-text disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
 
 export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const { abstract, edition, categories, editable, decision } = loaderData;
@@ -368,7 +366,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold text-text">Abstract</h1>
         <p className="text-sm text-text-muted">
-          {edition.name} . Status: {titleCase(abstract.status)}
+          {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
             ? ` . Deadline: ${formatDateTime(edition.submissionDeadline)}`
             : ""}
@@ -437,9 +435,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
               className={inputClass}
             >
               <option value="">Choose a level</option>
-              {LEVEL_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {ABSTRACT_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {ABSTRACT_LEVEL_LABELS[level]}
                 </option>
               ))}
             </select>
@@ -481,9 +479,11 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             defaultValue={abstract.presentationPreference}
             className={inputClass}
           >
-            <option value="either">Either</option>
-            <option value="oral">Oral</option>
-            <option value="poster">Poster</option>
+            {PRESENTATION_PREFERENCES.map((pref) => (
+              <option key={pref} value={pref}>
+                {PRESENTATION_PREFERENCE_LABELS[pref]}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -779,13 +779,6 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   );
 }
 
-function outcomeLabel(value: string) {
-  if (value === "accept") return "Accepted";
-  if (value === "reject") return "Rejected";
-  if (value === "revise") return "Revise and resubmit";
-  return value;
-}
-
 function DecisionPanel({
   decision,
 }: {
@@ -807,9 +800,14 @@ function DecisionPanel({
       <h2 className="text-lg font-medium">Decision</h2>
       <p className="text-sm">
         <span className="font-medium">Outcome:</span>{" "}
-        {outcomeLabel(decision.outcome)}
+        {DECISION_OUTCOME_LABELS[decision.outcome as DecisionOutcome] ??
+          decision.outcome}
         {decision.presentationType
-          ? ` (${titleCase(decision.presentationType)} presentation)`
+          ? ` (${
+              PRESENTATION_TYPE_LABELS[
+                decision.presentationType as PresentationType
+              ] ?? decision.presentationType
+            } presentation)`
           : ""}
       </p>
       {decision.decisionMessage ? (

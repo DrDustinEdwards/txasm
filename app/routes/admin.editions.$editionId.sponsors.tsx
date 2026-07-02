@@ -7,6 +7,7 @@ import {
   ValidationError,
   getDataAccess,
 } from "~/lib/data-access";
+import { SPONSOR_TIERS } from "~/lib/vocab";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Sponsors | Texas Branch ASM" }];
@@ -108,10 +109,16 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           id={`tier-${idBase}`}
           name="tier"
           type="text"
+          list={`tiers-${idBase}`}
           defaultValue={sponsor?.tier ?? ""}
           placeholder="Gold"
           className={inputClass}
         />
+        <datalist id={`tiers-${idBase}`}>
+          {SPONSOR_TIERS.map((tier) => (
+            <option key={tier} value={tier} />
+          ))}
+        </datalist>
       </div>
       <div className="space-y-1">
         <label htmlFor={`sort-${idBase}`} className="block text-sm font-medium">
