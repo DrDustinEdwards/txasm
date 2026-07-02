@@ -310,6 +310,75 @@ function normalizeCurrency(currency?: string) {
   return value && value.length > 0 ? value : "usd";
 }
 
+// ---------------------------------------------------------------------------
+// Program (schedule) types. Sessions hold items; an item is either an accepted
+// abstract or a custom entry. Resolved shapes carry what both the admin builder
+// and the public view need; titles are stored sanitized HTML, plain text fields
+// are escaped at render time.
+// ---------------------------------------------------------------------------
+
+export interface ProgramSessionInput {
+  editionId: string;
+  title: string;
+  sessionDate?: Date | null;
+  startsAt?: Date | null;
+  endsAt?: Date | null;
+  location?: string | null;
+}
+
+export interface ProgramSessionPatch {
+  title?: string;
+  sessionDate?: Date | null;
+  startsAt?: Date | null;
+  endsAt?: Date | null;
+  location?: string | null;
+}
+
+export interface ProgramItemPatch {
+  customTitle?: string;
+  note?: string | null;
+  startsAt?: Date | null;
+}
+
+export interface ProgramItemResolved {
+  id: string;
+  sortOrder: number;
+  startsAt: Date | null;
+  note: string | null;
+  abstractId: string | null;
+  abstractNumber: number | null; // matches the abstract book numbering
+  abstractTitle: string | null; // sanitized HTML
+  presentingAuthorName: string | null;
+  customTitle: string | null; // plain text
+}
+
+export interface ProgramSessionResolved {
+  id: string;
+  title: string;
+  sessionDate: Date | null;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  location: string | null;
+  sortOrder: number;
+  items: ProgramItemResolved[];
+}
+
+export interface ProgramAbstractOption {
+  abstractId: string;
+  number: number;
+  title: string; // sanitized HTML
+  presentingAuthorName: string | null;
+}
+
+// Edition stages at which the program is public. scheduled and complete are the
+// active late stages; archived meetings keep a public program for the archive
+// (CLAUDE.md: keep historical editions queryable).
+const PROGRAM_PUBLIC_STATUSES: readonly EditionStatus[] = [
+  "scheduled",
+  "complete",
+  "archived",
+];
+
 export function createDataAccess(db: DB) {
   // Shared guard: the abstract exists and the actor may edit it now. A chair of
   // the meeting may edit any time; the submitter may edit only before the
@@ -1730,6 +1799,547 @@ export function createDataAccess(db: DB) {
     },
   };
 
+  // Accepted abstracts for an edition, numbered the same way the abstract book
+  // numbers them (category sortOrder then name, uncategorized last, title-sorted,
+  // then 1..n), so the program and the book reference the same numbers.
+  async function numberedAcceptedAbstracts(
+    editionId: string,
+  ): Promise<ProgramAbstractOption[]> {
+    const absRows = await db
+      .select({
+        id: schema.abstract.id,
+        title: schema.abstract.title,
+        categoryId: schema.abstract.categoryId,
+      })
+      .from(schema.abstract)
+      .where(
+        and(
+          eq(schema.abstract.editionId, editionId),
+          eq(schema.abstract.status, "accepted"),
+        ),
+      );
+    if (absRows.length === 0) return [];
+
+    const ids = absRows.map((a) => a.id);
+    const authorRows = await db
+      .select({
+        abstractId: schema.author.abstractId,
+        firstName: schema.author.firstName,
+        lastName: schema.author.lastName,
+        isPresenting: schema.author.isPresenting,
+      })
+      .from(schema.author)
+      .where(inArray(schema.author.abstractId, ids))
+      .orderBy(schema.author.ordinal);
+
+    const categoryRows = await db
+      .select()
+      .from(schema.abstractCategory)
+      .where(eq(schema.abstractCategory.editionId, editionId))
+      .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
+
+    const authorsByAbstract = new Map<
+      string,
+      Array<{ firstName: string; lastName: string; isPresenting: boolean }>
+    >();
+    for (const a of authorRows) {
+      const list = authorsByAbstract.get(a.abstractId) ?? [];
+      list.push({
+        firstName: a.firstName,
+        lastName: a.lastName,
+        isPresenting: a.isPresenting,
+      });
+      authorsByAbstract.set(a.abstractId, list);
+    }
+    function presentingName(abstractId: string): string | null {
+      const authors = authorsByAbstract.get(abstractId) ?? [];
+      if (authors.length === 0) return null;
+      const presenting = authors.find((x) => x.isPresenting) ?? authors[0];
+      return `${presenting.firstName} ${presenting.lastName}`.trim() || null;
+    }
+
+    const rowsByCategory = new Map<string | null, typeof absRows>();
+    for (const row of absRows) {
+      const key = row.categoryId ?? null;
+      const list = rowsByCategory.get(key) ?? [];
+      list.push(row);
+      rowsByCategory.set(key, list);
+    }
+    const byTitle = (
+      a: (typeof absRows)[number],
+      b: (typeof absRows)[number],
+    ) =>
+      extractPlainText(a.title).localeCompare(extractPlainText(b.title), "en", {
+        sensitivity: "base",
+      });
+
+    const ordered: typeof absRows = [];
+    for (const cat of categoryRows) {
+      const rows = rowsByCategory.get(cat.id);
+      if (rows && rows.length > 0) ordered.push(...[...rows].sort(byTitle));
+    }
+    const uncategorized = rowsByCategory.get(null);
+    if (uncategorized && uncategorized.length > 0) {
+      ordered.push(...[...uncategorized].sort(byTitle));
+    }
+
+    return ordered.map((row, i) => ({
+      abstractId: row.id,
+      number: i + 1,
+      title: row.title,
+      presentingAuthorName: presentingName(row.id),
+    }));
+  }
+
+  // Turn raw session and item rows into the resolved shape the builder and the
+  // public view render. Abstract items get their number from the book numbering
+  // and their title and presenting author from a direct fetch, so an item whose
+  // abstract is no longer accepted still shows a title (with a null number).
+  async function resolveProgram(
+    editionId: string,
+    sessions: Array<typeof schema.programSession.$inferSelect>,
+    items: Array<typeof schema.programItem.$inferSelect>,
+  ): Promise<ProgramSessionResolved[]> {
+    const numbered = await numberedAcceptedAbstracts(editionId);
+    const numberById = new Map(numbered.map((n) => [n.abstractId, n.number]));
+
+    const refIds = [
+      ...new Set(
+        items
+          .map((i) => i.abstractId)
+          .filter((x): x is string => x !== null),
+      ),
+    ];
+    const titleById = new Map<string, string>();
+    const presentingById = new Map<string, string | null>();
+    if (refIds.length > 0) {
+      const absRows = await db
+        .select({ id: schema.abstract.id, title: schema.abstract.title })
+        .from(schema.abstract)
+        .where(inArray(schema.abstract.id, refIds));
+      for (const a of absRows) titleById.set(a.id, a.title);
+
+      const authorRows = await db
+        .select({
+          abstractId: schema.author.abstractId,
+          firstName: schema.author.firstName,
+          lastName: schema.author.lastName,
+          isPresenting: schema.author.isPresenting,
+        })
+        .from(schema.author)
+        .where(inArray(schema.author.abstractId, refIds))
+        .orderBy(schema.author.ordinal);
+      const authorsByAbstract = new Map<
+        string,
+        Array<{ firstName: string; lastName: string; isPresenting: boolean }>
+      >();
+      for (const a of authorRows) {
+        const list = authorsByAbstract.get(a.abstractId) ?? [];
+        list.push({
+          firstName: a.firstName,
+          lastName: a.lastName,
+          isPresenting: a.isPresenting,
+        });
+        authorsByAbstract.set(a.abstractId, list);
+      }
+      for (const id of refIds) {
+        const authors = authorsByAbstract.get(id) ?? [];
+        const p = authors.find((x) => x.isPresenting) ?? authors[0];
+        presentingById.set(
+          id,
+          p ? `${p.firstName} ${p.lastName}`.trim() || null : null,
+        );
+      }
+    }
+
+    const itemsBySession = new Map<string, typeof items>();
+    for (const item of items) {
+      const list = itemsBySession.get(item.sessionId) ?? [];
+      list.push(item);
+      itemsBySession.set(item.sessionId, list);
+    }
+
+    return [...sessions]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        sessionDate: s.sessionDate,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+        location: s.location,
+        sortOrder: s.sortOrder,
+        items: (itemsBySession.get(s.id) ?? [])
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((item) => ({
+            id: item.id,
+            sortOrder: item.sortOrder,
+            startsAt: item.startsAt,
+            note: item.note,
+            abstractId: item.abstractId,
+            abstractNumber: item.abstractId
+              ? numberById.get(item.abstractId) ?? null
+              : null,
+            abstractTitle: item.abstractId
+              ? titleById.get(item.abstractId) ?? null
+              : null,
+            presentingAuthorName: item.abstractId
+              ? presentingById.get(item.abstractId) ?? null
+              : null,
+            customTitle: item.customTitle,
+          })),
+      }));
+  }
+
+  // Program sessions. Chair/admin, except getPublicProgram which is public by
+  // design and returns data only for a meeting at a public stage.
+  const programSessions = {
+    async listForEdition(
+      actor: Actor,
+      editionId: string,
+    ): Promise<ProgramSessionResolved[]> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const sessions = await db
+        .select()
+        .from(schema.programSession)
+        .where(eq(schema.programSession.editionId, editionId))
+        .orderBy(schema.programSession.sortOrder);
+      if (sessions.length === 0) return [];
+      const items = await db
+        .select()
+        .from(schema.programItem)
+        .where(
+          inArray(
+            schema.programItem.sessionId,
+            sessions.map((s) => s.id),
+          ),
+        )
+        .orderBy(schema.programItem.sortOrder);
+      return resolveProgram(editionId, sessions, items);
+    },
+
+    async create(actor: Actor, input: ProgramSessionInput) {
+      if (!isChair(actor, input.editionId)) throw new ForbiddenError();
+      const title = input.title.trim();
+      if (!title) throw new ValidationError("Session title is required.");
+      const last = await db
+        .select({ sortOrder: schema.programSession.sortOrder })
+        .from(schema.programSession)
+        .where(eq(schema.programSession.editionId, input.editionId))
+        .orderBy(desc(schema.programSession.sortOrder))
+        .limit(1);
+      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      const [created] = await db
+        .insert(schema.programSession)
+        .values({
+          editionId: input.editionId,
+          title,
+          sessionDate: input.sessionDate ?? null,
+          startsAt: input.startsAt ?? null,
+          endsAt: input.endsAt ?? null,
+          location: input.location?.trim() || null,
+          sortOrder: nextOrder,
+        })
+        .returning();
+      return created;
+    },
+
+    async update(actor: Actor, sessionId: string, patch: ProgramSessionPatch) {
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, sessionId),
+      });
+      if (!session) throw new NotFoundError();
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+
+      const set: Partial<typeof schema.programSession.$inferInsert> = {};
+      if (patch.title !== undefined) {
+        const t = patch.title.trim();
+        if (!t) throw new ValidationError("Session title is required.");
+        set.title = t;
+      }
+      if (patch.sessionDate !== undefined) set.sessionDate = patch.sessionDate;
+      if (patch.startsAt !== undefined) set.startsAt = patch.startsAt;
+      if (patch.endsAt !== undefined) set.endsAt = patch.endsAt;
+      if (patch.location !== undefined) {
+        set.location = patch.location?.trim() || null;
+      }
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.programSession)
+          .set(set)
+          .where(eq(schema.programSession.id, sessionId));
+      }
+      return db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, sessionId),
+      });
+    },
+
+    async remove(actor: Actor, sessionId: string) {
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, sessionId),
+      });
+      if (!session) throw new NotFoundError();
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      await db
+        .delete(schema.programSession)
+        .where(eq(schema.programSession.id, sessionId));
+      return { id: sessionId };
+    },
+
+    async reorder(
+      actor: Actor,
+      editionId: string,
+      orderedSessionIds: string[],
+    ) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const existing = await db
+        .select({ id: schema.programSession.id })
+        .from(schema.programSession)
+        .where(eq(schema.programSession.editionId, editionId));
+      const validIds = new Set(existing.map((s) => s.id));
+      let order = 0;
+      for (const id of orderedSessionIds) {
+        if (!validIds.has(id)) continue;
+        await db
+          .update(schema.programSession)
+          .set({ sortOrder: order })
+          .where(eq(schema.programSession.id, id));
+        order += 1;
+      }
+      return { editionId };
+    },
+
+    // Public, not gated. Returns the program only when the meeting is at a public
+    // stage; otherwise null so the route can show "coming soon". No confidential
+    // or unaccepted content is exposed: items carry only titles, times, and the
+    // presenting author.
+    async getPublicProgram(
+      editionId: string,
+    ): Promise<{ sessions: ProgramSessionResolved[] } | null> {
+      const ed = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, editionId),
+      });
+      if (!ed) return null;
+      if (!PROGRAM_PUBLIC_STATUSES.includes(ed.status)) return null;
+      const sessions = await db
+        .select()
+        .from(schema.programSession)
+        .where(eq(schema.programSession.editionId, editionId))
+        .orderBy(schema.programSession.sortOrder);
+      const items = sessions.length
+        ? await db
+            .select()
+            .from(schema.programItem)
+            .where(
+              inArray(
+                schema.programItem.sessionId,
+                sessions.map((s) => s.id),
+              ),
+            )
+            .orderBy(schema.programItem.sortOrder)
+        : [];
+      return { sessions: await resolveProgram(editionId, sessions, items) };
+    },
+  };
+
+  // Program items within a session. Chair/admin. An item is either an accepted
+  // abstract or a custom entry; that rule is enforced here.
+  const programItems = {
+    // Accepted abstracts in the meeting not yet placed in any session, for the
+    // add-to-session picker, in book order.
+    async listUnplacedAbstracts(
+      actor: Actor,
+      editionId: string,
+    ): Promise<ProgramAbstractOption[]> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const numbered = await numberedAcceptedAbstracts(editionId);
+      if (numbered.length === 0) return [];
+      const placed = await db
+        .select({ abstractId: schema.programItem.abstractId })
+        .from(schema.programItem)
+        .innerJoin(
+          schema.programSession,
+          eq(schema.programItem.sessionId, schema.programSession.id),
+        )
+        .where(eq(schema.programSession.editionId, editionId));
+      const placedSet = new Set(
+        placed.map((p) => p.abstractId).filter((x): x is string => x !== null),
+      );
+      return numbered.filter((n) => !placedSet.has(n.abstractId));
+    },
+
+    async addAbstract(
+      actor: Actor,
+      input: { sessionId: string; abstractId: string },
+    ) {
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, input.sessionId),
+      });
+      if (!session) throw new NotFoundError("session not found");
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+
+      const abs = await db.query.abstract.findFirst({
+        where: eq(schema.abstract.id, input.abstractId),
+      });
+      if (!abs) throw new NotFoundError("abstract not found");
+      if (abs.editionId !== session.editionId) {
+        throw new ValidationError("That abstract belongs to a different meeting.");
+      }
+      if (abs.status !== "accepted") {
+        throw new ValidationError(
+          "Only accepted abstracts can be added to the program.",
+        );
+      }
+
+      // One placement per abstract across the edition. The picker only offers
+      // unplaced abstracts, so this guards direct calls and races.
+      const existing = await db
+        .select({ id: schema.programItem.id })
+        .from(schema.programItem)
+        .innerJoin(
+          schema.programSession,
+          eq(schema.programItem.sessionId, schema.programSession.id),
+        )
+        .where(
+          and(
+            eq(schema.programSession.editionId, session.editionId),
+            eq(schema.programItem.abstractId, input.abstractId),
+          ),
+        )
+        .limit(1);
+      if (existing.length > 0) {
+        throw new AlreadyExistsError(
+          "That abstract is already in the program. Remove it from its current session first.",
+        );
+      }
+
+      const last = await db
+        .select({ sortOrder: schema.programItem.sortOrder })
+        .from(schema.programItem)
+        .where(eq(schema.programItem.sessionId, input.sessionId))
+        .orderBy(desc(schema.programItem.sortOrder))
+        .limit(1);
+      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      const [created] = await db
+        .insert(schema.programItem)
+        .values({
+          sessionId: input.sessionId,
+          abstractId: input.abstractId,
+          sortOrder: nextOrder,
+        })
+        .returning();
+      return created;
+    },
+
+    async addCustom(
+      actor: Actor,
+      input: {
+        sessionId: string;
+        customTitle: string;
+        note?: string;
+        startsAt?: Date | null;
+      },
+    ) {
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, input.sessionId),
+      });
+      if (!session) throw new NotFoundError("session not found");
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const title = input.customTitle.trim();
+      if (!title) throw new ValidationError("Item title is required.");
+
+      const last = await db
+        .select({ sortOrder: schema.programItem.sortOrder })
+        .from(schema.programItem)
+        .where(eq(schema.programItem.sessionId, input.sessionId))
+        .orderBy(desc(schema.programItem.sortOrder))
+        .limit(1);
+      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      const [created] = await db
+        .insert(schema.programItem)
+        .values({
+          sessionId: input.sessionId,
+          customTitle: title,
+          note: input.note?.trim() || null,
+          startsAt: input.startsAt ?? null,
+          sortOrder: nextOrder,
+        })
+        .returning();
+      return created;
+    },
+
+    async update(actor: Actor, itemId: string, patch: ProgramItemPatch) {
+      const item = await db.query.programItem.findFirst({
+        where: eq(schema.programItem.id, itemId),
+      });
+      if (!item) throw new NotFoundError();
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, item.sessionId),
+      });
+      if (!session) throw new NotFoundError();
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+
+      const set: Partial<typeof schema.programItem.$inferInsert> = {};
+      // customTitle applies to custom items only; ignore it for abstract items.
+      if (patch.customTitle !== undefined && item.abstractId === null) {
+        const t = patch.customTitle.trim();
+        if (!t) throw new ValidationError("Item title is required.");
+        set.customTitle = t;
+      }
+      if (patch.note !== undefined) set.note = patch.note?.trim() || null;
+      if (patch.startsAt !== undefined) set.startsAt = patch.startsAt;
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(schema.programItem)
+          .set(set)
+          .where(eq(schema.programItem.id, itemId));
+      }
+      return db.query.programItem.findFirst({
+        where: eq(schema.programItem.id, itemId),
+      });
+    },
+
+    async remove(actor: Actor, itemId: string) {
+      const item = await db.query.programItem.findFirst({
+        where: eq(schema.programItem.id, itemId),
+      });
+      if (!item) throw new NotFoundError();
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, item.sessionId),
+      });
+      if (!session) throw new NotFoundError();
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      await db
+        .delete(schema.programItem)
+        .where(eq(schema.programItem.id, itemId));
+      return { id: itemId };
+    },
+
+    async reorder(actor: Actor, sessionId: string, orderedItemIds: string[]) {
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, sessionId),
+      });
+      if (!session) throw new NotFoundError();
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const existing = await db
+        .select({ id: schema.programItem.id })
+        .from(schema.programItem)
+        .where(eq(schema.programItem.sessionId, sessionId));
+      const validIds = new Set(existing.map((i) => i.id));
+      let order = 0;
+      for (const id of orderedItemIds) {
+        if (!validIds.has(id)) continue;
+        await db
+          .update(schema.programItem)
+          .set({ sortOrder: order })
+          .where(eq(schema.programItem.id, id));
+        order += 1;
+      }
+      return { sessionId };
+    },
+  };
+
   const registrations = {
     // Attendee scoping: a user reads their own registration; a chair reads any
     // in the edition. The PayPal capture webhook flips status to paid out of band.
@@ -2109,6 +2719,8 @@ export function createDataAccess(db: DB) {
     roles,
     decisions,
     books,
+    programSessions,
+    programItems,
     registrations,
     editions,
     registrationCategories,
