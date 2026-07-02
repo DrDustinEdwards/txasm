@@ -5,10 +5,11 @@ import {
   getDataAccess,
   type ProgramDay,
   type ProgramSessionResolved,
+  type SpeakerPublic,
   type SponsorPublic,
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
-import { programKindLabel } from "~/lib/vocab";
+import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumbs } from "~/components/breadcrumbs";
 
 export function meta(_args: Route.MetaArgs) {
@@ -176,17 +177,64 @@ function TrackGroup({ group }: { group: ProgramDay["groups"][number] }) {
   if (!group.concurrent) {
     return <SessionBlock session={group.sessions[0]} />;
   }
+  const trackCount = group.sessions.length;
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-        Parallel sessions
+        {trackCount} parallel tracks
       </p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {group.sessions.map((session) => (
-          <SessionBlock key={session.id} session={session} />
-        ))}
+      {/* N dynamic columns, one per concurrent track (never a fixed two). minmax
+          keeps each track readable and lets the row scroll on narrow screens. */}
+      <div className="overflow-x-auto">
+        <div
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: `repeat(${trackCount}, minmax(16rem, 1fr))`,
+          }}
+        >
+          {group.sessions.map((session) => (
+            <SessionBlock key={session.id} session={session} />
+          ))}
+        </div>
       </div>
     </div>
+  );
+}
+
+function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
+  return (
+    <section className="space-y-3">
+      <h2 className="text-xl font-semibold">Invited speakers</h2>
+      <ul className="space-y-4">
+        {speakers.map((speaker) => (
+          <li
+            key={speaker.id}
+            className="rounded border border-gray-200 p-4 dark:border-gray-800"
+          >
+            <p className="font-medium">{speaker.name}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {[
+                speaker.role ? speakerRoleLabel(speaker.role) : "",
+                speaker.affiliation ?? "",
+              ]
+                .filter((part) => part.length > 0)
+                .join(" . ")}
+            </p>
+            {speaker.talkTitle ? (
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                {speaker.talkTitle}
+              </p>
+            ) : null}
+            {speaker.bio ? (
+              <div
+                className="mt-2 text-sm text-gray-700 dark:text-gray-300"
+                dangerouslySetInnerHTML={{ __html: speaker.bio }}
+              />
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -280,9 +328,18 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
+      {program && program.speakers.length > 0 ? (
+        <SpeakerList speakers={program.speakers} />
+      ) : null}
+
       {program && program.sponsors.length > 0 ? (
         <SponsorList sponsors={program.sponsors} />
       ) : null}
+
+      {/* Printable Program PDF hooks in here as a follow-up build: assemble this
+          same schedule (days, concurrency groups, items, speakers, sponsors) into
+          a print document via Browser Rendering to R2, mirroring the abstract
+          book pipeline (book.server.ts). Not built in this pass. */}
     </div>
   );
 }
