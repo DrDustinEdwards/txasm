@@ -741,6 +741,34 @@ export const institution = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Platform settings. A single row (id fixed to 'default', single-row enforced in
+// the data-access layer) holding org identity and tunable defaults so nothing is
+// hardcoded in the shell: wordmark, names, tagline, founding year, contact,
+// social, footer links (JSON array of {label,url}), and the default currency and
+// abstract word limit. Read in the root loader and edited on the admin settings
+// screen. Currency and word-limit defaults carry DB defaults that mirror the
+// named constants in app/lib/vocab.ts.
+// ---------------------------------------------------------------------------
+
+export const platformSettings = sqliteTable("platform_settings", {
+  id: text("id").primaryKey(), // always 'default'; one row enforced in the data layer
+  orgName: text("org_name"), // display name, e.g. "Texas Branch ASM"
+  shortName: text("short_name"), // wordmark, e.g. "TXASM"
+  orgFullName: text("org_full_name"),
+  tagline: text("tagline"),
+  foundingYear: integer("founding_year"),
+  contactEmail: text("contact_email"),
+  facebookUrl: text("facebook_url"),
+  footerLinks: text("footer_links"), // JSON array of { label, url }
+  defaultCurrency: text("default_currency").notNull().default("usd"),
+  defaultAbstractWordLimit: integer("default_abstract_word_limit")
+    .notNull()
+    .default(250),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter, award. Add once the core above is agreed.
 // ---------------------------------------------------------------------------
