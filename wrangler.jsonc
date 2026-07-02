@@ -9,6 +9,13 @@
 	"keep_vars": true,
 	"observability": { "enabled": true },
 	"upload_source_maps": true,
+	// Non-secret email config. EMAIL_ENABLED stays off until cutover; flipping it
+	// on together with the SEND_EMAIL binding below makes transactional email live.
+	"vars": {
+		"EMAIL_ENABLED": "false",
+		"EMAIL_FROM": "no-reply@txasm.org",
+		"EMAIL_FROM_NAME": "TXASM"
+	},
 	// Native bindings, reached only via context.cloudflare.env in loaders/actions.
 	"d1_databases": [
 		{
@@ -28,6 +35,11 @@
 	// Browser Rendering for the abstract book PDF. Generate in a batch job, not a
 	// user request, to stay inside the quota. May want the paid Workers plan for headroom.
 	"browser": { "binding": "BROWSER" },
+	// Cloudflare Email Service (Email Sending). Enabled at cutover once txasm.org
+	// is on Cloudflare DNS and the domain is onboarded for Email Sending (SPF,
+	// DKIM, bounce records). Kept commented so deploys keep working now without it;
+	// uncomment and set EMAIL_ENABLED to true to go live.
+	// "send_email": [{ "name": "SEND_EMAIL" }],
 	// Deadline jobs and reminders. 13:00 UTC daily; tune per edition windows.
 	"triggers": { "crons": ["0 13 * * *"] }
 }

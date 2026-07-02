@@ -1,4 +1,4 @@
-# CLAUDE.md — txasm
+# CLAUDE.md: txasm
 
 Engineering conventions for this repo. Read this before writing code.
 
@@ -12,24 +12,24 @@ txasm.org: a conference and abstract-management platform for the Texas Branch of
 - Vite with the official Cloudflare plugin (@cloudflare/vite-plugin). The dev server runs in workerd, so local dev mirrors production.
 - Cloudflare Workers for compute. Cloudflare D1 (SQLite) for data via Drizzle ORM. Cloudflare R2 for uploads (figures, camera-ready files, generated books). Cloudflare KV for sessions and cache. Cron Triggers for deadline jobs and reminders. Browser Rendering for the book PDF.
 - Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions live in KV via Better Auth secondary storage.
-- Stripe Checkout plus webhook for registration payments. Resend (REST) for all transactional email. Both via REST from the Worker; Workers cannot do SMTP.
+- PayPal for registration payments (checkout plus a signature-verified webhook). Cloudflare Email Service (Email Sending) for transactional email via the native send_email binding. Email goes live at cutover once txasm.org is on Cloudflare DNS and the domain is onboarded.
 - Tailwind v4 for styling. lucide-react for icons.
 
 There is no Next.js here. If a doc or habit assumes Next, translate it to React Router before using it.
 
 ## Hard rules
 
-1. All Cloudflare, native bindings. Reach D1, R2, KV, and Browser Rendering through context.cloudflare.env inside loaders and actions. Never call a Cloudflare service over HTTP and never reach for a Node-only API. If something needs nodejs_compat, flag it before adding it.
+1. All Cloudflare, native bindings. Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (context.get(cloudflareContext).env, from app/load-context.ts) inside loaders and actions. Never call a Cloudflare service over HTTP and never reach for a Node-only API. If something needs nodejs_compat, flag it before adding it.
 
 2. The data-access layer is the security boundary. D1 has no row-level security, so authorization lives in application code. Every read and write goes through createDataAccess(db) in app/lib/data-access.ts. Nothing imports the Drizzle client or app/db/schema.ts anywhere else. Enforce this with an eslint no-restricted-imports rule and forbid bypass in review. Roles are admin, chair, reviewer (explicit grants); author and attendee are derived from ownership and a paid registration. Conflict of interest is enforced at assignment time.
 
-3. Server and client are separated by file. A route module co-locates a server loader/action with a client component. Any server-only code (database, secrets, the Better Auth instance, R2, Stripe, Resend) lives in a *.server.ts module. A server import leaking into the client bundle is a build break and a security problem; treat it as a blocker. The Stripe and Resend keys must never reach the client.
+3. Server and client are separated by file. A route module co-locates a server loader/action with a client component. Any server-only code (database, secrets, the Better Auth instance, R2, PayPal, the email helper) lives in a *.server.ts module. A server import leaking into the client bundle is a build break and a security problem; treat it as a blocker. The PayPal keys must never reach the client.
 
 4. Editions are first-class. Every domain row carries edition_id, and every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive.
 
 5. Drizzle for all data access. Define schema in app/db/schema.ts. Generate migrations with drizzle-kit, apply with wrangler. Additive migrations only once data exists. Do not hand-write SQL in route code; use the query builder, behind the data-access layer.
 
-6. Stripe webhook integrity. Verify the signature against STRIPE_WEBHOOK_SECRET on every webhook before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path.
+6. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path.
 
 7. PDF book is a batch job. Render the book as HTML, convert with Browser Rendering and Paged.js for the TOC, page numbers, running headers, and author index. Run it from a cron or an admin action, never a user request, and store the result in R2.
 
@@ -62,20 +62,20 @@ app/
     _index.tsx             public org home
     meetings.*             meeting pages, programs, archive
     officers.tsx           current officers
-    register.$edition.tsx  registration + Stripe Checkout
+    register.$edition.tsx  registration + PayPal checkout
     submit.$edition.*      abstract submission, edit until deadline
     review.*               reviewer dashboards, rubric scoring
     admin.*                chair/admin: assignments, decisions, program, book
     api.auth.$.ts          Better Auth catch-all
-    api.stripe-webhook.ts  Stripe webhook (signature-verified, own path)
+    api.paypal-webhook.ts  PayPal webhook (signature-verified, own path)
   db/
     schema.ts              Drizzle schema (editions, users/roles, registrations, abstracts/authors, reviews)
     index.server.ts        drizzle(env.DB) factory
   lib/
     data-access.ts         the only place that imports schema and the Drizzle client
     auth.server.ts         Better Auth instance (magic-link, KV sessions)
-    email.server.ts        Resend REST helpers
-    stripe.server.ts       Stripe REST + webhook verification
+    email.server.ts        Cloudflare Email Service helper (send_email binding)
+    paypal.server.ts       PayPal REST + webhook verification
     r2.server.ts           R2 upload/read helpers
     book.server.ts         abstract book HTML + Browser Rendering
 workers/

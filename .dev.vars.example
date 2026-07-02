@@ -5,9 +5,12 @@ BETTER_AUTH_SECRET=
 BETTER_AUTH_URL=http://localhost:5173
 APP_BASE_URL=http://localhost:5173
 
-# Resend (REST). From address must be on a verified domain before cutover.
-RESEND_API_KEY=
-RESEND_FROM=TXASM <noreply@txasm.org>
+# Cloudflare Email Service (Email Sending). Goes live at cutover when txasm.org
+# is on Cloudflare DNS and the domain is onboarded (SPF, DKIM, bounce records).
+# Until then email is dormant: the helper logs messages instead of sending.
+EMAIL_ENABLED=false
+EMAIL_FROM=no-reply@txasm.org
+EMAIL_FROM_NAME=TXASM
 
 # Stripe (REST). Use test keys locally; the webhook secret is per endpoint.
 STRIPE_SECRET_KEY=
