@@ -1797,6 +1797,101 @@ export function createDataAccess(db: DB) {
         abstractCount: counter,
       };
     },
+
+    // Chair/admin read of the meeting's book record (one per edition), for the
+    // admin UI and the download route. Null when no book has been started.
+    async getBook(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const row = await db.query.abstractBook.findFirst({
+        where: eq(schema.abstractBook.editionId, editionId),
+      });
+      if (!row) return null;
+      return {
+        status: row.status,
+        r2Key: row.r2Key,
+        fileName: row.fileName,
+        abstractCount: row.abstractCount,
+        generatedAt: row.generatedAt,
+        updatedAt: row.updatedAt,
+      };
+    },
+
+    // Mark the book generating before the Browser Rendering call (which happens
+    // in the route where env.BROWSER is in scope). One row per edition. Rejects a
+    // second concurrent generation: if the row is already generating and was set
+    // recently, the caller should wait. A stale generating row (older than the
+    // window, from a crashed run) is allowed to restart. The previous r2Key is
+    // kept so an existing book stays downloadable until the new one is ready.
+    async recordBookGenerating(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const STALE_MS = 5 * 60 * 1000;
+      const existing = await db.query.abstractBook.findFirst({
+        where: eq(schema.abstractBook.editionId, editionId),
+      });
+      if (existing && existing.status === "generating") {
+        const age = Date.now() - existing.updatedAt.getTime();
+        if (age < STALE_MS) {
+          throw new ValidationError(
+            "A book is already being generated for this meeting. Give it a minute, then refresh.",
+          );
+        }
+      }
+      if (existing) {
+        await db
+          .update(schema.abstractBook)
+          .set({ status: "generating", generatedById: actor.userId })
+          .where(eq(schema.abstractBook.id, existing.id));
+        return { id: existing.id };
+      }
+      const [created] = await db
+        .insert(schema.abstractBook)
+        .values({
+          editionId,
+          status: "generating",
+          generatedById: actor.userId,
+        })
+        .returning();
+      return { id: created.id };
+    },
+
+    // Mark the book ready after the PDF is stored in R2.
+    async recordBookReady(
+      actor: Actor,
+      editionId: string,
+      input: { r2Key: string; fileName: string; abstractCount: number },
+    ) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const existing = await db.query.abstractBook.findFirst({
+        where: eq(schema.abstractBook.editionId, editionId),
+      });
+      if (!existing) throw new NotFoundError();
+      await db
+        .update(schema.abstractBook)
+        .set({
+          status: "ready",
+          r2Key: input.r2Key,
+          fileName: input.fileName,
+          abstractCount: input.abstractCount,
+          generatedById: actor.userId,
+          generatedAt: new Date(),
+        })
+        .where(eq(schema.abstractBook.id, existing.id));
+      return { id: existing.id };
+    },
+
+    // Mark the book failed so the UI can show it and the chair can retry.
+    async recordBookFailed(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const existing = await db.query.abstractBook.findFirst({
+        where: eq(schema.abstractBook.editionId, editionId),
+      });
+      if (!existing) return { id: null };
+      await db
+        .update(schema.abstractBook)
+        .set({ status: "failed" })
+        .where(eq(schema.abstractBook.id, existing.id));
+      return { id: existing.id };
+    },
   };
 
   // Accepted abstracts for an edition, numbered the same way the abstract book
