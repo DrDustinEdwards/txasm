@@ -1696,7 +1696,7 @@ export function createDataAccess(db: DB) {
             const first = author.firstName.trim();
             const last = author.lastName.trim();
             if (!first && !last) continue;
-            const key = `${last.toLowerCase()} ${first.toLowerCase()}`;
+            const key = `${last.toLowerCase()} ${first.toLowerCase()}`;
             const entry =
               indexByKey.get(key) ??
               {
