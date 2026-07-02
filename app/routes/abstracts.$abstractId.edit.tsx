@@ -4,6 +4,7 @@ import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
+  DEFAULT_BODY_WORD_LIMIT,
   DeadlinePassedError,
   ForbiddenError,
   NotFoundError,
@@ -11,15 +12,31 @@ import {
   getActor,
   getDataAccess,
   isChair,
+  type AbstractLevel,
   type AffiliationInput,
   type AuthorInput,
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { countWords } from "~/lib/richtext";
 import { RichEditor } from "~/components/rich-editor";
+import {
+  InstitutionAutocomplete,
+  type InstitutionSuggestion,
+} from "~/components/institution-autocomplete";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Edit abstract | Texas Branch ASM" }];
 }
+
+const LEVEL_OPTIONS = [
+  { value: "undergraduate", label: "Undergraduate" },
+  { value: "graduate", label: "Graduate" },
+  { value: "education", label: "Education" },
+  { value: "high_school", label: "High school" },
+  { value: "postdoctoral", label: "Postdoctoral" },
+] as const;
+
+const LEVEL_VALUES = LEVEL_OPTIONS.map((option) => option.value);
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -45,12 +62,8 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   );
   const deadline = data.edition.submissionDeadline;
   const deadlinePassed = !!deadline && Date.now() > deadline.getTime();
-  const editable =
-    isChair(actor, data.abstract.editionId) || !deadlinePassed;
+  const editable = isChair(actor, data.abstract.editionId) || !deadlinePassed;
 
-  // Surface the decision to the submitter (or a chair). getForAbstract enforces
-  // the same rule; the pre-check keeps an assigned reviewer viewing this page
-  // from tripping a forbidden read.
   const canSeeDecision =
     isChair(actor, data.abstract.editionId) ||
     data.abstract.submitterId === actor.userId;
@@ -62,17 +75,16 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     abstract: {
       id: data.abstract.id,
       title: data.abstract.title,
-      background: data.abstract.background ?? "",
-      methods: data.abstract.methods ?? "",
-      results: data.abstract.results ?? "",
-      conclusions: data.abstract.conclusions ?? "",
-      presentationPreference: data.abstract.presentationPreference,
+      bodyText: data.abstract.bodyText ?? "",
+      level: data.abstract.level ?? "",
       categoryId: data.abstract.categoryId ?? "",
+      presentationPreference: data.abstract.presentationPreference,
       status: data.abstract.status,
     },
     edition: {
       name: data.edition.name,
       submissionDeadline: deadline,
+      wordLimit: data.edition.abstractWordLimit ?? DEFAULT_BODY_WORD_LIMIT,
     },
     categories: categories.map((c) => ({ id: c.id, name: c.name })),
     authors: data.authors.map((a) => ({
@@ -87,6 +99,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
       institution: a.institution,
       department: a.department ?? "",
       city: a.city ?? "",
+      region: "",
       country: a.country ?? "",
     })),
     editable,
@@ -125,14 +138,17 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const presentationPreference: "oral" | "poster" | "either" =
       prefRaw === "oral" || prefRaw === "poster" ? prefRaw : "either";
 
+    const levelRaw = String(form.get("level") ?? "");
+    const level = (LEVEL_VALUES as readonly string[]).includes(levelRaw)
+      ? (levelRaw as AbstractLevel)
+      : null;
+
     await da.abstracts.update(actor, params.abstractId, {
       title: String(form.get("title") ?? ""),
-      background: String(form.get("background") ?? ""),
-      methods: String(form.get("methods") ?? ""),
-      results: String(form.get("results") ?? ""),
-      conclusions: String(form.get("conclusions") ?? ""),
-      presentationPreference,
+      bodyText: String(form.get("bodyText") ?? ""),
+      level,
       categoryId: String(form.get("categoryId") ?? ""),
+      presentationPreference,
     });
     await da.abstracts.setAffiliations(
       actor,
@@ -146,6 +162,24 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     );
 
     if (intent === "submit") {
+      // Self-grow the institution master list from any new institutions typed.
+      const affRows = affiliations as Array<{
+        institution?: string;
+        city?: string;
+        region?: string;
+        country?: string;
+      }>;
+      for (const aff of affRows) {
+        const name = (aff.institution ?? "").trim();
+        if (name) {
+          await da.institutions.ensure(actor, {
+            name,
+            city: aff.city,
+            region: aff.region,
+            country: aff.country,
+          });
+        }
+      }
       await da.abstracts.submit(actor, params.abstractId);
       return redirect("/my/abstracts");
     }
@@ -177,6 +211,7 @@ interface AffiliationState {
   institution: string;
   department: string;
   city: string;
+  region: string;
   country: string;
 }
 
@@ -192,11 +227,14 @@ function emptyAuthor(): AuthorState {
 }
 
 function emptyAffiliation(): AffiliationState {
-  return { institution: "", department: "", city: "", country: "" };
+  return { institution: "", department: "", city: "", region: "", country: "" };
 }
 
 const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
+  "w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
+
+const smallButton =
+  "rounded-md border border-border-strong px-2 py-1 text-sm text-text disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function titleCase(value: string) {
   return value
@@ -217,6 +255,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const [affiliations, setAffiliations] = useState<AffiliationState[]>(
     () => loaderData.affiliations,
   );
+  const [bodyWords, setBodyWords] = useState(() => countWords(abstract.bodyText));
+  const overLimit = bodyWords > edition.wordLimit;
 
   const statusRef = useRef<HTMLParagraphElement>(null);
   const error = actionData && "error" in actionData ? actionData.error : null;
@@ -266,13 +306,20 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       prev.map((a, i) => (i === index ? { ...a, ...patch } : a)),
     );
   }
+  function selectInstitution(index: number, suggestion: InstitutionSuggestion) {
+    updateAffiliation(index, {
+      institution: suggestion.name,
+      city: suggestion.city ?? "",
+      region: suggestion.region ?? "",
+      country: suggestion.country ?? "USA",
+    });
+  }
   function addAffiliation() {
     setAffiliations((prev) => [...prev, emptyAffiliation()]);
   }
   function removeAffiliation(index: number) {
     const removedOrdinal = index + 1;
     setAffiliations((prev) => prev.filter((_, i) => i !== index));
-    // Renumber author links: drop the removed number, shift higher ones down.
     setAuthors((prev) =>
       prev.map((a) => ({
         ...a,
@@ -286,7 +333,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   if (!editable) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-2xl font-semibold text-text">
           {abstract.title ? (
             <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
           ) : (
@@ -296,19 +343,19 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         <DecisionPanel decision={decision} />
         <p
           role="status"
-          className="rounded border border-gray-200 bg-gray-50 p-3 text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+          className="rounded-md border border-border bg-panel p-3 text-text-muted"
         >
           The submission deadline has passed. This abstract can no longer be
           edited.
         </p>
         <ReadOnlyAbstract
-          abstract={abstract}
+          bodyText={abstract.bodyText}
           authors={loaderData.authors}
           affiliations={loaderData.affiliations}
         />
         <Link
           to="/my/abstracts"
-          className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          className="font-medium text-link hover:underline"
         >
           Back to my abstracts
         </Link>
@@ -319,8 +366,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Abstract</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-semibold text-text">Abstract</h1>
+        <p className="text-sm text-text-muted">
           {edition.name} . Status: {titleCase(abstract.status)}
           {edition.submissionDeadline
             ? ` . Deadline: ${formatDateTime(edition.submissionDeadline)}`
@@ -336,9 +383,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         role={error ? "alert" : "status"}
         className={
           error
-            ? "rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+            ? "rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
             : ok
-              ? "rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
+              ? "rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
               : "sr-only"
         }
       >
@@ -353,58 +400,78 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           initialHTML={abstract.title}
         />
 
-        <RichEditor
-          name="background"
-          label="Background"
-          mode="body"
-          initialHTML={abstract.background}
-          showWordCount
-        />
-        <RichEditor
-          name="methods"
-          label="Methods"
-          mode="body"
-          initialHTML={abstract.methods}
-          showWordCount
-        />
-        <RichEditor
-          name="results"
-          label="Results"
-          mode="body"
-          initialHTML={abstract.results}
-          showWordCount
-        />
-        <RichEditor
-          name="conclusions"
-          label="Conclusions"
-          mode="body"
-          initialHTML={abstract.conclusions}
-          showWordCount
-        />
-
         <div className="space-y-1">
-          <label htmlFor="categoryId" className="block text-sm font-medium">
-            Category
-          </label>
-          <select
-            id="categoryId"
-            name="categoryId"
-            defaultValue={abstract.categoryId}
-            className={inputClass}
+          <RichEditor
+            name="bodyText"
+            label="Abstract body"
+            mode="body"
+            initialHTML={abstract.bodyText}
+            describedById="body-count"
+            onValueChange={(value) => setBodyWords(countWords(value))}
+          />
+          <p
+            id="body-count"
+            aria-live="polite"
+            className={
+              overLimit
+                ? "text-sm font-medium text-red-700 dark:text-red-400"
+                : "text-sm text-text-muted"
+            }
           >
-            <option value="">No category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+            {bodyWords} / {edition.wordLimit} words
+            {overLimit
+              ? ". Over the limit. Trim the body to submit; you can still save a draft."
+              : ""}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1">
+            <label htmlFor="level" className="block text-sm font-medium text-text">
+              Level
+            </label>
+            <select
+              id="level"
+              name="level"
+              defaultValue={abstract.level}
+              className={inputClass}
+            >
+              <option value="">Choose a level</option>
+              {LEVEL_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="categoryId"
+              className="block text-sm font-medium text-text"
+            >
+              Topic
+            </label>
+            <select
+              id="categoryId"
+              name="categoryId"
+              defaultValue={abstract.categoryId}
+              className={inputClass}
+            >
+              <option value="">Choose a topic</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="space-y-1">
           <label
             htmlFor="presentationPreference"
-            className="block text-sm font-medium"
+            className="block text-sm font-medium text-text"
           >
             Presentation preference
           </label>
@@ -420,21 +487,22 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Affiliations</legend>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Number each affiliation once, then attach it to authors below.
+        <fieldset className="space-y-4 rounded-md border border-border p-4">
+          <legend className="px-1 text-sm font-medium text-text">
+            Affiliations
+          </legend>
+          <p className="text-sm text-text-muted">
+            Number each affiliation once, then attach it to authors below. Start
+            typing to pick a known institution or add a new one.
           </p>
           {affiliations.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              No affiliations added.
-            </p>
+            <p className="text-sm text-text-muted">No affiliations added.</p>
           ) : (
             <ol className="space-y-4">
               {affiliations.map((affiliation, index) => (
                 <li key={index} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium text-text">
                       Affiliation {index + 1}
                     </span>
                     <button
@@ -446,19 +514,20 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <label className="space-y-1">
-                      <span className="block text-sm">Institution</span>
-                      <input
-                        type="text"
+                    <div className="sm:col-span-2">
+                      <InstitutionAutocomplete
+                        id={`institution-${index}`}
+                        label="Institution"
                         value={affiliation.institution}
-                        onChange={(e) =>
-                          updateAffiliation(index, {
-                            institution: e.target.value,
-                          })
+                        onChange={(name) =>
+                          updateAffiliation(index, { institution: name })
                         }
-                        className={inputClass}
+                        onSelect={(suggestion) =>
+                          selectInstitution(index, suggestion)
+                        }
+                        inputClassName={inputClass}
                       />
-                    </label>
+                    </div>
                     <label className="space-y-1">
                       <span className="block text-sm">Department</span>
                       <input
@@ -484,6 +553,17 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                       />
                     </label>
                     <label className="space-y-1">
+                      <span className="block text-sm">State or province</span>
+                      <input
+                        type="text"
+                        value={affiliation.region}
+                        onChange={(e) =>
+                          updateAffiliation(index, { region: e.target.value })
+                        }
+                        className={inputClass}
+                      />
+                    </label>
+                    <label className="space-y-1">
                       <span className="block text-sm">Country</span>
                       <input
                         type="text"
@@ -502,29 +582,31 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           <button
             type="button"
             onClick={addAffiliation}
-            className="rounded border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:hover:bg-gray-900"
+            className="rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             Add affiliation
           </button>
         </fieldset>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Authors</legend>
+        <fieldset className="space-y-4 rounded-md border border-border p-4">
+          <legend className="px-1 text-sm font-medium text-text">Authors</legend>
           <ol className="space-y-4">
             {authors.map((author, index) => (
               <li
                 key={index}
-                className="space-y-3 rounded border border-gray-100 p-3 dark:border-gray-900"
+                className="space-y-3 rounded-md border border-border p-3"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Author {index + 1}</span>
+                  <span className="text-sm font-medium text-text">
+                    Author {index + 1}
+                  </span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => moveAuthor(index, -1)}
                       disabled={index === 0}
                       aria-label={`Move author ${index + 1} up`}
-                      className="rounded border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 dark:border-gray-700"
+                      className={smallButton}
                     >
                       Up
                     </button>
@@ -533,7 +615,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                       onClick={() => moveAuthor(index, 1)}
                       disabled={index === authors.length - 1}
                       aria-label={`Move author ${index + 1} down`}
-                      className="rounded border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 dark:border-gray-700"
+                      className={smallButton}
                     >
                       Down
                     </button>
@@ -641,7 +723,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           <button
             type="button"
             onClick={addAuthor}
-            className="rounded border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:hover:bg-gray-900"
+            className="rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             Add author
           </button>
@@ -660,7 +742,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             name="intent"
             value="save"
             disabled={submitting}
-            className="rounded border border-gray-300 px-4 py-2 font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 dark:border-gray-700 dark:hover:bg-gray-900"
+            className="rounded-md border border-border-strong px-4 py-2 font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
           >
             Save draft
           </button>
@@ -668,8 +750,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             type="submit"
             name="intent"
             value="submit"
-            disabled={submitting}
-            className="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+            disabled={submitting || overLimit}
+            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
           >
             Submit abstract
           </button>
@@ -687,7 +769,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </button>
           <Link
             to="/my/abstracts"
-            className="text-sm font-medium text-gray-700 hover:underline dark:text-gray-300"
+            className="text-sm font-medium text-text-muted hover:text-text"
           >
             Back
           </Link>
@@ -721,7 +803,7 @@ function DecisionPanel({
         ? "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950"
         : "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950";
   return (
-    <section role="status" className={`space-y-2 rounded border p-4 ${tone}`}>
+    <section role="status" className={`space-y-2 rounded-md border p-4 ${tone}`}>
       <h2 className="text-lg font-medium">Decision</h2>
       <p className="text-sm">
         <span className="font-medium">Outcome:</span>{" "}
@@ -744,34 +826,29 @@ function DecisionPanel({
 }
 
 function ReadOnlyAbstract({
-  abstract,
+  bodyText,
   authors,
   affiliations,
 }: {
-  abstract: { background: string; methods: string; results: string; conclusions: string };
+  bodyText: string;
   authors: Array<{ firstName: string; lastName: string }>;
   affiliations: Array<{ institution: string }>;
 }) {
-  const sections: Array<[string, string]> = [
-    ["Background", abstract.background],
-    ["Methods", abstract.methods],
-    ["Results", abstract.results],
-    ["Conclusions", abstract.conclusions],
-  ];
   return (
     <div className="space-y-4">
-      {sections
-        .filter(([, html]) => html.trim().length > 0)
-        .map(([label, html]) => (
-          <section key={label} className="space-y-1">
-            <h2 className="text-sm font-medium">{label}</h2>
-            <div dangerouslySetInnerHTML={{ __html: html }} />
-          </section>
-        ))}
+      {bodyText.trim().length > 0 ? (
+        <section className="space-y-1">
+          <h2 className="text-sm font-medium text-text">Abstract</h2>
+          <div
+            className="text-text"
+            dangerouslySetInnerHTML={{ __html: bodyText }}
+          />
+        </section>
+      ) : null}
       {authors.length > 0 ? (
         <section className="space-y-1">
-          <h2 className="text-sm font-medium">Authors</h2>
-          <p>
+          <h2 className="text-sm font-medium text-text">Authors</h2>
+          <p className="text-text">
             {authors
               .map((a) => `${a.firstName} ${a.lastName}`.trim())
               .filter(Boolean)
@@ -781,8 +858,8 @@ function ReadOnlyAbstract({
       ) : null}
       {affiliations.length > 0 ? (
         <section className="space-y-1">
-          <h2 className="text-sm font-medium">Affiliations</h2>
-          <ol className="list-decimal pl-5">
+          <h2 className="text-sm font-medium text-text">Affiliations</h2>
+          <ol className="list-decimal pl-5 text-text">
             {affiliations.map((a, i) => (
               <li key={i}>{a.institution}</li>
             ))}

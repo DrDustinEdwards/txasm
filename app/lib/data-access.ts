@@ -4,11 +4,15 @@ import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import { EDITION_STATUSES, type EditionStatus, type Season } from "./editions";
 import {
+  countWords,
   extractPlainText,
   isEmptyRichText,
   sanitizeBody,
   sanitizeTitle,
 } from "./richtext";
+
+// Default hard word limit for the abstract body when a meeting sets none.
+export const DEFAULT_BODY_WORD_LIMIT = 250;
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
 // Enforce with an eslint no-restricted-imports rule on every other module so
@@ -715,7 +719,8 @@ export function createDataAccess(db: DB) {
     },
 
     // Move a draft to submitted. Only the submitter, only before the deadline,
-    // and only with a title, at least one author, and a non-empty body.
+    // and only with a title, at least one author, a non-empty body within the
+    // meeting's word limit, a chosen level, and a chosen topic.
     async submit(actor: Actor, abstractId: string) {
       const row = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, abstractId),
@@ -741,9 +746,19 @@ export function createDataAccess(db: DB) {
         throw new ValidationError("Add at least one author before submitting.");
       }
       if (!row.bodyText || isEmptyRichText(row.bodyText)) {
+        throw new ValidationError("Add the abstract body before submitting.");
+      }
+      const wordLimit = ed?.abstractWordLimit ?? DEFAULT_BODY_WORD_LIMIT;
+      if (countWords(row.bodyText) > wordLimit) {
         throw new ValidationError(
-          "Add the abstract body before submitting.",
+          `The abstract body is over the ${wordLimit} word limit.`,
         );
+      }
+      if (!row.level) {
+        throw new ValidationError("Choose a level before submitting.");
+      }
+      if (!row.categoryId) {
+        throw new ValidationError("Choose a topic before submitting.");
       }
 
       await db

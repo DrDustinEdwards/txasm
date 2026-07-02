@@ -13,6 +13,9 @@ interface RichEditorProps {
   mode: "title" | "body";
   describedById?: string;
   showWordCount?: boolean;
+  // Optional callback so a parent can track the live value (used for the body
+  // word count and the submit-over-limit guard on the submission form).
+  onValueChange?: (value: string) => void;
 }
 
 // A deliberately limited editor. Title allows italic; body also allows
@@ -26,6 +29,7 @@ export function RichEditor({
   mode,
   describedById,
   showWordCount = false,
+  onValueChange,
 }: RichEditorProps) {
   const tags = mode === "title" ? TITLE_TAGS : BODY_TAGS;
   const editorRef = useRef<HTMLDivElement>(null);
@@ -33,17 +37,19 @@ export function RichEditor({
   const [value, setValue] = useState(() => sanitizeRichText(initialHTML, tags));
 
   // Set the editable content once after mount, then manage it imperatively so
-  // typing does not reset the caret.
-  // Set the initial content once after mount, then manage the DOM imperatively.
+  // typing does not reset the caret. Report the initial value to the parent.
   // value is intentionally not a dependency: re-running would reset the caret.
   useEffect(() => {
     if (editorRef.current) editorRef.current.innerHTML = value;
+    onValueChange?.(value);
   }, []);
 
   function sync() {
     const el = editorRef.current;
     if (!el) return;
-    setValue(sanitizeRichText(el.innerHTML, tags));
+    const next = sanitizeRichText(el.innerHTML, tags);
+    setValue(next);
+    onValueChange?.(next);
   }
 
   function wrap(tag: "em" | "sup" | "sub") {

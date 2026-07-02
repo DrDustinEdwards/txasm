@@ -108,6 +108,7 @@ export const edition = sqliteTable(
     submissionOpensAt: tsMs("submission_opens_at"),
     submissionDeadline: tsMs("submission_deadline"),
     reviewDeadline: tsMs("review_deadline"),
+    abstractWordLimit: integer("abstract_word_limit"), // hard body limit; null uses the default
     meetingStartsAt: tsMs("meeting_starts_at"),
     meetingEndsAt: tsMs("meeting_ends_at"),
     venueName: text("venue_name"),

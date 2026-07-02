@@ -1,0 +1,1 @@
+ALTER TABLE `edition` ADD `abstract_word_limit` integer;
