@@ -9,6 +9,8 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { cloudflareContext } from "~/load-context";
+import { getDataAccess } from "~/lib/data-access";
 import { parseThemeCookie } from "~/lib/theme";
 import "./app.css";
 
@@ -25,11 +27,15 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
-// Root provides the document and the theme. The public and admin shells (their
-// own layout routes) provide the chrome. Only the theme is read here.
-export async function loader({ request }: Route.LoaderArgs) {
+// Root provides the document, the theme, and the platform settings the shells
+// render (org identity, footer links). The public and admin shells (their own
+// layout routes) read these from the root loader data.
+export async function loader({ request, context }: Route.LoaderArgs) {
   const theme = parseThemeCookie(request.headers.get("Cookie"));
-  return { theme };
+  const settings = await getDataAccess(
+    context.get(cloudflareContext).env,
+  ).settings.get();
+  return { theme, settings };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {

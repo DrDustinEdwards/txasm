@@ -1,5 +1,14 @@
-import { Form, Link, NavLink, Outlet, useMatches, useParams } from "react-router";
+import {
+  Form,
+  Link,
+  NavLink,
+  Outlet,
+  useMatches,
+  useParams,
+  useRouteLoaderData,
+} from "react-router";
 import type { Route } from "./+types/admin.layout";
+import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { OffCanvas } from "~/components/off-canvas";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -188,6 +197,8 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   const params = useParams();
   const editionId = params.editionId;
   const meetingName = useActiveMeetingName();
+  const rootData = useRouteLoaderData<typeof rootLoader>("root");
+  const wordmark = rootData?.settings?.shortName ?? "";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -207,7 +218,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               to="/"
               className="rounded-md px-2 py-1 text-sm font-semibold tracking-tight text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              TXASM
+              {wordmark}
             </Link>
             <span className="text-sm text-text-muted">
               {meetingName ? meetingName : "Admin"}

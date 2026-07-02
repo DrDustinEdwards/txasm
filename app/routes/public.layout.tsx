@@ -1,6 +1,8 @@
-import { Form, Link, NavLink, Outlet } from "react-router";
+import { Form, Link, NavLink, Outlet, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/public.layout";
+import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
+import type { PlatformSettings } from "~/lib/data-access";
 import { NavMenu, type NavMenuGroup } from "~/components/nav-menu";
 import { OffCanvas } from "~/components/off-canvas";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -40,8 +42,6 @@ const AWARDS_GROUPS: NavMenuGroup[] = [
     ],
   },
 ];
-
-const FACEBOOK_GROUP_URL = "https://www.facebook.com/groups/texasbranchasm";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -163,10 +163,12 @@ function PublicHeader({
   email,
   isAdmin,
   isReviewer,
+  wordmark,
 }: {
   email: string | null;
   isAdmin: boolean;
   isReviewer: boolean;
+  wordmark: string;
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
@@ -185,7 +187,7 @@ function PublicHeader({
             to="/"
             className="rounded-md px-2 py-1 text-base font-semibold tracking-tight text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            TXASM
+            {wordmark}
           </Link>
           <nav aria-label="Primary" className="ml-2 hidden items-center gap-1 md:flex">
             <NavLink to="/officers" className={navLinkClass}>
@@ -241,52 +243,85 @@ function PublicHeader({
   );
 }
 
-function PublicFooter() {
+function FooterLink({ label, url }: { label: string; url: string }) {
+  // External links (http/https or mailto) are plain anchors; internal paths route.
+  if (/^(https?:|mailto:)/i.test(url)) {
+    return (
+      <a
+        href={url}
+        target={url.startsWith("mailto:") ? undefined : "_blank"}
+        rel="noreferrer"
+        className="text-link hover:underline"
+      >
+        {label}
+      </a>
+    );
+  }
+  return (
+    <Link to={url} className="text-link hover:underline">
+      {label}
+    </Link>
+  );
+}
+
+function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) {
+  const orgFullName = settings?.orgFullName ?? "";
+  const foundingYear = settings?.foundingYear ?? null;
+  const copyrightName = settings?.orgName || orgFullName;
+  const foundedLine = orgFullName
+    ? foundingYear
+      ? `${orgFullName}. Founded in ${foundingYear}.`
+      : `${orgFullName}.`
+    : "";
+
   return (
     <footer className="mt-16 border-t border-border bg-panel">
       <div className="mx-auto max-w-6xl px-4 py-10 text-sm">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-          <Link to="/officers" className="text-link hover:underline">
-            Officers
-          </Link>
-          <Link to="/awardees" className="text-link hover:underline">
-            Awards
-          </Link>
-          <Link to="/contact" className="text-link hover:underline">
-            Contact
-          </Link>
-          <a
-            href={FACEBOOK_GROUP_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="text-link hover:underline"
-          >
-            Facebook group
-          </a>
+          {(settings?.footerLinks ?? []).map((link) => (
+            <FooterLink
+              key={`${link.label}-${link.url}`}
+              label={link.label}
+              url={link.url}
+            />
+          ))}
+          {settings?.contactEmail ? (
+            <FooterLink
+              label="Contact"
+              url={`mailto:${settings.contactEmail}`}
+            />
+          ) : null}
+          {settings?.facebookUrl ? (
+            <FooterLink label="Facebook group" url={settings.facebookUrl} />
+          ) : null}
         </nav>
-        <p className="mt-6 text-text-muted">
-          Texas Branch of the American Society for Microbiology. Founded in 1941.
-        </p>
-        <p className="mt-1 text-text-muted">
-          &copy; Texas Branch ASM
-        </p>
+        {foundedLine ? (
+          <p className="mt-6 text-text-muted">{foundedLine}</p>
+        ) : null}
+        {copyrightName ? (
+          <p className="mt-1 text-text-muted">&copy; {copyrightName}</p>
+        ) : null}
       </div>
     </footer>
   );
 }
 
 export default function PublicLayout({ loaderData }: Route.ComponentProps) {
+  const rootData = useRouteLoaderData<typeof rootLoader>("root");
+  const settings: PlatformSettings | undefined = rootData?.settings;
+
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader
         email={loaderData.email}
         isAdmin={loaderData.isAdmin}
         isReviewer={loaderData.isReviewer}
+        wordmark={settings?.shortName ?? ""}
       />
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
         <Outlet />
       </main>
-      <PublicFooter />
+      <PublicFooter settings={settings} />
     </div>
   );
 }
