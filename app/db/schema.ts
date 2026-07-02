@@ -597,6 +597,35 @@ export const abstractBook = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Program document. The printable meeting program, a sibling to the abstract
+// book: one row per edition, generated on demand from the schedule and stored in
+// R2. Mirrors abstract_book (kept a separate focused table rather than merging
+// the two into a generic document table, since the book is already deployed).
+// ---------------------------------------------------------------------------
+
+export const programDocument = sqliteTable(
+  "program_document",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" }),
+    r2Key: text("r2_key"), // set when a PDF is generated and stored
+    fileName: text("file_name"),
+    status: text("status", {
+      enum: ["pending", "generating", "ready", "failed"],
+    })
+      .notNull()
+      .default("pending"),
+    generatedById: text("generated_by_id").references(() => user.id),
+    generatedAt: tsMs("generated_at"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_program_document_edition").on(t.editionId)],
+);
+
+// ---------------------------------------------------------------------------
 // Invited speakers and sponsors, per edition. Invited speakers are keynotes and
 // award lectures a program item can point to; sponsors show on the public
 // program. Both carry an r2Key for an image (headshot, logo) that stays nullable
@@ -670,6 +699,7 @@ export const programSession = sqliteTable(
     startsAt: tsMs("starts_at"),
     endsAt: tsMs("ends_at"),
     location: text("location"), // room or hall
+    moderator: text("moderator"), // optional session moderator, plain text
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
