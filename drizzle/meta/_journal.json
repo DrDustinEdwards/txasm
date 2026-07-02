@@ -29,6 +29,13 @@
       "when": 1782882126177,
       "tag": "0003_gigantic_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1782958181194,
+      "tag": "0004_white_colossus",
+      "breakpoints": true
     }
   ]
 }

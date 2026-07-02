@@ -580,7 +580,52 @@ export const abstractBook = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Program. The meeting schedule: ordered sessions, each holding ordered items.
+// An item is either an accepted abstract (abstractId set) or a custom entry like
+// a keynote or a break (customTitle set). That "one or the other" rule is
+// enforced in the data-access layer, not by a DB constraint.
+// ---------------------------------------------------------------------------
+
+export const programSession = sqliteTable(
+  "program_session",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    sessionDate: tsMs("session_date"),
+    startsAt: tsMs("starts_at"),
+    endsAt: tsMs("ends_at"),
+    location: text("location"), // room or hall
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_program_session_edition").on(t.editionId)],
+);
+
+export const programItem = sqliteTable(
+  "program_item",
+  {
+    id: pk(),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => programSession.id, { onDelete: "cascade" }),
+    abstractId: text("abstract_id").references(() => abstract.id, {
+      onDelete: "set null",
+    }), // set for an abstract item
+    customTitle: text("custom_title"), // set for a non-abstract item (keynote, break)
+    note: text("note"),
+    startsAt: tsMs("starts_at"), // optional per-item time
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_program_item_session").on(t.sessionId)],
+);
+
+// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
-// this review: program_session, program_item, officer, newsletter, award. Add
-// once the core above is agreed.
+// this review: officer, newsletter, award. Add once the core above is agreed.
 // ---------------------------------------------------------------------------
