@@ -11,7 +11,7 @@ txasm.org: a conference and abstract-management platform for the Texas Branch of
 - React Router v8 (framework mode) + React 19 + TypeScript.
 - Vite with the official Cloudflare plugin (@cloudflare/vite-plugin). The dev server runs in workerd, so local dev mirrors production.
 - Cloudflare Workers for compute. Cloudflare D1 (SQLite) for data via Drizzle ORM. Cloudflare R2 for uploads (figures, camera-ready files, generated books). Cloudflare KV for sessions and cache. Cron Triggers for deadline jobs and reminders. Browser Rendering for the book PDF.
-- Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions live in KV via Better Auth secondary storage.
+- Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions live in KV via Better Auth secondary storage. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
 - PayPal for registration payments (checkout plus a signature-verified webhook). Cloudflare Email Service (Email Sending) for transactional email via the native send_email binding. Email goes live at cutover once txasm.org is on Cloudflare DNS and the domain is onboarded.
 - Tailwind v4 for styling. lucide-react for icons.
 

@@ -8,6 +8,8 @@ interface Env {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   ADMIN_EMAIL: string;
+  // Comma-separated admin allowlist. Optional; falls back to ADMIN_EMAIL.
+  ADMIN_EMAILS?: string;
 }
 
 declare namespace Cloudflare {
@@ -15,5 +17,6 @@ declare namespace Cloudflare {
     BETTER_AUTH_SECRET: string;
     BETTER_AUTH_URL: string;
     ADMIN_EMAIL: string;
+    ADMIN_EMAILS?: string;
   }
 }

@@ -62,16 +62,21 @@ function buildAuth(env: Env) {
         },
       }),
     ],
-    // Seed the first platform admin. When the user whose email matches
-    // ADMIN_EMAIL is created (first sign-in), grant them a platform-wide admin
-    // role. A null edition_id means the grant is not scoped to one edition.
+    // Seed platform admins. ADMIN_EMAILS is a comma-separated allowlist; when a
+    // user whose email is on it is created (first sign-in), grant them a
+    // platform-wide admin role (null edition_id). Falls back to the single
+    // ADMIN_EMAIL for backward compatibility when ADMIN_EMAILS is not set.
     databaseHooks: {
       user: {
         create: {
           after: async (createdUser) => {
-            const adminEmail = env.ADMIN_EMAIL?.toLowerCase();
-            if (!adminEmail) return;
-            if (createdUser.email.toLowerCase() !== adminEmail) return;
+            const source = env.ADMIN_EMAILS ?? env.ADMIN_EMAIL ?? "";
+            const adminEmails = source
+              .split(",")
+              .map((email) => email.trim().toLowerCase())
+              .filter((email) => email.length > 0);
+            if (adminEmails.length === 0) return;
+            if (!adminEmails.includes(createdUser.email.toLowerCase())) return;
             await db
               .insert(schema.roleGrant)
               .values({

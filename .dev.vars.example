@@ -16,5 +16,8 @@ EMAIL_FROM_NAME=TXASM
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 
-# First platform admin. Seeds an admin role_grant on bootstrap.
+# Platform admins. ADMIN_EMAILS is a comma-separated allowlist; every matching
+# email is seeded as a platform admin on first sign-in. ADMIN_EMAIL is the older
+# single-value form, still honored when ADMIN_EMAILS is not set.
+ADMIN_EMAILS=
 ADMIN_EMAIL=
