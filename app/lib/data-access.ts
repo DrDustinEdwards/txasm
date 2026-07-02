@@ -371,7 +371,46 @@ export interface ProgramSessionPatch {
   location?: string | null;
 }
 
+// The kinds a program item can carry. Drives the item label and public
+// rendering. Kept in sync with the program_item kind enum in the schema.
+export type ProgramItemKind =
+  | "talk"
+  | "poster"
+  | "keynote"
+  | "award"
+  | "meal"
+  | "break"
+  | "business"
+  | "social"
+  | "panel"
+  | "networking"
+  | "career"
+  | "other";
+
+const PROGRAM_ITEM_KINDS: readonly ProgramItemKind[] = [
+  "talk",
+  "poster",
+  "keynote",
+  "award",
+  "meal",
+  "break",
+  "business",
+  "social",
+  "panel",
+  "networking",
+  "career",
+  "other",
+];
+
+function assertKind(kind: string): ProgramItemKind {
+  if (!PROGRAM_ITEM_KINDS.includes(kind as ProgramItemKind)) {
+    throw new ValidationError("Choose a valid item kind.");
+  }
+  return kind as ProgramItemKind;
+}
+
 export interface ProgramItemPatch {
+  kind?: ProgramItemKind;
   customTitle?: string;
   note?: string | null;
   startsAt?: Date | null;
@@ -379,6 +418,7 @@ export interface ProgramItemPatch {
 
 export interface ProgramItemResolved {
   id: string;
+  kind: ProgramItemKind;
   sortOrder: number;
   startsAt: Date | null;
   note: string | null;
@@ -386,6 +426,9 @@ export interface ProgramItemResolved {
   abstractNumber: number | null; // matches the abstract book numbering
   abstractTitle: string | null; // sanitized HTML
   presentingAuthorName: string | null;
+  speakerId: string | null;
+  speakerName: string | null; // plain text
+  speakerTalkTitle: string | null; // plain text
   customTitle: string | null; // plain text
 }
 
@@ -405,6 +448,89 @@ export interface ProgramAbstractOption {
   number: number;
   title: string; // sanitized HTML
   presentingAuthorName: string | null;
+}
+
+// A concurrent group of sessions: one session on its own, or several running at
+// the same time as parallel tracks. The public program renders each group as a
+// row of tracks so overlapping sessions are not flattened into one timeline.
+export interface ProgramTrackGroup {
+  concurrent: boolean;
+  sessions: ProgramSessionResolved[];
+}
+
+export interface ProgramDay {
+  key: string; // yyyy-mm-dd, or "no-date" for sessions with no date
+  date: Date | null;
+  groups: ProgramTrackGroup[];
+}
+
+export interface PublicProgram {
+  days: ProgramDay[];
+  sponsors: SponsorPublic[];
+}
+
+// Group resolved sessions by day, then within a day into concurrent track
+// groups. Sessions with overlapping [startsAt, endsAt) run in parallel; sessions
+// with no time each stand alone. Days are chronological with the no-date bucket
+// last, and parallel tracks within a group are ordered by location.
+function groupSessionsIntoDays(
+  sessions: ProgramSessionResolved[],
+): ProgramDay[] {
+  const byDay = new Map<
+    string,
+    { date: Date | null; sessions: ProgramSessionResolved[] }
+  >();
+  for (const s of sessions) {
+    const d = s.sessionDate ?? s.startsAt ?? null;
+    const key = d ? d.toISOString().slice(0, 10) : "no-date";
+    const bucket = byDay.get(key) ?? { date: d, sessions: [] };
+    bucket.sessions.push(s);
+    byDay.set(key, bucket);
+  }
+
+  const keys = [...byDay.keys()].sort((a, b) => {
+    if (a === "no-date") return 1;
+    if (b === "no-date") return -1;
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
+
+  return keys.map((key) => {
+    const day = byDay.get(key)!;
+    const sorted = [...day.sessions].sort((a, b) => {
+      const at = a.startsAt?.getTime() ?? Number.POSITIVE_INFINITY;
+      const bt = b.startsAt?.getTime() ?? Number.POSITIVE_INFINITY;
+      return at - bt || a.sortOrder - b.sortOrder;
+    });
+
+    const groups: ProgramTrackGroup[] = [];
+    let current: ProgramSessionResolved[] | null = null;
+    let groupEnd = Number.NEGATIVE_INFINITY;
+    for (const s of sorted) {
+      const start = s.startsAt?.getTime() ?? null;
+      const end = s.endsAt?.getTime() ?? start;
+      if (current && start !== null && start < groupEnd) {
+        current.push(s);
+        if (end !== null && end > groupEnd) groupEnd = end;
+      } else {
+        current = [s];
+        groups.push({ concurrent: false, sessions: current });
+        groupEnd = end ?? Number.NEGATIVE_INFINITY;
+      }
+    }
+
+    for (const g of groups) {
+      g.concurrent = g.sessions.length > 1;
+      if (g.concurrent) {
+        g.sessions.sort(
+          (a, b) =>
+            (a.location ?? "").localeCompare(b.location ?? "") ||
+            a.sortOrder - b.sortOrder,
+        );
+      }
+    }
+
+    return { key, date: day.date, groups };
+  });
 }
 
 // Edition stages at which the program is public. scheduled and complete are the
@@ -2182,6 +2308,31 @@ export function createDataAccess(db: DB) {
     const numbered = await numberedAcceptedAbstracts(editionId);
     const numberById = new Map(numbered.map((n) => [n.abstractId, n.number]));
 
+    // Invited-speaker items: resolve name and talk title from a direct fetch, so
+    // an item whose speaker was later removed (speaker_id set null) still renders
+    // by its kind label.
+    const speakerRefIds = [
+      ...new Set(
+        items.map((i) => i.speakerId).filter((x): x is string => x !== null),
+      ),
+    ];
+    const speakerNameById = new Map<string, string>();
+    const speakerTalkById = new Map<string, string | null>();
+    if (speakerRefIds.length > 0) {
+      const speakerRows = await db
+        .select({
+          id: schema.invitedSpeaker.id,
+          name: schema.invitedSpeaker.name,
+          talkTitle: schema.invitedSpeaker.talkTitle,
+        })
+        .from(schema.invitedSpeaker)
+        .where(inArray(schema.invitedSpeaker.id, speakerRefIds));
+      for (const s of speakerRows) {
+        speakerNameById.set(s.id, s.name);
+        speakerTalkById.set(s.id, s.talkTitle);
+      }
+    }
+
     const refIds = [
       ...new Set(
         items
@@ -2253,6 +2404,7 @@ export function createDataAccess(db: DB) {
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((item) => ({
             id: item.id,
+            kind: item.kind,
             sortOrder: item.sortOrder,
             startsAt: item.startsAt,
             note: item.note,
@@ -2265,6 +2417,13 @@ export function createDataAccess(db: DB) {
               : null,
             presentingAuthorName: item.abstractId
               ? presentingById.get(item.abstractId) ?? null
+              : null,
+            speakerId: item.speakerId,
+            speakerName: item.speakerId
+              ? speakerNameById.get(item.speakerId) ?? null
+              : null,
+            speakerTalkTitle: item.speakerId
+              ? speakerTalkById.get(item.speakerId) ?? null
               : null,
             customTitle: item.customTitle,
           })),
@@ -2393,9 +2552,7 @@ export function createDataAccess(db: DB) {
     // stage; otherwise null so the route can show "coming soon". No confidential
     // or unaccepted content is exposed: items carry only titles, times, and the
     // presenting author.
-    async getPublicProgram(
-      editionId: string,
-    ): Promise<{ sessions: ProgramSessionResolved[] } | null> {
+    async getPublicProgram(editionId: string): Promise<PublicProgram | null> {
       const ed = await db.query.edition.findFirst({
         where: eq(schema.edition.id, editionId),
       });
@@ -2418,7 +2575,24 @@ export function createDataAccess(db: DB) {
             )
             .orderBy(schema.programItem.sortOrder)
         : [];
-      return { sessions: await resolveProgram(editionId, sessions, items) };
+      const resolved = await resolveProgram(editionId, sessions, items);
+
+      const sponsorRows = await db
+        .select({
+          id: schema.sponsor.id,
+          name: schema.sponsor.name,
+          tier: schema.sponsor.tier,
+          url: schema.sponsor.url,
+          logoR2Key: schema.sponsor.logoR2Key,
+        })
+        .from(schema.sponsor)
+        .where(eq(schema.sponsor.editionId, editionId))
+        .orderBy(schema.sponsor.sortOrder, schema.sponsor.name);
+
+      return {
+        days: groupSessionsIntoDays(resolved),
+        sponsors: sponsorRows,
+      };
     },
   };
 
@@ -2450,13 +2624,14 @@ export function createDataAccess(db: DB) {
 
     async addAbstract(
       actor: Actor,
-      input: { sessionId: string; abstractId: string },
+      input: { sessionId: string; abstractId: string; kind?: ProgramItemKind },
     ) {
       const session = await db.query.programSession.findFirst({
         where: eq(schema.programSession.id, input.sessionId),
       });
       if (!session) throw new NotFoundError("session not found");
       if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const kind = assertKind(input.kind ?? "talk");
 
       const abs = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, input.abstractId),
@@ -2500,33 +2675,40 @@ export function createDataAccess(db: DB) {
         .orderBy(desc(schema.programItem.sortOrder))
         .limit(1);
       const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      // One-of rule: an abstract item sets abstractId only, leaving speakerId and
+      // customTitle null.
       const [created] = await db
         .insert(schema.programItem)
         .values({
           sessionId: input.sessionId,
           abstractId: input.abstractId,
+          kind,
           sortOrder: nextOrder,
         })
         .returning();
       return created;
     },
 
-    async addCustom(
+    // Attach an invited speaker to a session. The speaker must belong to the same
+    // meeting. One-of rule: a speaker item sets speakerId only.
+    async addSpeakerItem(
       actor: Actor,
-      input: {
-        sessionId: string;
-        customTitle: string;
-        note?: string;
-        startsAt?: Date | null;
-      },
+      input: { sessionId: string; speakerId: string; kind?: ProgramItemKind },
     ) {
       const session = await db.query.programSession.findFirst({
         where: eq(schema.programSession.id, input.sessionId),
       });
       if (!session) throw new NotFoundError("session not found");
       if (!isChair(actor, session.editionId)) throw new ForbiddenError();
-      const title = input.customTitle.trim();
-      if (!title) throw new ValidationError("Item title is required.");
+
+      const speaker = await db.query.invitedSpeaker.findFirst({
+        where: eq(schema.invitedSpeaker.id, input.speakerId),
+      });
+      if (!speaker) throw new NotFoundError("speaker not found");
+      if (speaker.editionId !== session.editionId) {
+        throw new ValidationError("That speaker belongs to a different meeting.");
+      }
+      const kind = assertKind(input.kind ?? "keynote");
 
       const last = await db
         .select({ sortOrder: schema.programItem.sortOrder })
@@ -2539,7 +2721,47 @@ export function createDataAccess(db: DB) {
         .insert(schema.programItem)
         .values({
           sessionId: input.sessionId,
+          speakerId: input.speakerId,
+          kind,
+          sortOrder: nextOrder,
+        })
+        .returning();
+      return created;
+    },
+
+    async addCustom(
+      actor: Actor,
+      input: {
+        sessionId: string;
+        customTitle: string;
+        kind?: ProgramItemKind;
+        note?: string;
+        startsAt?: Date | null;
+      },
+    ) {
+      const session = await db.query.programSession.findFirst({
+        where: eq(schema.programSession.id, input.sessionId),
+      });
+      if (!session) throw new NotFoundError("session not found");
+      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const title = input.customTitle.trim();
+      if (!title) throw new ValidationError("Item title is required.");
+      const kind = assertKind(input.kind ?? "other");
+
+      const last = await db
+        .select({ sortOrder: schema.programItem.sortOrder })
+        .from(schema.programItem)
+        .where(eq(schema.programItem.sessionId, input.sessionId))
+        .orderBy(desc(schema.programItem.sortOrder))
+        .limit(1);
+      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      // One-of rule: a custom item sets customTitle only.
+      const [created] = await db
+        .insert(schema.programItem)
+        .values({
+          sessionId: input.sessionId,
           customTitle: title,
+          kind,
           note: input.note?.trim() || null,
           startsAt: input.startsAt ?? null,
           sortOrder: nextOrder,
@@ -2560,8 +2782,14 @@ export function createDataAccess(db: DB) {
       if (!isChair(actor, session.editionId)) throw new ForbiddenError();
 
       const set: Partial<typeof schema.programItem.$inferInsert> = {};
-      // customTitle applies to custom items only; ignore it for abstract items.
-      if (patch.customTitle !== undefined && item.abstractId === null) {
+      if (patch.kind !== undefined) set.kind = assertKind(patch.kind);
+      // customTitle applies to plain custom items only (no abstract, no speaker);
+      // ignore it for abstract and speaker items.
+      if (
+        patch.customTitle !== undefined &&
+        item.abstractId === null &&
+        item.speakerId === null
+      ) {
         const t = patch.customTitle.trim();
         if (!t) throw new ValidationError("Item title is required.");
         set.customTitle = t;
