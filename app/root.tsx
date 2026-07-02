@@ -7,10 +7,13 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteLoaderData,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import { getUserContext } from "~/lib/auth.server";
+import { parseThemeCookie } from "~/lib/theme";
+import { ThemeToggle } from "~/components/theme-toggle";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -28,19 +31,25 @@ export const links: Route.LinksFunction = () => [
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { user, isAdmin, isReviewer } = await getUserContext(request);
-  return { email: user?.email ?? null, isAdmin, isReviewer };
+  const theme = parseThemeCookie(request.headers.get("Cookie"));
+  return { email: user?.email ?? null, isAdmin, isReviewer, theme };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  // Read the chosen theme from the root loader so data-theme is set server-side,
+  // matching the SSR render with no flash. Absent (no cookie) leaves the
+  // attribute off and prefers-color-scheme decides.
+  const data = useRouteLoaderData<typeof loader>("root");
+  const theme = data?.theme ?? undefined;
   return (
-    <html lang="en">
+    <html lang="en" data-theme={theme}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+      <body className="min-h-screen bg-surface text-text antialiased">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -109,6 +118,7 @@ function SiteHeader({
               Sign in
             </NavLink>
           )}
+          <ThemeToggle />
         </nav>
       </div>
     </header>
