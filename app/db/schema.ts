@@ -262,14 +262,30 @@ export const abstract = sqliteTable(
     submitterId: text("submitter_id") // owner / corresponding submitter account
       .notNull()
       .references(() => user.id),
+    // Topic axis: the per-meeting abstract_category the author picks.
     categoryId: text("category_id").references(() => abstractCategory.id),
     title: text("title").notNull(),
-    // structured abstract sections; configurable per edition later if needed
+    // Level axis: the presenter's academic standing. Nullable.
+    level: text("level", {
+      enum: [
+        "undergraduate",
+        "graduate",
+        "education",
+        "high_school",
+        "postdoctoral",
+      ],
+    }),
+    // Format axis: the decided/archival oral or poster placement. Distinct from
+    // presentationPreference, which stays the author's oral/poster/either request.
+    format: text("format", { enum: ["oral", "poster"] }),
+    // bodyText is the single freeform abstract body going forward. The four
+    // section columns below are kept but optional and unused by default; a later
+    // migration can drop them once nothing references them.
+    bodyText: text("body_text"),
     background: text("background"),
     methods: text("methods"),
     results: text("results"),
     conclusions: text("conclusions"),
-    bodyText: text("body_text"), // fallback for non-structured entry
     presentationPreference: text("presentation_preference", {
       enum: ["oral", "poster", "either"],
     })
