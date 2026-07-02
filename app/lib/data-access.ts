@@ -449,6 +449,27 @@ export interface ProgramSchedule {
   meetingEndsAt: Date | null;
 }
 
+// Everything the printable program document needs, assembled by
+// program.getProgramData and turned into HTML by the pure renderProgramBook in
+// ./program-book. Front matter comes from the edition and platform settings;
+// title and bio fields hold stored sanitized HTML rendered verbatim, plain text
+// (rooms, moderators, names) is escaped by the renderer.
+export interface ProgramBookData {
+  meeting: {
+    name: string;
+    meetingStartsAt: Date | null;
+    meetingEndsAt: Date | null;
+    venueName: string | null;
+    city: string | null;
+    orgName: string;
+    orgFullName: string;
+    shortName: string;
+  };
+  days: ProgramDay[];
+  speakers: SpeakerPublic[];
+  sponsors: SponsorPublic[];
+}
+
 // Group resolved sessions by day, then within a day into concurrent track
 // groups. Sessions with overlapping [startsAt, endsAt) run in parallel; sessions
 // with no time each stand alone. Days are chronological with the no-date bucket
@@ -3697,6 +3718,177 @@ export function createDataAccess(db: DB) {
     },
   };
 
+  // Program document data. Assembles the front matter, the day-and-concurrency
+  // schedule (moderators and items resolved), the invited speakers, and the
+  // sponsors for the printable program. Chair/admin only. The return is plain
+  // data so renderProgramBook in ./program-book is a pure function of it.
+  const program = {
+    async getProgramData(
+      actor: Actor,
+      editionId: string,
+    ): Promise<ProgramBookData> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const ed = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, editionId),
+      });
+      if (!ed) throw new NotFoundError("meeting not found");
+
+      const settingsRow = await db.query.platformSettings.findFirst({
+        where: eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID),
+      });
+      const identity = settingsRow ? resolveSettings(settingsRow) : null;
+
+      const sessions = await db
+        .select()
+        .from(schema.programSession)
+        .where(eq(schema.programSession.editionId, editionId))
+        .orderBy(schema.programSession.sortOrder);
+      const items = sessions.length
+        ? await db
+            .select()
+            .from(schema.programItem)
+            .where(
+              inArray(
+                schema.programItem.sessionId,
+                sessions.map((s) => s.id),
+              ),
+            )
+            .orderBy(schema.programItem.sortOrder)
+        : [];
+      const resolved = await resolveProgram(editionId, sessions, items);
+
+      const speakers = await db
+        .select({
+          id: schema.invitedSpeaker.id,
+          name: schema.invitedSpeaker.name,
+          affiliation: schema.invitedSpeaker.affiliation,
+          role: schema.invitedSpeaker.role,
+          talkTitle: schema.invitedSpeaker.talkTitle,
+          bio: schema.invitedSpeaker.bio,
+        })
+        .from(schema.invitedSpeaker)
+        .where(eq(schema.invitedSpeaker.editionId, editionId))
+        .orderBy(schema.invitedSpeaker.sortOrder, schema.invitedSpeaker.name);
+
+      const sponsors = await db
+        .select({
+          id: schema.sponsor.id,
+          name: schema.sponsor.name,
+          tier: schema.sponsor.tier,
+          url: schema.sponsor.url,
+          logoR2Key: schema.sponsor.logoR2Key,
+        })
+        .from(schema.sponsor)
+        .where(eq(schema.sponsor.editionId, editionId))
+        .orderBy(schema.sponsor.sortOrder, schema.sponsor.name);
+
+      return {
+        meeting: {
+          name: ed.name,
+          meetingStartsAt: ed.meetingStartsAt,
+          meetingEndsAt: ed.meetingEndsAt,
+          venueName: ed.venueName,
+          city: ed.city,
+          orgName: identity?.orgName ?? "",
+          orgFullName: identity?.orgFullName ?? "",
+          shortName: identity?.shortName ?? "",
+        },
+        days: groupSessionsIntoDays(resolved),
+        speakers,
+        sponsors,
+      };
+    },
+  };
+
+  // Program document record functions, mirroring books.*: one row per edition
+  // tracking the generated PDF. recordProgramGenerating rejects a second
+  // concurrent run unless the prior is stale and keeps the old r2Key downloadable
+  // until the new one is ready.
+  const programDocuments = {
+    async getProgramDocument(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const row = await db.query.programDocument.findFirst({
+        where: eq(schema.programDocument.editionId, editionId),
+      });
+      if (!row) return null;
+      return {
+        status: row.status,
+        r2Key: row.r2Key,
+        fileName: row.fileName,
+        generatedAt: row.generatedAt,
+        updatedAt: row.updatedAt,
+      };
+    },
+
+    async recordProgramGenerating(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const STALE_MS = 5 * 60 * 1000;
+      const existing = await db.query.programDocument.findFirst({
+        where: eq(schema.programDocument.editionId, editionId),
+      });
+      if (existing && existing.status === "generating") {
+        const age = Date.now() - existing.updatedAt.getTime();
+        if (age < STALE_MS) {
+          throw new ValidationError(
+            "A program is already being generated for this meeting. Give it a minute, then refresh.",
+          );
+        }
+      }
+      if (existing) {
+        await db
+          .update(schema.programDocument)
+          .set({ status: "generating", generatedById: actor.userId })
+          .where(eq(schema.programDocument.id, existing.id));
+        return { id: existing.id };
+      }
+      const [created] = await db
+        .insert(schema.programDocument)
+        .values({
+          editionId,
+          status: "generating",
+          generatedById: actor.userId,
+        })
+        .returning();
+      return { id: created.id };
+    },
+
+    async recordProgramReady(
+      actor: Actor,
+      editionId: string,
+      input: { r2Key: string; fileName: string },
+    ) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const existing = await db.query.programDocument.findFirst({
+        where: eq(schema.programDocument.editionId, editionId),
+      });
+      if (!existing) throw new NotFoundError();
+      await db
+        .update(schema.programDocument)
+        .set({
+          status: "ready",
+          r2Key: input.r2Key,
+          fileName: input.fileName,
+          generatedById: actor.userId,
+          generatedAt: new Date(),
+        })
+        .where(eq(schema.programDocument.id, existing.id));
+      return { id: existing.id };
+    },
+
+    async recordProgramFailed(actor: Actor, editionId: string) {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const existing = await db.query.programDocument.findFirst({
+        where: eq(schema.programDocument.editionId, editionId),
+      });
+      if (!existing) return { id: null };
+      await db
+        .update(schema.programDocument)
+        .set({ status: "failed" })
+        .where(eq(schema.programDocument.id, existing.id));
+      return { id: existing.id };
+    },
+  };
+
   return {
     abstracts,
     reviews,
@@ -3705,6 +3897,8 @@ export function createDataAccess(db: DB) {
     books,
     programSessions,
     programItems,
+    program,
+    programDocuments,
     invitedSpeakers,
     sponsors,
     institutions,
