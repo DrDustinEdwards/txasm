@@ -275,6 +275,18 @@ export function renderBook(data: BookData): string {
 </head>
 <body>
 ${body}
+<script>
+  // Signal when Paged.js has finished laying out the pages. The browser preview
+  // ignores this; the Part B PDF render waits on it so page.pdf captures the
+  // paginated output rather than the pre-Paged.js DOM. Must run before the
+  // polyfill so the auto runner picks up the config.
+  window.PagedConfig = {
+    auto: true,
+    after: () => {
+      document.documentElement.setAttribute("data-pagedjs-done", "true");
+    },
+  };
+</script>
 <script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
 </body>
 </html>`;

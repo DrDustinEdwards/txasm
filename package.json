@@ -16,6 +16,7 @@
     "postinstall": "wrangler types"
   },
   "dependencies": {
+    "@cloudflare/puppeteer": "^1.1.0",
     "better-auth": "^1.6.22",
     "drizzle-orm": "^0.45.2",
     "isbot": "^5.1.36",
