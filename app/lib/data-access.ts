@@ -1555,6 +1555,72 @@ export function createDataAccess(db: DB) {
 
       return { abstractId };
     },
+
+    // Notify the abstract's author of the decision. The email is sent by the
+    // caller through the injected send function, so the email helper stays out of
+    // the data layer; here we load what the message needs and record the result.
+    // On a real send the state becomes emailed with notifiedAt; when email is
+    // dormant it becomes in_app (the author already sees the decision in the app)
+    // and notifiedAt is left unset. Chair/admin only.
+    async notifyAuthor(
+      actor: Actor,
+      abstractId: string,
+      send: (payload: {
+        to: string;
+        meetingName: string;
+        title: string;
+        outcome: DecisionOutcome;
+        presentationType: PresentationType | null;
+        message: string | null;
+      }) => Promise<{ sent: boolean }>,
+    ): Promise<{ notifyState: "emailed" | "in_app"; sent: boolean }> {
+      const abs = await db.query.abstract.findFirst({
+        where: eq(schema.abstract.id, abstractId),
+      });
+      if (!abs) throw new NotFoundError();
+      if (!isChair(actor, abs.editionId)) throw new ForbiddenError();
+
+      const decisionRow = await db.query.decision.findFirst({
+        where: eq(schema.decision.abstractId, abstractId),
+      });
+      if (!decisionRow) {
+        throw new ValidationError(
+          "Record a decision before notifying the author.",
+        );
+      }
+
+      const submitter = await db.query.user.findFirst({
+        where: eq(schema.user.id, abs.submitterId),
+      });
+      if (!submitter?.email) {
+        throw new ValidationError("The author has no email address on file.");
+      }
+      const ed = await db.query.edition.findFirst({
+        where: eq(schema.edition.id, abs.editionId),
+      });
+
+      const result = await send({
+        to: submitter.email,
+        meetingName: ed?.name ?? "",
+        title: abs.title,
+        outcome: decisionRow.outcome,
+        presentationType: decisionRow.presentationType,
+        message: decisionRow.decisionMessage,
+      });
+
+      if (result.sent) {
+        await db
+          .update(schema.decision)
+          .set({ notifyState: "emailed", notifiedAt: new Date() })
+          .where(eq(schema.decision.id, decisionRow.id));
+        return { notifyState: "emailed", sent: true };
+      }
+      await db
+        .update(schema.decision)
+        .set({ notifyState: "in_app" })
+        .where(eq(schema.decision.id, decisionRow.id));
+      return { notifyState: "in_app", sent: false };
+    },
   };
 
   // Abstract book: assemble everything the printed proceedings need for one

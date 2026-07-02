@@ -12,6 +12,7 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
+import { decisionEmail, sendEmail } from "~/lib/email.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Decisions | Texas Branch ASM" }];
@@ -28,12 +29,25 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
-  const da = getDataAccess(context.get(cloudflareContext).env);
+  const { env } = context.get(cloudflareContext);
+  const da = getDataAccess(env);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
   const abstractId = String(form.get("abstractId") ?? "");
 
   try {
+    if (intent === "notify") {
+      const result = await da.decisions.notifyAuthor(actor, abstractId, (payload) =>
+        sendEmail(env, { to: payload.to, ...decisionEmail(payload) }),
+      );
+      return {
+        ok: result.sent
+          ? "The author was emailed the decision."
+          : "The author is marked notified in-app. Email goes live at cutover.",
+        abstractId,
+      };
+    }
+
     if (intent === "clear") {
       if (abstractId) await da.decisions.clearDecision(actor, abstractId);
       return { ok: "Decision cleared.", abstractId };
@@ -226,6 +240,35 @@ function DecisionRow({
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Current decision recorded {formatDateTime(decision.decidedAt)}.
         </p>
+      ) : null}
+
+      {decision ? (
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <Form method="post">
+              <input type="hidden" name="intent" value="notify" />
+              <input type="hidden" name="abstractId" value={abstract.id} />
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 dark:border-gray-700 dark:hover:bg-gray-900"
+              >
+                Notify author
+              </button>
+            </Form>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {decision.notifyState === "emailed"
+                ? "Author emailed."
+                : decision.notifyState === "in_app"
+                  ? "Author notified in-app."
+                  : "Not notified yet."}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-500">
+            Until email goes live at cutover, this marks the author as notified
+            in-app. The author already sees the decision when signed in.
+          </p>
+        </div>
       ) : null}
 
       <Form method="post" className="space-y-4">
