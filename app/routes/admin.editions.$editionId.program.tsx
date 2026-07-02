@@ -19,8 +19,10 @@ import {
   type ProgramItemKind,
   type ProgramSessionResolved,
 } from "~/lib/data-access";
-import { toDateTimeLocal } from "~/lib/format";
+import { formatDateTime, toDateTimeLocal } from "~/lib/format";
 import { extractPlainText } from "~/lib/richtext";
+import { renderProgramBook } from "~/lib/program-book";
+import { renderBookPdf } from "~/lib/book-pdf.server";
 import {
   PROGRAM_ITEM_KINDS,
   programKindColor,
@@ -60,11 +62,16 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     role: s.role,
     talkTitle: s.talkTitle,
   }));
+  const document = await da.programDocuments.getProgramDocument(
+    actor,
+    params.editionId,
+  );
   return {
     edition: { id: edition.id, name: edition.name },
     schedule,
     unplaced,
     speakers,
+    document,
   };
 }
 
@@ -82,10 +89,47 @@ function parseWhen(value: FormDataEntryValue | null): Date | null {
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
-  const da = getDataAccess(context.get(cloudflareContext).env);
+  const { env } = context.get(cloudflareContext);
+  const da = getDataAccess(env);
   const editionId = params.editionId;
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
+
+  // Generate the program PDF only on this explicit intent, never on load. Runs
+  // Browser Rendering, so it is its own path with its own error handling.
+  if (intent === "document-generate") {
+    try {
+      await da.programDocuments.recordProgramGenerating(actor, editionId);
+    } catch (error) {
+      if (error instanceof ValidationError) return { error: error.message };
+      throw error;
+    }
+    try {
+      const data = await da.program.getProgramData(actor, editionId);
+      const html = renderProgramBook(data);
+      const bytes = await renderBookPdf(html, env);
+
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const r2Key = `editions/${editionId}/program-${stamp}.pdf`;
+      const fileName = `${data.meeting.name} Program.pdf`;
+
+      await env.BOOKS.put(r2Key, bytes, {
+        httpMetadata: { contentType: "application/pdf" },
+      });
+      await da.programDocuments.recordProgramReady(actor, editionId, {
+        r2Key,
+        fileName,
+      });
+      return { ok: "The program PDF is ready." };
+    } catch (error) {
+      await da.programDocuments.recordProgramFailed(actor, editionId);
+      console.error("[program] generation failed", error);
+      const detail = error instanceof Error ? error.message : "";
+      return {
+        error: `The program could not be generated.${detail ? ` ${detail}` : ""}`,
+      };
+    }
+  }
 
   try {
     if (intent === "session-create") {
@@ -966,8 +1010,73 @@ function Slot({
   );
 }
 
+function ProgramDocumentPanel({
+  document,
+  editionId,
+  busy,
+}: {
+  document: Route.ComponentProps["loaderData"]["document"];
+  editionId: string;
+  busy: boolean;
+}) {
+  return (
+    <section className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
+      <h2 className="text-lg font-medium">Program document</h2>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Generate the printable program PDF from this schedule. It runs Browser
+        Rendering and can take up to a minute.
+      </p>
+      {!document ? (
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          No program PDF generated yet.
+        </p>
+      ) : document.status === "ready" ? (
+        <div className="space-y-1 text-sm">
+          <p>
+            <span className="font-medium text-green-700 dark:text-green-400">
+              Ready
+            </span>
+            {document.generatedAt
+              ? ` . Generated ${formatDateTime(document.generatedAt)}`
+              : ""}
+          </p>
+          <p>
+            <a
+              href={`/admin/editions/${editionId}/program-document/download`}
+              className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+            >
+              Download the PDF
+            </a>
+          </p>
+        </div>
+      ) : document.status === "generating" ? (
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          A generation is in progress. Refresh this page in a minute to see the
+          result.
+        </p>
+      ) : document.status === "failed" ? (
+        <p className="text-sm text-red-700 dark:text-red-400">
+          The last generation failed. Try again below.
+        </p>
+      ) : (
+        <p className="text-sm text-gray-700 dark:text-gray-300">Pending</p>
+      )}
+      <Form method="post">
+        <input type="hidden" name="intent" value="document-generate" />
+        <button
+          type="submit"
+          disabled={busy}
+          className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+        >
+          {document ? "Regenerate program PDF" : "Generate program PDF"}
+        </button>
+      </Form>
+    </section>
+  );
+}
+
 export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
-  const { edition, schedule, unplaced, speakers } = loaderData;
+  const { edition, schedule, unplaced, speakers, document } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const busy = navigation.state === "submitting";
@@ -1115,6 +1224,12 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           </section>
         </div>
       )}
+
+      <ProgramDocumentPanel
+        document={document}
+        editionId={edition.id}
+        busy={busy}
+      />
     </div>
   );
 }
