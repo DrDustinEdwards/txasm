@@ -12,6 +12,7 @@ import {
   isReviewerAnywhere,
   type Actor,
 } from "./data-access";
+import { magicLinkEmail, sendEmail } from "./email.server";
 
 // Better Auth on D1/Drizzle. Sign-in is magic-link only (no Google): academics
 // use many providers, so a link to their inbox is the lowest-friction path.
@@ -54,10 +55,10 @@ function buildAuth(env: Env) {
     plugins: [
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          // TODO(phase-2): send this through Cloudflare Email Service
-          // (email.server.ts) once the sending domain is verified. Until then,
-          // log the link so dev sign-in is testable without an email provider.
-          console.log(`[auth] magic link for ${email}: ${url}`);
+          // Goes through the email helper, which is dormant until cutover. While
+          // dormant it logs the message (including the link), so dev sign-in is
+          // unchanged; at cutover the same call sends a real email.
+          await sendEmail(env, { to: email, ...magicLinkEmail(url) });
         },
       }),
     ],
