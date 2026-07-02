@@ -90,6 +90,16 @@ export function AdminNav({
         </SidebarSection>
       ) : null}
 
+      {isAdmin ? (
+        <SidebarSection title="Platform">
+          <li>
+            <NavLink to="/admin/settings" className={linkClass}>
+              Settings
+            </NavLink>
+          </li>
+        </SidebarSection>
+      ) : null}
+
       {editionId ? (
         <SidebarSection title="This meeting">
           <li>
