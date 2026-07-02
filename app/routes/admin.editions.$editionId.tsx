@@ -134,6 +134,20 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             className="font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
             Program
+          </Link>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/speakers`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Invited speakers
+          </Link>{" "}
+          <span aria-hidden="true">|</span>{" "}
+          <Link
+            to={`/admin/editions/${edition.id}/sponsors`}
+            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+          >
+            Sponsors
           </Link>
         </p>
       </div>

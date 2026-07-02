@@ -9,10 +9,16 @@ import {
   ValidationError,
   getDataAccess,
   type ProgramAbstractOption,
+  type ProgramItemKind,
   type ProgramSessionResolved,
 } from "~/lib/data-access";
 import { formatDateTime, toDateTimeLocal } from "~/lib/format";
 import { extractPlainText } from "~/lib/richtext";
+import {
+  PROGRAM_ITEM_KINDS,
+  programKindLabel,
+  speakerRoleLabel,
+} from "~/lib/program-format";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Program | Texas Branch ASM" }];
@@ -31,7 +37,27 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     actor,
     params.editionId,
   );
-  return { edition: { id: edition.id, name: edition.name }, sessions, unplaced };
+  const speakerRows = await da.invitedSpeakers.listForEdition(
+    actor,
+    params.editionId,
+  );
+  const speakers = speakerRows.map((s) => ({
+    id: s.id,
+    name: s.name,
+    role: s.role,
+    talkTitle: s.talkTitle,
+  }));
+  return {
+    edition: { id: edition.id, name: edition.name },
+    sessions,
+    unplaced,
+    speakers,
+  };
+}
+
+function parseKind(value: FormDataEntryValue | null): ProgramItemKind | undefined {
+  const raw = String(value ?? "").trim();
+  return raw ? (raw as ProgramItemKind) : undefined;
 }
 
 function parseWhen(value: FormDataEntryValue | null): Date | null {
@@ -97,14 +123,27 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       await da.programItems.addAbstract(actor, {
         sessionId: String(form.get("sessionId") ?? ""),
         abstractId,
+        kind: parseKind(form.get("kind")),
       });
       return { ok: "Abstract added to the session." };
+    }
+
+    if (intent === "item-add-speaker") {
+      const speakerId = String(form.get("speakerId") ?? "");
+      if (!speakerId) return { error: "Choose a speaker to add." };
+      await da.programItems.addSpeakerItem(actor, {
+        sessionId: String(form.get("sessionId") ?? ""),
+        speakerId,
+        kind: parseKind(form.get("kind")),
+      });
+      return { ok: "Speaker added to the session." };
     }
 
     if (intent === "item-add-custom") {
       await da.programItems.addCustom(actor, {
         sessionId: String(form.get("sessionId") ?? ""),
         customTitle: String(form.get("customTitle") ?? ""),
+        kind: parseKind(form.get("kind")),
         note: String(form.get("note") ?? ""),
         startsAt: parseWhen(form.get("startsAt")),
       });
@@ -113,6 +152,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 
     if (intent === "item-update") {
       await da.programItems.update(actor, String(form.get("itemId") ?? ""), {
+        kind: parseKind(form.get("kind")),
         customTitle: String(form.get("customTitle") ?? ""),
         note: String(form.get("note") ?? ""),
         startsAt: parseWhen(form.get("startsAt")),
@@ -174,8 +214,35 @@ function formatDateOnly(date: Date | null): string {
   }).format(date)} UTC`;
 }
 
+type SpeakerOption = Route.ComponentProps["loaderData"]["speakers"][number];
+
+function KindSelect({
+  id,
+  defaultValue,
+  label = "Kind",
+}: {
+  id: string;
+  defaultValue: ProgramItemKind;
+  label?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="block text-sm font-medium">
+        {label}
+      </label>
+      <select id={id} name="kind" defaultValue={defaultValue} className={inputClass}>
+        {PROGRAM_ITEM_KINDS.map((kind) => (
+          <option key={kind} value={kind}>
+            {programKindLabel(kind)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
-  const { edition, sessions, unplaced } = loaderData;
+  const { edition, sessions, unplaced, speakers } = loaderData;
   const actionData = useActionData<typeof action>();
 
   const statusRef = useRef<HTMLParagraphElement>(null);
@@ -233,6 +300,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
               index={index}
               count={sessions.length}
               unplaced={unplaced}
+              speakers={speakers}
             />
           ))}
         </ol>
@@ -335,11 +403,13 @@ function SessionCard({
   index,
   count,
   unplaced,
+  speakers,
 }: {
   session: ProgramSessionResolved;
   index: number;
   count: number;
   unplaced: ProgramAbstractOption[];
+  speakers: SpeakerOption[];
 }) {
   const navigation = useNavigation();
   const busy = navigation.state === "submitting";
@@ -405,6 +475,9 @@ function SessionCard({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="text-sm">
+                    <span className="mb-1 inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                      {programKindLabel(item.kind)}
+                    </span>
                     {item.abstractId ? (
                       <p>
                         {item.abstractNumber ? (
@@ -421,6 +494,18 @@ function SessionCard({
                           <span className="text-gray-600 dark:text-gray-400">
                             {" "}
                             . {item.presentingAuthorName}
+                          </span>
+                        ) : null}
+                      </p>
+                    ) : item.speakerId ? (
+                      <p>
+                        <span className="font-medium">
+                          {item.speakerName ?? "Invited speaker"}
+                        </span>
+                        {item.speakerTalkTitle ? (
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {" "}
+                            . {item.speakerTalkTitle}
                           </span>
                         ) : null}
                       </p>
@@ -481,10 +566,29 @@ function SessionCard({
                   </div>
                 </div>
 
-                {item.abstractId === null ? (
-                  <Form method="post" className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <input type="hidden" name="intent" value="item-update" />
-                    <input type="hidden" name="itemId" value={item.id} />
+                <Form method="post" className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <input type="hidden" name="intent" value="item-update" />
+                  <input type="hidden" name="itemId" value={item.id} />
+                  <KindSelect
+                    id={`itemkind-${item.id}`}
+                    defaultValue={item.kind}
+                  />
+                  <div className="space-y-1">
+                    <label
+                      htmlFor={`itemtime-${item.id}`}
+                      className="block text-sm font-medium"
+                    >
+                      Time
+                    </label>
+                    <input
+                      id={`itemtime-${item.id}`}
+                      name="startsAt"
+                      type="datetime-local"
+                      defaultValue={toDateTimeLocal(item.startsAt)}
+                      className={inputClass}
+                    />
+                  </div>
+                  {item.abstractId === null && item.speakerId === null ? (
                     <div className="space-y-1 sm:col-span-2">
                       <label
                         htmlFor={`itemtitle-${item.id}`}
@@ -501,54 +605,35 @@ function SessionCard({
                         className={inputClass}
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label
-                        htmlFor={`itemtime-${item.id}`}
-                        className="block text-sm font-medium"
-                      >
-                        Time
-                      </label>
-                      <input
-                        id={`itemtime-${item.id}`}
-                        name="startsAt"
-                        type="datetime-local"
-                        defaultValue={toDateTimeLocal(item.startsAt)}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label
-                        htmlFor={`itemnote-${item.id}`}
-                        className="block text-sm font-medium"
-                      >
-                        Note
-                      </label>
-                      <input
-                        id={`itemnote-${item.id}`}
-                        name="note"
-                        type="text"
-                        defaultValue={item.note ?? ""}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <button
-                        type="submit"
-                        disabled={busy}
-                        className={smallButton}
-                      >
-                        Save item
-                      </button>
-                    </div>
-                  </Form>
-                ) : null}
+                  ) : null}
+                  <div className="space-y-1 sm:col-span-2">
+                    <label
+                      htmlFor={`itemnote-${item.id}`}
+                      className="block text-sm font-medium"
+                    >
+                      Note
+                    </label>
+                    <input
+                      id={`itemnote-${item.id}`}
+                      name="note"
+                      type="text"
+                      defaultValue={item.note ?? ""}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <button type="submit" disabled={busy} className={smallButton}>
+                      Save item
+                    </button>
+                  </div>
+                </Form>
               </li>
             ))}
           </ol>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Form method="post" className="space-y-2 rounded border border-gray-100 p-3 dark:border-gray-900">
           <input type="hidden" name="intent" value="item-add-abstract" />
           <input type="hidden" name="sessionId" value={session.id} />
@@ -582,8 +667,51 @@ function SessionCard({
                   </option>
                 ))}
               </select>
+              <KindSelect id={`add-abstract-kind-${session.id}`} defaultValue="talk" />
               <button type="submit" disabled={busy} className={smallButton}>
                 Add abstract
+              </button>
+            </>
+          )}
+        </Form>
+
+        <Form method="post" className="space-y-2 rounded border border-gray-100 p-3 dark:border-gray-900">
+          <input type="hidden" name="intent" value="item-add-speaker" />
+          <input type="hidden" name="sessionId" value={session.id} />
+          <label
+            htmlFor={`add-speaker-${session.id}`}
+            className="block text-sm font-medium"
+          >
+            Add an invited speaker
+          </label>
+          {speakers.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              No invited speakers yet.
+            </p>
+          ) : (
+            <>
+              <select
+                id={`add-speaker-${session.id}`}
+                name="speakerId"
+                defaultValue=""
+                className={inputClass}
+              >
+                <option value="" disabled>
+                  Choose a speaker
+                </option>
+                {speakers.map((speaker) => (
+                  <option key={speaker.id} value={speaker.id}>
+                    {speaker.name}
+                    {speaker.role ? ` (${speakerRoleLabel(speaker.role)})` : ""}
+                  </option>
+                ))}
+              </select>
+              <KindSelect
+                id={`add-speaker-kind-${session.id}`}
+                defaultValue="keynote"
+              />
+              <button type="submit" disabled={busy} className={smallButton}>
+                Add speaker
               </button>
             </>
           )}
@@ -603,9 +731,10 @@ function SessionCard({
             name="customTitle"
             type="text"
             required
-            placeholder="Keynote, break, poster session"
+            placeholder="Break, lunch, poster session"
             className={inputClass}
           />
+          <KindSelect id={`custom-kind-${session.id}`} defaultValue="other" />
           <input
             name="startsAt"
             type="datetime-local"

@@ -53,6 +53,14 @@ export default [
       "admin/editions/:editionId/program",
       "routes/admin.editions.$editionId.program.tsx",
     ),
+    route(
+      "admin/editions/:editionId/speakers",
+      "routes/admin.editions.$editionId.speakers.tsx",
+    ),
+    route(
+      "admin/editions/:editionId/sponsors",
+      "routes/admin.editions.$editionId.sponsors.tsx",
+    ),
   ]),
   // Resource routes: full-document HTML / streamed PDF, no shell chrome.
   route(
