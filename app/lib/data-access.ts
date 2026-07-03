@@ -12,6 +12,7 @@ import {
   DOCUMENT_CATEGORIES,
   DOCUMENT_STATUSES,
   EDITION_STATUSES,
+  fileKindForMime,
   PROGRAM_ITEM_KINDS,
   REGISTRATION_CATEGORY_KEYS,
   REVIEW_RECOMMENDATIONS,
@@ -845,6 +846,9 @@ export interface DocumentUploadInput {
   editor?: string | null;
   r2Key?: string | null;
   fileName?: string | null;
+  // The uploaded file's MIME. fileKind is derived from it, so the stored kind
+  // always matches the real file. Defaults to PDF when omitted (generated docs).
+  mimeType?: string;
   slug?: string;
   sortOrder?: number;
 }
@@ -4825,6 +4829,7 @@ export function createDataAccess(db: DB) {
           `A document with slug "${slug}" already exists.`,
         );
       }
+      const mimeType = input.mimeType ?? "application/pdf";
       const [created] = await db
         .insert(schema.document)
         .values({
@@ -4838,6 +4843,8 @@ export function createDataAccess(db: DB) {
           editor: input.editor?.trim() || null,
           r2Key: input.r2Key ?? null,
           fileName: input.fileName ?? null,
+          mimeType,
+          fileKind: fileKindForMime(mimeType),
           slug,
           sortOrder: input.sortOrder ?? 0,
         })
