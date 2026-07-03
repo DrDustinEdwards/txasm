@@ -135,6 +135,16 @@ function parseEntryLine(line: string): DatasetRecipient | null {
   }
 
   if (!personName) return null;
+  // Skip footer and navigation links (social buttons, menu items) that live in
+  // list items after the last year heading and would otherwise parse as a
+  // trailing recipient.
+  if (
+    /^(facebook|twitter|x|instagram|linkedin|youtube|email|menu|home|search|contact)$/i.test(
+      personName,
+    )
+  ) {
+    return null;
+  }
   return { year: "", placement, personName, institution, mentor };
 }
 

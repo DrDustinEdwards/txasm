@@ -1,33 +1,805 @@
 {
-  "_note": "Awards dataset for the txasm awards feature. Definitions for all 13 awards are authored from the vault note awards-content.md. Recipient lists are complete for Faculty Education, Faculty Mentor, and Graduate Student; partial for O.B. Williams (the notable 1971 J.P. Allison entry), Distinguished Service, and Lifetime Achievement; and empty for the eight category-subdivided student awards, whose full recipient histories live on the 13 live txasm.org pages and are filled by running `npm run import:awards -- --parse` (which fetches and parses those pages into this file for review before seeding). TODO: run --parse against the live pages to complete the category-subdivided awards; confirm Thomas Matney's Distinguished Service year (unknown in the note) and the Lifetime Achievement recipient first names/institutions marked below.",
+  "_note": "Awards dataset for the txasm awards feature. Definitions for all 13 awards are authored from the vault note awards-content.md. Recipient lists are populated by parsing the 13 live txasm.org award pages (npm run import:awards -- --parse), which the parser skips footer and social links while reading. The graduate-student-award page lists several names per year with no placement, a format the line parser cannot split reliably, so its recipients are a reviewed curated list rather than the raw parse. Resolved from the live pages: Thomas Matney received the Distinguished Service Award in 1980, and the Lifetime Achievement recipients are complete (including Harold F. Foerster, Sam Houston State University). Re-run --parse to refresh from the live pages, then re-apply the curated graduate-student list before seeding.",
   "awards": [
     {
       "slug": "thomas-s-matney-award",
       "name": "Thomas S. Matney Award",
       "namesakeBio": "Dr. Thomas S. Matney (1928-2010) was a microbiologist and geneticist at UT MD Anderson and the first Associate Dean of the UT Graduate School of Biomedical Sciences.",
       "description": "Recognizes the outstanding presentation by a postdoctoral fellow.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Shantanu Guha",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": "Danielle Garsin/Mike Lorenz",
+          "category": null
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Saugata Mahapatra",
+          "institution": "Texas A&M University",
+          "mentor": "James E. Samuel",
+          "category": null
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Renee Fleeman",
+          "institution": "University of Texas at Austin",
+          "mentor": "Bryan Davies",
+          "category": null
+        },
+        {
+          "year": "2021",
+          "placement": "2nd",
+          "personName": "Firas Midani",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Robert A. Britton",
+          "category": null
+        }
+      ]
     },
     {
       "slug": "s-e-sulkin-award",
       "name": "S.E. Sulkin Award",
       "namesakeBio": "Dr. S. Edward Sulkin (1908-1972) was a virologist and Chair of Microbiology at UT Southwestern from 1945 to 1972, known for work on rabies and bats.",
       "description": "Outstanding oral presentation of graduate student research in medical microbiology.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Nina Tang",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Jill Weatherhead",
+          "category": null
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Maxwell Ross",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Jennifer Clinton",
+          "category": null
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Kiyah Costin",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Dennis Bente",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Blake Neil",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Ashok Chopra",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Caroline Black",
+          "institution": "Texas Tech University",
+          "mentor": "Catherine Wakeman",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Angel Elma Abu",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Robert Dickson",
+          "category": null
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Emily Vanderpool",
+          "institution": "Texas Tech University",
+          "mentor": "Kendra Rumbaugh",
+          "category": null
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Muneer Yaqub",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nick Dillon",
+          "category": null
+        },
+        {
+          "year": "2022",
+          "placement": null,
+          "personName": "Alex Kang",
+          "institution": "Rice University",
+          "mentor": "Natasha Kirienko/Carolyn Cannon",
+          "category": null
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Ileana Corsi",
+          "institution": "University of Texas Health Science Center at Houston McGovern Medical School",
+          "mentor": "Theresa M. Koehler",
+          "category": null
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Pooja Bhardwaj",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": null
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Mattea Allert",
+          "institution": "University of Texas at Tyler",
+          "mentor": "J. Michael Seal",
+          "category": null
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Kayla Bounds",
+          "institution": "Texas Tech University",
+          "mentor": "Abdul Hamood",
+          "category": null
+        },
+        {
+          "year": "2015",
+          "placement": "2nd",
+          "personName": "Tetiana Hutchison",
+          "institution": "Southern Methodist University",
+          "mentor": "Robert Harrod",
+          "category": null
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "M. Camila Montealegre",
+          "institution": "University of Houston",
+          "mentor": "Barbara Murray",
+          "category": null
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Melissa Robinson",
+          "institution": "University of Houston",
+          "mentor": "Hung Ton-That",
+          "category": null
+        },
+        {
+          "year": "1988",
+          "placement": null,
+          "personName": "Virgilio Bundoc",
+          "institution": "University of Texas Health Science Center at San Antonio",
+          "mentor": "Alan Barbour",
+          "category": null
+        },
+        {
+          "year": "1983",
+          "placement": "1st",
+          "personName": "Lisa Leach",
+          "institution": "Texas Tech University",
+          "mentor": "Peter Diffley",
+          "category": null
+        },
+        {
+          "year": "1983",
+          "placement": "2nd",
+          "personName": "Timothy Nealon",
+          "institution": "The University of Texas Health Science Center at San Antonio",
+          "mentor": "Stephen Mattingly",
+          "category": null
+        },
+        {
+          "year": "1981",
+          "placement": "1st",
+          "personName": "Joyce Anglin-Shelton",
+          "institution": "University of New Mexico",
+          "mentor": "Ellen Goldberg",
+          "category": null
+        },
+        {
+          "year": "1981",
+          "placement": "2nd",
+          "personName": "Jeanie Lee",
+          "institution": "University of Texas Health Science Center at San Antonio",
+          "mentor": "Robert King",
+          "category": null
+        },
+        {
+          "year": "1981",
+          "placement": "3rd",
+          "personName": "Michael Wargovich",
+          "institution": "Texas Tech University",
+          "mentor": "Ira Felkner",
+          "category": null
+        }
+      ]
     },
     {
       "slug": "sarah-a-mcintire-award",
       "name": "Sarah A. McIntire Award",
       "namesakeBio": "Dr. Sarah A. McIntire (1941-2016) was Professor Emerita at Texas Woman's University, known for work on Helicobacter pylori.",
       "description": "Outstanding oral presentation of undergraduate student research.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2025",
+          "placement": null,
+          "personName": "Kathryn Seely",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Brandon Kim",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": null,
+          "personName": "Yanhan Deng",
+          "institution": "Rice University",
+          "mentor": "Natasha Kirienko",
+          "category": null
+        },
+        {
+          "year": "2023",
+          "placement": null,
+          "personName": "Jordyn Waters",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Woo-Suk Chang",
+          "category": null
+        },
+        {
+          "year": "2022",
+          "placement": null,
+          "personName": "Aeron Pennington",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": null
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Tony Jha",
+          "institution": "University of California Berkeley/Sam Houston State University",
+          "mentor": "Madhu Choudhary",
+          "category": null
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Luke",
+          "institution": null,
+          "mentor": "ckerill, University of Texas at Austin, Mentor: Gerald Palmer",
+          "category": null
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Brittany Stewart",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": null
+        }
+      ]
     },
     {
       "slug": "samuel-kaplan-award",
       "name": "Samuel Kaplan Award",
       "namesakeBio": "Dr. Samuel Kaplan (1934-2024) was the founding Chair of Microbiology and Molecular Genetics at UTHealth Houston from 1989 to 2011 and ASM Treasurer from 1991 to 1999.",
       "description": "Outstanding poster presentation of graduate student research.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Jayden \"Jay\" Aleman",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Jon Sin",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Alexandra Davis",
+          "institution": "University of North Texas Health Science Center",
+          "mentor": "Michael Allen",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Aayushi Gaur",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jolene Ramsey",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Natalie Alexander",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Brandon Kim",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Thu Nguyen",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jared Bard",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Taryn Keyzer",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Brandon Kim",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Angelica Torres",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Woo-Suk Chang",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Christopher Howard",
+          "institution": "University of Houston-Clear Lake",
+          "mentor": "Eric Lamontagne",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Dasire Brawley",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Seerpatham Divyasorubini",
+          "institution": "University of Texas at Austin",
+          "mentor": "Tony Keiler",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Anh Pham",
+          "institution": "University of Texas at Austin",
+          "mentor": "Tony Keiler",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Haden Ha",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": "Anna Konovalova",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Ryan Sloan",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": "Soo Chan Lee",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "William Carpenter",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Amy Coady",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Emily Hendrix",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Ashok Chopra",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Iris George",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jayanthi Subashchandrabose",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Anna Evers",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nick Dillon",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Tessa Williams",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jayanthi Subashchandrabose",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Nathaniel Thomas",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nick Dillon",
+          "category": "Antimicrobial Resistance Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Lily Tillett",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Antimicrobial Resistance Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Sreemoye Nath",
+          "institution": "University of North Texas",
+          "mentor": "Calvin Henard",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Weerakkody Ranasinghe",
+          "institution": "Sam Houston State University",
+          "mentor": "Madhu Choudhary",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Spencer Lee",
+          "institution": "University of North Texas",
+          "mentor": "Calvin Henard",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Aayushi Gaur",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Tahira Amdid Ratna",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Rebecca Gabrilska",
+          "institution": "Texas Tech University",
+          "mentor": "Kendra Rumbaugh",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Jacob Zulk",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Katy Patras/Anthony Maresso",
+          "category": "AMR and Environmental Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Malyn Selinidis",
+          "institution": "Rice University",
+          "mentor": "Joff Silberg/James Chappell",
+          "category": "AMR and Environmental Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Andrea Garza Elizondo",
+          "institution": "Rice University",
+          "mentor": "James Chappell",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Aparna Uppuluri",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Ronika De",
+          "institution": "University of North Texas",
+          "mentor": "Rajeev Azad",
+          "category": "Microbiome and Computational Biology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Christian Peterson",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Woo-Suk Chang",
+          "category": "Microbiome and Computational Biology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Stephany Navarro",
+          "institution": "Texas Tech University Health Sciences Center",
+          "mentor": "Abdul Hamood",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Priya Christensen",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Sarbjeet Niraula",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Woo-Suk Chang",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Marlyd Mejia",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Kathryn Patras",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "2nd",
+          "personName": "Qi Xu",
+          "institution": "Rice University",
+          "mentor": "Natasha Kirienko",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Craig Schindewolf",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Vineet Menachery",
+          "category": "Virus and Computational Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Jacquelyn Vasquez",
+          "institution": "Sam Houston State University",
+          "mentor": "Sibyl Bucheli/Aaron Lynne",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Maura Purcell",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Ri-Qing Yu",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Luke R. Joyce",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Genomic Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Matthew R. Breuer",
+          "institution": "Sam Houston State University",
+          "mentor": "Anne Gaillard/Madhusudan Choudhary",
+          "category": "Genomic Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Derek Fleming",
+          "institution": "Texas Tech University Health Sciences Center",
+          "mentor": "Kendra Rumbaugh",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Hannah Zhao Fleming",
+          "institution": "Texas Tech University Health Sciences Center",
+          "mentor": "Kendra Rumbaugh",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Valerie Price",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Prapti Mody",
+          "institution": "Texas Woman's University",
+          "mentor": "Lynda Hanson",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "3rd",
+          "personName": "Celso Catumbela",
+          "institution": "Sam Houston State University",
+          "mentor": "Anne Gaillard",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Pooja Bhardwaj",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Medical/Environmental Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Christina Morra",
+          "institution": "Baylor College of Medicine",
+          "mentor": "James Versalovic",
+          "category": "Medical/Environmental Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "3rd",
+          "personName": "Nymisha Avadhanam",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Juan González",
+          "category": "Medical/Environmental Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": null,
+          "personName": "4th - Mehul Jani",
+          "institution": "University of North Texas",
+          "mentor": "Rajeev Azad",
+          "category": "Medical/Environmental Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Robert Fultz",
+          "institution": "Baylor College of Medicine",
+          "mentor": "James Versalovic",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "2nd",
+          "personName": "Akshaya Ravichandran",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "James Smith",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "3rd",
+          "personName": "Hannah Adams",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "Amy Ford",
+          "institution": "University of Houston",
+          "mentor": "Kevin Morano",
+          "category": "Eukaryotic Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Katie McCallum",
+          "institution": "University of Houston",
+          "mentor": "Danielle Garsin",
+          "category": "Eukaryotic Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "Allie Clinton",
+          "institution": "Texas Tech University",
+          "mentor": "Kendra Rumbaugh",
+          "category": "Gram-Negative Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Sarah L. Schmidt",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Jere McBride",
+          "category": "Gram-Negative Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "Chunxu Gao",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Jim Versalovic",
+          "category": "Gram-Positive Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Austen Terwilliger",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Anthony Maresso",
+          "category": "Gram-Positive Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "3rd",
+          "personName": "Michael Francis",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Joe Sorg",
+          "category": "Gram-Positive Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "Thieng Pham",
+          "institution": "University of Houston",
+          "mentor": "Anne Delcour",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Chelcy E. Brumlow",
+          "institution": "Sam Houston State University",
+          "mentor": "Todd Primm",
+          "category": "Molecular Microbiology"
+        }
+      ]
     },
     {
       "slug": "o-b-williams-award",
@@ -35,7 +807,222 @@
       "namesakeBio": "Dr. Odis Burris (O.B.) Williams (1903-1977) was at UT Austin and served as Texas Branch President from 1943 to 1944.",
       "description": "Outstanding oral presentation of graduate student research in general microbiology.",
       "recipients": [
-        { "year": "1971", "personName": "J.P. Allison", "institution": "UT Austin" }
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Tuhina Maity",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nick Dillon",
+          "category": null
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Chito Ofodum",
+          "institution": "Sam Houston State University",
+          "mentor": "Madhu Choudhary",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Regina Solomon",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Jere McBride",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Braden Hanson",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jayanthi Subashchandrabose",
+          "category": null
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Khondakar Sayef Ahammed",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": "Ambro van Hoof",
+          "category": null
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Brittany Sha",
+          "institution": null,
+          "mentor": "ro, Texas A&M University Health Science Center, Mentor: Jon Skare",
+          "category": null
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Chahat Upreti",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": null
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Kyra Groover",
+          "institution": "University of Texas at Austin",
+          "mentor": "Bryan Davies",
+          "category": null
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Chahat Upreti",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": null
+        },
+        {
+          "year": "2022",
+          "placement": "3rd",
+          "personName": "Allison Judge",
+          "institution": "Baylor College of Medicine",
+          "mentor": "Timothy Palzkill",
+          "category": null
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Trusha Parekh",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Stephen Spiro",
+          "category": null
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Hannah Johnson",
+          "institution": "Sam Houston State University",
+          "mentor": "Madhusudan Choudhary",
+          "category": null
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Starla Thornhill",
+          "institution": "Texas State University",
+          "mentor": "Robert McLean",
+          "category": null
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Marinelle Rodrigues",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": null
+        },
+        {
+          "year": "2015",
+          "placement": "2nd",
+          "personName": "Michael Francis",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Joe Sorg",
+          "category": null
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "Veronica M. Garcia",
+          "institution": "University of Houston",
+          "mentor": "Kevin Morano",
+          "category": null
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Daniel P. Haarmann",
+          "institution": "Sam Houston State University",
+          "mentor": "Aaron Lynne/Sibyl Bucheli",
+          "category": null
+        },
+        {
+          "year": "1988",
+          "placement": null,
+          "personName": "Alesia Reinisch",
+          "institution": "Texas Tech University",
+          "mentor": "Shan Bilimoria",
+          "category": null
+        },
+        {
+          "year": "1983",
+          "placement": "1st",
+          "personName": "Maria Yeung",
+          "institution": "The University of Texas Health Science Center at San Antonio",
+          "mentor": "Stephen Mattingly",
+          "category": null
+        },
+        {
+          "year": "1983",
+          "placement": "2nd",
+          "personName": "Hanna Sullivan",
+          "institution": "Texas Tech University",
+          "mentor": "Caryl Heintz",
+          "category": null
+        },
+        {
+          "year": "1983",
+          "placement": "3rd",
+          "personName": "C.R. Cooper",
+          "institution": "University of Texas at Austin",
+          "mentor": "Paul Szaniszlo",
+          "category": null
+        },
+        {
+          "year": "1981",
+          "placement": "1st",
+          "personName": "Lawrence Wackett",
+          "institution": "University of Texas at Austin",
+          "mentor": "David Gibson",
+          "category": null
+        },
+        {
+          "year": "1981",
+          "placement": "2nd",
+          "personName": "Tit-Yee Wong",
+          "institution": "University of Texas at Austin",
+          "mentor": "Peter Jurtshuk",
+          "category": null
+        },
+        {
+          "year": "1981",
+          "placement": "3rd",
+          "personName": "Charles Jacobs",
+          "institution": "University of Texas at Austin",
+          "mentor": "Paul Szaniszlo",
+          "category": null
+        },
+        {
+          "year": "1971",
+          "placement": null,
+          "personName": "J.P. Allison",
+          "institution": "University of Texas at Austin",
+          "mentor": "George Kitto",
+          "category": null
+        },
+        {
+          "year": "1966",
+          "placement": null,
+          "personName": "Lincoln Arceneaux",
+          "institution": "University of Texas at Austin",
+          "mentor": "C.E. Lankford",
+          "category": null
+        },
+        {
+          "year": "1965",
+          "placement": null,
+          "personName": "Robert Brown",
+          "institution": "University of Texas Medical Branch",
+          "mentor": null,
+          "category": null
+        }
       ]
     },
     {
@@ -43,21 +1030,1408 @@
       "name": "Joan Abramowitz Award",
       "namesakeBio": "Dr. Joan Abramowitz (1949-2005) chaired Microbiology at the University of Houston-Downtown.",
       "description": "Outstanding poster presentation of undergraduate student research.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Ivan Mendez",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Wen-Chin Ho",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Reagan Chastain",
+          "institution": "University of Texas Health Houston and LeTorneau University",
+          "mentor": "Mike Lorenz",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Keemia Aria",
+          "institution": "Rice University and Wharton Community College",
+          "mentor": "Matt Bennet",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Brent Orji",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Wen-Chin Ho",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Jackson Elliott",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Ali Azghani",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Senna Al-Hashmi",
+          "institution": "Dallas College",
+          "mentor": "Sin Min Mak and Megan Romeo",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Ben Klemp",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Brandon Kim",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Aurelio Del Carmen",
+          "institution": "Sam Houston State University",
+          "mentor": "Todd Primm/Madhusudan Karki",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Natalie Meklenburg",
+          "institution": "Texas A&M University-Galveston",
+          "mentor": "Jessica Labonte",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Madison Schultz",
+          "institution": "Sam Houston State University",
+          "mentor": "Todd Primm/Madhusudan Karki",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Harish Jawahar",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nick Dillon",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Cora Kosnick",
+          "institution": "University of Texas Health Science Center at Houston/Rice University",
+          "mentor": "Heidi Kaplan",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Spandan Mukherjee",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Erica Sanchez",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Swami Sadanala",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nicole De Nisco",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Eesha Desai",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nicole De Nisco",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": null,
+          "personName": "Julie Nguyen",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Luke Hamilton",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Alex Caron",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Robyn Alba",
+          "institution": "University of North Texas",
+          "mentor": "Calvin Henard",
+          "category": "Medical and Molecular Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "2nd",
+          "personName": "Irene N. Hau",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nicole DeNisco",
+          "category": "Medical and Molecular Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Bryce Jones",
+          "institution": "St. Edward's University",
+          "mentor": "Claire Edwards",
+          "category": "Phage and Environmental Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Annie Kwok",
+          "institution": "Baylor University",
+          "mentor": "Sanghoon Kang",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Reavelyn Pray",
+          "institution": "Del Mar College",
+          "mentor": "Daisy Zhang/Richard Overath",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Madeline Bush",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Sara",
+          "institution": null,
+          "mentor": "ng, University of Texas at Dallas, Mentor: Kelli Palmer",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "1st",
+          "personName": "Megan McCurry",
+          "institution": "Rice University",
+          "mentor": "Yousif Shamoo",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2016",
+          "placement": "2nd",
+          "personName": "Christina Koo",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Woo-Suk Chang",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Luis Valencia",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Sangeeta Khare",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "2nd",
+          "personName": "Kyra Curtis",
+          "institution": "Baylor University",
+          "mentor": "Diane Hartman",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "1st",
+          "personName": "Karthik Hullahalli",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "2nd",
+          "personName": "Matthew Breuer",
+          "institution": "Sam Houston State University",
+          "mentor": "Anne Gaillard",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2015",
+          "placement": "3rd",
+          "personName": "Christina Koo",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Woo-Suk Chang",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "John",
+          "institution": null,
+          "mentor": "nard, Sam Houston State University, Mentor: Todd Primm",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Jaffar Altowaileb",
+          "institution": "University of Texas Medical Branch",
+          "mentor": "Jaffar Altowaileb",
+          "category": "Medical Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "1st",
+          "personName": "Ardalan Sharifi",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer",
+          "category": "Molecular Microbiology"
+        },
+        {
+          "year": "2014",
+          "placement": "2nd",
+          "personName": "Julie Heffler",
+          "institution": "University of Houston & University of Texas Health Science Center at Houston",
+          "mentor": "Kevin Morano",
+          "category": "Molecular Microbiology"
+        }
+      ]
     },
     {
       "slug": "charlie-gauntt-award",
       "name": "Charlie Gauntt Award",
       "namesakeBio": "Dr. Charles J. Gauntt (1937-2015) was a virologist at UT HSC San Antonio and a Texas Branch President.",
       "description": "Outstanding oral presentation of graduate student research.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2026",
+          "placement": null,
+          "personName": "Taryn Keyzer",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Brandon Kim",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "1st",
+          "personName": "Kingsley Amoateng",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Wei-Chin Ho",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Enoch Ghosh",
+          "institution": "Texas Tech University",
+          "mentor": "Lisa Bono",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Akiko Balitactac",
+          "institution": "Texas Tech University",
+          "mentor": "Lisa Bono",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "1st",
+          "personName": "Vaishnavi Venugopal Nair",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Jon Sin",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Darla Delozier",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Brandon Kim",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Ricardo Munoz-Medina",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Carolyn Cannon",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": null,
+          "personName": "Jacqueline Carroll",
+          "institution": "Baylor University",
+          "mentor": "Bessie Kebaara",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Walter Galdamez",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": "Anne-Marie Krachler",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Manuel Chavez",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Cara Boutte",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Amber Busboom",
+          "institution": "Texas State University",
+          "mentor": "Bob McLean",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Gage Connors",
+          "institution": "Texas Woman's University",
+          "mentor": "Juliet Spencer",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Isabella McGrath",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Suresh Pillai",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Sofia Lara-Ramos",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Suresh Pillai",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": null,
+          "personName": "Weerakkody Ranasinghe",
+          "institution": "Sam Houston State University",
+          "mentor": "Madhu Choudhary",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Luis A. Rodríguez-Rodríguez",
+          "institution": "University of Texas Southwestern Medical Center",
+          "mentor": "Kevin Forsberg",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Sunday O. Olaniyan",
+          "institution": "Baylor University",
+          "mentor": "Bessie Kebaara",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Tallon Coxe",
+          "institution": "University of North Texas",
+          "mentor": "Rajeev Azad",
+          "category": "Molecular & Environmental Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Aeron Pennington",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Anisha Reddy Konakalla",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Juan Sanchez",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Kendall Esparrago",
+          "institution": "University of Texas at San Antonio",
+          "mentor": "Jesus Romo",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Jacob Hogins",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Larry Reitzer",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Sydney Hall",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Kelli Palmer/Larry Reitzer",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": null,
+          "personName": "Caroline Black",
+          "institution": "Texas Tech University",
+          "mentor": "Allie Smith",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Feroz Ahmed",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Joseph Boll",
+          "category": "Basic and Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Megan Burch",
+          "institution": "Sam Houston State University",
+          "mentor": "Jeremy Bechelli",
+          "category": "Basic and Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Alexandra Ortiz",
+          "institution": "Texas A&M International University-Laredo",
+          "mentor": "Monica O. Mendez",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Kelly Carroll",
+          "institution": "Tarleton State University & Texas A&M AgriLife Research Center",
+          "mentor": "Jeff Brady",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Katie Kang",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Joseph Boll",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Caroline Black",
+          "institution": "Texas Tech University",
+          "mentor": "Allie Clinton Smith",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "3rd",
+          "personName": "Shelbie Powers",
+          "institution": "Texas State University",
+          "mentor": "Robert McLean",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "4th - Trusha Parekh",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Stephan Spiro",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": null,
+          "personName": "Whitni Redman",
+          "institution": "Texas Tech University Health Sciences Center",
+          "mentor": "Kendra Rumbaugh",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "1st",
+          "personName": "Michael Jochum",
+          "institution": "Texas A&M University",
+          "mentor": "Young-Ki Jo",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "2nd",
+          "personName": "Amanda Marek",
+          "institution": "University of Texas Health Science Center at San Antonio",
+          "mentor": "Luis Giavedoni",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "3rd",
+          "personName": "Ileana Pedraza",
+          "institution": "University of Texas Health Science Center at San Antonio",
+          "mentor": "T.R. Kannan",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "1st",
+          "personName": "John Ford",
+          "institution": "Midwestern State University",
+          "mentor": "Jim Masuoka",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "1st",
+          "personName": "Alejandra Kirkpatrick",
+          "institution": "University of Texas Health Science Center at San Antonio",
+          "mentor": "T.R. Kannan",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "3rd",
+          "personName": "Nicole Elledge",
+          "institution": "Texas A&M University-Corpus Christi",
+          "mentor": "Jeff Turner",
+          "category": "General Microbiology"
+        }
+      ]
     },
     {
       "slug": "orville-wyss-award",
       "name": "Orville Wyss Award",
       "namesakeBio": "Dr. Orville Wyss (1912-1993) chaired Microbiology at UT Austin from 1959 to 1969 and served as ASM President from 1964 to 1965.",
       "description": "Outstanding poster presentation of undergraduate student research.",
-      "recipients": []
+      "recipients": [
+        {
+          "year": "2026",
+          "placement": null,
+          "personName": "Vina Manouchehri",
+          "institution": "University of Texas at San Antonio",
+          "mentor": "Jesus Romo",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "1st",
+          "personName": "Alyssa Kubesch",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Suresh Pillai",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Mary Palasota",
+          "institution": "St. Edwards University",
+          "mentor": "Trish Bayhnam",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Mariana Momenso Candido da Silva",
+          "institution": "St. Edwards University",
+          "mentor": "Trish Bayhnam",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Carlos Castro",
+          "institution": "St. Edwards University",
+          "mentor": "Alejandro Castillo",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "1st",
+          "personName": "McKenna Rice",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Abigail Ortega",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Angelina Zhu",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jolene Ramsey",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "1st",
+          "personName": "Victoria Hoyt",
+          "institution": "St. Edwards University",
+          "mentor": "Claire Edwards",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Mithun Mekala",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Larry Reitzer",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Satya Vedula",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Larry Reitzer",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Hannah Fuhrmann",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Anelina Mitchell",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2026",
+          "placement": "1st",
+          "personName": "Sanjana Pandian",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Jon Sin",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "2nd",
+          "personName": "Ashlyn Wolf",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Carolyn Cannon",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2026",
+          "placement": "3rd",
+          "personName": "Zane Richter",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jared Bard",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": null,
+          "personName": "Theodore Nguyen",
+          "institution": "University of Dallas",
+          "mentor": "William Cody",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Braden Chadwick",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Robin Crane",
+          "institution": "Texas Woman's University",
+          "mentor": "Camelia Maier",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Jacob Alford",
+          "institution": "University of Texas at San Antonio",
+          "mentor": "Mark Eppinger",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Enya Hoxha",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Jolene Ramsey",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Mia Lombardo",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Barnabas Baliraine",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine/Josh McLoud",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Varsha Upadhyayulla",
+          "institution": "Baylor University",
+          "mentor": "Tammy Adair",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Heather Shaw",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine/Josh McLoud",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Simran Pereira",
+          "institution": "University of North Texas",
+          "mentor": "Lee Hughes",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Madison Schultz",
+          "institution": "Sam Houston State University",
+          "mentor": "Todd Primm/Madhusudan Karki",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Elizabeth John",
+          "institution": "Baylor University",
+          "mentor": "Bessie Kebaara",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Linzee Pacheco",
+          "institution": "Del Mar College",
+          "mentor": "Daisy Zhang/Cheryl Lumibao",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2025",
+          "placement": "1st",
+          "personName": "Kayli Denny",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Ali Azghani",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "2nd",
+          "personName": "Cora Kosnick",
+          "institution": "Rice University/University of Texas Health Science Center at Houston",
+          "mentor": "Heidi Kaplan",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2025",
+          "placement": "3rd",
+          "personName": "Rylee King",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "James Samuel",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": null,
+          "personName": "Madeline Giner",
+          "institution": "University of Texas at San Antonio",
+          "mentor": "Soo Chan Lee",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Dalila Aranday",
+          "institution": "St. Edward's University",
+          "mentor": "Trish Baynham",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Rima Shaaban",
+          "institution": "Lamar University",
+          "mentor": "Ashwini Kucknoor",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Cassie Dume",
+          "institution": "Baylor University",
+          "mentor": "Tammy Adair",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Elizabeth Rocklage",
+          "institution": "Del Mar College",
+          "mentor": "Daisy Zhang",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Drew Lessert",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine/Josh McLoud",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Brahmi Prayaga",
+          "institution": "Baylor University",
+          "mentor": "Tammy Adair",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Reagan Chastain",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine/Josh McLoud",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Dinili Suraweera",
+          "institution": "Baylor University",
+          "mentor": "Evan Woods",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Elizabeth John",
+          "institution": "Baylor University",
+          "mentor": "Bessie Kebaara",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "Andy Corliss",
+          "institution": "Rice University",
+          "mentor": "Joff Silberg/James Chappell",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Angelina Viola",
+          "institution": "University of Dallas",
+          "mentor": "William Cody",
+          "category": "Molecular & Environmental Microbiology and Genetics"
+        },
+        {
+          "year": "2024",
+          "placement": "1st",
+          "personName": "Jessica Guilhas",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "2nd",
+          "personName": "George Jose",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Juan Sanchez",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2024",
+          "placement": "3rd",
+          "personName": "Antonio Rame",
+          "institution": "University of Dallas",
+          "mentor": "William Cody",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": null,
+          "personName": "Lillian Wilson",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Clarissa Martinez",
+          "institution": "LeTourneau University",
+          "mentor": "Jose Andrade",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Jessica Blakely",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "3rd",
+          "personName": "Ian Haines",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Nichole Abrego",
+          "institution": "St. Edward's University",
+          "mentor": "Trish Baynham",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Macy Frost",
+          "institution": "Abilene Christian University",
+          "mentor": "Jennifer Huddleston",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "3rd",
+          "personName": "Dalila Aranday",
+          "institution": "St. Edward's University",
+          "mentor": "Trish Baynham",
+          "category": "Environmental Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Christina Gu",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Larry Reitzer",
+          "category": "Molecular Microbiology and Genetics"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Kaitlyn Mathews",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine/Josh McLoud",
+          "category": "Molecular Microbiology and Genetics"
+        },
+        {
+          "year": "2023",
+          "placement": "3rd",
+          "personName": "Michael Delgado",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Molecular Microbiology and Genetics"
+        },
+        {
+          "year": "2023",
+          "placement": "1st",
+          "personName": "Star Okolie",
+          "institution": "University of Texas at Dallas",
+          "mentor": "Nicole De Nisco",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "2nd",
+          "personName": "Kelsey Waite",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2023",
+          "placement": "3rd",
+          "personName": "Emerie Danson",
+          "institution": "St. Edward's University",
+          "mentor": "Lisa Gold",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": null,
+          "personName": "Teresa Sullivan",
+          "institution": "Texas A&M University-College Station",
+          "mentor": "Ry Young",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Claire Ely",
+          "institution": "Abilene Christian University",
+          "mentor": "Jennifer Hennigan",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Savannah Orton",
+          "institution": "LeTourneau University & Sam Houston State University",
+          "mentor": "Todd Primm/Aaron Lynne/Jeremy Bechelli",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Christina A. Holder",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick N. Baliraine",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Aryana Pernarelli",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "3rd",
+          "personName": "Cole Moore",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Kennedy Coleman",
+          "institution": "Rice University",
+          "mentor": "Adrienne M.S. Correa",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Hannah Bovermann",
+          "institution": "University of Texas at Arlington",
+          "mentor": "Joseph Boll",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "3rd",
+          "personName": "Kathleen Leever",
+          "institution": "University of Texas at Austin/University of Texas Marine Science Institute",
+          "mentor": "Brett Baker",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "1st",
+          "personName": "Bella Kouretas",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2022",
+          "placement": "2nd",
+          "personName": "Victoria Adeleke",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": null,
+          "personName": "Lindsey K. Bailey",
+          "institution": "Texas A&M University-College Station Veterinary School",
+          "mentor": "Artem S. Rogovskyy",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Matt Bristerpostma",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage and Antimicrobial Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "2nd",
+          "personName": "Ashley Suris",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage and Antimicrobial Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Caroline Podvin",
+          "institution": "St. Edward's University",
+          "mentor": "Trish Baynham",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "2nd",
+          "personName": "Nathan H. Klobusnik",
+          "institution": "Texas A&M University-Galveston",
+          "mentor": "Jessica Labonte",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "1st",
+          "personName": "Faith Cox",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2021",
+          "placement": "2nd",
+          "personName": "Rachel C. Diaz",
+          "institution": "Texas Tech University",
+          "mentor": "Allie Clinton Smith",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": null,
+          "personName": "Tiffany Lee",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "1st",
+          "personName": "Abigail Ballard",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage and Antimicrobial Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "2nd",
+          "personName": "Annabelle Malinowski",
+          "institution": "LeTourneau University",
+          "mentor": "Frederick Baliraine",
+          "category": "Bacteriophage and Antimicrobial Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "3rd",
+          "personName": "Adey Awah",
+          "institution": "Texasm A&M University-College Station",
+          "mentor": "Ry Young",
+          "category": "Bacteriophage and Antimicrobial Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "1st",
+          "personName": "Allison White",
+          "institution": "St. Edward's University",
+          "mentor": "Patricia Bilinski",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "2nd",
+          "personName": "Armon Amini",
+          "institution": "Sam Houston State University",
+          "mentor": "Anne Gaillard",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "3rd",
+          "personName": "Angelo Wong",
+          "institution": "Baylor University",
+          "mentor": "Bessie Kebaara",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "1st",
+          "personName": "Quinn Losefsky",
+          "institution": "Texas Christian University",
+          "mentor": "Shauna McGillivray",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "2nd",
+          "personName": "Shandis Fancher",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Ali Azghani",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2019",
+          "placement": "3rd",
+          "personName": "Andrea Josefina Lopez",
+          "institution": "Texas Tech University",
+          "mentor": "Allie Smith",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": null,
+          "personName": "Camille Trautman",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "General Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "1st",
+          "personName": "Kaitlin Casanova",
+          "institution": "University of Dallas",
+          "mentor": "William Cody",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "2nd",
+          "personName": "Paytan Stubbs",
+          "institution": "Midwestern State University",
+          "mentor": "Jim Masuoka",
+          "category": "Antimicrobial Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "1st",
+          "personName": "Leeila Hanson",
+          "institution": "Tarleton State University",
+          "mentor": "Dustin Edwards",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "2nd",
+          "personName": "Isaiah Ortega",
+          "institution": "University of North Texas",
+          "mentor": "Lee Hughes",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "3rd",
+          "personName": "Austin Sivoravong",
+          "institution": "University of North Texas",
+          "mentor": "Lee Hughes",
+          "category": "Bacteriophage Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "1st",
+          "personName": "Priyal Patel",
+          "institution": "University of Texas at Tyler",
+          "mentor": "Ri-Qing Yu",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "2nd",
+          "personName": "David L. Hutton III",
+          "institution": "Hardin-Simmons University",
+          "mentor": "Jennifer Hennigan",
+          "category": "Basic and Environmental Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": null,
+          "personName": "Joy Collins",
+          "institution": "Lamar University",
+          "mentor": "Robert Corbett",
+          "category": "Honorable Mention"
+        },
+        {
+          "year": "2018",
+          "placement": "1st",
+          "personName": "Shawna Gallegos",
+          "institution": "Texas Tech University",
+          "mentor": "Kendra Rumbaugh",
+          "category": "Pathogenic Microbiology"
+        },
+        {
+          "year": "2018",
+          "placement": "2nd",
+          "personName": "Armand Northcut",
+          "institution": "Texas Tech University",
+          "mentor": "Kendra Rumbaugh",
+          "category": "Pathogenic Microbiology"
+        }
+      ]
     },
     {
       "slug": "graduate-student-award",
@@ -65,32 +2439,136 @@
       "namesakeBio": "The Eugene and Millicent Goldschmidt Graduate Student Award.",
       "description": "Recognizes outstanding female graduate students in microbiology.",
       "recipients": [
-        { "year": "2025-26", "personName": "Gillian Brown", "institution": "Texas A&M" },
-        { "year": "2025-26", "personName": "Raquel Luna", "institution": "UT Health Houston" },
-        { "year": "2024-25", "personName": "Taylor Ranson", "institution": "Texas State" },
-        { "year": "2024-25", "personName": "Jessica Watts", "institution": "Baylor College of Medicine" },
-        { "year": "2023-24", "personName": "Brittany Shapiro", "institution": "Texas A&M" },
-        { "year": "2023-24", "personName": "Kathryn Appler", "institution": "UT Austin" },
-        { "year": "2020-21", "personName": "Lauren Howe-Kerr", "institution": "Rice" },
-        { "year": "2020-21", "personName": "Megan Mullis", "institution": "Texas A&M-Corpus Christi" },
-        { "year": "2020-21", "personName": "Sarah Owen", "institution": "Sam Houston State" },
-        { "year": "2019-20", "personName": "April Nguyen", "institution": "UTHealth Houston" },
-        { "year": "2019-20", "personName": "Kathryn Campbell", "institution": "Texas A&M-Galveston" },
-        { "year": "2019-20", "personName": "Alexandria Brown", "institution": "Sam Houston State" },
-        { "year": "2018-19", "personName": "Kara Schoenemann", "institution": "UTHealth Houston" },
-        { "year": "2018-19", "personName": "Rachel Weisend", "institution": "Texas A&M-Corpus Christi" },
-        { "year": "2017-18", "personName": "Elisa Vesely", "institution": "UTHealth Houston" },
-        { "year": "2017-18", "personName": "Nicole Elledge", "institution": "Texas A&M-Corpus Christi" },
-        { "year": "2016-17", "personName": "Naomi Bier", "institution": "UTHealth Houston" },
-        { "year": "2016-17", "personName": "Hannah Adams", "institution": "UT Dallas" },
-        { "year": "2015-16", "personName": "Tetiana Hutchison", "institution": "SMU" },
-        { "year": "2015-16", "personName": "Veronica Rowlett", "institution": "UTHealth Houston" },
-        { "year": "2014-15", "personName": "Alexandra Marshall", "institution": "UTHealth Houston" },
-        { "year": "2014-15", "personName": "Sarah Schmedes", "institution": "UNT Health Science Center" },
-        { "year": "2013-14", "personName": "Brittany Needham", "institution": "UT Austin" },
-        { "year": "2013-14", "personName": "Embriette R. Hyde", "institution": "Baylor College of Medicine" },
-        { "year": "2011-12", "personName": "Holly K. Huse", "institution": "UT Austin" },
-        { "year": "2011-12", "personName": "Mary Girard", "institution": "Baylor College of Medicine" }
+        {
+          "year": "2025-26",
+          "personName": "Gillian Brown",
+          "institution": "Texas A&M"
+        },
+        {
+          "year": "2025-26",
+          "personName": "Raquel Luna",
+          "institution": "UT Health Houston"
+        },
+        {
+          "year": "2024-25",
+          "personName": "Taylor Ranson",
+          "institution": "Texas State"
+        },
+        {
+          "year": "2024-25",
+          "personName": "Jessica Watts",
+          "institution": "Baylor College of Medicine"
+        },
+        {
+          "year": "2023-24",
+          "personName": "Brittany Shapiro",
+          "institution": "Texas A&M"
+        },
+        {
+          "year": "2023-24",
+          "personName": "Kathryn Appler",
+          "institution": "UT Austin"
+        },
+        {
+          "year": "2020-21",
+          "personName": "Lauren Howe-Kerr",
+          "institution": "Rice"
+        },
+        {
+          "year": "2020-21",
+          "personName": "Megan Mullis",
+          "institution": "Texas A&M-Corpus Christi"
+        },
+        {
+          "year": "2020-21",
+          "personName": "Sarah Owen",
+          "institution": "Sam Houston State"
+        },
+        {
+          "year": "2019-20",
+          "personName": "April Nguyen",
+          "institution": "UTHealth Houston"
+        },
+        {
+          "year": "2019-20",
+          "personName": "Kathryn Campbell",
+          "institution": "Texas A&M-Galveston"
+        },
+        {
+          "year": "2019-20",
+          "personName": "Alexandria Brown",
+          "institution": "Sam Houston State"
+        },
+        {
+          "year": "2018-19",
+          "personName": "Kara Schoenemann",
+          "institution": "UTHealth Houston"
+        },
+        {
+          "year": "2018-19",
+          "personName": "Rachel Weisend",
+          "institution": "Texas A&M-Corpus Christi"
+        },
+        {
+          "year": "2017-18",
+          "personName": "Elisa Vesely",
+          "institution": "UTHealth Houston"
+        },
+        {
+          "year": "2017-18",
+          "personName": "Nicole Elledge",
+          "institution": "Texas A&M-Corpus Christi"
+        },
+        {
+          "year": "2016-17",
+          "personName": "Naomi Bier",
+          "institution": "UTHealth Houston"
+        },
+        {
+          "year": "2016-17",
+          "personName": "Hannah Adams",
+          "institution": "UT Dallas"
+        },
+        {
+          "year": "2015-16",
+          "personName": "Tetiana Hutchison",
+          "institution": "SMU"
+        },
+        {
+          "year": "2015-16",
+          "personName": "Veronica Rowlett",
+          "institution": "UTHealth Houston"
+        },
+        {
+          "year": "2014-15",
+          "personName": "Alexandra Marshall",
+          "institution": "UTHealth Houston"
+        },
+        {
+          "year": "2014-15",
+          "personName": "Sarah Schmedes",
+          "institution": "UNT Health Science Center"
+        },
+        {
+          "year": "2013-14",
+          "personName": "Brittany Needham",
+          "institution": "UT Austin"
+        },
+        {
+          "year": "2013-14",
+          "personName": "Embriette R. Hyde",
+          "institution": "Baylor College of Medicine"
+        },
+        {
+          "year": "2011-12",
+          "personName": "Holly K. Huse",
+          "institution": "UT Austin"
+        },
+        {
+          "year": "2011-12",
+          "personName": "Mary Girard",
+          "institution": "Baylor College of Medicine"
+        }
       ]
     },
     {
@@ -99,13 +2577,62 @@
       "namesakeBio": "The Eugene and Millicent Goldschmidt Faculty Education Award.",
       "description": "Recognizes faculty excellence in microbiology education.",
       "recipients": [
-        { "year": "2025-26", "personName": "Tamarah Adair", "institution": "Baylor" },
-        { "year": "2024-25", "personName": "Frederick Baliraine", "institution": "LeTourneau" },
-        { "year": "2023-24", "personName": "David Greenberg", "institution": "UT Southwestern" },
-        { "year": "2022-23", "personName": "Lee Hughes", "institution": "UNT" },
-        { "year": "2021-22", "personName": "Dustin Edwards", "institution": "Tarleton State" },
-        { "year": "2020-21", "personName": "Bill Coon", "institution": "Victoria College" },
-        { "year": "2015-16", "personName": "Todd Primm", "institution": "Sam Houston State" }
+        {
+          "year": "2025-2026",
+          "placement": null,
+          "personName": "Tamarah Adair",
+          "institution": "Baylor University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2024-2025",
+          "placement": null,
+          "personName": "Federick Baliraine",
+          "institution": "LeTourneau University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2023-2024",
+          "placement": null,
+          "personName": "David Greenberg",
+          "institution": "UT Southwestern Medical Center",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2022-2023",
+          "placement": null,
+          "personName": "Lee Hughes",
+          "institution": "University of North Texas",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2021-2022",
+          "placement": null,
+          "personName": "Dustin Edwards",
+          "institution": "Tarleton State University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2020-2021",
+          "placement": null,
+          "personName": "Bill Coon",
+          "institution": "Victoria College",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2015-2016",
+          "placement": null,
+          "personName": "Todd Primm",
+          "institution": "Sam Houston State University",
+          "mentor": null,
+          "category": null
+        }
       ]
     },
     {
@@ -114,16 +2641,94 @@
       "namesakeBio": "The Eugene and Millicent Goldschmidt Faculty Mentor Award.",
       "description": "Recognizes faculty excellence in mentoring microbiology students.",
       "recipients": [
-        { "year": "2025-26", "personName": "Lisa Bono", "institution": "TTU" },
-        { "year": "2024-25", "personName": "Indira Mysorekar", "institution": "Baylor College of Medicine" },
-        { "year": "2023-24", "personName": "Natasha Kirienko", "institution": "Rice" },
-        { "year": "2022-23", "personName": "Jon Skare", "institution": "Texas A&M" },
-        { "year": "2021-22", "personName": "Rajeev Azad", "institution": "UNT" },
-        { "year": "2020-21", "personName": "Ali Azghani", "institution": "UT Tyler" },
-        { "year": "2018-19", "personName": "Jeffery Turner", "institution": "Texas A&M-Corpus Christi" },
-        { "year": "2017-18", "personName": "Heidi Kaplan", "institution": "UT Medical School at Houston" },
-        { "year": "2016-17", "personName": "Poonam Gulati", "institution": "University of Houston-Downtown" },
-        { "year": "2015-16", "personName": "Madhusudan Choudhary", "institution": "Sam Houston State" }
+        {
+          "year": "2025-2026",
+          "placement": null,
+          "personName": "Lisa Bono",
+          "institution": "Texas Tech University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2024-2025",
+          "placement": null,
+          "personName": "Indira Mysorekar",
+          "institution": "Baylor College of Medicine",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2023-2024",
+          "placement": null,
+          "personName": "Natasha Kirienko",
+          "institution": "Rice University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2022-2023",
+          "placement": null,
+          "personName": "Jon Skare",
+          "institution": "Texas A&M University-College Station",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2021-2022",
+          "placement": null,
+          "personName": "Rajeev Azad",
+          "institution": "University of North Texas",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2020-2021",
+          "placement": null,
+          "personName": "Ali Azghani",
+          "institution": "University of Texas at Tyler",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2021-2022",
+          "placement": null,
+          "personName": "Rajeev Azad",
+          "institution": "University of North Texas",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2018-2019",
+          "placement": null,
+          "personName": "Jeffery Turner",
+          "institution": "Texas A&M University-Corpus Christi",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2017-2018",
+          "placement": null,
+          "personName": "Heidi Kaplan",
+          "institution": "University of Texas Medical School at Houston",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2016-2017",
+          "placement": null,
+          "personName": "Poonam Gulati",
+          "institution": "University of Houston-Downtown",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2015-2016",
+          "placement": null,
+          "personName": "Madhusudan Choudhary",
+          "institution": "Sam Houston State University",
+          "mentor": null,
+          "category": null
+        }
       ]
     },
     {
@@ -132,10 +2737,46 @@
       "namesakeBio": null,
       "description": "Recognizes outstanding, sustained service and leadership advancing the branch mission.",
       "recipients": [
-        { "year": "2019", "personName": "M. Gabriela Bowden", "institution": "University of Houston-Downtown" },
-        { "year": "2009", "personName": "Robert J. C. McLean", "institution": "Texas State University" },
-        { "year": "1980", "personName": "Millicent Goldschmidt", "institution": "UT Health Science Center at Houston" },
-        { "year": "1980", "personName": "L. Joe Berry", "institution": "UT Austin" }
+        {
+          "year": "2019",
+          "placement": null,
+          "personName": "M. Gabriela Bowden",
+          "institution": "University of Houston-Downtown",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2009",
+          "placement": null,
+          "personName": "Robert (Bob) J. C. McLean",
+          "institution": "Texas State University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "1980",
+          "placement": null,
+          "personName": "Millicent Goldschmidt",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "1980",
+          "placement": null,
+          "personName": "L. Joe Berry",
+          "institution": "University of Texas at Austin",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "1980",
+          "placement": null,
+          "personName": "Thomas Matney",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": null,
+          "category": null
+        }
       ]
     },
     {
@@ -144,11 +2785,46 @@
       "namesakeBio": null,
       "description": "Recognizes exceptional sustained career contributions to microbiology.",
       "recipients": [
-        { "year": "2024", "personName": "Robert J. C. McLean", "institution": "Texas State University" },
-        { "year": "2015", "personName": "Sarah A. McIntire", "institution": "Texas Woman's University" },
-        { "year": "2012", "personName": "Gary Aron", "institution": "Texas State University" },
-        { "year": "2006", "personName": "Foerster" },
-        { "year": "2004", "personName": "Millicent Goldschmidt", "institution": "UT Health Science Center at Houston" }
+        {
+          "year": "2024",
+          "placement": null,
+          "personName": "Robert (Bob) J. C. McLean",
+          "institution": "Texas State University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2015",
+          "placement": null,
+          "personName": "Sarah McIntire",
+          "institution": "Texas Woman’s University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2012",
+          "placement": null,
+          "personName": "Gary Aron",
+          "institution": "Texas State University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2006",
+          "placement": null,
+          "personName": "Harold F. Foerster",
+          "institution": "Sam Houston State University",
+          "mentor": null,
+          "category": null
+        },
+        {
+          "year": "2004",
+          "placement": null,
+          "personName": "Millicent Goldschmidt",
+          "institution": "University of Texas Health Science Center at Houston",
+          "mentor": null,
+          "category": null
+        }
       ]
     }
   ]
