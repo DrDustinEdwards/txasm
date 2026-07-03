@@ -33,6 +33,9 @@ function joinParts(parts: Array<string | null>): string {
 
 export default function AbstractPage({ loaderData }: Route.ComponentProps) {
   const { edition, abstract } = loaderData;
+  // Prefer the stored book code (for example UP37); fall back to the 1..n
+  // ordinal only when no code is stored.
+  const codeLabel = abstract.code ?? String(abstract.number);
   const metaLabel = joinParts([
     abstract.level ? ABSTRACT_LEVEL_LABELS[abstract.level] : null,
     abstract.format ? ABSTRACT_FORMAT_LABELS[abstract.format] : null,
@@ -49,14 +52,14 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
             label: `${edition.name} abstracts`,
             to: `/meetings/${edition.slug}/abstracts`,
           },
-          { label: `Abstract ${abstract.number}` },
+          { label: `Abstract ${codeLabel}` },
         ]}
       />
 
       <header className="space-y-3">
         <p className="text-sm text-text-muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract{" "}
-          {abstract.number}
+          {codeLabel}
         </p>
         <h1
           className="text-2xl font-semibold tracking-tight text-text"

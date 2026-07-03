@@ -220,7 +220,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                     >
                       <div className="flex gap-3">
                         <span className="shrink-0 text-sm font-semibold text-text-muted">
-                          {abstract.number}
+                          {abstract.code ?? abstract.number}
                         </span>
                         <div className="min-w-0 space-y-1">
                           <Link

@@ -19,6 +19,7 @@ import {
   SPEAKER_ROLES,
   type AbstractFormat,
   type AbstractLevel,
+  type CodeSource,
   type ConflictReason,
   type DecisionOutcome,
   type DocumentCategory,
@@ -468,7 +469,9 @@ export interface PublicAbstractAffiliation {
 }
 
 export interface PublicAbstractSummary {
-  number: number;
+  number: number; // stable 1..n fallback used when there is no stored code
+  code: string | null; // the book code (for example UO1), null if none stored
+  codeSource: CodeSource | null; // "printed" or "generated", null when no code
   title: string; // sanitized HTML
   level: AbstractLevel | null;
   format: AbstractFormat | null;
@@ -517,7 +520,8 @@ export interface PublicAbstractSearchFilters {
 export interface PublicAbstractSearchResult {
   editionSlug: string;
   editionName: string;
-  number: number;
+  number: number; // 1..n fallback used when there is no stored code
+  code: string | null; // the book code, null if none stored
   title: string; // sanitized HTML
   presentingAuthorName: string | null;
   level: AbstractLevel | null;
@@ -2765,6 +2769,8 @@ export function createDataAccess(db: DB) {
       id: row.id,
       detail: {
         number: i + 1,
+        code: row.code,
+        codeSource: row.codeSource,
         title: row.title,
         level: row.level,
         format: row.format,
@@ -4361,6 +4367,8 @@ export function createDataAccess(db: DB) {
       }
       const abstracts: PublicAbstractSummary[] = items.map(({ detail }) => ({
         number: detail.number,
+        code: detail.code,
+        codeSource: detail.codeSource,
         title: detail.title,
         level: detail.level,
         format: detail.format,
@@ -4474,6 +4482,7 @@ export function createDataAccess(db: DB) {
             editionSlug: meta.slug,
             editionName: meta.name,
             number: detail.number,
+            code: detail.code,
             title: detail.title,
             presentingAuthorName:
               detail.authors.find((a) => a.isPresenting)?.name ??
