@@ -5,8 +5,8 @@
 // the self-adapting SVG in public/, which carries its own prefers-color-scheme
 // block. No server-only imports, so this module is safe on both sides.
 
-export { BrandWordmark } from "~/components/BrandWordmark";
-export { BrandMark } from "~/components/BrandMark";
+export { BrandWordmark } from "~/components/brand-wordmark";
+export { BrandMark } from "~/components/brand-mark";
 
 // Full wordmark for the wide lockup (public header, top nav); mark for the
 // compact or standalone spots (admin header, footer). Both are the components
