@@ -87,6 +87,8 @@ export default [
     "admin/editions/:editionId/program-document/download",
     "routes/admin.editions.$editionId.program-document.download.tsx",
   ),
+  route("documents/:slug/inline", "routes/documents.$slug.inline.ts"),
+  route("documents/:slug/download", "routes/documents.$slug.download.ts"),
   route("api/institutions", "routes/api.institutions.ts"),
   route("api/awards-search", "routes/api.awards-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),

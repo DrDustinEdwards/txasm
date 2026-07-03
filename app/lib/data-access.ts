@@ -4292,6 +4292,22 @@ export function createDataAccess(db: DB) {
       return row;
     },
 
+    // Resolve a document for the serve routes. A published document is public, so
+    // the actor may be null. A draft or generated document is visible only to an
+    // admin or a chair of its meeting, matching the write gate. Throws NotFound
+    // when the slug is unknown and Forbidden when an unpublished doc is not the
+    // caller's to see.
+    async getForServe(actor: Actor | null, slug: string) {
+      const row = await db.query.document.findFirst({
+        where: eq(schema.document.slug, slug),
+      });
+      if (!row) throw new NotFoundError();
+      if (row.status === "published") return row;
+      if (!actor) throw new ForbiddenError();
+      assertDocumentWrite(actor, row.editionId);
+      return row;
+    },
+
     // Published documents tied to a meeting (its book, program, and any uploaded
     // archive PDFs), for the meeting's public archive section.
     async listForEdition(editionId: string) {
