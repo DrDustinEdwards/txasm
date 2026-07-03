@@ -8,16 +8,15 @@ export function meta({ matches }: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "The named student and researcher awards of the Texas Branch of the American Society for Microbiology.",
+        "The named student, faculty, and service awards of the Texas Branch of the American Society for Microbiology.",
     },
   ];
 }
 
-// The eight named awards, with the short descriptions captured from the current
-// site. Descriptions are the summary text from the vault note; the full award
-// criteria live on the nomination materials.
-// TODO: confirm each description against the live /awards page and add the
-// endowment or history blurb where the current site carries one.
+// The named awards carried over from the current site: eight research and
+// education awards plus the Distinguished Service Award. Descriptions are the
+// short blurbs from the site capture; the full criteria live in the nomination
+// materials.
 type Award = {
   name: string;
   description: string;
@@ -58,6 +57,11 @@ const AWARDS: Award[] = [
     name: "Charlie Gauntt Award",
     description: "Recognizes undergraduate researchers.",
   },
+  {
+    name: "Distinguished Service Award",
+    description:
+      "Recognizes a member for outstanding, sustained service and leadership advancing the branch mission through dedication, mentorship, and impactful contributions.",
+  },
 ];
 
 export default function Awards() {
@@ -68,10 +72,12 @@ export default function Awards() {
           Awards
         </h1>
         <p className="max-w-2xl text-text-muted">
-          The branch recognizes outstanding student and faculty work with eight
-          named awards, presented at the twice-yearly meetings. Awards cover oral
-          and poster presentations, research and scholarship, and teaching and
-          service.
+          Each year the branch solicits award nominations from universities,
+          research institutions, and laboratories across Texas. Committees of
+          microbiologists and educators evaluate nominees on scientific
+          innovation, depth of research, clarity of presentation, and
+          contributions to the community. Winners are announced at the annual
+          meetings.
         </p>
         <p className="text-sm text-text-muted">
           See{" "}
