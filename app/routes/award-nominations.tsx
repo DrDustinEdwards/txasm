@@ -4,228 +4,191 @@ import { pageTitle } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [
-    { title: pageTitle(matches, "Award nominations") },
+    { title: pageTitle(matches, "Award Nominations") },
     {
       name: "description",
       content:
-        "Eligibility, application packages, and the nomination process for the Texas Branch ASM awards.",
+        "Award nominations for the Texas Branch of the American Society for Microbiology: recognizing faculty and students.",
     },
   ];
 }
+
+const prose = "max-w-2xl text-text-muted";
 
 export default function AwardNominations() {
   return (
     <div className="space-y-10">
       <header className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight text-text">
-          Award nominations
+          Award Nominations
         </h1>
-        <p className="max-w-2xl text-text-muted">
-          Applications are due August 1 and are sent electronically as PDF files
-          to the President of the ASM Texas Branch. The eligibility rules,
-          application packages, and conditions for each award are below.
+        <p className={prose}>Recognizing Faculty and Students</p>
+        <p className={prose}>Deadline: August 1</p>
+        <p className={prose}>
+          Application Process: Applications must be sent electronically as PDF
+          files to the{" "}
+          <Link
+            to="/branch-officers"
+            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            President of the ASM Texas Branch
+          </Link>
+          .
         </p>
       </header>
 
-      <section
-        aria-labelledby="graduate-award-heading"
-        className="space-y-5"
-      >
-        <div className="space-y-2">
-          <h2
-            id="graduate-award-heading"
-            className="text-2xl font-semibold text-text"
-          >
-            Eugene and Millicent Goldschmidt Graduate Student Award
-          </h2>
-          <p className="max-w-2xl text-text-muted">
-            For female graduate students studying microorganisms in their thesis
-            research. This career development award provides $3,000 to $6,500 for
-            doctoral students and $2,000 to $3,500 for master's students.
-            Recipients are announced by August 31.
-          </p>
-        </div>
+      <section aria-labelledby="graduate-award-heading" className="space-y-5">
+        <h2
+          id="graduate-award-heading"
+          className="text-2xl font-semibold text-text"
+        >
+          Eugene and Millicent Goldschmidt Graduate Student Award
+        </h2>
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">Eligibility</h3>
-          <p className="max-w-2xl text-text-muted">
-            Applicants must be:
-          </p>
-          <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
-            <li>
-              Female, a U.S. citizen or permanent resident, and not a previous
-              recipient.
-            </li>
-            <li>
-              A member of ASM and the Texas Branch ASM. Membership is available
-              at{" "}
-              <a
-                href="https://asm.org"
-                target="_blank"
-                rel="noreferrer"
-                className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                asm.org
-              </a>
-              .
-            </li>
-            <li>Able to show potential for a career in microbiology.</li>
-            <li>
-              Currently enrolled in an M.S. or Ph.D. program, not have defended
-              the thesis at the time of application, and not expecting to
-              graduate before May of the next year.
-            </li>
-          </ol>
-          <p className="max-w-2xl text-text-muted">
-            Per ASM definitions, microorganisms include bacteria, viruses,
-            protozoa, and fungi.
-          </p>
-        </div>
+        <p className={prose}>
+          The Texas Branch of the American Society for Microbiology announces the
+          Eugene and Millicent Goldschmidt Graduate Student Award for female
+          graduate students studying microorganisms in their thesis research.
+          This career development award will be awarded between $3,000 and $6,500
+          for doctoral students and between $2,000 and $3,500 for master's
+          students. The awards will be announced by August 31.
+        </p>
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">
-            Application package
-          </h3>
-          <ul className="max-w-2xl list-disc space-y-2 pl-6 text-text-muted">
-            <li>A cover letter.</li>
-            <li>A curriculum vitae.</li>
-            <li>Electronic reprints of publications, if applicable.</li>
-            <li>
-              A description of current thesis research, up to two pages.
-            </li>
-            <li>A statement of career plans, one half page.</li>
-            <li>
-              If the plan is to visit a laboratory, a permission letter from
-              that laboratory.
-            </li>
-            <li>
-              If the plan is to attend a meeting or course, a link to the online
-              information.
-            </li>
-            <li>
-              Plans for the use of funds, with an itemized budget and timeline,
-              one page.
-            </li>
-          </ul>
-        </div>
+        <p className={prose}>Award applicants must be:</p>
+        <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
+          <li>
+            Female, U.S. citizen or permanent resident, and not a previous
+            recipient of the award
+          </li>
+          <li>
+            Member of the American Society for Microbiology and the Texas Branch
+            - American Society for Microbiology. Applicants can join both the
+            national ASM and Texas Branch ASM at{" "}
+            <a
+              href="http://www.asm.org/index.php/membership/join-asm.html"
+              target="_blank"
+              rel="noreferrer"
+              className="break-words text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              http://www.asm.org/index.php/membership/join-asm.html
+            </a>
+          </li>
+          <li>Show potential for a career in microbiology</li>
+          <li>
+            Currently enrolled in an M.S. or Ph.D. program, not defended their
+            thesis at the time of application, and not expecting to graduate
+            before May the next year
+          </li>
+        </ol>
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">Use of funds</h3>
-          <p className="max-w-2xl text-text-muted">
-            Funds may be used for travel to a conference, to visit another
-            laboratory, travel and tuition for a course or workshop in a
-            geographically distant place, and other career-advancing travel.
-          </p>
-          <p className="max-w-2xl text-text-muted">
-            Funds may not be used for publication costs, research materials, or
-            tuition to the applicant's own university.
-          </p>
-        </div>
+        <p className={prose}>
+          {'Per ASM definitions, "microorganisms" include bacteria, viruses, protozoa, and fungi.'}
+        </p>
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">
-            Letters of support
-          </h3>
-          <p className="max-w-2xl text-text-muted">
-            At least two letters of support are sent separately to the
-            President. One must be from the current thesis advisor.
-          </p>
-        </div>
+        <p className={prose}>The application package must include:</p>
+        <ul className="max-w-2xl list-disc space-y-2 pl-6 text-text-muted">
+          <li>Cover letter</li>
+          <li>CV of the applicant</li>
+          <li>Electronic reprints of publications (if applicable)</li>
+          <li>Description of current thesis research (up to 2 pages)</li>
+          <li>Career plans (1/2 page)</li>
+          <li>
+            If planning to visit a lab, include a letter from the laboratory
+            indicating that the proposed visit is permissible.
+          </li>
+          <li>
+            If planning to attend a meeting or course, the candidate must provide
+            a link to online information about the conference/course.
+          </li>
+          <li>
+            Plans for use of the award funds to enhance your research and career.
+            An itemized budget and timeline for utilizing the funds must be
+            included. (1 page).
+          </li>
+        </ul>
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">Conditions</h3>
-          <ul className="max-w-2xl list-disc space-y-2 pl-6 text-text-muted">
-            <li>The award is paid in two installments.</li>
-            <li>A six-month progress report and a final report are required.</li>
-            <li>
-              The second installment is contingent on a satisfactory progress
-              report.
-            </li>
-            <li>
-              The recipient must present her work at a Texas Branch meeting, Fall
-              or Spring, within one year.
-            </li>
-            <li>
-              Applicants are encouraged to include up to $750 for meeting travel,
-              registration, and lodging in the budget.
-            </li>
-          </ul>
-        </div>
-      </section>
+        <p className={prose}>
+          The award can be used for the following purposes: travel to a
+          conference, travel to visit another laboratory, travel and tuition for
+          a course or workshop in a geographically distant place, and other
+          travel to advance the applicant's career. The award cannot be used for
+          publication costs, research materials, or tuition to the applicant's
+          university. Please contact the branch well before the application
+          deadline if you have questions about how funds can be used.
+        </p>
 
-      <section aria-labelledby="faculty-award-heading" className="space-y-5">
-        <div className="space-y-2">
-          <h2
-            id="faculty-award-heading"
-            className="text-2xl font-semibold text-text"
-          >
-            Eugene and Millicent Goldschmidt Faculty Education and Mentoring
-            Awards
-          </h2>
-          <p className="max-w-2xl text-text-muted">
-            Two faculty awards of $1,000 each are given per academic year: one
-            for excellence in education and one for excellence in mentoring.
-          </p>
-        </div>
+        <p className={prose}>
+          At least two letters of support must be sent separately from the
+          application directly to the President of the ASM Texas Branch. One of
+          these letters must be from the applicant's current thesis advisor.
+        </p>
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">
-            Mentoring Award package
-          </h3>
-          <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
-            <li>
-              A nomination letter from a faculty member. Self-nominations are not
-              accepted.
-            </li>
-            <li>
-              One to three letters of support from previous or current mentees.
-            </li>
-            <li>
-              A curriculum vitae including a statement on mentoring activities and
-              information about previous mentees, such as degrees earned, current
-              location, and accomplishments, up to five pages.
-            </li>
-          </ol>
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-text">
-            Teaching Award package
-          </h3>
-          <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
-            <li>
-              A nomination letter from a faculty member. Self-nominations are not
-              accepted.
-            </li>
-            <li>A curriculum vitae.</li>
-            <li>
-              A letter from the nominee with teaching experience and teaching
-              philosophy.
-            </li>
-            <li>
-              Examples of educational materials, such as syllabi, assignments,
-              and assessments, up to three pages.
-            </li>
-          </ol>
-        </div>
-
-        <p className="max-w-2xl text-text-muted">
-          All nominees must be faculty at a Texas institution of higher learning
-          involved in microbiology research or teaching. National ASM and branch
-          membership are required.
+        <h3 className="text-lg font-semibold text-text">Award Conditions</h3>
+        <p className={prose}>
+          The recipient will receive the award in two installments and will be
+          required to submit a six-month progress report and final report to the
+          Texas Branch ASM President. Receipt of the second installment is
+          contingent upon receipt of a satisfactory progress report. In addition,
+          the recipient will be required to make a scientific presentation of her
+          work at one of the Texas Branch ASM Meetings within one year of
+          receiving the award, at either the Fall or Spring Texas Branch meeting.
+          It is recommended to include estimated cost of travel, registration,
+          and lodging to a branch meeting (up to $750) in the award budget.
         </p>
       </section>
 
-      <p className="text-sm text-text-muted">
-        Browse the{" "}
-        <Link
-          to="/awards"
-          className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      <section aria-labelledby="faculty-award-heading" className="space-y-5">
+        <h2
+          id="faculty-award-heading"
+          className="text-2xl font-semibold text-text"
         >
-          full list of awards
-        </Link>{" "}
-        to see which fits your work.
-      </p>
+          Eugene and Millicent Goldschmidt Faculty Education and Mentoring Awards
+        </h2>
+
+        <p className={prose}>
+          The Texas Branch of the American Society for Microbiology announces two
+          faculty awards. One award of $1,000 in the area of excellence in
+          education and one award of $1,000 in the area of excellence in
+          mentoring will be given for the academic year.
+        </p>
+
+        <p className={prose}>The application package must include:</p>
+
+        <h3 className="text-lg font-semibold text-text">Mentoring Award</h3>
+        <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
+          <li>Letter of nomination from a faculty member (no self-nominations)</li>
+          <li>
+            At least one (but no more than 3) letters of support from previous or
+            current mentees
+          </li>
+          <li>
+            CV of the nominee, including a statement describing mentoring
+            activities and listing information about previous mentees (e.g.,
+            degrees earned, current location, accomplishments), should be no more
+            than five pages
+          </li>
+        </ol>
+
+        <h3 className="text-lg font-semibold text-text">Teaching Award</h3>
+        <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
+          <li>Letter of nomination from a faculty member (no self-nominations)</li>
+          <li>CV of nominee</li>
+          <li>
+            Letter from the nominee that includes a description of teaching
+            experience and a statement of teaching philosophy
+          </li>
+          <li>
+            Include examples of educational materials (e.g., syllabi, assignments,
+            assessments), limited to three pages
+          </li>
+        </ol>
+
+        <p className={prose}>
+          All nominees should be faculty members of a Texas Institution for
+          Higher Learning and involved in microbiology research or teaching.
+          National ASM and branch membership are also required.
+        </p>
+      </section>
     </div>
   );
 }
