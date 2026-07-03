@@ -61,7 +61,7 @@ app/
   routes/
     _index.tsx             public org home
     meetings.*             meeting pages, programs, archive
-    officers.tsx           current officers
+    branch-officers.tsx    current officers
     register.$edition.tsx  registration + PayPal checkout
     submit.$edition.*      abstract submission, edit until deadline
     review.*               reviewer dashboards, rubric scoring

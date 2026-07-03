@@ -264,7 +264,7 @@ export default function PlatformSettingsScreen({
                       onChange={(e) =>
                         updateLink(index, { url: e.target.value })
                       }
-                      placeholder="/officers"
+                      placeholder="/branch-officers"
                       className={inputClass}
                     />
                   </label>

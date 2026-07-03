@@ -93,7 +93,7 @@ function MobileNav({
     <div className="space-y-5">
       <nav aria-label="Sections" className="space-y-4">
         <Link
-          to="/officers"
+          to="/branch-officers"
           className="block rounded px-2 py-1.5 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Officers
@@ -191,7 +191,7 @@ function PublicHeader({
             {wordmark}
           </Link>
           <nav aria-label="Primary" className="ml-2 hidden items-center gap-1 md:flex">
-            <NavLink to="/officers" className={navLinkClass}>
+            <NavLink to="/branch-officers" className={navLinkClass}>
               Officers
             </NavLink>
             <NavMenu label="Meetings" groups={MEETINGS_GROUPS} />

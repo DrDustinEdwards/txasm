@@ -1,4 +1,4 @@
-import type { Route } from "./+types/officers";
+import type { Route } from "./+types/branch-officers";
 import { pageTitle } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
