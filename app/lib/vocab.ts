@@ -95,6 +95,33 @@ export const ABSTRACT_FORMAT_LABELS: Record<AbstractFormat, string> = {
   poster: "Poster",
 };
 
+// Book abstract code building blocks. A code is levelLetter + formatLetter + a
+// per-prefix running number in book order (for example UO1, GP3, PP2). These
+// maps are the single source for code generation and any future book reuse, so
+// the letters are never retyped inline. S and F are the Fall 2025 additions.
+export const LEVEL_CODE_LETTERS: Record<AbstractLevel, string> = {
+  undergraduate: "U",
+  graduate: "G",
+  education: "E",
+  postdoctoral: "P",
+  high_school: "H",
+  staff: "S",
+  fellow: "F",
+};
+export const FORMAT_CODE_LETTERS: Record<AbstractFormat, string> = {
+  oral: "O",
+  poster: "P",
+};
+
+// Provenance of a stored abstract code: printed in the book, or generated from
+// the rule above. Never present a generated code as printed.
+export const CODE_SOURCES = ["printed", "generated"] as const;
+export type CodeSource = (typeof CODE_SOURCES)[number];
+export const CODE_SOURCE_LABELS: Record<CodeSource, string> = {
+  printed: "Printed",
+  generated: "Generated",
+};
+
 export const PRESENTATION_PREFERENCES = ["oral", "poster", "either"] as const;
 export type PresentationPreference = (typeof PRESENTATION_PREFERENCES)[number];
 export const PRESENTATION_PREFERENCE_LABELS: Record<

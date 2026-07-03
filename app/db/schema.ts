@@ -281,6 +281,11 @@ export const abstract = sqliteTable(
     // Format axis: the decided/archival oral or poster placement. Distinct from
     // presentationPreference, which stays the author's oral/poster/either request.
     format: text("format", { enum: ["oral", "poster"] }),
+    // The book abstract code (for example UO1, GP3, PP2) and its provenance.
+    // code_source guarantees a generated code is never shown as printed. Null for
+    // null-level items (career, invited, awardee talks) that carry no code.
+    code: text("code"),
+    codeSource: text("code_source", { enum: ["printed", "generated"] }),
     // bodyText is the single freeform abstract body going forward. The four
     // section columns below are kept but optional and unused by default; a later
     // migration can drop them once nothing references them.
