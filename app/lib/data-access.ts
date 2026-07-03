@@ -13,6 +13,7 @@ import {
   PROGRAM_ITEM_KINDS,
   REGISTRATION_CATEGORY_KEYS,
   REVIEW_RECOMMENDATIONS,
+  SEASONS,
   SPEAKER_ROLES,
   type AbstractFormat,
   type AbstractLevel,
@@ -3923,4 +3924,175 @@ export function getDataAccess(env: Env) {
 // auth helpers to decide admin access without touching the Drizzle client.
 export function getActor(env: Env, userId: string): Promise<Actor> {
   return loadActor(getDb(env), userId);
+}
+
+// ---------------------------------------------------------------------------
+// Meeting import. A server-only, clearly-named path used by the offline
+// archive-import script (scripts/import-meeting.ts) to seed a past meeting so
+// its abstracts are indistinguishable from live submissions: the same title and
+// body sanitizers and the same validation run. It is deliberately NOT part of
+// the createDataAccess() surface, so routes cannot reach it. It does not weaken
+// any live gating: every function is admin/chair gated, and it only bypasses the
+// submission-window check that live create enforces, which is meaningless for an
+// archived meeting. Authors and affiliations still go through the normal
+// abstracts.setAuthors / setAffiliations (an admin actor is a chair of every
+// meeting, so those work past the deadline without loosening anything).
+// ---------------------------------------------------------------------------
+
+// A fixed system account that owns imported abstracts (abstract.submitterId is
+// notnull). It is not a real sign-in account; the id is stable so re-imports do
+// not multiply system users.
+export const SYSTEM_IMPORT_USER_ID = "system-import";
+const SYSTEM_IMPORT_USER_EMAIL = "import@system.txasm.invalid";
+
+export interface ImportEditionInput {
+  slug: string;
+  name: string;
+  season: Season;
+  year: number;
+  status: EditionStatus;
+  meetingStartsAt?: Date | null;
+  meetingEndsAt?: Date | null;
+  venueName?: string | null;
+  city?: string | null;
+}
+
+export interface ImportAbstractInput {
+  editionId: string;
+  submitterId: string;
+  title: string; // raw em/sup/sub markup, sanitized here
+  body: string; // raw em/sup/sub markup, sanitized here
+  level: AbstractLevel;
+  format: AbstractFormat;
+  categoryId: string;
+}
+
+export function createMeetingImporter(db: DB) {
+  // Upsert the system import user and return its id. Safe to call repeatedly.
+  async function ensureSystemUser(): Promise<string> {
+    await db
+      .insert(schema.user)
+      .values({
+        id: SYSTEM_IMPORT_USER_ID,
+        email: SYSTEM_IMPORT_USER_EMAIL,
+        name: "Meeting Import",
+        emailVerified: true,
+      })
+      .onConflictDoNothing();
+    return SYSTEM_IMPORT_USER_ID;
+  }
+
+  // Create an archived edition with the full front matter (slug, dates, venue),
+  // which the live editions.create path does not set. Admin only. Refuses a
+  // duplicate slug so a re-run does not create a second meeting.
+  async function createArchivedEdition(actor: Actor, input: ImportEditionInput) {
+    if (!isAdmin(actor)) throw new ForbiddenError();
+    if (!SEASONS.includes(input.season)) {
+      throw new ValidationError("Season must be spring or fall.");
+    }
+    if (!EDITION_STATUSES.includes(input.status)) {
+      throw new ValidationError("Unknown meeting status.");
+    }
+    if (!Number.isInteger(input.year)) {
+      throw new ValidationError("Year must be a whole number.");
+    }
+    const slug = input.slug.trim();
+    if (!slug) throw new ValidationError("Meeting slug is required.");
+    const name = input.name.trim();
+    if (!name) throw new ValidationError("Meeting name is required.");
+
+    const existing = await db.query.edition.findFirst({
+      where: eq(schema.edition.slug, slug),
+    });
+    if (existing) {
+      throw new AlreadyExistsError(`A meeting with slug "${slug}" already exists.`);
+    }
+
+    const [created] = await db
+      .insert(schema.edition)
+      .values({
+        slug,
+        name,
+        season: input.season,
+        year: input.year,
+        status: input.status,
+        meetingStartsAt: input.meetingStartsAt ?? null,
+        meetingEndsAt: input.meetingEndsAt ?? null,
+        venueName: input.venueName?.trim() || null,
+        city: input.city?.trim() || null,
+      })
+      .returning();
+    return created;
+  }
+
+  // Create one accepted abstract, running the same title and body sanitizers and
+  // the same axis validation as live submission. Chair/admin of the meeting only.
+  // Status is set to accepted directly (archived meeting), skipping only the
+  // submission-window check that is meaningless here.
+  async function createAcceptedAbstract(
+    actor: Actor,
+    input: ImportAbstractInput,
+  ) {
+    if (!isChair(actor, input.editionId)) throw new ForbiddenError();
+
+    const title = sanitizeTitle(input.title ?? "");
+    if (isEmptyRichText(title)) {
+      throw new ValidationError("The abstract title is empty.");
+    }
+    const body = sanitizeBody(input.body ?? "");
+    if (isEmptyRichText(body)) {
+      throw new ValidationError("The abstract body is empty.");
+    }
+    if (!ABSTRACT_LEVELS.includes(input.level)) {
+      throw new ValidationError(`Unknown level: ${input.level}`);
+    }
+    if (!ABSTRACT_FORMATS.includes(input.format)) {
+      throw new ValidationError(`Unknown format: ${input.format}`);
+    }
+    if (!input.categoryId) {
+      throw new ValidationError("The abstract has no topic category.");
+    }
+
+    const [created] = await db
+      .insert(schema.abstract)
+      .values({
+        editionId: input.editionId,
+        submitterId: input.submitterId,
+        categoryId: input.categoryId,
+        title,
+        level: input.level,
+        format: input.format,
+        bodyText: body,
+        status: "accepted",
+        submittedAt: new Date(),
+      })
+      .returning();
+    return created;
+  }
+
+  // Delete a seeded meeting and everything under it by slug (edition cascades to
+  // categories, abstracts, authors, affiliations, program, and so on). Admin
+  // only. Used to make a re-run reversible.
+  async function clearMeetingBySlug(actor: Actor, slug: string) {
+    if (!isAdmin(actor)) throw new ForbiddenError();
+    const ed = await db.query.edition.findFirst({
+      where: eq(schema.edition.slug, slug),
+    });
+    if (!ed) return { deleted: false, editionId: null };
+    await db.delete(schema.edition).where(eq(schema.edition.id, ed.id));
+    return { deleted: true, editionId: ed.id };
+  }
+
+  return {
+    ensureSystemUser,
+    createArchivedEdition,
+    createAcceptedAbstract,
+    clearMeetingBySlug,
+  };
+}
+
+// Build the importer from the environment, parallel to getDataAccess. Server
+// only; the offline import script is the only caller.
+export function getMeetingImporter(env: Env) {
+  return createMeetingImporter(getDb(env));
 }
