@@ -11,6 +11,12 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy } from "pdfjs-dist";
 // mounted in the browser, and PDF.js itself is loaded with a dynamic import from
 // inside an effect, so it never enters the worker bundle.
 
+// PDF.js is self-hosted under /public/pdfjs and loaded from those URLs at runtime
+// with @vite-ignore, so the bundler never pulls it into either the client or the
+// worker (SSR) graph. The dynamic import runs only in the browser, from an effect.
+const PDFJS_URL = "/pdfjs/pdf.min.mjs";
+const PDFJS_WORKER_URL = "/pdfjs/pdf.worker.min.mjs";
+
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 3;
 const SCALE_STEP = 0.25;
@@ -55,11 +61,10 @@ export function PdfViewer({
 
     (async () => {
       try {
-        const pdfjs = await import("pdfjs-dist");
-        const workerUrl = (
-          await import("pdfjs-dist/build/pdf.worker.min.mjs?url")
-        ).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        const pdfjs = (await import(
+          /* @vite-ignore */ PDFJS_URL
+        )) as typeof import("pdfjs-dist");
+        pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
         const loadingTask = pdfjs.getDocument({ url });
         loadingTaskRef.current = loadingTask;
         const doc = await loadingTask.promise;
