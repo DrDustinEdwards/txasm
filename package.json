@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply txasm --local",
     "db:migrate:prod": "wrangler d1 migrations apply txasm --remote",
+    "import:meeting": "tsx scripts/import-meeting.ts",
     "postinstall": "wrangler types"
   },
   "dependencies": {
@@ -34,6 +35,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.6.0",
     "tailwindcss": "^4.2.2",
+    "tsx": "^4.22.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.0",
     "vite": "^8.0.3",

@@ -39,7 +39,7 @@ export default tseslint.config(
     ],
   },
   {
-    files: ["app/**/*.{ts,tsx}", "workers/**/*.ts"],
+    files: ["app/**/*.{ts,tsx}", "workers/**/*.ts", "scripts/**/*.ts"],
     languageOptions: { parser: tseslint.parser },
     rules: {
       "no-restricted-imports": ["error", { patterns: boundaryPatterns }],
