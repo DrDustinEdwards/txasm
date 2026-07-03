@@ -74,6 +74,8 @@ export const ABSTRACT_LEVELS = [
   "education",
   "high_school",
   "postdoctoral",
+  "staff",
+  "fellow",
 ] as const;
 export type AbstractLevel = (typeof ABSTRACT_LEVELS)[number];
 export const ABSTRACT_LEVEL_LABELS: Record<AbstractLevel, string> = {
@@ -82,6 +84,8 @@ export const ABSTRACT_LEVEL_LABELS: Record<AbstractLevel, string> = {
   education: "Education",
   high_school: "High school",
   postdoctoral: "Postdoctoral",
+  staff: "Staff",
+  fellow: "Fellow",
 };
 
 export const ABSTRACT_FORMATS = ["oral", "poster"] as const;
