@@ -275,13 +275,7 @@ function FooterLink({ label, url }: { label: string; url: string }) {
 
 function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) {
   const orgFullName = settings?.orgFullName ?? "";
-  const foundingYear = settings?.foundingYear ?? null;
   const copyrightName = settings?.orgName || orgFullName;
-  const foundedLine = orgFullName
-    ? foundingYear
-      ? `${orgFullName}. Founded in ${foundingYear}.`
-      : `${orgFullName}.`
-    : "";
 
   return (
     <footer className="mt-16 border-t border-border bg-panel">
@@ -304,9 +298,6 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
         <span aria-hidden="true" className="mt-6 block">
           <BrandFooter />
         </span>
-        {foundedLine ? (
-          <p className="mt-6 text-text-muted">{foundedLine}</p>
-        ) : null}
         {copyrightName ? (
           <p className="mt-1 text-text-muted">&copy; {copyrightName}</p>
         ) : null}
