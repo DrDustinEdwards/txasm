@@ -7,6 +7,7 @@
 
 export { BrandWordmark } from "~/components/brand-wordmark";
 export { BrandMark } from "~/components/brand-mark";
+export { BrandFooter } from "~/components/brand-footer";
 
 // Full wordmark for the wide lockup (public header, top nav); mark for the
 // compact or standalone spots (admin header, footer). Both are the components
