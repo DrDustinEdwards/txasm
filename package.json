@@ -14,6 +14,7 @@
     "db:migrate": "wrangler d1 migrations apply txasm --local",
     "db:migrate:prod": "wrangler d1 migrations apply txasm --remote",
     "import:meeting": "tsx scripts/import-meeting.ts",
+    "import:awards": "tsx scripts/import-awards.ts",
     "postinstall": "wrangler types"
   },
   "dependencies": {

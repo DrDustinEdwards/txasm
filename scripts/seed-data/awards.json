@@ -1,0 +1,155 @@
+{
+  "_note": "Awards dataset for the txasm awards feature. Definitions for all 13 awards are authored from the vault note awards-content.md. Recipient lists are complete for Faculty Education, Faculty Mentor, and Graduate Student; partial for O.B. Williams (the notable 1971 J.P. Allison entry), Distinguished Service, and Lifetime Achievement; and empty for the eight category-subdivided student awards, whose full recipient histories live on the 13 live txasm.org pages and are filled by running `npm run import:awards -- --parse` (which fetches and parses those pages into this file for review before seeding). TODO: run --parse against the live pages to complete the category-subdivided awards; confirm Thomas Matney's Distinguished Service year (unknown in the note) and the Lifetime Achievement recipient first names/institutions marked below.",
+  "awards": [
+    {
+      "slug": "thomas-s-matney-award",
+      "name": "Thomas S. Matney Award",
+      "namesakeBio": "Dr. Thomas S. Matney (1928-2010) was a microbiologist and geneticist at UT MD Anderson and the first Associate Dean of the UT Graduate School of Biomedical Sciences.",
+      "description": "Recognizes the outstanding presentation by a postdoctoral fellow.",
+      "recipients": []
+    },
+    {
+      "slug": "s-e-sulkin-award",
+      "name": "S.E. Sulkin Award",
+      "namesakeBio": "Dr. S. Edward Sulkin (1908-1972) was a virologist and Chair of Microbiology at UT Southwestern from 1945 to 1972, known for work on rabies and bats.",
+      "description": "Outstanding oral presentation of graduate student research in medical microbiology.",
+      "recipients": []
+    },
+    {
+      "slug": "sarah-a-mcintire-award",
+      "name": "Sarah A. McIntire Award",
+      "namesakeBio": "Dr. Sarah A. McIntire (1941-2016) was Professor Emerita at Texas Woman's University, known for work on Helicobacter pylori.",
+      "description": "Outstanding oral presentation of undergraduate student research.",
+      "recipients": []
+    },
+    {
+      "slug": "samuel-kaplan-award",
+      "name": "Samuel Kaplan Award",
+      "namesakeBio": "Dr. Samuel Kaplan (1934-2024) was the founding Chair of Microbiology and Molecular Genetics at UTHealth Houston from 1989 to 2011 and ASM Treasurer from 1991 to 1999.",
+      "description": "Outstanding poster presentation of graduate student research.",
+      "recipients": []
+    },
+    {
+      "slug": "o-b-williams-award",
+      "name": "O.B. Williams Award",
+      "namesakeBio": "Dr. Odis Burris (O.B.) Williams (1903-1977) was at UT Austin and served as Texas Branch President from 1943 to 1944.",
+      "description": "Outstanding oral presentation of graduate student research in general microbiology.",
+      "recipients": [
+        { "year": "1971", "personName": "J.P. Allison", "institution": "UT Austin" }
+      ]
+    },
+    {
+      "slug": "joan-abramowitz-award",
+      "name": "Joan Abramowitz Award",
+      "namesakeBio": "Dr. Joan Abramowitz (1949-2005) chaired Microbiology at the University of Houston-Downtown.",
+      "description": "Outstanding poster presentation of undergraduate student research.",
+      "recipients": []
+    },
+    {
+      "slug": "charlie-gauntt-award",
+      "name": "Charlie Gauntt Award",
+      "namesakeBio": "Dr. Charles J. Gauntt (1937-2015) was a virologist at UT HSC San Antonio and a Texas Branch President.",
+      "description": "Outstanding oral presentation of graduate student research.",
+      "recipients": []
+    },
+    {
+      "slug": "orville-wyss-award",
+      "name": "Orville Wyss Award",
+      "namesakeBio": "Dr. Orville Wyss (1912-1993) chaired Microbiology at UT Austin from 1959 to 1969 and served as ASM President from 1964 to 1965.",
+      "description": "Outstanding poster presentation of undergraduate student research.",
+      "recipients": []
+    },
+    {
+      "slug": "graduate-student-award",
+      "name": "Graduate Student Award",
+      "namesakeBio": "The Eugene and Millicent Goldschmidt Graduate Student Award.",
+      "description": "Recognizes outstanding female graduate students in microbiology.",
+      "recipients": [
+        { "year": "2025-26", "personName": "Gillian Brown", "institution": "Texas A&M" },
+        { "year": "2025-26", "personName": "Raquel Luna", "institution": "UT Health Houston" },
+        { "year": "2024-25", "personName": "Taylor Ranson", "institution": "Texas State" },
+        { "year": "2024-25", "personName": "Jessica Watts", "institution": "Baylor College of Medicine" },
+        { "year": "2023-24", "personName": "Brittany Shapiro", "institution": "Texas A&M" },
+        { "year": "2023-24", "personName": "Kathryn Appler", "institution": "UT Austin" },
+        { "year": "2020-21", "personName": "Lauren Howe-Kerr", "institution": "Rice" },
+        { "year": "2020-21", "personName": "Megan Mullis", "institution": "Texas A&M-Corpus Christi" },
+        { "year": "2020-21", "personName": "Sarah Owen", "institution": "Sam Houston State" },
+        { "year": "2019-20", "personName": "April Nguyen", "institution": "UTHealth Houston" },
+        { "year": "2019-20", "personName": "Kathryn Campbell", "institution": "Texas A&M-Galveston" },
+        { "year": "2019-20", "personName": "Alexandria Brown", "institution": "Sam Houston State" },
+        { "year": "2018-19", "personName": "Kara Schoenemann", "institution": "UTHealth Houston" },
+        { "year": "2018-19", "personName": "Rachel Weisend", "institution": "Texas A&M-Corpus Christi" },
+        { "year": "2017-18", "personName": "Elisa Vesely", "institution": "UTHealth Houston" },
+        { "year": "2017-18", "personName": "Nicole Elledge", "institution": "Texas A&M-Corpus Christi" },
+        { "year": "2016-17", "personName": "Naomi Bier", "institution": "UTHealth Houston" },
+        { "year": "2016-17", "personName": "Hannah Adams", "institution": "UT Dallas" },
+        { "year": "2015-16", "personName": "Tetiana Hutchison", "institution": "SMU" },
+        { "year": "2015-16", "personName": "Veronica Rowlett", "institution": "UTHealth Houston" },
+        { "year": "2014-15", "personName": "Alexandra Marshall", "institution": "UTHealth Houston" },
+        { "year": "2014-15", "personName": "Sarah Schmedes", "institution": "UNT Health Science Center" },
+        { "year": "2013-14", "personName": "Brittany Needham", "institution": "UT Austin" },
+        { "year": "2013-14", "personName": "Embriette R. Hyde", "institution": "Baylor College of Medicine" },
+        { "year": "2011-12", "personName": "Holly K. Huse", "institution": "UT Austin" },
+        { "year": "2011-12", "personName": "Mary Girard", "institution": "Baylor College of Medicine" }
+      ]
+    },
+    {
+      "slug": "faculty-education-award",
+      "name": "Faculty Education Award",
+      "namesakeBio": "The Eugene and Millicent Goldschmidt Faculty Education Award.",
+      "description": "Recognizes faculty excellence in microbiology education.",
+      "recipients": [
+        { "year": "2025-26", "personName": "Tamarah Adair", "institution": "Baylor" },
+        { "year": "2024-25", "personName": "Frederick Baliraine", "institution": "LeTourneau" },
+        { "year": "2023-24", "personName": "David Greenberg", "institution": "UT Southwestern" },
+        { "year": "2022-23", "personName": "Lee Hughes", "institution": "UNT" },
+        { "year": "2021-22", "personName": "Dustin Edwards", "institution": "Tarleton State" },
+        { "year": "2020-21", "personName": "Bill Coon", "institution": "Victoria College" },
+        { "year": "2015-16", "personName": "Todd Primm", "institution": "Sam Houston State" }
+      ]
+    },
+    {
+      "slug": "faculty-mentor-award",
+      "name": "Faculty Mentor Award",
+      "namesakeBio": "The Eugene and Millicent Goldschmidt Faculty Mentor Award.",
+      "description": "Recognizes faculty excellence in mentoring microbiology students.",
+      "recipients": [
+        { "year": "2025-26", "personName": "Lisa Bono", "institution": "TTU" },
+        { "year": "2024-25", "personName": "Indira Mysorekar", "institution": "Baylor College of Medicine" },
+        { "year": "2023-24", "personName": "Natasha Kirienko", "institution": "Rice" },
+        { "year": "2022-23", "personName": "Jon Skare", "institution": "Texas A&M" },
+        { "year": "2021-22", "personName": "Rajeev Azad", "institution": "UNT" },
+        { "year": "2020-21", "personName": "Ali Azghani", "institution": "UT Tyler" },
+        { "year": "2018-19", "personName": "Jeffery Turner", "institution": "Texas A&M-Corpus Christi" },
+        { "year": "2017-18", "personName": "Heidi Kaplan", "institution": "UT Medical School at Houston" },
+        { "year": "2016-17", "personName": "Poonam Gulati", "institution": "University of Houston-Downtown" },
+        { "year": "2015-16", "personName": "Madhusudan Choudhary", "institution": "Sam Houston State" }
+      ]
+    },
+    {
+      "slug": "distinguished-service-award",
+      "name": "Distinguished Service Award",
+      "namesakeBio": null,
+      "description": "Recognizes outstanding, sustained service and leadership advancing the branch mission.",
+      "recipients": [
+        { "year": "2019", "personName": "M. Gabriela Bowden", "institution": "University of Houston-Downtown" },
+        { "year": "2009", "personName": "Robert J. C. McLean", "institution": "Texas State University" },
+        { "year": "1980", "personName": "Millicent Goldschmidt", "institution": "UT Health Science Center at Houston" },
+        { "year": "1980", "personName": "L. Joe Berry", "institution": "UT Austin" }
+      ]
+    },
+    {
+      "slug": "lifetime-achievement-award",
+      "name": "Lifetime Achievement Award",
+      "namesakeBio": null,
+      "description": "Recognizes exceptional sustained career contributions to microbiology.",
+      "recipients": [
+        { "year": "2024", "personName": "Robert J. C. McLean", "institution": "Texas State University" },
+        { "year": "2015", "personName": "Sarah A. McIntire", "institution": "Texas Woman's University" },
+        { "year": "2012", "personName": "Gary Aron", "institution": "Texas State University" },
+        { "year": "2006", "personName": "Foerster" },
+        { "year": "2004", "personName": "Millicent Goldschmidt", "institution": "UT Health Science Center at Houston" }
+      ]
+    }
+  ]
+}
