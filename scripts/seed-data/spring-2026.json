@@ -1,0 +1,66 @@
+{
+  "meeting": {
+    "slug": "spring-2026",
+    "name": "Spring 2026 Meeting",
+    "season": "spring",
+    "year": 2026,
+    "status": "archived",
+    "meetingStartsAt": "2026-03-26",
+    "meetingEndsAt": "2026-03-28",
+    "venueName": "Mt. Lebanon Camps",
+    "city": "Cedar Hill, TX"
+  },
+  "topics": [
+    "Antimicrobial Microbiology",
+    "Pathogenic Microbiology",
+    "Molecular & Environmental Microbiology",
+    "Bacteriophage",
+    "Molecular Microbiology"
+  ],
+  "abstracts": [
+    {
+      "code": "SAMPLE-UO1",
+      "level": "undergraduate",
+      "format": "oral",
+      "topic": "Antimicrobial Microbiology",
+      "title_html": "Placeholder sample: antibiotic resistance in <em>Streptococcus mutans</em>",
+      "authors": [
+        { "name": "Ada Ramirez", "affil_refs": ["1"] },
+        { "name": "Bao Nguyen", "affil_refs": ["1", "2"] }
+      ],
+      "affiliations": [
+        { "num": "1", "text": "Department of Biology, University of Dallas, Irving, TX" },
+        { "num": "2", "text": "Department of Chemistry, Rice University, Houston, TX" }
+      ],
+      "body_html": "This is placeholder sample data for the importer dry run. We measured CO<sub>2</sub> uptake in <em>Streptococcus mutans</em> and observed a 2<sup>nd</sup> order response. Replace this file with the real Spring 2026 dataset before the production run."
+    },
+    {
+      "code": "SAMPLE-GP1",
+      "level": "graduate",
+      "format": "poster",
+      "topic": "Pathogenic Microbiology",
+      "title_html": "Placeholder sample: host response to <em>Candida albicans</em>",
+      "authors": [
+        { "name": "Carla Okafor", "affil_refs": [] },
+        { "name": "Devin Park", "affil_refs": [] },
+        { "name": "Elena Vasquez", "affil_refs": [] }
+      ],
+      "affiliations": [
+        { "num": null, "text": "Department of Microbiology, Texas A&M University, College Station, TX" }
+      ],
+      "body_html": "Placeholder sample abstract with a single unnumbered affiliation, so every author attaches to it. Growth of <em>Candida albicans</em> was scored across conditions."
+    },
+    {
+      "code": "SAMPLE-PP1",
+      "level": "postdoctoral",
+      "format": "poster",
+      "topic": "Bacteriophage",
+      "title_html": "Placeholder sample: phage dynamics in <em>Escherichia coli</em>",
+      "authors": [{ "name": "Farah Al-Sayed", "affil_refs": ["1"] }],
+      "affiliations": [
+        { "num": "1", "text": "Department of Biological Sciences, University of North Texas, Denton, TX" }
+      ],
+      "body_html": "Placeholder sample abstract with one author and one affiliation. Phage titers were tracked over 24 h in <em>Escherichia coli</em>."
+    }
+  ]
+}
