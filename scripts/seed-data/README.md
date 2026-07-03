@@ -50,24 +50,44 @@ Notes:
 - `topic` must match one of the `topics` strings; the importer maps it to the
   created category.
 
-## Running
+## Running (local)
 
 ```
-# local D1 (default)
+# local D1
 npm run import:meeting -- scripts/seed-data/spring-2026.json
 
 # replace an already-imported meeting
 npm run import:meeting -- scripts/seed-data/spring-2026.json --clear
 ```
 
+The importer writes local D1 only.
+
+## Seeding production
+
+Run the importer against local, verify, then copy the sanitized rows up with
+wrangler's remote channel (bound parameters go through the local importer;
+wrangler's own remote execute reliably reaches production):
+
+```
+npx wrangler d1 export txasm --local --no-schema \
+  --table edition --table abstract_category --table abstract \
+  --table author --table affiliation --table author_affiliation \
+  --output meeting.sql
+```
+
+Prepend one `INSERT OR IGNORE` for the `system-import` user (id `system-import`,
+email `import@system.txasm.invalid`), which owns imported abstracts, then:
+
+```
+npx wrangler d1 execute txasm --remote --file meeting.sql
+npx wrangler d1 execute txasm --remote --command "SELECT COUNT(*) FROM abstract;"
+```
+
 ## Clearing a seeded meeting
 
 Deleting the edition row cascades to its categories, abstracts, authors,
-affiliations, and program rows:
+affiliations, and program rows (use `--remote` for production):
 
 ```
 npx wrangler d1 execute txasm --local --command "DELETE FROM edition WHERE slug='spring-2026';"
 ```
-
-Use `--remote` in place of `--local` for production, once a run has been
-reviewed and approved.

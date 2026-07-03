@@ -15,10 +15,16 @@
 // affiliations, and program rows). To clear without re-importing:
 //   npx wrangler d1 execute txasm --local --command "DELETE FROM edition WHERE slug='spring-2026';"
 //
-// Remote (production) is deliberately gated: --remote loads a separate
-// wrangler.remote.jsonc (D1 binding marked remote) that is only put in place for
-// an approved production run. Without that file the script fails before writing,
-// so --remote can never silently target local.
+// This script writes the LOCAL D1 only (getPlatformProxy binds to the local
+// simulator; its remote-binding path does not reliably reach production D1, so it
+// is not offered here). To seed PRODUCTION, run this against local, then copy the
+// verified rows up with wrangler's remote channel:
+//   npx wrangler d1 export txasm --local --no-schema --table edition --table \
+//     abstract_category --table abstract --table author --table affiliation \
+//     --table author_affiliation --output meeting.sql
+//   (prepend an INSERT OR IGNORE for the system-import user; see seed-data/README)
+//   npx wrangler d1 execute txasm --remote --file meeting.sql
+// then verify counts with npx wrangler d1 execute txasm --remote.
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -103,14 +109,11 @@ function abstractLabel(abstract: DatasetAbstract, index: number): string {
 
 async function main() {
   const args = argv.slice(2);
-  const remote = args.includes("--remote");
   const clear = args.includes("--clear");
   const dataPath = args.find((a) => !a.startsWith("--"));
 
   if (!dataPath) {
-    console.error(
-      "Usage: import:meeting <path-to-dataset.json> [--clear] [--remote]",
-    );
+    console.error("Usage: import:meeting <path-to-dataset.json> [--clear]");
     exit(1);
   }
 
@@ -124,14 +127,11 @@ async function main() {
   }
 
   const topics = Array.isArray(data.topics) ? data.topics : [];
-  const target = remote ? "REMOTE (production)" : "local";
   console.log(
-    `Importing "${data.meeting.slug}" into ${target} D1: ${topics.length} topics, ${data.abstracts.length} abstracts in the file.`,
+    `Importing "${data.meeting.slug}" into local D1: ${topics.length} topics, ${data.abstracts.length} abstracts in the file.`,
   );
 
-  const proxy = await getPlatformProxy<Env>(
-    remote ? { configPath: resolve("wrangler.remote.jsonc") } : {},
-  );
+  const proxy = await getPlatformProxy<Env>();
   const env = proxy.env;
 
   const summary = {
