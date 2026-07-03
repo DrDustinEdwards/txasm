@@ -37,9 +37,9 @@ const MEETINGS_GROUPS: NavMenuGroup[] = [
 const AWARDS_GROUPS: NavMenuGroup[] = [
   {
     items: [
-      { label: "All awards", to: "/awards" },
-      { label: "Nominations", to: "/award-nominations" },
       { label: "Awardees", to: "/awardees" },
+      { label: "Search awardees", to: "/awards/search" },
+      { label: "Nominations", to: "/award-nominations" },
     ],
   },
 ];

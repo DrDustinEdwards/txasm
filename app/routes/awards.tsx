@@ -1,119 +1,15 @@
-import { Link } from "react-router";
+import { redirect } from "react-router";
 import type { Route } from "./+types/awards";
-import { pageTitle } from "~/lib/site-meta";
 
-export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Awards") },
-    {
-      name: "description",
-      content:
-        "The named student, faculty, and service awards of the Texas Branch of the American Society for Microbiology.",
-    },
-  ];
-}
-
-// The named awards carried over from the current site: eight research and
-// education awards plus the Distinguished Service Award. Descriptions are the
-// short blurbs from the site capture; the full criteria live in the nomination
-// materials.
-type Award = {
-  name: string;
-  description: string;
-};
-
-const AWARDS: Award[] = [
-  {
-    name: "Sarah A. McIntire Award",
-    description: "Recognizes graduate research and scholarship.",
-  },
-  {
-    name: "S.E. Sulkin Award",
-    description: "Recognizes undergraduate research presentations.",
-  },
-  {
-    name: "O.B. Williams Award",
-    description: "Recognizes exceptional graduate researchers.",
-  },
-  {
-    name: "Thomas S. Matney Award",
-    description: "Recognizes advances in teaching, research, or service.",
-  },
-  {
-    name: "Joan Abramowitz Award",
-    description:
-      "Recognizes undergraduate and graduate oral and poster presentations.",
-  },
-  {
-    name: "Samuel Kaplan Award",
-    description:
-      "Recognizes the top oral and poster presentations by undergraduate and graduate members.",
-  },
-  {
-    name: "Orville Wyss Award",
-    description: "Recognizes outstanding graduate students.",
-  },
-  {
-    name: "Charlie Gauntt Award",
-    description: "Recognizes undergraduate researchers.",
-  },
-  {
-    name: "Distinguished Service Award",
-    description:
-      "Recognizes a member for outstanding, sustained service and leadership advancing the branch mission through dedication, mentorship, and impactful contributions.",
-  },
-];
-
-export default function Awards() {
-  return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          Awards
-        </h1>
-        <p className="max-w-2xl text-text-muted">
-          Each year the branch solicits award nominations from universities,
-          research institutions, and laboratories across Texas. Committees of
-          microbiologists and educators evaluate nominees on scientific
-          innovation, depth of research, clarity of presentation, and
-          contributions to the community. Winners are announced at the annual
-          meetings.
-        </p>
-        <p className="text-sm text-text-muted">
-          See{" "}
-          <Link
-            to="/award-nominations"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            nominations
-          </Link>{" "}
-          for eligibility and how to apply, or{" "}
-          <Link
-            to="/awardees"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            past awardees
-          </Link>{" "}
-          for previous recipients.
-        </p>
-      </header>
-
-      <section aria-label="Named awards">
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {AWARDS.map((award) => (
-            <li key={award.name}>
-              <article className="h-full rounded-lg border border-border bg-surface-raised p-5">
-                <h2 className="text-lg font-semibold text-text">
-                  {award.name}
-                </h2>
-                <p className="mt-2 text-sm text-text-muted">
-                  {award.description}
-                </p>
-              </article>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
-  );
+// The old static "all awards" page was the wrong model. The Awardees index is
+// the canonical entry point now, so /awards permanently redirects there and old
+// bookmarks survive.
+//
+// TODO (cutover redirects): the live site serves each award at a top-level slug
+// (for example /s-e-sulkin-award). This app serves them under /awards/<slug>. At
+// DNS cutover, add redirects from every live top-level award slug to
+// /awards/<slug>, and keep /awardees at its current path, so existing links and
+// search results are preserved.
+export function loader(_args: Route.LoaderArgs) {
+  throw redirect("/awardees");
 }

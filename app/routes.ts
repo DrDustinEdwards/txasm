@@ -5,6 +5,8 @@ export default [
     index("routes/home.tsx"),
     route("branch-officers", "routes/branch-officers.tsx"),
     route("awards", "routes/awards.tsx"),
+    route("awards/search", "routes/awards.search.tsx"),
+    route("awards/:slug", "routes/awards.$slug.tsx"),
     route("award-nominations", "routes/award-nominations.tsx"),
     route("awardees", "routes/awardees.tsx"),
     route("newsletters", "routes/newsletters.tsx"),
@@ -86,5 +88,6 @@ export default [
     "routes/admin.editions.$editionId.program-document.download.tsx",
   ),
   route("api/institutions", "routes/api.institutions.ts"),
+  route("api/awards-search", "routes/api.awards-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;
