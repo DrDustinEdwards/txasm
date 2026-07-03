@@ -62,8 +62,13 @@ export function sanitizeRichText(
   allowed: readonly string[],
 ): string {
   if (!input) return "";
+  // Drop C0 control characters (NUL and friends), keeping tab, newline, and
+  // carriage return. These are invalid in stored text and, left in, break tools
+  // that consume the value as SQL text (a NUL byte from a mangled paste or a bad
+  // upstream parse would otherwise survive to the database).
+  const controlStripped = input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
   const allow = new Set(allowed);
-  const tokens = tokenize(input);
+  const tokens = tokenize(controlStripped);
   const out: string[] = [];
   const stack: string[] = [];
 
