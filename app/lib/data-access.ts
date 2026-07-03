@@ -695,6 +695,24 @@ function resolveSettings(
   };
 }
 
+// D1 rejects a query with more than 100 bound parameters ("too many SQL
+// variables"), so a batched insert of many rows must be split. A row binds one
+// parameter per column, so the safe batch size is the parameter budget divided
+// by the column count. The margin keeps a little headroom under the cap.
+const D1_MAX_BOUND_PARAMS = 100;
+
+function insertChunkSize(columnsPerRow: number): number {
+  return Math.max(1, Math.floor((D1_MAX_BOUND_PARAMS - 10) / columnsPerRow));
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
+}
+
 export function createDataAccess(db: DB) {
   // Shared guard: the abstract exists and the actor may edit it now. A chair of
   // the meeting may edit any time; the submitter may edit only before the
@@ -920,16 +938,18 @@ export function createDataAccess(db: DB) {
         .filter((a) => a.institution.length > 0);
 
       if (cleaned.length > 0) {
-        await db.insert(schema.affiliation).values(
-          cleaned.map((a, i) => ({
-            abstractId,
-            ordinal: i + 1,
-            institution: a.institution,
-            department: a.department,
-            city: a.city,
-            country: a.country,
-          })),
-        );
+        const rows = cleaned.map((a, i) => ({
+          abstractId,
+          ordinal: i + 1,
+          institution: a.institution,
+          department: a.department,
+          city: a.city,
+          country: a.country,
+        }));
+        // affiliation binds 7 columns per row (id plus the six above).
+        for (const part of chunk(rows, insertChunkSize(7))) {
+          await db.insert(schema.affiliation).values(part);
+        }
       }
       return cleaned.length;
     },
@@ -958,20 +978,22 @@ export function createDataAccess(db: DB) {
 
       if (cleaned.length === 0) return 0;
 
-      const inserted = await db
-        .insert(schema.author)
-        .values(
-          cleaned.map((a, i) => ({
-            abstractId,
-            ordinal: i + 1,
-            firstName: a.firstName,
-            lastName: a.lastName,
-            email: a.email,
-            isPresenting: a.isPresenting,
-            isCorresponding: a.isCorresponding,
-          })),
-        )
-        .returning();
+      const authorRows = cleaned.map((a, i) => ({
+        abstractId,
+        ordinal: i + 1,
+        firstName: a.firstName,
+        lastName: a.lastName,
+        email: a.email,
+        isPresenting: a.isPresenting,
+        isCorresponding: a.isCorresponding,
+      }));
+      // author binds 10 columns per row (id, user_id, created_at, and the seven
+      // above), so split large author lists to stay under the D1 parameter cap.
+      const inserted: (typeof schema.author.$inferSelect)[] = [];
+      for (const part of chunk(authorRows, insertChunkSize(10))) {
+        const got = await db.insert(schema.author).values(part).returning();
+        inserted.push(...got);
+      }
 
       const affs = await db
         .select({
@@ -992,7 +1014,10 @@ export function createDataAccess(db: DB) {
         }
       }
       if (links.length > 0) {
-        await db.insert(schema.authorAffiliation).values(links);
+        // authorAffiliation binds 2 columns per row.
+        for (const part of chunk(links, insertChunkSize(2))) {
+          await db.insert(schema.authorAffiliation).values(part);
+        }
       }
       return inserted.length;
     },
@@ -3964,7 +3989,10 @@ export interface ImportAbstractInput {
   body: string; // raw em/sup/sub markup, sanitized here
   level: AbstractLevel;
   format: AbstractFormat;
-  categoryId: string;
+  // The topic category, or null for abstracts the source does not categorize by
+  // topic (in the archive, oral presentations are grouped by level, not topic).
+  // The abstract.category_id column is nullable, so this needs no schema change.
+  categoryId: string | null;
 }
 
 export function createMeetingImporter(db: DB) {
@@ -4049,16 +4077,13 @@ export function createMeetingImporter(db: DB) {
     if (!ABSTRACT_FORMATS.includes(input.format)) {
       throw new ValidationError(`Unknown format: ${input.format}`);
     }
-    if (!input.categoryId) {
-      throw new ValidationError("The abstract has no topic category.");
-    }
 
     const [created] = await db
       .insert(schema.abstract)
       .values({
         editionId: input.editionId,
         submitterId: input.submitterId,
-        categoryId: input.categoryId,
+        categoryId: input.categoryId ?? null,
         title,
         level: input.level,
         format: input.format,

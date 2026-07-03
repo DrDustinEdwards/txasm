@@ -62,7 +62,7 @@ interface DatasetAbstract {
   code?: string;
   level: string;
   format: string;
-  topic: string;
+  topic: string | null;
   title_html: string;
   authors: DatasetAuthor[];
   affiliations: DatasetAffiliation[];
@@ -211,9 +211,18 @@ async function main() {
       const abstract = data.abstracts[i];
       const label = abstractLabel(abstract, i);
       try {
-        const categoryId = categoryByTopic.get(abstract.topic);
-        if (!categoryId) {
-          throw new Error(`unknown topic "${abstract.topic}"`);
+        // A null or empty topic imports with no category (faithful to the book,
+        // which does not categorize oral presentations by topic). A non-empty
+        // topic must map to a created category, otherwise it is a data error.
+        let categoryId: string | null = null;
+        const topic =
+          abstract.topic != null ? String(abstract.topic).trim() : "";
+        if (topic.length > 0) {
+          const mapped = categoryByTopic.get(topic);
+          if (!mapped) {
+            throw new Error(`unknown topic "${topic}"`);
+          }
+          categoryId = mapped;
         }
 
         const created = await importer.createAcceptedAbstract(actor, {
