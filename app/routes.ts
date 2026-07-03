@@ -100,5 +100,6 @@ export default [
   route("documents/:slug/download", "routes/documents.$slug.download.ts"),
   route("api/institutions", "routes/api.institutions.ts"),
   route("api/awards-search", "routes/api.awards-search.ts"),
+  route("api/abstracts-search", "routes/api.abstracts-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
 ] satisfies RouteConfig;

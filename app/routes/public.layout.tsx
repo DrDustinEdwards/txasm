@@ -2,7 +2,7 @@ import { Form, Link, NavLink, Outlet, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/public.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
-import { BrandMark, BrandWordmark } from "~/lib/brand";
+import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
 import { NavMenu, type NavMenuGroup } from "~/components/nav-menu";
 import { OffCanvas } from "~/components/off-canvas";
@@ -36,6 +36,7 @@ const MEETINGS_GROUPS: NavMenuGroup[] = [
   {
     heading: "Archive",
     items: [
+      { label: "Meetings and abstracts", to: "/meetings" },
       { label: "Abstract books", to: "/archive/abstract-books" },
       { label: "Programs", to: "/archive/programs" },
     ],
@@ -298,10 +299,10 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
             <FooterLink label="Facebook group" url={settings.facebookUrl} />
           ) : null}
         </nav>
-        {/* Decorative footer mark; the copyright line below names the org, so
-            the wrapper is aria-hidden to keep the emblem out of assistive tech. */}
-        <span aria-hidden="true">
-          <BrandMark className="mt-6 h-8 w-auto" />
+        {/* Decorative footer wordmark; the copyright line below names the org, so
+            the wrapper is aria-hidden to keep it out of assistive tech. */}
+        <span aria-hidden="true" className="mt-6 block">
+          <BrandFooter />
         </span>
         {foundedLine ? (
           <p className="mt-6 text-text-muted">{foundedLine}</p>
