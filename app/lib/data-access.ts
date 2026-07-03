@@ -628,6 +628,11 @@ const PROGRAM_PUBLIC_STATUSES: readonly EditionStatus[] = [
   "archived",
 ];
 
+// A single-column `IN (...)` list must stay under D1's bound-parameter cap, so
+// id lists longer than this are queried in batches (see chunk() below, defined
+// alongside D1_MAX_BOUND_PARAMS).
+const ID_CHUNK_SIZE = 90;
+
 // ---------------------------------------------------------------------------
 // Invited speakers and sponsors. Both are per-edition and chair/admin managed.
 // Speaker bios are sanitized to the abstract body allowlist (em/sup/sub); the
@@ -2644,27 +2649,52 @@ export function createDataAccess(db: DB) {
     if (absRows.length === 0) return [];
 
     const ids = absRows.map((a) => a.id);
-    const authorRows = await db
-      .select()
-      .from(schema.author)
-      .where(inArray(schema.author.abstractId, ids))
-      .orderBy(schema.author.ordinal);
-    const affiliationRows = await db
-      .select()
-      .from(schema.affiliation)
-      .where(inArray(schema.affiliation.abstractId, ids))
-      .orderBy(schema.affiliation.ordinal);
-    const links = authorRows.length
-      ? await db
-          .select()
-          .from(schema.authorAffiliation)
-          .where(
-            inArray(
-              schema.authorAffiliation.authorId,
-              authorRows.map((a) => a.id),
-            ),
-          )
-      : [];
+    const idChunks = chunk(ids, ID_CHUNK_SIZE);
+
+    // Each id-scoped query runs in chunks of <= 90 abstract ids to stay under
+    // D1's 100 bound-parameter limit, then the batches are concatenated. An
+    // abstract's authors and affiliations all fall in one chunk, so their order
+    // is preserved. The links are filtered by abstract id (via a join on author)
+    // rather than the larger author-id set for the same reason.
+    const authorRows = (
+      await Promise.all(
+        idChunks.map((part) =>
+          db
+            .select()
+            .from(schema.author)
+            .where(inArray(schema.author.abstractId, part))
+            .orderBy(schema.author.ordinal),
+        ),
+      )
+    ).flat();
+    const affiliationRows = (
+      await Promise.all(
+        idChunks.map((part) =>
+          db
+            .select()
+            .from(schema.affiliation)
+            .where(inArray(schema.affiliation.abstractId, part))
+            .orderBy(schema.affiliation.ordinal),
+        ),
+      )
+    ).flat();
+    const links = (
+      await Promise.all(
+        idChunks.map((part) =>
+          db
+            .select({
+              authorId: schema.authorAffiliation.authorId,
+              affiliationId: schema.authorAffiliation.affiliationId,
+            })
+            .from(schema.authorAffiliation)
+            .innerJoin(
+              schema.author,
+              eq(schema.authorAffiliation.authorId, schema.author.id),
+            )
+            .where(inArray(schema.author.abstractId, part)),
+        ),
+      )
+    ).flat();
     const categoryRows = await db
       .select()
       .from(schema.abstractCategory)

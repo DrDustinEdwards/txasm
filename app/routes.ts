@@ -22,7 +22,13 @@ export default [
     route("abstracts/:abstractId/edit", "routes/abstracts.$abstractId.edit.tsx"),
     route("review", "routes/review.tsx"),
     route("review/:assignmentId", "routes/review.$assignmentId.tsx"),
+    route("meetings", "routes/meetings.tsx"),
     route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
+    route("meetings/:slug/abstracts", "routes/meetings.$slug.abstracts.tsx"),
+    route(
+      "meetings/:slug/abstracts/:ref",
+      "routes/meetings.$slug.abstracts.$ref.tsx",
+    ),
   ]),
   layout("routes/admin.layout.tsx", [
     route("admin", "routes/admin.tsx"),
