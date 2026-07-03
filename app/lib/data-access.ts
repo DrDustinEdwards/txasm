@@ -5093,8 +5093,8 @@ export interface ImportAbstractInput {
   editionId: string;
   submitterId: string;
   title: string; // raw em/sup/sub markup, sanitized here
-  body: string; // raw em/sup/sub markup, sanitized here
-  level: AbstractLevel;
+  body: string; // raw em/sup/sub markup, sanitized here; may be empty (body-less talk)
+  level: AbstractLevel | null; // null for oral presentations grouped by topic
   format: AbstractFormat;
   // The topic category, or null for abstracts the source does not categorize by
   // topic (in the archive, oral presentations are grouped by level, not topic).
@@ -5174,11 +5174,13 @@ export function createMeetingImporter(db: DB) {
     if (isEmptyRichText(title)) {
       throw new ValidationError("The abstract title is empty.");
     }
+    // The body may be legitimately empty for a body-less invited talk in the
+    // archive; keep it faithful and store null rather than rejecting it.
     const body = sanitizeBody(input.body ?? "");
-    if (isEmptyRichText(body)) {
-      throw new ValidationError("The abstract body is empty.");
-    }
-    if (!ABSTRACT_LEVELS.includes(input.level)) {
+    const bodyText = isEmptyRichText(body) ? null : body;
+    // Oral presentations are grouped by topic and carry no level, so null is
+    // valid; a non-null level must be a known one.
+    if (input.level !== null && !ABSTRACT_LEVELS.includes(input.level)) {
       throw new ValidationError(`Unknown level: ${input.level}`);
     }
     if (!ABSTRACT_FORMATS.includes(input.format)) {
@@ -5194,7 +5196,7 @@ export function createMeetingImporter(db: DB) {
         title,
         level: input.level,
         format: input.format,
-        bodyText: body,
+        bodyText,
         status: "accepted",
         submittedAt: new Date(),
       })

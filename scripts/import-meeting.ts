@@ -66,7 +66,7 @@ interface DatasetAffiliation {
 
 interface DatasetAbstract {
   code?: string;
-  level: string;
+  level: string | null; // null for oral presentations grouped by topic
   format: string;
   topic: string | null;
   title_html: string;
@@ -230,7 +230,7 @@ async function main() {
           submitterId: systemUserId,
           title: abstract.title_html,
           body: abstract.body_html,
-          level: abstract.level as AbstractLevel,
+          level: (abstract.level ?? null) as AbstractLevel | null,
           format: abstract.format as AbstractFormat,
           categoryId,
         });
