@@ -117,7 +117,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   }, [actionData]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Decisions</h1>
         <p className="text-gray-700 dark:text-gray-300">
@@ -257,7 +257,7 @@ function DecisionRow({
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 dark:border-gray-700 dark:hover:bg-gray-900"
+                className="rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
               >
                 Notify author
               </button>
@@ -345,7 +345,7 @@ function DecisionRow({
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
         >
           {decision ? "Update decision" : "Save decision"}
         </button>
@@ -361,7 +361,7 @@ function DecisionRow({
             onClick={(e) => {
               if (!window.confirm("Clear this decision?")) e.preventDefault();
             }}
-            className="text-sm font-medium text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 dark:text-red-400"
+            className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
           >
             Clear decision
           </button>

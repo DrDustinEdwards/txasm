@@ -31,7 +31,7 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
         <h1 className="text-3xl font-semibold tracking-tight">Meetings</h1>
         <Link
           to="/admin/editions/new"
-          className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           Create meeting
         </Link>

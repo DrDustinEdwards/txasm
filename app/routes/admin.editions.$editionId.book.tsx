@@ -182,7 +182,7 @@ export default function AbstractBookAdmin({ loaderData }: Route.ComponentProps) 
                     <button
                       type="submit"
                       disabled={generating}
-                      className="rounded border border-gray-300 px-2 py-1 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-40 dark:border-gray-700 dark:hover:bg-gray-900"
+                      className="rounded-md border border-border px-2 py-1 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
                     >
                       Publish
                     </button>
@@ -211,7 +211,7 @@ export default function AbstractBookAdmin({ loaderData }: Route.ComponentProps) 
           <button
             type="submit"
             disabled={generating}
-            className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
           >
             {generating
               ? "Generating the PDF..."

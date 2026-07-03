@@ -92,7 +92,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-text">Awards</h1>
         <p className="text-text-muted">

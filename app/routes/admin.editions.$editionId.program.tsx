@@ -586,7 +586,7 @@ function ItemRow({
             <button
               type="submit"
               disabled={busy}
-              className="text-sm font-medium text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-red-400"
+              className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Remove
             </button>
@@ -907,7 +907,7 @@ function SessionColumn({
                   e.preventDefault();
                 }
               }}
-              className="text-sm font-medium text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-red-400"
+              className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Delete session
             </button>
@@ -1101,7 +1101,7 @@ function ProgramDocumentPanel({
         <button
           type="submit"
           disabled={busy}
-          className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
         >
           {document ? "Regenerate program PDF" : "Generate program PDF"}
         </button>
@@ -1146,7 +1146,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Schedule</h1>
         <p className="text-gray-700 dark:text-gray-300">
@@ -1189,8 +1189,8 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
               aria-current={key === selectedDay ? "page" : undefined}
               className={
                 key === selectedDay
-                  ? "rounded-md bg-blue-700 px-3 py-2 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2"
-                  : "rounded-md border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:hover:bg-gray-900"
+                  ? "rounded-md bg-primary px-3 py-2 text-sm font-medium text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                  : "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               }
             >
               {dayTabLabel(key)}
@@ -1251,7 +1251,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
               <button
                 type="submit"
                 disabled={busy}
-                className="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
               >
                 Add session
               </button>

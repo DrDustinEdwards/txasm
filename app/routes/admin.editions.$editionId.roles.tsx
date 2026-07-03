@@ -84,7 +84,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const reviewers = grants.filter((g) => g.role === "reviewer");
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Chairs and reviewers</h1>
         <p className="text-gray-700 dark:text-gray-300">
@@ -154,7 +154,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
           >
             {submitting ? "Adding..." : "Add role"}
           </button>
@@ -202,7 +202,7 @@ function RoleList({
                 <input type="hidden" name="role" value={grant.role} />
                 <button
                   type="submit"
-                  className="text-sm font-medium text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-red-400"
+                  className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 >
                   Remove <span className="sr-only">{roleLabel(grant.role)} {grant.email}</span>
                 </button>

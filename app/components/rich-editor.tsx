@@ -109,7 +109,7 @@ export function RichEditor({
   }
 
   const toolButton =
-    "rounded border border-gray-300 px-2 py-1 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:hover:bg-gray-900";
+    "rounded-md border border-border px-2 py-1 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
   return (
     <div className="space-y-1">

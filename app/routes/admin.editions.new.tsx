@@ -72,7 +72,7 @@ export default function NewEdition() {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">New meeting</h1>
         <p className="text-gray-700 dark:text-gray-300">
@@ -161,13 +161,13 @@ export default function NewEdition() {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
           >
             {submitting ? "Creating..." : "Create meeting"}
           </button>
           <Link
             to="/admin"
-            className="text-sm font-medium text-gray-700 hover:underline dark:text-gray-300"
+            className="text-sm font-medium text-text-muted hover:underline"
           >
             Cancel
           </Link>

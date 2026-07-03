@@ -109,7 +109,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Assign reviewers</h1>
         <p className="text-gray-700 dark:text-gray-300">
@@ -230,7 +230,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                             />
                             <button
                               type="submit"
-                              className="font-medium text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-red-400"
+                              className="font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
                               Unassign
                               <span className="sr-only">
@@ -278,7 +278,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="rounded bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+                      className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                     >
                       Assign
                     </button>
