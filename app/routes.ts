@@ -4,6 +4,13 @@ export default [
   layout("routes/public.layout.tsx", [
     index("routes/home.tsx"),
     route("officers", "routes/officers.tsx"),
+    route("awards", "routes/awards.tsx"),
+    route("award-nominations", "routes/award-nominations.tsx"),
+    route("awardees", "routes/awardees.tsx"),
+    route("newsletters", "routes/newsletters.tsx"),
+    route("trail", "routes/trail.tsx"),
+    route("sponsorship", "routes/sponsorship.tsx"),
+    route("contact", "routes/contact.tsx"),
     route("signin", "routes/signin.tsx"),
     route("signout", "routes/signout.tsx"),
     route("my/abstracts", "routes/my.abstracts.tsx"),

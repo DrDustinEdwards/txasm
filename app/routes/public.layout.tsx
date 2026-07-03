@@ -37,7 +37,8 @@ const MEETINGS_GROUPS: NavMenuGroup[] = [
 const AWARDS_GROUPS: NavMenuGroup[] = [
   {
     items: [
-      { label: "Nominations", to: "/awards/nominations" },
+      { label: "All awards", to: "/awards" },
+      { label: "Nominations", to: "/award-nominations" },
       { label: "Awardees", to: "/awardees" },
     ],
   },
@@ -285,12 +286,7 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
               url={link.url}
             />
           ))}
-          {settings?.contactEmail ? (
-            <FooterLink
-              label="Contact"
-              url={`mailto:${settings.contactEmail}`}
-            />
-          ) : null}
+          <FooterLink label="Contact" url="/contact" />
           {settings?.facebookUrl ? (
             <FooterLink label="Facebook group" url={settings.facebookUrl} />
           ) : null}
