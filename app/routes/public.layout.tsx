@@ -45,7 +45,6 @@ const AWARDS_GROUPS: NavMenuGroup[] = [
   {
     items: [
       { label: "Awardees", to: "/awardees" },
-      { label: "Search awardees", to: "/awards/search" },
       { label: "Nominations", to: "/award-nominations" },
     ],
   },
