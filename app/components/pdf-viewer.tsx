@@ -16,6 +16,14 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy } from "pdfjs-dist";
 // worker (SSR) graph. The dynamic import runs only in the browser, from an effect.
 const PDFJS_URL = "/pdfjs/pdf.min.mjs";
 const PDFJS_WORKER_URL = "/pdfjs/pdf.worker.min.mjs";
+// Support assets PDF.js fetches on demand, also self-hosted. wasmUrl is the one
+// that matters for scanned newsletters: without it the JBIG2/JPEG2000 image
+// decoders never load and image pages render blank. The rest cover embedded-font
+// fallbacks (standard_fonts), CJK text (cmaps), and color profiles (iccs).
+const PDFJS_WASM_URL = "/pdfjs/wasm/";
+const PDFJS_ICC_URL = "/pdfjs/iccs/";
+const PDFJS_FONT_URL = "/pdfjs/standard_fonts/";
+const PDFJS_CMAP_URL = "/pdfjs/cmaps/";
 
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 3;
@@ -65,7 +73,14 @@ export function PdfViewer({
           /* @vite-ignore */ PDFJS_URL
         )) as typeof import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
-        const loadingTask = pdfjs.getDocument({ url });
+        const loadingTask = pdfjs.getDocument({
+          url,
+          wasmUrl: PDFJS_WASM_URL,
+          iccUrl: PDFJS_ICC_URL,
+          standardFontDataUrl: PDFJS_FONT_URL,
+          cMapUrl: PDFJS_CMAP_URL,
+          cMapPacked: true,
+        });
         loadingTaskRef.current = loadingTask;
         const doc = await loadingTask.promise;
         if (cancelled) {
