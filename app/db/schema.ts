@@ -566,63 +566,55 @@ export const decision = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
-// Abstract book. The printed proceedings for a meeting. Part A renders the
-// accepted abstracts to print-ready HTML on demand; no row is written yet. Part
-// B (gated on the Workers plan) converts that HTML to a PDF via Browser
-// Rendering and stores it in R2, writing r2Key/fileName and moving status to
-// ready. The row exists now so Part B is a pure addition.
+// Documents. One model for every branch PDF, generated or uploaded: newsletters,
+// abstract books, programs, and anything else, optionally tied to a meeting. A
+// generated doc (source "generated") is produced by our PDF pipeline and tracks
+// its run through genStatus (pending/generating/ready/failed), keeping the one
+// generated row per category per edition; an uploaded doc (source "uploaded") is
+// a historical PDF in the archive with no genStatus. status (draft/published)
+// gates public visibility for either source. category and status mirror the
+// vocab arrays in app/lib/vocab.ts; keep them in sync. Files live in R2 under
+// r2Key; viewing writes nothing.
 // ---------------------------------------------------------------------------
 
-export const abstractBook = sqliteTable(
-  "abstract_book",
+export const document = sqliteTable(
+  "document",
   {
     id: pk(),
-    editionId: text("edition_id")
+    category: text("category", {
+      enum: ["newsletter", "abstract_book", "program", "other"],
+    }).notNull(),
+    status: text("status", { enum: ["draft", "published"] })
       .notNull()
-      .references(() => edition.id, { onDelete: "cascade" }),
-    r2Key: text("r2_key"), // set when a PDF is generated in Part B
+      .default("draft"),
+    source: text("source", { enum: ["generated", "uploaded"] }).notNull(),
+    title: text("title").notNull(),
+    year: integer("year"),
+    season: text("season", { enum: ["spring", "fall"] }),
+    // Abstract books and programs tie to a meeting; newsletters do not. Kept when
+    // the meeting is deleted so the archived PDF survives.
+    editionId: text("edition_id").references(() => edition.id, {
+      onDelete: "set null",
+    }),
+    editor: text("editor"), // newsletters
+    r2Key: text("r2_key"), // set when the PDF is stored
     fileName: text("file_name"),
-    status: text("status", {
-      enum: ["pending", "generating", "ready", "failed"],
-    })
-      .notNull()
-      .default("pending"),
-    abstractCount: integer("abstract_count"),
+    slug: text("slug").notNull().unique(),
+    abstractCount: integer("abstract_count"), // generated abstract books only
     generatedById: text("generated_by_id").references(() => user.id),
     generatedAt: tsMs("generated_at"),
+    genStatus: text("gen_status", {
+      enum: ["pending", "generating", "ready", "failed"],
+    }), // generated docs only
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("ix_abstract_book_edition").on(t.editionId)],
-);
-
-// ---------------------------------------------------------------------------
-// Program document. The printable meeting program, a sibling to the abstract
-// book: one row per edition, generated on demand from the schedule and stored in
-// R2. Mirrors abstract_book (kept a separate focused table rather than merging
-// the two into a generic document table, since the book is already deployed).
-// ---------------------------------------------------------------------------
-
-export const programDocument = sqliteTable(
-  "program_document",
-  {
-    id: pk(),
-    editionId: text("edition_id")
-      .notNull()
-      .references(() => edition.id, { onDelete: "cascade" }),
-    r2Key: text("r2_key"), // set when a PDF is generated and stored
-    fileName: text("file_name"),
-    status: text("status", {
-      enum: ["pending", "generating", "ready", "failed"],
-    })
-      .notNull()
-      .default("pending"),
-    generatedById: text("generated_by_id").references(() => user.id),
-    generatedAt: tsMs("generated_at"),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-  (t) => [index("ix_program_document_edition").on(t.editionId)],
+  (t) => [
+    index("ix_document_category_year_season").on(t.category, t.year, t.season),
+    index("ix_document_edition").on(t.editionId),
+    index("ix_document_status").on(t.status),
+  ],
 );
 
 // ---------------------------------------------------------------------------
