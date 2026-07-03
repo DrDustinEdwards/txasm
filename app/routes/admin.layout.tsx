@@ -10,6 +10,7 @@ import {
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
+import { BRAND } from "~/lib/brand";
 import { OffCanvas } from "~/components/off-canvas";
 import { ThemeToggle } from "~/components/theme-toggle";
 
@@ -236,9 +237,13 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
             </div>
             <Link
               to="/"
-              className="rounded-md px-2 py-1 text-sm font-semibold tracking-tight text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              className="rounded-md px-2 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              {wordmark}
+              <img
+                src={BRAND.mark}
+                alt={wordmark || "TXASM"}
+                className="h-7 w-auto"
+              />
             </Link>
             <span className="text-sm text-text-muted">
               {meetingName ? meetingName : "Admin"}

@@ -2,6 +2,7 @@ import { Form, Link, NavLink, Outlet, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/public.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
+import { BRAND } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
 import { NavMenu, type NavMenuGroup } from "~/components/nav-menu";
 import { OffCanvas } from "~/components/off-canvas";
@@ -192,9 +193,13 @@ function PublicHeader({
           </div>
           <Link
             to="/"
-            className="rounded-md px-2 py-1 text-base font-semibold tracking-tight text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="rounded-md px-2 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            {wordmark}
+            <img
+              src={BRAND.wordmark}
+              alt={wordmark || "TXASM"}
+              className="h-7 w-auto"
+            />
           </Link>
           <nav aria-label="Primary" className="ml-2 hidden items-center gap-1 md:flex">
             <NavLink to="/branch-officers" className={navLinkClass}>
@@ -297,6 +302,9 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
             <FooterLink label="Facebook group" url={settings.facebookUrl} />
           ) : null}
         </nav>
+        {/* Decorative footer mark; the copyright line below names the org, so
+            the emblem carries an empty alt and is skipped by assistive tech. */}
+        <img src={BRAND.mark} alt="" className="mt-6 h-8 w-auto" />
         {foundedLine ? (
           <p className="mt-6 text-text-muted">{foundedLine}</p>
         ) : null}

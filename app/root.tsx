@@ -10,11 +10,15 @@ import {
 
 import type { Route } from "./+types/root";
 import { cloudflareContext } from "~/load-context";
+import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
 import { parseThemeCookie } from "~/lib/theme";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
+  // The starburst mark is the favicon; it stays legible at tab size where the
+  // full wordmark would not. favicon.ico remains in public/ as a legacy fallback.
+  { rel: "icon", type: "image/svg+xml", href: BRAND.mark },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
