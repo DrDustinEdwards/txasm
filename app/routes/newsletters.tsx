@@ -1,4 +1,7 @@
 import type { Route } from "./+types/newsletters";
+import { cloudflareContext } from "~/load-context";
+import { getDataAccess } from "~/lib/data-access";
+import { DocumentList } from "~/components/document-list";
 import { pageTitle } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -12,19 +15,22 @@ export function meta({ matches }: Route.MetaArgs) {
   ];
 }
 
-// Newsletter archive entries. Empty until the back issues are collected and
-// hosted (R2 or the app). Keep the shape so links can be dropped in later.
-// TODO: add the newsletter back issues (title, date, and a link to the hosted
-// PDF or web version). Decide where the files live before wiring the links.
-type Newsletter = {
-  title: string;
-  date: string;
-  href: string;
-};
+export async function loader({ context }: Route.LoaderArgs) {
+  const da = getDataAccess(context.get(cloudflareContext).env);
+  const rows = await da.documents.listByCategory("newsletter");
+  const documents = rows.map((d) => ({
+    slug: d.slug,
+    title: d.title,
+    season: d.season,
+    year: d.year,
+    editor: d.editor,
+  }));
+  return { documents };
+}
 
-const NEWSLETTERS: Newsletter[] = [];
+export default function Newsletters({ loaderData }: Route.ComponentProps) {
+  const { documents } = loaderData;
 
-export default function Newsletters() {
   return (
     <div className="space-y-8">
       <header className="space-y-3">
@@ -33,38 +39,22 @@ export default function Newsletters() {
         </h1>
         <p className="max-w-2xl text-text-muted">
           The branch newsletter shares meeting recaps, award announcements, and
-          news from member institutions across Texas. Past issues are collected
-          below.
+          news from member institutions across Texas. Read past issues below.
         </p>
       </header>
 
-      {NEWSLETTERS.length === 0 ? (
+      {documents.length === 0 ? (
         <section
           aria-label="Newsletter archive"
           className="rounded-lg border border-border bg-panel p-6"
         >
           <p className="text-text-muted">
-            Back issues are being gathered and will be listed here.
+            Back issues are being added and will be listed here.
           </p>
         </section>
       ) : (
         <section aria-label="Newsletter archive">
-          <ul className="space-y-2">
-            {NEWSLETTERS.map((issue) => (
-              <li
-                key={issue.href}
-                className="rounded-lg border border-border bg-surface-raised p-4"
-              >
-                <a
-                  href={issue.href}
-                  className="font-medium text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
-                  {issue.title}
-                </a>
-                <p className="mt-1 text-sm text-text-muted">{issue.date}</p>
-              </li>
-            ))}
-          </ul>
+          <DocumentList documents={documents} basePath="/newsletters" />
         </section>
       )}
     </div>

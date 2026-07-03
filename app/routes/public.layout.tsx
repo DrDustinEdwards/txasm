@@ -32,6 +32,13 @@ const MEETINGS_GROUPS: NavMenuGroup[] = [
       { label: "Sponsorship", to: "/sponsorship" },
     ],
   },
+  {
+    heading: "Archive",
+    items: [
+      { label: "Abstract books", to: "/archive/abstract-books" },
+      { label: "Programs", to: "/archive/programs" },
+    ],
+  },
 ];
 
 const AWARDS_GROUPS: NavMenuGroup[] = [
