@@ -99,7 +99,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
   const filtered = filters.level || filters.format || filters.topic;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="space-y-8">
       <Breadcrumbs
         trail={[
           { label: "Home", to: "/" },

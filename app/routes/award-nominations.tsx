@@ -13,11 +13,11 @@ export function meta({ matches }: Route.MetaArgs) {
   ];
 }
 
-const prose = "max-w-2xl text-text-muted";
+const prose = "text-text-muted";
 
 export default function AwardNominations() {
   return (
-    <div className="space-y-10">
+    <div className="mx-auto max-w-3xl space-y-10">
       <header className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight text-text">
           Award Nominations
@@ -55,7 +55,7 @@ export default function AwardNominations() {
         </p>
 
         <p className={prose}>Award applicants must be:</p>
-        <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
+        <ol className="list-decimal space-y-2 pl-6 text-text-muted">
           <li>
             Female, U.S. citizen or permanent resident, and not a previous
             recipient of the award
@@ -86,7 +86,7 @@ export default function AwardNominations() {
         </p>
 
         <p className={prose}>The application package must include:</p>
-        <ul className="max-w-2xl list-disc space-y-2 pl-6 text-text-muted">
+        <ul className="list-disc space-y-2 pl-6 text-text-muted">
           <li>Cover letter</li>
           <li>CV of the applicant</li>
           <li>Electronic reprints of publications (if applicable)</li>
@@ -155,7 +155,7 @@ export default function AwardNominations() {
         <p className={prose}>The application package must include:</p>
 
         <h3 className="text-lg font-semibold text-text">Mentoring Award</h3>
-        <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
+        <ol className="list-decimal space-y-2 pl-6 text-text-muted">
           <li>Letter of nomination from a faculty member (no self-nominations)</li>
           <li>
             At least one (but no more than 3) letters of support from previous or
@@ -170,7 +170,7 @@ export default function AwardNominations() {
         </ol>
 
         <h3 className="text-lg font-semibold text-text">Teaching Award</h3>
-        <ol className="max-w-2xl list-decimal space-y-2 pl-6 text-text-muted">
+        <ol className="list-decimal space-y-2 pl-6 text-text-muted">
           <li>Letter of nomination from a faculty member (no self-nominations)</li>
           <li>CV of nominee</li>
           <li>

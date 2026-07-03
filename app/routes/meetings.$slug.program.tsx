@@ -287,7 +287,7 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="space-y-8">
       <Breadcrumbs
         trail={[
           { label: "Home", to: "/" },
