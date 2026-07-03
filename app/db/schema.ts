@@ -799,6 +799,60 @@ export const platformSettings = sqliteTable("platform_settings", {
 });
 
 // ---------------------------------------------------------------------------
+// Awards. The branch's named awards and their recipients: a data-driven archive
+// maintained by admins each meeting and rendered on the public awardees pages
+// (never hardcoded into components). award holds the definition; namesakeBio and
+// description are stored sanitized to the abstract body allowlist (em/sup/sub).
+// award_recipient is one person's win. editionId ties a recipient to the meeting
+// where the award was given when that meeting exists in the system, and is
+// nullable and set-null on edition delete because historical years predate it.
+// year is text because historical formats vary ("2025-26", "1971"); category and
+// placement subdivide a year. Person, institution, mentor, and year are indexed
+// for the public search. personName/mentor become person-record links later.
+// ---------------------------------------------------------------------------
+
+export const award = sqliteTable("award", {
+  id: pk(),
+  slug: text("slug").notNull().unique(), // e.g. "s-e-sulkin-award"
+  name: text("name").notNull(),
+  namesakeBio: text("namesake_bio"), // sanitized HTML (em/sup/sub)
+  description: text("description"), // sanitized HTML (em/sup/sub)
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const awardRecipient = sqliteTable(
+  "award_recipient",
+  {
+    id: pk(),
+    awardId: text("award_id")
+      .notNull()
+      .references(() => award.id, { onDelete: "cascade" }),
+    editionId: text("edition_id").references(() => edition.id, {
+      onDelete: "set null",
+    }), // null for historical pre-system years
+    year: text("year").notNull(), // text; formats vary ("2025-26", "1971")
+    category: text("category"),
+    placement: text("placement"), // e.g. "1st", "2nd", "3rd"
+    personName: text("person_name").notNull(),
+    institution: text("institution"),
+    mentor: text("mentor"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("ix_award_recipient_award").on(t.awardId),
+    index("ix_award_recipient_edition").on(t.editionId),
+    index("ix_award_recipient_person").on(t.personName),
+    index("ix_award_recipient_institution").on(t.institution),
+    index("ix_award_recipient_mentor").on(t.mentor),
+    index("ix_award_recipient_year").on(t.year),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
-// this review: officer, newsletter, award. Add once the core above is agreed.
+// this review: officer, newsletter. Add once the core above is agreed.
 // ---------------------------------------------------------------------------
