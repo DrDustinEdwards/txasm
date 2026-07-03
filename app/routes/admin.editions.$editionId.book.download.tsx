@@ -9,9 +9,13 @@ import { getDataAccess } from "~/lib/data-access";
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
-  const book = await getDataAccess(env).books.getBook(actor, params.editionId);
+  const book = await getDataAccess(env).documents.getGeneratedForEdition(
+    actor,
+    params.editionId,
+    "abstract_book",
+  );
 
-  if (!book || book.status !== "ready" || !book.r2Key) {
+  if (!book || book.genStatus !== "ready" || !book.r2Key) {
     throw new Response("No abstract book is ready for this meeting.", {
       status: 404,
     });

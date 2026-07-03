@@ -62,9 +62,10 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     role: s.role,
     talkTitle: s.talkTitle,
   }));
-  const document = await da.programDocuments.getProgramDocument(
+  const document = await da.documents.getGeneratedForEdition(
     actor,
     params.editionId,
+    "program",
   );
   return {
     edition: { id: edition.id, name: edition.name },
@@ -95,11 +96,27 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
 
+  // Publish the generated program document to public.
+  if (intent === "document-publish") {
+    try {
+      await da.documents.publish(actor, String(form.get("documentId") ?? ""));
+      return { ok: "The program is published." };
+    } catch (error) {
+      if (error instanceof ValidationError) return { error: error.message };
+      throw error;
+    }
+  }
+
   // Generate the program PDF only on this explicit intent, never on load. Runs
   // Browser Rendering, so it is its own path with its own error handling.
   if (intent === "document-generate") {
+    let generatingId: string;
     try {
-      await da.programDocuments.recordProgramGenerating(actor, editionId);
+      const claim = await da.documents.recordGenerating(actor, {
+        editionId,
+        category: "program",
+      });
+      generatingId = claim.id;
     } catch (error) {
       if (error instanceof ValidationError) return { error: error.message };
       throw error;
@@ -116,13 +133,13 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       await env.BOOKS.put(r2Key, bytes, {
         httpMetadata: { contentType: "application/pdf" },
       });
-      await da.programDocuments.recordProgramReady(actor, editionId, {
+      await da.documents.recordReady(actor, generatingId, {
         r2Key,
         fileName,
       });
       return { ok: "The program PDF is ready." };
     } catch (error) {
-      await da.programDocuments.recordProgramFailed(actor, editionId);
+      await da.documents.recordFailed(actor, generatingId);
       console.error("[program] generation failed", error);
       const detail = error instanceof Error ? error.message : "";
       return {
@@ -1030,7 +1047,7 @@ function ProgramDocumentPanel({
         <p className="text-sm text-gray-700 dark:text-gray-300">
           No program PDF generated yet.
         </p>
-      ) : document.status === "ready" ? (
+      ) : document.genStatus === "ready" ? (
         <div className="space-y-1 text-sm">
           <p>
             <span className="font-medium text-green-700 dark:text-green-400">
@@ -1048,13 +1065,31 @@ function ProgramDocumentPanel({
               Download the PDF
             </a>
           </p>
+          <p>
+            {document.status === "published" ? (
+              <span className="font-medium text-green-700 dark:text-green-400">
+                Published
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <span className="text-gray-600 dark:text-gray-400">Draft.</span>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="document-publish" />
+                  <input type="hidden" name="documentId" value={document.id} />
+                  <button type="submit" disabled={busy} className={smallButton}>
+                    Publish
+                  </button>
+                </Form>
+              </span>
+            )}
+          </p>
         </div>
-      ) : document.status === "generating" ? (
+      ) : document.genStatus === "generating" ? (
         <p className="text-sm text-gray-700 dark:text-gray-300">
           A generation is in progress. Refresh this page in a minute to see the
           result.
         </p>
-      ) : document.status === "failed" ? (
+      ) : document.genStatus === "failed" ? (
         <p className="text-sm text-red-700 dark:text-red-400">
           The last generation failed. Try again below.
         </p>

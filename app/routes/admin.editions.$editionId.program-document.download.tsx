@@ -8,12 +8,13 @@ import { getDataAccess } from "~/lib/data-access";
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
-  const doc = await getDataAccess(env).programDocuments.getProgramDocument(
+  const doc = await getDataAccess(env).documents.getGeneratedForEdition(
     actor,
     params.editionId,
+    "program",
   );
 
-  if (!doc || doc.status !== "ready" || !doc.r2Key) {
+  if (!doc || doc.genStatus !== "ready" || !doc.r2Key) {
     throw new Response("No program document is ready for this meeting.", {
       status: 404,
     });

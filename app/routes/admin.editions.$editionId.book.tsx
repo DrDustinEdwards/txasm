@@ -17,7 +17,11 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const edition = await da.editions.getById(actor, params.editionId);
-  const book = await da.books.getBook(actor, params.editionId);
+  const book = await da.documents.getGeneratedForEdition(
+    actor,
+    params.editionId,
+    "abstract_book",
+  );
   return { edition: { id: edition.id, name: edition.name }, book };
 }
 
@@ -29,15 +33,33 @@ function titleCase(value: string) {
 }
 
 // The book is generated only on the explicit button press below, never on load.
+// Publish flips the generated document to public.
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const editionId = params.editionId;
+  const form = await request.formData();
+  const intent = String(form.get("intent") ?? "");
+
+  if (intent === "publish") {
+    try {
+      await da.documents.publish(actor, String(form.get("documentId") ?? ""));
+      return { ok: "The abstract book is published." };
+    } catch (error) {
+      if (error instanceof ValidationError) return { error: error.message };
+      throw error;
+    }
+  }
 
   // Claim the generating slot first; this rejects a second concurrent run.
+  let generatingId: string;
   try {
-    await da.books.recordBookGenerating(actor, editionId);
+    const claim = await da.documents.recordGenerating(actor, {
+      editionId,
+      category: "abstract_book",
+    });
+    generatingId = claim.id;
   } catch (error) {
     if (error instanceof ValidationError) return { error: error.message };
     throw error;
@@ -55,14 +77,14 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     await env.BOOKS.put(r2Key, bytes, {
       httpMetadata: { contentType: "application/pdf" },
     });
-    await da.books.recordBookReady(actor, editionId, {
+    await da.documents.recordReady(actor, generatingId, {
       r2Key,
       fileName,
       abstractCount: data.abstractCount,
     });
     return { ok: "The abstract book PDF is ready." };
   } catch (error) {
-    await da.books.recordBookFailed(actor, editionId);
+    await da.documents.recordFailed(actor, generatingId);
     console.error("[book] generation failed", error);
     const detail = error instanceof Error ? error.message : "";
     return {
@@ -125,7 +147,7 @@ export default function AbstractBookAdmin({ loaderData }: Route.ComponentProps) 
           <p className="text-gray-700 dark:text-gray-300">
             No book generated yet.
           </p>
-        ) : book.status === "ready" ? (
+        ) : book.genStatus === "ready" ? (
           <div className="space-y-2 text-sm">
             <p>
               <span className="font-medium text-green-700 dark:text-green-400">
@@ -146,25 +168,46 @@ export default function AbstractBookAdmin({ loaderData }: Route.ComponentProps) 
                 Download the PDF
               </a>
             </p>
+            <p>
+              {book.status === "published" ? (
+                <span className="font-medium text-green-700 dark:text-green-400">
+                  Published
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span className="text-gray-600 dark:text-gray-400">Draft.</span>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="publish" />
+                    <input type="hidden" name="documentId" value={book.id} />
+                    <button
+                      type="submit"
+                      disabled={generating}
+                      className="rounded border border-gray-300 px-2 py-1 text-sm font-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-40 dark:border-gray-700 dark:hover:bg-gray-900"
+                    >
+                      Publish
+                    </button>
+                  </Form>
+                </span>
+              )}
+            </p>
           </div>
-        ) : book.status === "generating" ? (
+        ) : book.genStatus === "generating" ? (
           <p className="text-sm text-gray-700 dark:text-gray-300">
             A generation is in progress. Refresh this page in a minute to see the
             result.
           </p>
-        ) : book.status === "failed" ? (
+        ) : book.genStatus === "failed" ? (
           <p className="text-sm text-red-700 dark:text-red-400">
             The last generation failed. Try again below.
           </p>
         ) : (
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            {titleCase(book.status)}
-          </p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">Pending</p>
         )}
       </section>
 
       <div className="flex flex-wrap items-center gap-4">
         <Form method="post">
+          <input type="hidden" name="intent" value="generate" />
           <button
             type="submit"
             disabled={generating}
