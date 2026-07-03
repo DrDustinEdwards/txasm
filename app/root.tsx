@@ -18,7 +18,7 @@ import "./app.css";
 export const links: Route.LinksFunction = () => [
   // The starburst mark is the favicon; it stays legible at tab size where the
   // full wordmark would not. favicon.ico remains in public/ as a legacy fallback.
-  { rel: "icon", type: "image/svg+xml", href: BRAND.mark },
+  { rel: "icon", type: "image/svg+xml", href: BRAND.favicon },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",

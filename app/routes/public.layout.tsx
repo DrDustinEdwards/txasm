@@ -2,7 +2,7 @@ import { Form, Link, NavLink, Outlet, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/public.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
-import { BRAND } from "~/lib/brand";
+import { BrandMark, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
 import { NavMenu, type NavMenuGroup } from "~/components/nav-menu";
 import { OffCanvas } from "~/components/off-canvas";
@@ -195,11 +195,7 @@ function PublicHeader({
             to="/"
             className="rounded-md px-2 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            <img
-              src={BRAND.wordmark}
-              alt={wordmark || "TXASM"}
-              className="h-7 w-auto"
-            />
+            <BrandWordmark title={wordmark || "TXASM"} className="h-7 w-auto" />
           </Link>
           <nav aria-label="Primary" className="ml-2 hidden items-center gap-1 md:flex">
             <NavLink to="/branch-officers" className={navLinkClass}>
@@ -303,8 +299,10 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
           ) : null}
         </nav>
         {/* Decorative footer mark; the copyright line below names the org, so
-            the emblem carries an empty alt and is skipped by assistive tech. */}
-        <img src={BRAND.mark} alt="" className="mt-6 h-8 w-auto" />
+            the wrapper is aria-hidden to keep the emblem out of assistive tech. */}
+        <span aria-hidden="true">
+          <BrandMark className="mt-6 h-8 w-auto" />
+        </span>
         {foundedLine ? (
           <p className="mt-6 text-text-muted">{foundedLine}</p>
         ) : null}

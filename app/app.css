@@ -56,6 +56,10 @@
   --border: #d9dbe0;
   --border-strong: #6b7280;
   --focus: #1a66c9;
+  /* Brand ink for the inline logo components (BrandWordmark/BrandMark). Light
+     values here; the two dark blocks below shift them lighter for contrast. */
+  --brand-blue: #002868;
+  --brand-red: #a30e28;
 }
 
 /* Dark values. text E8EAED on surface 14171C ~14.8:1, text-muted A0A6B0 ~7.3:1
@@ -75,6 +79,8 @@
     --border: #2e333c;
     --border-strong: #666d78;
     --focus: #6aa0e8;
+    --brand-blue: #5b8fd1;
+    --brand-red: #e8617a;
   }
 }
 
@@ -96,6 +102,8 @@
   --border: #2e333c;
   --border-strong: #666d78;
   --focus: #6aa0e8;
+  --brand-blue: #5b8fd1;
+  --brand-red: #e8617a;
 }
 
 html,
