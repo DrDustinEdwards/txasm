@@ -3480,7 +3480,7 @@ export function createDataAccess(db: DB) {
       return db
         .select()
         .from(schema.edition)
-        .orderBy(desc(schema.edition.year), desc(schema.edition.createdAt));
+        .orderBy(desc(schema.edition.meetingStartsAt));
     },
 
     // Admin only. Season must be one of the two values and (season, year) must be
@@ -3605,7 +3605,7 @@ export function createDataAccess(db: DB) {
         .select()
         .from(schema.edition)
         .where(inArray(schema.edition.status, [...PROGRAM_PUBLIC_STATUSES]))
-        .orderBy(desc(schema.edition.year), desc(schema.edition.createdAt));
+        .orderBy(desc(schema.edition.meetingStartsAt));
       if (rows.length === 0) return [];
       const counts = await db
         .select({
@@ -4469,10 +4469,14 @@ export function createDataAccess(db: DB) {
           slug: schema.edition.slug,
           name: schema.edition.name,
           year: schema.edition.year,
+          meetingStartsAt: schema.edition.meetingStartsAt,
         })
         .from(schema.edition)
         .where(inArray(schema.edition.id, editionIds));
       const editionById = new Map(editionRows.map((e) => [e.id, e]));
+      const startsBySlug = new Map(
+        editionRows.map((e) => [e.slug, e.meetingStartsAt]),
+      );
 
       const results: PublicAbstractSearchResult[] = [];
       for (const editionId of editionIds) {
@@ -4498,12 +4502,15 @@ export function createDataAccess(db: DB) {
           });
         }
       }
-      // Order by edition name, then presentation number within a meeting.
-      return results.sort((a, b) =>
-        a.editionSlug === b.editionSlug
-          ? a.number - b.number
-          : a.editionName.localeCompare(b.editionName),
-      );
+      // Order by meetingStartsAt descending (newest first), then by number within edition.
+      return results.sort((a, b) => {
+        if (a.editionSlug !== b.editionSlug) {
+          const aStart = startsBySlug.get(a.editionSlug)?.getTime() ?? 0;
+          const bStart = startsBySlug.get(b.editionSlug)?.getTime() ?? 0;
+          return bStart - aStart;
+        }
+        return a.number - b.number;
+      });
     },
   };
 
