@@ -93,6 +93,11 @@ export function AdminNav({
       {isAdmin ? (
         <SidebarSection title="Platform">
           <li>
+            <NavLink to="/admin/awards" className={linkClass}>
+              Awards
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/admin/settings" className={linkClass}>
               Settings
             </NavLink>

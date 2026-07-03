@@ -23,6 +23,8 @@ export default [
   layout("routes/admin.layout.tsx", [
     route("admin", "routes/admin.tsx"),
     route("admin/settings", "routes/admin.settings.tsx"),
+    route("admin/awards", "routes/admin.awards.tsx"),
+    route("admin/awards/:slug", "routes/admin.awards.$slug.tsx"),
     route("admin/editions/new", "routes/admin.editions.new.tsx"),
     route("admin/editions/:editionId", "routes/admin.editions.$editionId.tsx"),
     route(
