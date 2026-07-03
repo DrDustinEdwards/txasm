@@ -4308,6 +4308,24 @@ export function createDataAccess(db: DB) {
       return row;
     },
 
+    // Admin archive management: every document (any status), optionally filtered
+    // to one category. Admin only. Newest first within a category.
+    async listAll(actor: Actor, category?: DocumentCategory) {
+      if (!isAdmin(actor)) throw new ForbiddenError();
+      const where = category
+        ? eq(schema.document.category, assertDocumentCategory(category))
+        : undefined;
+      return db
+        .select()
+        .from(schema.document)
+        .where(where)
+        .orderBy(
+          schema.document.category,
+          desc(schema.document.year),
+          schema.document.title,
+        );
+    },
+
     // Published documents tied to a meeting (its book, program, and any uploaded
     // archive PDFs), for the meeting's public archive section.
     async listForEdition(editionId: string) {
@@ -4436,8 +4454,8 @@ export function createDataAccess(db: DB) {
       return db.query.document.findFirst({ where: eq(schema.document.id, id) });
     },
 
-    // Remove a document row. Returns its r2Key so the route can delete the R2
-    // object; this layer touches metadata only.
+    // Remove a document row. Returns its r2Key and source so the route can delete
+    // the R2 object from the right bucket; this layer touches metadata only.
     async remove(actor: Actor, id: string) {
       const row = await db.query.document.findFirst({
         where: eq(schema.document.id, id),
@@ -4445,7 +4463,7 @@ export function createDataAccess(db: DB) {
       if (!row) throw new NotFoundError();
       assertDocumentWrite(actor, row.editionId);
       await db.delete(schema.document).where(eq(schema.document.id, id));
-      return { id, r2Key: row.r2Key };
+      return { id, r2Key: row.r2Key, source: row.source };
     },
 
     // Mark a generated document generating before the Browser Rendering call

@@ -98,6 +98,11 @@ export function AdminNav({
             </NavLink>
           </li>
           <li>
+            <NavLink to="/admin/documents" className={linkClass}>
+              Documents
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/admin/settings" className={linkClass}>
               Settings
             </NavLink>
