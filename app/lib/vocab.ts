@@ -76,6 +76,7 @@ export const ABSTRACT_LEVELS = [
   "postdoctoral",
   "staff",
   "fellow",
+  "faculty",
 ] as const;
 export type AbstractLevel = (typeof ABSTRACT_LEVELS)[number];
 export const ABSTRACT_LEVEL_LABELS: Record<AbstractLevel, string> = {
@@ -86,6 +87,7 @@ export const ABSTRACT_LEVEL_LABELS: Record<AbstractLevel, string> = {
   postdoctoral: "Postdoctoral",
   staff: "Staff",
   fellow: "Fellow",
+  faculty: "Faculty",
 };
 
 export const ABSTRACT_FORMATS = ["oral", "poster"] as const;
@@ -106,6 +108,9 @@ export const LEVEL_CODE_LETTERS: Record<AbstractLevel, string> = {
   high_school: "H",
   staff: "S",
   fellow: "F",
+  // Faculty thematic talks use category-based printed codes (e.g. ARM-1F); "L" is
+  // the generated-code letter for faculty (F is taken by fellow).
+  faculty: "L",
 };
 export const FORMAT_CODE_LETTERS: Record<AbstractFormat, string> = {
   oral: "O",

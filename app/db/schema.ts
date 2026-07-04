@@ -276,6 +276,7 @@ export const abstract = sqliteTable(
         "postdoctoral",
         "staff",
         "fellow",
+        "faculty",
       ],
     }),
     // Format axis: the decided/archival oral or poster placement. Distinct from
