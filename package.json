@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply txasm --local",
     "db:migrate:prod": "wrangler d1 migrations apply txasm --remote",
+    "seed:abstract-book": "tsx scripts/seed-abstract-book.ts",
     "import:meeting": "tsx scripts/import-meeting.ts",
     "import:awards": "tsx scripts/import-awards.ts",
     "load:documents": "tsx scripts/load-documents.ts",
