@@ -5123,6 +5123,10 @@ export interface ImportAbstractInput {
   // topic (in the archive, oral presentations are grouped by level, not topic).
   // The abstract.category_id column is nullable, so this needs no schema change.
   categoryId: string | null;
+  // The printed book code lifted from the source (for example UGM 1, GSP 3). When
+  // present it is stored with code_source "printed"; when absent the abstract keeps
+  // a null code. Kept faithful to the book, never generated here.
+  code?: string | null;
 }
 
 export function createMeetingImporter(db: DB) {
@@ -5210,6 +5214,11 @@ export function createMeetingImporter(db: DB) {
       throw new ValidationError(`Unknown format: ${input.format}`);
     }
 
+    // A printed book code is stored verbatim with source "printed"; no code means
+    // no code (never generated on this path).
+    const code = input.code?.trim() || null;
+    const codeSource = code ? "printed" : null;
+
     const [created] = await db
       .insert(schema.abstract)
       .values({
@@ -5219,6 +5228,8 @@ export function createMeetingImporter(db: DB) {
         title,
         level: input.level,
         format: input.format,
+        code,
+        codeSource,
         bodyText,
         status: "accepted",
         submittedAt: new Date(),

@@ -233,6 +233,7 @@ async function main() {
           level: (abstract.level ?? null) as AbstractLevel | null,
           format: abstract.format as AbstractFormat,
           categoryId,
+          code: abstract.code ?? null,
         });
 
         // Affiliations first: ordinals are assigned by position (1..n). Map the
