@@ -95,10 +95,9 @@ export const ABSTRACT_FORMAT_LABELS: Record<AbstractFormat, string> = {
   poster: "Poster",
 };
 
-// Book abstract code building blocks. A code is levelLetter + formatLetter + a
-// per-prefix running number in book order (for example UO1, GP3, PP2). These
-// maps are the single source for code generation and any future book reuse, so
-// the letters are never retyped inline. S and F are the Fall 2025 additions.
+// Book abstract code vocabulary. A code is a level letter plus a format letter
+// plus a running number (for example UO1, GP3, PP2). These maps are the single
+// source of the letters, so code generation never hardcodes them.
 export const LEVEL_CODE_LETTERS: Record<AbstractLevel, string> = {
   undergraduate: "U",
   graduate: "G",
@@ -113,8 +112,9 @@ export const FORMAT_CODE_LETTERS: Record<AbstractFormat, string> = {
   poster: "P",
 };
 
-// Provenance of a stored abstract code: printed in the book, or generated from
-// the rule above. Never present a generated code as printed.
+// A stored code is either a printed code lifted from the book or one this app
+// generated deterministically from seed order. code_source keeps the two apart
+// so a generated code is never presented as the printed record.
 export const CODE_SOURCES = ["printed", "generated"] as const;
 export type CodeSource = (typeof CODE_SOURCES)[number];
 export const CODE_SOURCE_LABELS: Record<CodeSource, string> = {
@@ -289,6 +289,7 @@ export const DOCUMENT_CATEGORIES = [
   "newsletter",
   "abstract_book",
   "program",
+  "brand_image",
   "other",
 ] as const;
 export type DocumentCategory = (typeof DOCUMENT_CATEGORIES)[number];
@@ -296,8 +297,73 @@ export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
   newsletter: "Newsletter",
   abstract_book: "Abstract book",
   program: "Program",
+  // Internal value stays brand_image; only this label may be reworded.
+  brand_image: "Brand images",
   other: "Other",
 };
+
+// Whether a stored document file is a PDF or an image. This is the branching key
+// the viewer reads: PDFs render in the PDF.js viewer, images in a plain <img>.
+// Stored per row (schema.document.fileKind), never inferred from category at read
+// time, so a mis-categorized file still renders as what it actually is.
+export const DOCUMENT_FILE_KINDS = ["pdf", "image"] as const;
+export type DocumentFileKind = (typeof DOCUMENT_FILE_KINDS)[number];
+
+// Accepted upload MIME types. PDF for the publication categories; a fixed set of
+// web-safe raster and vector images for brand_image. Validated server-side
+// against the uploaded file's declared MIME, not its extension.
+export const PDF_MIME_TYPE = "application/pdf";
+export const IMAGE_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+] as const;
+export type ImageMimeType = (typeof IMAGE_MIME_TYPES)[number];
+
+// The categories whose files are images; everything else is a PDF publication.
+// The upload gate reads this to decide which MIME types to accept.
+export const IMAGE_DOCUMENT_CATEGORIES = ["brand_image"] as const;
+
+export function isImageCategory(category: DocumentCategory): boolean {
+  return (IMAGE_DOCUMENT_CATEGORIES as readonly string[]).includes(category);
+}
+
+export function allowedMimeTypesForCategory(
+  category: DocumentCategory,
+): readonly string[] {
+  return isImageCategory(category) ? IMAGE_MIME_TYPES : [PDF_MIME_TYPE];
+}
+
+// Coarse kind from a stored MIME. Anything that is not the PDF type is an image
+// (the accepted set is already gated at upload), so this stays correct as image
+// formats are added to IMAGE_MIME_TYPES.
+export function fileKindForMime(mime: string): DocumentFileKind {
+  return mime === PDF_MIME_TYPE ? "pdf" : "image";
+}
+
+// File extension for the R2 object key and the download filename, by MIME, so the
+// stored key and Content-Disposition name stay honest about the real format.
+const MIME_EXTENSIONS: Record<string, string> = {
+  "application/pdf": "pdf",
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/svg+xml": "svg",
+};
+export function extensionForMime(mime: string): string {
+  return MIME_EXTENSIONS[mime] ?? "bin";
+}
+
+// Upload size ceilings, per kind. Brand images are logos and marks, so a tight
+// cap is fine; PDFs (scanned newsletters, abstract books) need room.
+export const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
+export const MAX_PDF_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB
+export function maxUploadBytesForKind(kind: DocumentFileKind): number {
+  return kind === "image" ? MAX_IMAGE_UPLOAD_BYTES : MAX_PDF_UPLOAD_BYTES;
+}
 
 export const DOCUMENT_STATUSES = ["draft", "published"] as const;
 export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];

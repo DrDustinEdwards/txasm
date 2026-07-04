@@ -589,7 +589,7 @@ export const document = sqliteTable(
   {
     id: pk(),
     category: text("category", {
-      enum: ["newsletter", "abstract_book", "program", "other"],
+      enum: ["newsletter", "abstract_book", "program", "brand_image", "other"],
     }).notNull(),
     status: text("status", { enum: ["draft", "published"] })
       .notNull()
@@ -604,8 +604,16 @@ export const document = sqliteTable(
       onDelete: "set null",
     }),
     editor: text("editor"), // newsletters
-    r2Key: text("r2_key"), // set when the PDF is stored
+    r2Key: text("r2_key"), // set when the file is stored
     fileName: text("file_name"),
+    // The stored file's MIME and coarse kind. mimeType drives the served
+    // Content-Type; fileKind (pdf|image) is the viewer's branch. Both default to
+    // PDF so existing rows and generated books backfill correctly. The kind is
+    // stored, never inferred from category at read time.
+    mimeType: text("mime_type").notNull().default("application/pdf"),
+    fileKind: text("file_kind", { enum: ["pdf", "image"] })
+      .notNull()
+      .default("pdf"),
     slug: text("slug").notNull().unique(),
     abstractCount: integer("abstract_count"), // generated abstract books only
     generatedById: text("generated_by_id").references(() => user.id),

@@ -11,11 +11,23 @@ import {
 import {
   DOCUMENT_CATEGORIES,
   DOCUMENT_CATEGORY_LABELS,
+  IMAGE_MIME_TYPES,
+  PDF_MIME_TYPE,
   SEASONS,
   SEASON_LABELS,
+  allowedMimeTypesForCategory,
+  extensionForMime,
+  fileKindForMime,
+  isImageCategory,
+  maxUploadBytesForKind,
   type DocumentCategory,
 } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
+
+// File picker hint: allow every accepted type so images are selectable for the
+// brand_image category. The real gate is the per-category MIME check in the
+// action; accept only filters the OS dialog.
+const UPLOAD_ACCEPT = [PDF_MIME_TYPE, ...IMAGE_MIME_TYPES].join(",");
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Documents") }];
@@ -32,19 +44,24 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const da = getDataAccess(context.get(cloudflareContext).env);
   const filter = toCategory(new URL(request.url).searchParams.get("category"));
   const rows = await da.documents.listAll(actor, filter);
-  const documents = rows.map((d) => ({
-    id: d.id,
-    slug: d.slug,
-    title: d.title,
-    category: d.category,
-    status: d.status,
-    source: d.source,
-    year: d.year,
-    season: d.season,
-    editor: d.editor,
-    editionId: d.editionId,
-    hasFile: Boolean(d.r2Key),
-  }));
+  const documents = rows
+    .map((d) => ({
+      id: d.id,
+      slug: d.slug,
+      title: d.title,
+      category: d.category,
+      status: d.status,
+      source: d.source,
+      year: d.year,
+      season: d.season,
+      editor: d.editor,
+      editionId: d.editionId,
+      fileKind: d.fileKind,
+      hasFile: Boolean(d.r2Key),
+    }))
+    // Defensive: the Brand images tab shows only image files, even if a stray
+    // PDF were ever filed under that category.
+    .filter((d) => filter !== "brand_image" || d.fileKind === "image");
   const editionRows = await da.editions.list(actor);
   const editions = editionRows.map((e) => ({ id: e.id, name: e.name }));
   return { documents, editions, filter: filter ?? null };
@@ -97,15 +114,32 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (intent === "create") {
       const file = form.get("file");
       if (!(file instanceof File) || file.size === 0) {
-        throw new ValidationError("Choose a PDF file to upload.");
+        throw new ValidationError("Choose a file to upload.");
       }
-      if (file.type && file.type !== "application/pdf") {
-        throw new ValidationError("The file must be a PDF.");
+      const category = toCategory(String(form.get("category") ?? ""));
+      if (!category) {
+        throw new ValidationError("Choose a valid document category.");
+      }
+      // Validate the declared MIME server-side against what the category accepts
+      // (PDF for publications, images for brand_image), not the file extension.
+      const mime = file.type;
+      if (!mime || !allowedMimeTypesForCategory(category).includes(mime)) {
+        throw new ValidationError(
+          isImageCategory(category)
+            ? "Brand images must be a PNG, JPEG, WebP, GIF, or SVG file."
+            : "The file must be a PDF.",
+        );
+      }
+      const maxBytes = maxUploadBytesForKind(fileKindForMime(mime));
+      if (file.size > maxBytes) {
+        const mb = Math.round(maxBytes / (1024 * 1024));
+        throw new ValidationError(`The file must be ${mb} MB or smaller.`);
       }
       // Create the metadata row first so slug validation runs before the R2 write,
-      // then store the object under a stable key and record it.
+      // then store the object under a stable key and record it. The stored MIME
+      // sets fileKind in the data layer, so the viewer branches on the real type.
       const created = await da.documents.create(actor, {
-        category: String(form.get("category") ?? "") as DocumentCategory,
+        category,
         title: String(form.get("title") ?? ""),
         year: parseYear(form.get("year")),
         season: seasonValue(form.get("season")),
@@ -113,10 +147,11 @@ export async function action({ request, context }: Route.ActionArgs) {
         editor: optionalText(form.get("editor")),
         slug: optionalText(form.get("slug")),
         fileName: file.name || undefined,
+        mimeType: mime,
       });
-      const r2Key = `documents/${created.id}.pdf`;
+      const r2Key = `documents/${created.id}.${extensionForMime(mime)}`;
       await env.UPLOADS.put(r2Key, await file.arrayBuffer(), {
-        httpMetadata: { contentType: "application/pdf" },
+        httpMetadata: { contentType: mime },
       });
       await da.documents.update(actor, created.id, { r2Key });
       if (form.get("publish")) {
@@ -299,12 +334,13 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       : "rounded-md px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-panel hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-text">Documents</h1>
         <p className="text-text-muted">
-          Upload and manage the branch's PDFs: newsletters, and archived abstract
-          books and programs. Published documents show on the public archive.
+          Upload and manage the branch's files: newsletters, archived abstract
+          books and programs, and brand images. Published PDFs show on the public
+          archive; brand images stay internal to the admin.
         </p>
       </header>
 
@@ -342,18 +378,27 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
               className="space-y-3 rounded-lg border border-border bg-surface-raised p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-medium text-text">{doc.title}</p>
-                  <p className="text-sm text-text-muted">
-                    {[
-                      DOCUMENT_CATEGORY_LABELS[doc.category],
-                      doc.status === "published" ? "Published" : "Draft",
-                      doc.source === "generated" ? "Generated" : "Uploaded",
-                      doc.hasFile ? "" : "No file",
-                    ]
-                      .filter((p) => p.length > 0)
-                      .join(" · ")}
-                  </p>
+                <div className="flex min-w-0 items-start gap-3">
+                  {doc.fileKind === "image" && doc.hasFile ? (
+                    <img
+                      src={`/documents/${doc.slug}/inline`}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded border border-border bg-surface object-contain p-1"
+                    />
+                  ) : null}
+                  <div className="min-w-0">
+                    <p className="font-medium text-text">{doc.title}</p>
+                    <p className="text-sm text-text-muted">
+                      {[
+                        DOCUMENT_CATEGORY_LABELS[doc.category],
+                        doc.status === "published" ? "Published" : "Draft",
+                        doc.source === "generated" ? "Generated" : "Uploaded",
+                        doc.hasFile ? "" : "No file",
+                      ]
+                        .filter((p) => p.length > 0)
+                        .join(" · ")}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {doc.status === "published" ? (
@@ -428,16 +473,20 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
           <MetaFields editions={editions} />
           <div className="space-y-1">
             <label htmlFor="file" className="block text-sm font-medium text-text">
-              PDF file
+              File
             </label>
             <input
               id="file"
               name="file"
               type="file"
-              accept="application/pdf"
+              accept={UPLOAD_ACCEPT}
               required
               className={inputClass}
             />
+            <p className="text-xs text-text-muted">
+              PDF for newsletters, abstract books, and programs; PNG, JPEG, WebP,
+              GIF, or SVG for brand images. Up to 50 MB for PDFs, 5 MB for images.
+            </p>
           </div>
           <label className="flex items-center gap-2 text-sm text-text">
             <input
