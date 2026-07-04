@@ -84,9 +84,12 @@ function groupByTopic(abstracts: PublicAbstractSummary[]): Group[] {
 }
 
 function metaLine(abstract: PublicAbstractSummary): string {
+  // Fall back to the raw stored value when a level or format has no label, so an
+  // unrecognized value degrades to plain text instead of an undefined that throws
+  // on .length. Empty when the axis is unset.
   return [
-    abstract.level ? ABSTRACT_LEVEL_LABELS[abstract.level] : "",
-    abstract.format ? ABSTRACT_FORMAT_LABELS[abstract.format] : "",
+    abstract.level ? ABSTRACT_LEVEL_LABELS[abstract.level] ?? abstract.level : "",
+    abstract.format ? ABSTRACT_FORMAT_LABELS[abstract.format] ?? abstract.format : "",
   ]
     .filter((p) => p.length > 0)
     .join(" · ");
