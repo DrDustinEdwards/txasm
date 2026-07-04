@@ -45,6 +45,25 @@ SUPERSCRIPT_FLAG = 1 << 0  # 1
 # Abstract codes seen in Texas Branch books: UO1, GO1, GP1, PP1, MP1, A-01, P-01
 CODE_RE = re.compile(r'^([A-Z]{1,3}-?\d{1,3})$')
 
+# Second layout (for example the Fall 2024 book): the code sits on its own line,
+# is not bold, uses a space and a 2-4 letter prefix, and the bold title follows on
+# the next line. Faculty thematic talks use a "PREFIX-<n>F" or "-<n>T" printed code.
+# Matched against a whole line (the code is alone on that line in this layout).
+NEW_CODE_RE = re.compile(r'^([A-Z]{2,4}\s?\d{1,3}|[A-Z]{2,3}-\d{1,2}[TF])$')
+
+# In the second layout the affiliation ordinals and author refs are typeset small
+# (size 7) rather than flagged with the superscript bit, so we detect them by size.
+SMALL_SPAN_MAX_SIZE = 8
+
+# Words that mark an institution line, used in the second layout to tell a single
+# unnumbered affiliation from a body paragraph and to spot wrapped tail lines.
+INST_KEYWORDS = (
+    'University', 'Institute', 'College', 'Department', 'USA', 'Hospital', 'Center',
+    'School', 'Laboratory', 'Laboratories', 'Medicine', 'Health', 'Branch', 'Division',
+    'Peru', 'Germany', 'China', 'Vietnam', 'Pakistan', 'Thailand', 'Japan', 'Austria',
+    'United Kingdom', 'London', 'Innsbruck', 'Corpus Christi', 'Galveston', 'Houston',
+)
+
 # Poster codes: contain P and a digit but not just "O" (oral)
 POSTER_CODE_RE = re.compile(r'[A-Z]*P\d|^P\d', re.IGNORECASE)
 ORAL_CODE_RE   = re.compile(r'[A-Z]*O\d|^O\d', re.IGNORECASE)
@@ -75,6 +94,14 @@ AFFIL_SPLIT_RE = re.compile(r'(?<![a-zA-Z\d])(\d+)[.)]\s*|(?<![a-zA-Z\d])(\d+)(?
 def is_bold(span):        return bool(span.get('flags', 0) & BOLD_FLAG)
 def is_italic(span):      return bool(span.get('flags', 0) & ITALIC_FLAG)
 def is_superscript(span): return bool(span.get('flags', 0) & SUPERSCRIPT_FLAG)
+
+def is_italic_sized(span):
+    # Some books mark italics only in the font name, not the flag bit.
+    return is_italic(span) or 'Italic' in span.get('font', '')
+
+def is_small(span):
+    # Second-layout ref/ordinal marker: small type instead of the superscript bit.
+    return round(span.get('size', 11)) <= SMALL_SPAN_MAX_SIZE
 
 def stext(span):
     return span.get('text', '').strip()
@@ -253,6 +280,130 @@ def parse_affiliations(raw_lines):
 
 
 # ---------------------------------------------------------------------------
+# Second-layout helpers (code-on-own-line books, for example Fall 2024)
+#
+# These mirror the helpers above but key off small type (size <= 8) for
+# affiliation refs and ordinals, since this layout does not set the superscript
+# flag bit. The first-layout helpers are left untouched so already-seeded books
+# parse identically.
+# ---------------------------------------------------------------------------
+
+def spans_to_html_sized(spans):
+    """Like spans_to_html, but small spans are the ref markers to strip, and
+    italics may be signalled by the font name rather than the flag bit."""
+    parts = []
+    i = 0
+    while i < len(spans):
+        span = spans[i]
+        t = span.get('text', '')
+        if not t.strip():
+            if t and parts:
+                parts.append(' ')
+            i += 1
+            continue
+        if is_small(span):
+            i += 1
+            continue
+        escaped = html.escape(t)
+        if is_italic_sized(span):
+            run = escaped
+            j = i + 1
+            while j < len(spans):
+                ns = spans[j]
+                nt = ns.get('text', '')
+                if not nt.strip():
+                    j += 1
+                    continue
+                if is_italic_sized(ns) and not is_small(ns):
+                    run += html.escape(nt)
+                    j += 1
+                else:
+                    break
+            parts.append(f'<em>{run}</em>')
+            i = j
+        else:
+            parts.append(escaped)
+            i += 1
+    return ''.join(parts).strip()
+
+
+def parse_author_line_sized(spans):
+    """Author-line parser for the second layout. Refs are small spans, not
+    superscript-flagged. Returns (authors, review_flags, saw_ref)."""
+    authors = []
+    review_flags = []
+    current_parts = []
+    current_refs = []
+    saw_ref = False
+
+    def flush():
+        if not current_parts:
+            return
+        raw = ' '.join(current_parts).strip().rstrip(',').strip()
+        name, stripped = _strip_honorific(raw)
+        if stripped:
+            review_flags.append(f'honorific_stripped:{name}')
+        if _is_lowercase_name(name):
+            review_flags.append(f'lowercase_name:{name}')
+        if name:
+            authors.append({'name': name, 'affil_refs': [str(r) for r in current_refs]})
+        current_parts.clear()
+        current_refs.clear()
+
+    for span in spans:
+        t = span.get('text', '').strip()
+        if not t:
+            continue
+        if is_small(span):
+            saw_ref = True
+            current_refs.extend(x.strip() for x in t.split(',') if x.strip().isdigit())
+            continue
+        if ',' in t:
+            parts = t.split(',')
+            for idx, part in enumerate(parts):
+                part = part.strip()
+                if part:
+                    current_parts.append(part)
+                if idx < len(parts) - 1:
+                    flush()
+        elif t.lower() in ('and', '&'):
+            flush()
+        else:
+            current_parts.append(t)
+    flush()
+    return authors, review_flags, saw_ref
+
+
+def infer_level_new(code):
+    """Presenter standing from a second-layout code prefix."""
+    if not code:
+        return None
+    c = code.upper()
+    if c.startswith('UG'):
+        return 'undergraduate'
+    if c.startswith('GS'):
+        return 'graduate'
+    if c.startswith('PD'):
+        return 'postdoctoral'
+    if c.startswith('FP') or c.endswith('F'):
+        return 'faculty'
+    if c.endswith('T'):
+        return 'graduate'
+    return None
+
+
+def infer_format_new(code):
+    """Oral or poster from a second-layout code. A 'P' before the running number
+    marks a poster (UGP 1, GSP 3, PDP 2); everything else is oral."""
+    if not code:
+        return 'oral'
+    c = code.upper().replace(' ', '')
+    if re.match(r'^[A-Z]*P\d', c):
+        return 'poster'
+    return 'oral'
+
+
+# ---------------------------------------------------------------------------
 # Topic header heuristic
 # ---------------------------------------------------------------------------
 
@@ -345,9 +496,46 @@ class AbstractBookParser:
                     })
         return lines
 
+    def _detect_layout(self, lines):
+        """Pick the segmentation strategy from how codes are typeset.
+
+        First layout: the code and title share one bold line, so a bold line's
+        first token matches CODE_RE.
+        Second layout: the code sits alone on its own non-bold line, matching
+        NEW_CODE_RE. Whichever signal dominates wins; ties and empty documents
+        fall back to the first layout so already-seeded books are unaffected.
+        """
+        code_with_title = 0
+        code_on_own_line = 0
+        for line in lines:
+            spans = line['spans']
+            full = line_text(spans)
+            if not full:
+                continue
+            non_empty = [s for s in spans if stext(s)]
+            if not non_empty:
+                continue
+            if NEW_CODE_RE.match(full) and not any(is_bold(s) for s in non_empty):
+                code_on_own_line += 1
+                continue
+            if any_bold(spans):
+                first_tok = stext(non_empty[0]).rstrip('.')
+                if CODE_RE.match(first_tok):
+                    code_with_title += 1
+        # Require a few standalone codes before switching, so a stray match in a
+        # first-layout book cannot flip the whole parse.
+        if code_on_own_line >= 3 and code_on_own_line >= code_with_title:
+            return 'code_on_own_line'
+        return 'code_with_title'
+
     def parse(self):
         lines = self._extract_lines()
-        topics, abstracts, withdrawn = self._segment(lines)
+        layout = self._detect_layout(lines)
+        self._flag('layout_detected', layout)
+        if layout == 'code_on_own_line':
+            topics, abstracts, withdrawn = self._segment_new(lines)
+        else:
+            topics, abstracts, withdrawn = self._segment(lines)
         return {
             'meeting': {
                 'slug': 'TBD',
@@ -511,6 +699,137 @@ class AbstractBookParser:
 
         flush()
         return topics, abstracts, withdrawn
+
+    def _segment_new(self, lines):
+        """Segment a code-on-own-line book (second layout).
+
+        Flow per abstract: a lone non-bold code line, then one or more bold title
+        lines, then author lines (refs are small spans), then either a numbered
+        affiliation block (lines that open with a small ordinal) or a single
+        unnumbered institution line, then the body.
+
+        Topics are not captured for this layout: these books group by the code
+        prefix (undergraduate, graduate, faculty theme) rather than a separate
+        topic taxonomy, and the section headers do not map cleanly to per-abstract
+        categories. Every abstract carries topic=None, so the importer stores no
+        category. This keeps the output import-ready without a manual pass.
+        """
+        abstracts = []
+        withdrawn = []
+        current = None
+        # state: 'title' | 'authors' | 'affiliations' | 'body'
+        state = None
+
+        def flush():
+            nonlocal current
+            if current is None:
+                return
+            ab = current
+            current = None
+            saw_ref = ab.pop('_saw_ref', False)
+            ab['title_html'] = ' '.join(ab.pop('_title_html_parts')).strip()
+            ab['body_html'] = ' '.join(ab.pop('_body_parts')).strip()
+            ab['affiliations'] = parse_affiliations(ab.pop('_affil_raw'))
+            if CAREER_RE.search(ab['title_html'] + ' ' + ab['body_html']):
+                ab['_rflags'].append('career_talk')
+            if ab['_rflags']:
+                self._flag('review_needed', '; '.join(ab['_rflags']) + f' [{ab.get("code") or "no-code"}]')
+            del ab['_rflags']
+            if not (ab['title_html'] or ab['body_html']):
+                return
+            if WITHDRAWN_RE.search(ab['title_html']) or WITHDRAWN_RE.search(ab['body_html']):
+                withdrawn.append(ab)
+            else:
+                abstracts.append(ab)
+
+        # Skip front matter up to the first abstracts section, when present.
+        start = 0
+        for i, line in enumerate(lines):
+            if 'ORAL PRESENTATION ABSTRACTS' in line_text(line['spans']):
+                start = i
+                break
+
+        for line in lines[start:]:
+            spans = line['spans']
+            full = line_text(spans)
+            if not full:
+                continue
+
+            # A lone code line opens a new abstract.
+            if NEW_CODE_RE.match(full):
+                flush()
+                code = re.sub(r'\s+', ' ', full).strip()
+                current = {
+                    'code': code,
+                    'level': infer_level_new(code),
+                    'format': infer_format_new(code),
+                    'topic': None,
+                    'title_html': '',
+                    '_title_html_parts': [],
+                    'authors': [],
+                    'affiliations': [],
+                    '_affil_raw': [],
+                    'body_html': '',
+                    '_body_parts': [],
+                    '_rflags': [],
+                    '_saw_ref': False,
+                }
+                state = 'title'
+                continue
+
+            if current is None:
+                continue
+
+            first_span = next((s for s in spans if stext(s)), None)
+            starts_small = first_span is not None and is_small(first_span)
+            looks_affil = any(k in full for k in INST_KEYWORDS) and len(full) < 200
+
+            if state == 'title':
+                if any(is_bold(s) for s in spans if stext(s)):
+                    current['_title_html_parts'].append(spans_to_html_sized(spans))
+                    continue
+                state = 'authors'
+
+            if state == 'authors':
+                if starts_small:
+                    state = 'affiliations'
+                elif not current['authors']:
+                    authors, rflags, sref = parse_author_line_sized(spans)
+                    current['authors'].extend(authors)
+                    current['_rflags'].extend(rflags)
+                    current['_saw_ref'] = current['_saw_ref'] or sref
+                    continue
+                elif looks_affil and not current['_saw_ref']:
+                    # Single unnumbered affiliation: one institution line, then body.
+                    current['_affil_raw'].append(full)
+                    state = 'body'
+                    continue
+                else:
+                    authors, rflags, sref = parse_author_line_sized(spans)
+                    current['authors'].extend(authors)
+                    current['_rflags'].extend(rflags)
+                    current['_saw_ref'] = current['_saw_ref'] or sref
+                    continue
+
+            if state == 'affiliations':
+                if starts_small:
+                    current['_affil_raw'].append(full)
+                    current['_affil_seen'] = True
+                    continue
+                # A short trailing institution line wraps from the block above.
+                is_tail = current.get('_affil_seen') and looks_affil and len(full) < 80 and ',' in full
+                if is_tail:
+                    current['_affil_raw'].append(full)
+                    current['_affil_seen'] = False
+                    continue
+                state = 'body'
+
+            body_html = spans_to_html_sized(spans)
+            if body_html:
+                current['_body_parts'].append(body_html)
+
+        flush()
+        return [], abstracts, withdrawn
 
 
 # ---------------------------------------------------------------------------
