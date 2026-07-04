@@ -29,6 +29,8 @@ try:
 except ImportError:
     HAS_OCR = False
 
+RUN_OCR = False  # OCR is opt-in via --ocr; rasterizing/OCR per italic title is slow at book scale
+
 # ---------------------------------------------------------------------------
 # PyMuPDF span flag bitmask
 # ---------------------------------------------------------------------------
@@ -411,7 +413,7 @@ class AbstractBookParser:
             state = 'authors'
 
             review_flags = []
-            if HAS_OCR and title_has_italics and bbox:
+            if RUN_OCR and HAS_OCR and title_has_italics and bbox:
                 ocr = ocr_title_region(self.doc, page_num, bbox)
                 if ocr:
                     review_flags.append('title_ocr_available')
@@ -516,11 +518,15 @@ class AbstractBookParser:
 # ---------------------------------------------------------------------------
 
 def main():
-    if len(sys.argv) != 3:
-        print(f'Usage: python3 {Path(sys.argv[0]).name} <input_pdf> <output_json>', file=sys.stderr)
+    global RUN_OCR
+    args = [a for a in sys.argv[1:] if a != '--ocr']
+    RUN_OCR = '--ocr' in sys.argv[1:]
+
+    if len(args) != 2:
+        print(f'Usage: python3 {Path(sys.argv[0]).name} <input_pdf> <output_json> [--ocr]', file=sys.stderr)
         sys.exit(1)
 
-    pdf_path, out_path = sys.argv[1], sys.argv[2]
+    pdf_path, out_path = args[0], args[1]
 
     if not Path(pdf_path).exists():
         sys.exit(f'PDF not found: {pdf_path}')
