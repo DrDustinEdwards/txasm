@@ -443,7 +443,7 @@ export interface ProgramItemResolved {
   startsAt: Date | null;
   note: string | null;
   abstractId: string | null;
-  abstractNumber: number | null; // matches the abstract book numbering
+  abstractCode: string | null; // book_entry.code from the published book; null until publish
   abstractTitle: string | null; // sanitized HTML
   presentingAuthorName: string | null;
   speakerId: string | null;
@@ -466,7 +466,7 @@ export interface ProgramSessionResolved {
 
 export interface ProgramAbstractOption {
   abstractId: string;
-  number: number;
+  code: string | null; // book_entry.code from the published book, null until publish
   title: string; // sanitized HTML
   presentingAuthorName: string | null;
 }
@@ -3136,12 +3136,53 @@ export function createDataAccess(db: DB) {
     },
   };
 
-  // Accepted abstracts for an edition, numbered the same way the abstract book
-  // numbers them (category sortOrder then name, uncategorized last, title-sorted,
-  // then 1..n), so the program and the book reference the same numbers.
-  async function numberedAcceptedAbstracts(
+  // Presentation codes from the edition's published abstract book, keyed by
+  // abstract id. Empty until the book is published: the program never computes
+  // its own numbering, it only mirrors book_entry.code (the board number for a
+  // poster, the speaking order for an oral). Draft books stay invisible here, so
+  // rearranging before publish never shows a code that could still change.
+  async function publishedBookCodes(
     editionId: string,
-  ): Promise<ProgramAbstractOption[]> {
+  ): Promise<Map<string, string>> {
+    const codes = new Map<string, string>();
+    const book = (
+      await db
+        .select({
+          id: schema.abstractBook.id,
+          status: schema.abstractBook.status,
+        })
+        .from(schema.abstractBook)
+        .where(eq(schema.abstractBook.editionId, editionId))
+        .limit(1)
+    )[0];
+    if (!book || book.status !== "published") return codes;
+    const entries = await db
+      .select({
+        abstractId: schema.bookEntry.abstractId,
+        code: schema.bookEntry.code,
+        included: schema.bookEntry.included,
+      })
+      .from(schema.bookEntry)
+      .where(eq(schema.bookEntry.bookId, book.id));
+    for (const e of entries) {
+      if (e.included && e.code) codes.set(e.abstractId, e.code);
+    }
+    return codes;
+  }
+
+  // Accepted abstracts for an edition in the book's default order (category
+  // sortOrder then name, uncategorized last, title-sorted within a group). Used
+  // to order the add-to-session picker; it carries no number of its own, the
+  // displayed code always comes from publishedBookCodes.
+  async function acceptedAbstractsInBookOrder(
+    editionId: string,
+  ): Promise<
+    Array<{
+      abstractId: string;
+      title: string;
+      presentingAuthorName: string | null;
+    }>
+  > {
     const absRows = await db
       .select({
         id: schema.abstract.id,
@@ -3220,9 +3261,8 @@ export function createDataAccess(db: DB) {
       ordered.push(...[...uncategorized].sort(byTitle));
     }
 
-    return ordered.map((row, i) => ({
+    return ordered.map((row) => ({
       abstractId: row.id,
-      number: i + 1,
       title: row.title,
       presentingAuthorName: presentingName(row.id),
     }));
@@ -3397,16 +3437,16 @@ export function createDataAccess(db: DB) {
   }
 
   // Turn raw session and item rows into the resolved shape the builder and the
-  // public view render. Abstract items get their number from the book numbering
-  // and their title and presenting author from a direct fetch, so an item whose
-  // abstract is no longer accepted still shows a title (with a null number).
+  // public view render. Abstract items get their presentation code from the
+  // published book's book_entry.code (absent until the book is published) and
+  // their title and presenting author from a direct fetch, so an item whose
+  // abstract is no longer accepted still shows a title (with a null code).
   async function resolveProgram(
     editionId: string,
     sessions: Array<typeof schema.programSession.$inferSelect>,
     items: Array<typeof schema.programItem.$inferSelect>,
   ): Promise<ProgramSessionResolved[]> {
-    const numbered = await numberedAcceptedAbstracts(editionId);
-    const numberById = new Map(numbered.map((n) => [n.abstractId, n.number]));
+    const codeById = await publishedBookCodes(editionId);
 
     // Invited-speaker items: resolve name and talk title from a direct fetch, so
     // an item whose speaker was later removed (speaker_id set null) still renders
@@ -3510,8 +3550,8 @@ export function createDataAccess(db: DB) {
             startsAt: item.startsAt,
             note: item.note,
             abstractId: item.abstractId,
-            abstractNumber: item.abstractId
-              ? numberById.get(item.abstractId) ?? null
+            abstractCode: item.abstractId
+              ? codeById.get(item.abstractId) ?? null
               : null,
             abstractTitle: item.abstractId
               ? titleById.get(item.abstractId) ?? null
@@ -3800,8 +3840,9 @@ export function createDataAccess(db: DB) {
       editionId: string,
     ): Promise<ProgramAbstractOption[]> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const numbered = await numberedAcceptedAbstracts(editionId);
-      if (numbered.length === 0) return [];
+      const ordered = await acceptedAbstractsInBookOrder(editionId);
+      if (ordered.length === 0) return [];
+      const codes = await publishedBookCodes(editionId);
       const placed = await db
         .select({ abstractId: schema.programItem.abstractId })
         .from(schema.programItem)
@@ -3813,7 +3854,14 @@ export function createDataAccess(db: DB) {
       const placedSet = new Set(
         placed.map((p) => p.abstractId).filter((x): x is string => x !== null),
       );
-      return numbered.filter((n) => !placedSet.has(n.abstractId));
+      return ordered
+        .filter((n) => !placedSet.has(n.abstractId))
+        .map((n) => ({
+          abstractId: n.abstractId,
+          code: codes.get(n.abstractId) ?? null,
+          title: n.title,
+          presentingAuthorName: n.presentingAuthorName,
+        }));
     },
 
     async addAbstract(

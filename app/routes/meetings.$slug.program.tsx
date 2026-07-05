@@ -100,9 +100,9 @@ function ProgramItemView({
         <KindBadge kind={item.kind} />
         {item.abstractId ? (
           <p>
-            {item.abstractNumber ? (
+            {item.abstractCode ? (
               <span className="font-medium text-gray-600 dark:text-gray-400">
-                #{item.abstractNumber}{" "}
+                {item.abstractCode}{" "}
               </span>
             ) : null}
             <span

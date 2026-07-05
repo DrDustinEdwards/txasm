@@ -79,15 +79,15 @@ function itemBlock(item: ProgramSessionResolved["items"][number]): string {
   const kind = `<span class="kind">${escapeHtml(programKindLabel(item.kind))}</span>`;
   let body: string;
   if (item.abstractId) {
-    const number = item.abstractNumber
-      ? `<span class="item-number">#${item.abstractNumber}</span> `
+    const code = item.abstractCode
+      ? `<span class="item-number">${escapeHtml(item.abstractCode)}</span> `
       : "";
     // abstractTitle is stored sanitized HTML; place it verbatim.
     const title = `<span class="item-title">${item.abstractTitle ?? ""}</span>`;
     const author = item.presentingAuthorName
       ? `<span class="item-author"> ${escapeHtml(item.presentingAuthorName)}</span>`
       : "";
-    body = `${number}${title}${author}`;
+    body = `${code}${title}${author}`;
   } else if (item.speakerId) {
     const name = `<span class="item-title">${escapeHtml(item.speakerName ?? "Invited speaker")}</span>`;
     const talk = item.speakerTalkTitle

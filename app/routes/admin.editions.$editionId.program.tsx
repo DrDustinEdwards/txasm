@@ -517,8 +517,8 @@ function ItemRow({
           </span>
           {item.abstractId ? (
             <p>
-              {item.abstractNumber ? (
-                <span className="font-medium">#{item.abstractNumber} </span>
+              {item.abstractCode ? (
+                <span className="font-medium">{item.abstractCode} </span>
               ) : null}
               <span
                 dangerouslySetInnerHTML={{
@@ -700,7 +700,8 @@ function AddItemForms({
               </option>
               {unplaced.map((option) => (
                 <option key={option.abstractId} value={option.abstractId}>
-                  #{option.number} {extractPlainText(option.title)}
+                  {option.code ? `${option.code} ` : ""}
+                  {extractPlainText(option.title)}
                   {option.presentingAuthorName
                     ? ` (${option.presentingAuthorName})`
                     : ""}
@@ -1243,7 +1244,10 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             <h3 className="text-base font-medium">Add a session to this day</h3>
             <Form method="post" className="space-y-3" noValidate>
               <input type="hidden" name="intent" value="session-create" />
+              {/* Keyed by day so the date prefill remounts when the tab changes;
+                  an unkeyed defaultValue would keep the previous day's date. */}
               <SessionFields
+                key={selectedDay}
                 defaultDate={
                   selectedDay === NO_DATE_KEY ? "" : selectedDay ?? ""
                 }
