@@ -40,6 +40,11 @@ async function renderWithBrowser(
     timeout: LOAD_TIMEOUT_MS,
   });
 
+  // Wait for the self-hosted book fonts to finish loading before we treat the
+  // layout as final, so Paged.js measures with the real serif metrics and never
+  // paginates against a fallback face.
+  await page.evaluate("document.fonts.ready");
+
   // networkidle0 fires once the CDN script has loaded, but Paged.js keeps
   // working after that, so wait for the completion hook it sets on the root.
   await page.waitForFunction(

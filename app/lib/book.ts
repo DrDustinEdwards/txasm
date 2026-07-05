@@ -13,15 +13,9 @@ import type {
   BookAuthor,
   BookData,
 } from "./data-access";
+import { coverArt, coverFontFaces, coverStyles } from "./cover";
+import { escapeHtml } from "./format";
 import { isEmptyRichText } from "./richtext";
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 // Escape a string for use inside a CSS string literal (the running header).
 function escapeCssString(value: string): string {
@@ -170,29 +164,28 @@ function authorIndex(data: BookData): string {
 }
 
 function titlePage(data: BookData): string {
-  const dates = formatMeetingDates(
-    data.edition.meetingStartsAt,
-    data.edition.meetingEndsAt,
-  );
-  const venue = joinParts([data.edition.venueName, data.edition.city]);
-  return `<section class="title-page">
-  <h1 class="book-title">${escapeHtml(data.edition.name)}</h1>
-  <p class="book-subtitle">Abstract Book</p>
-  ${dates ? `<p class="book-dates">${escapeHtml(dates)}</p>` : ""}
-  ${venue ? `<p class="book-venue">${escapeHtml(venue)}</p>` : ""}
-  <p class="book-legend">Presenting authors are shown in bold. An asterisk marks the corresponding author.</p>
-</section>`;
+  return coverArt({
+    meetingName: data.edition.name,
+    dates: formatMeetingDates(
+      data.edition.meetingStartsAt,
+      data.edition.meetingEndsAt,
+    ),
+    title: "Abstract Book",
+  });
 }
 
 function printStyles(meetingName: string): string {
   const header = escapeCssString(meetingName);
   return `
+    ${coverFontFaces()}
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
-    html { font-family: Georgia, "Times New Roman", serif; color: #111; }
+    html { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; color: #111; }
     body { margin: 0; font-size: 10.5pt; line-height: 1.45; }
-    h1, h2, h3, h4 { font-family: "Helvetica Neue", Arial, sans-serif; color: #111; }
+    h1, h2, h3, h4 { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; color: #111; }
     sup { font-size: 0.7em; line-height: 0; }
+
+    ${coverStyles()}
 
     @page {
       size: A4;
@@ -202,13 +195,9 @@ function printStyles(meetingName: string): string {
     }
     @page :first { @top-center { content: none; } }
 
-    .title-page { text-align: center; break-after: page; padding-top: 40mm; }
-    .book-title { font-size: 26pt; margin: 0 0 6pt; }
-    .book-subtitle { font-size: 14pt; letter-spacing: 0.08em; text-transform: uppercase; color: #444; margin: 0 0 24pt; }
-    .book-dates, .book-venue { font-size: 12pt; margin: 2pt 0; }
-    .book-legend { margin-top: 40mm; font-size: 9pt; color: #555; }
+    .book-note { padding-top: 12pt; font-size: 11pt; color: #555; }
 
-    .page-title { font-size: 18pt; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin: 0 0 12pt; }
+    .page-title { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; font-size: 18pt; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin: 0 0 12pt; }
 
     .toc { break-after: page; }
     .toc-list, .toc-category ul { list-style: none; margin: 0; padding: 0; }
@@ -252,11 +241,8 @@ function printStyles(meetingName: string): string {
 }
 
 function emptyState(data: BookData): string {
-  return `<section class="title-page">
-  <h1 class="book-title">${escapeHtml(data.edition.name)}</h1>
-  <p class="book-subtitle">Abstract Book</p>
-  <p class="book-legend">No accepted abstracts for this meeting yet. The book fills in once decisions are recorded.</p>
-</section>`;
+  return `${titlePage(data)}
+<section class="empty-book"><p class="book-note">No accepted abstracts for this meeting yet. The book fills in once decisions are recorded.</p></section>`;
 }
 
 export function renderBook(data: BookData): string {

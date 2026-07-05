@@ -15,15 +15,9 @@ import type {
   SpeakerPublic,
   SponsorPublic,
 } from "./data-access";
+import { coverArt, coverFontFaces, coverStyles } from "./cover";
+import { escapeHtml } from "./format";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 // Escape a string for use inside a CSS string literal (the running header).
 function escapeCssString(value: string): string {
@@ -204,30 +198,28 @@ function sponsorsSection(sponsors: SponsorPublic[]): string {
 }
 
 function titlePage(data: ProgramBookData): string {
-  const dates = formatMeetingDates(
-    data.meeting.meetingStartsAt,
-    data.meeting.meetingEndsAt,
-  );
-  const venue = joinParts([data.meeting.venueName, data.meeting.city]);
-  const org = data.meeting.orgFullName;
-  return `<section class="title-page">
-  <h1 class="doc-title">${escapeHtml(data.meeting.name)}</h1>
-  <p class="doc-subtitle">Program</p>
-  ${dates ? `<p class="doc-dates">${escapeHtml(dates)}</p>` : ""}
-  ${venue ? `<p class="doc-venue">${escapeHtml(venue)}</p>` : ""}
-  ${org ? `<p class="doc-org">${escapeHtml(org)}</p>` : ""}
-</section>`;
+  return coverArt({
+    meetingName: data.meeting.name,
+    dates: formatMeetingDates(
+      data.meeting.meetingStartsAt,
+      data.meeting.meetingEndsAt,
+    ),
+    title: "Program",
+  });
 }
 
 function printStyles(meetingName: string): string {
   const header = escapeCssString(meetingName);
   return `
+    ${coverFontFaces()}
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
     html { font-family: Georgia, "Times New Roman", serif; color: #111; }
     body { margin: 0; font-size: 10.5pt; line-height: 1.45; }
     h1, h2, h3, h4 { font-family: "Helvetica Neue", Arial, sans-serif; color: #111; }
     sup { font-size: 0.7em; line-height: 0; }
+
+    ${coverStyles()}
 
     @page {
       size: A4;
@@ -237,11 +229,7 @@ function printStyles(meetingName: string): string {
     }
     @page :first { @top-center { content: none; } }
 
-    .title-page { text-align: center; break-after: page; padding-top: 40mm; }
-    .doc-title { font-size: 26pt; margin: 0 0 6pt; }
-    .doc-subtitle { font-size: 14pt; letter-spacing: 0.08em; text-transform: uppercase; color: #444; margin: 0 0 24pt; }
-    .doc-dates, .doc-venue { font-size: 12pt; margin: 2pt 0; }
-    .doc-org { margin-top: 24pt; font-size: 11pt; color: #555; }
+    .doc-note { padding-top: 12pt; font-size: 11pt; color: #555; }
 
     .page-title { font-size: 18pt; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin: 0 0 12pt; }
 
@@ -291,11 +279,8 @@ function printStyles(meetingName: string): string {
 }
 
 function emptyState(data: ProgramBookData): string {
-  return `<section class="title-page">
-  <h1 class="doc-title">${escapeHtml(data.meeting.name)}</h1>
-  <p class="doc-subtitle">Program</p>
-  <p class="doc-org">The schedule has no sessions yet. Build the program, then generate this document.</p>
-</section>`;
+  return `${titlePage(data)}
+<section class="empty-program"><p class="doc-note">The schedule has no sessions yet. Build the program, then generate this document.</p></section>`;
 }
 
 export function renderProgramBook(data: ProgramBookData): string {
