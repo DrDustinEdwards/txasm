@@ -3,7 +3,9 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
+  ABSTRACT_FORMAT_LABELS,
   ABSTRACT_FORMATS,
+  ABSTRACT_LEVEL_LABELS,
   ABSTRACT_LEVELS,
   CONFLICT_REASONS,
   DECISION_OUTCOMES,
@@ -39,6 +41,7 @@ import {
   sanitizeBody,
   sanitizeTitle,
 } from "./richtext";
+import { computeBookCodes, type NumberingEntry } from "./book-numbering";
 
 // Default hard word limit for the abstract body when a meeting sets none. Named
 // config lives in ./vocab; this alias keeps the existing call sites.
@@ -258,6 +261,86 @@ export interface BookData {
   categories: BookCategory[];
   authorIndex: BookIndexEntry[];
   abstractCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// Book builder (new-meeting arrangement). The chair generates a draft from the
+// accepted abstracts, drag-drops them within and between sections, and publishes.
+// Codes live on book_entry (computed by ./book-numbering), never on abstract.code.
+// BookView is the editor's read model; BookRenderData is what the pure arranged
+// renderer in ./book consumes on preview and publish.
+// ---------------------------------------------------------------------------
+
+export interface BookEntryView {
+  entryId: string;
+  abstractId: string;
+  code: string | null; // live in draft, frozen on publish; null for null-level items
+  included: boolean;
+  title: string; // sanitized HTML
+  presentingAuthorName: string | null;
+  level: AbstractLevel | null;
+  levelLabel: string | null;
+  format: AbstractFormat | null; // effective format (decision presentation type, else abstract.format)
+  formatLabel: string | null;
+}
+
+export interface BookSectionView {
+  sectionId: string;
+  title: string;
+  entries: BookEntryView[];
+}
+
+export interface BookView {
+  bookId: string;
+  editionId: string;
+  editionName: string;
+  status: "draft" | "published";
+  publishedAt: Date | null;
+  sections: BookSectionView[];
+  includedCount: number;
+}
+
+// The desired arrangement the editor persists: sections in order, each listing
+// its entry ids in order. Section order is the array order.
+export interface BookArrangementInput {
+  sections: Array<{ sectionId: string; entryIds: string[] }>;
+}
+
+export interface BookRenderEntry {
+  code: string | null;
+  title: string; // sanitized HTML
+  background: string | null;
+  methods: string | null;
+  results: string | null;
+  conclusions: string | null;
+  bodyText: string | null;
+  presentationType: PresentationType | null;
+  authors: BookAuthor[];
+  affiliations: BookAffiliation[];
+}
+
+export interface BookRenderSection {
+  id: string; // anchor id for the TOC target-counter cross-reference
+  title: string;
+  codeRange: string | null; // e.g. "UP 1-12", or null when the section has no codes
+  entries: BookRenderEntry[];
+}
+
+export interface BookRenderIndexEntry {
+  name: string; // "First Last"
+  codes: string[]; // the codes this author appears in, book order
+}
+
+export interface BookRenderData {
+  edition: {
+    name: string;
+    meetingStartsAt: Date | null;
+    meetingEndsAt: Date | null;
+  };
+  status: "draft" | "published";
+  sections: BookRenderSection[];
+  authorIndex: BookRenderIndexEntry[];
+  entryCount: number; // included entries
 }
 
 // The submission form sends the whole author and affiliation lists; the
@@ -2302,6 +2385,298 @@ export function createDataAccess(db: DB) {
     },
   };
 
+  // Split an array into fixed-size chunks, to keep bulk inserts under SQLite's
+  // bound-parameter ceiling.
+  function chunkList<T>(items: T[], size: number): T[][] {
+    const out: T[][] = [];
+    for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+    return out;
+  }
+
+  // Starting label for a (level, format, category) section, e.g. "Undergraduate
+  // Posters" or "Graduate Orals - Medical Microbiology". The chair can rename a
+  // section after generate; this is only the derived starting label.
+  function bookSectionLabel(
+    level: AbstractLevel | null,
+    format: AbstractFormat | null,
+    categoryName: string | null,
+  ): string {
+    const levelPart = level ? ABSTRACT_LEVEL_LABELS[level] : null;
+    const formatPart = format ? (format === "poster" ? "Posters" : "Orals") : null;
+    const base =
+      [levelPart, formatPart].filter((p) => p).join(" ") || "Presentations";
+    return categoryName ? `${base} - ${categoryName}` : base;
+  }
+
+  // A compact per-section code range for the TOC nicety, e.g. "UP 1-12". A
+  // section is one (level, format) bucket, so its codes share one prefix; returns
+  // null when the section has no codes or mixes prefixes.
+  function bookSectionCodeRange(codes: Array<string | null>): string | null {
+    const parsed = codes
+      .filter((c): c is string => Boolean(c))
+      .map((c) => {
+        const m = c.match(/^([A-Za-z]+)(\d+)$/);
+        return m ? { prefix: m[1], n: Number(m[2]) } : null;
+      })
+      .filter((p): p is { prefix: string; n: number } => p !== null);
+    if (parsed.length === 0) return null;
+    const prefix = parsed[0].prefix;
+    if (!parsed.every((p) => p.prefix === prefix)) return null;
+    const nums = parsed.map((p) => p.n);
+    const min = Math.min(...nums);
+    const max = Math.max(...nums);
+    return min === max ? `${prefix} ${min}` : `${prefix} ${min}-${max}`;
+  }
+
+  // Per-abstract book parts (authors with affiliation ordinals, affiliation
+  // blocks, decided presentation type, presenting author name) for a set of
+  // accepted abstracts. Shared by the builder read model and the arranged
+  // renderer, mirroring getBookData's assembly.
+  async function assembleBookAbstracts(abstractIds: string[]): Promise<
+    Map<
+      string,
+      {
+        authors: BookAuthor[];
+        affiliations: BookAffiliation[];
+        presentationType: PresentationType | null;
+        presentingAuthorName: string | null;
+      }
+    >
+  > {
+    const out = new Map<
+      string,
+      {
+        authors: BookAuthor[];
+        affiliations: BookAffiliation[];
+        presentationType: PresentationType | null;
+        presentingAuthorName: string | null;
+      }
+    >();
+    if (abstractIds.length === 0) return out;
+
+    const authorRows = await db
+      .select()
+      .from(schema.author)
+      .where(inArray(schema.author.abstractId, abstractIds))
+      .orderBy(schema.author.ordinal);
+    const affiliationRows = await db
+      .select()
+      .from(schema.affiliation)
+      .where(inArray(schema.affiliation.abstractId, abstractIds))
+      .orderBy(schema.affiliation.ordinal);
+    const links = authorRows.length
+      ? await db
+          .select()
+          .from(schema.authorAffiliation)
+          .where(
+            inArray(
+              schema.authorAffiliation.authorId,
+              authorRows.map((a) => a.id),
+            ),
+          )
+      : [];
+    const decisionRows = await db
+      .select({
+        abstractId: schema.decision.abstractId,
+        presentationType: schema.decision.presentationType,
+      })
+      .from(schema.decision)
+      .where(inArray(schema.decision.abstractId, abstractIds));
+
+    const affOrdinalById = new Map(affiliationRows.map((a) => [a.id, a.ordinal]));
+    const ordinalsByAuthor = new Map<string, number[]>();
+    for (const link of links) {
+      const ord = affOrdinalById.get(link.affiliationId);
+      if (ord === undefined) continue;
+      const list = ordinalsByAuthor.get(link.authorId) ?? [];
+      list.push(ord);
+      ordinalsByAuthor.set(link.authorId, list);
+    }
+    const affiliationsByAbstract = new Map<string, BookAffiliation[]>();
+    for (const a of affiliationRows) {
+      const list = affiliationsByAbstract.get(a.abstractId) ?? [];
+      list.push({
+        ordinal: a.ordinal,
+        institution: a.institution,
+        department: a.department,
+        city: a.city,
+        country: a.country,
+      });
+      affiliationsByAbstract.set(a.abstractId, list);
+    }
+    const authorsByAbstract = new Map<string, BookAuthor[]>();
+    for (const a of authorRows) {
+      const list = authorsByAbstract.get(a.abstractId) ?? [];
+      list.push({
+        firstName: a.firstName,
+        lastName: a.lastName,
+        isPresenting: a.isPresenting,
+        isCorresponding: a.isCorresponding,
+        affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort(
+          (x, y) => x - y,
+        ),
+      });
+      authorsByAbstract.set(a.abstractId, list);
+    }
+    const presentationByAbstract = new Map(
+      decisionRows.map((d) => [d.abstractId, d.presentationType]),
+    );
+    for (const id of abstractIds) {
+      const authors = authorsByAbstract.get(id) ?? [];
+      const presenter = authors.find((a) => a.isPresenting) ?? authors[0];
+      out.set(id, {
+        authors,
+        affiliations: affiliationsByAbstract.get(id) ?? [],
+        presentationType: presentationByAbstract.get(id) ?? null,
+        presentingAuthorName: presenter
+          ? `${presenter.firstName} ${presenter.lastName}`.trim() || null
+          : null,
+      });
+    }
+    return out;
+  }
+
+  // Recompute and persist every entry's code for a book, in book order (sections
+  // by sortOrder, then entries by sortOrder), via the pure ./book-numbering
+  // reflow. Called after any mutation that can shift a prefix run.
+  async function recomputeBookCodes(bookId: string): Promise<void> {
+    const sections = await db
+      .select()
+      .from(schema.bookSection)
+      .where(eq(schema.bookSection.bookId, bookId))
+      .orderBy(schema.bookSection.sortOrder);
+    const entries = await db
+      .select()
+      .from(schema.bookEntry)
+      .where(eq(schema.bookEntry.bookId, bookId));
+    if (entries.length === 0) return;
+
+    const absRows = await db
+      .select({
+        id: schema.abstract.id,
+        level: schema.abstract.level,
+        format: schema.abstract.format,
+      })
+      .from(schema.abstract)
+      .where(
+        inArray(
+          schema.abstract.id,
+          entries.map((e) => e.abstractId),
+        ),
+      );
+    const absById = new Map(absRows.map((a) => [a.id, a]));
+    const parts = await assembleBookAbstracts(entries.map((e) => e.abstractId));
+    const sectionOrder = new Map(sections.map((s, i) => [s.id, i]));
+
+    const ordered = [...entries].sort(
+      (a, b) =>
+        (sectionOrder.get(a.sectionId) ?? 0) -
+          (sectionOrder.get(b.sectionId) ?? 0) || a.sortOrder - b.sortOrder,
+    );
+    const numbering: NumberingEntry[] = ordered.map((e) => {
+      const abs = absById.get(e.abstractId);
+      return {
+        id: e.id,
+        level: abs?.level ?? null,
+        format: parts.get(e.abstractId)?.presentationType ?? abs?.format ?? null,
+        included: e.included,
+      };
+    });
+    const codes = computeBookCodes(numbering);
+    for (const e of ordered) {
+      const code = codes.get(e.id) ?? null;
+      if (code !== e.code) {
+        await db
+          .update(schema.bookEntry)
+          .set({ code, updatedAt: new Date() })
+          .where(eq(schema.bookEntry.id, e.id));
+      }
+    }
+  }
+
+  // The editor read model for a meeting's book, or null when none exists.
+  async function loadBookView(editionId: string): Promise<BookView | null> {
+    const bookRow = (
+      await db
+        .select()
+        .from(schema.abstractBook)
+        .where(eq(schema.abstractBook.editionId, editionId))
+        .limit(1)
+    )[0];
+    if (!bookRow) return null;
+    const ed = (
+      await db
+        .select({ name: schema.edition.name })
+        .from(schema.edition)
+        .where(eq(schema.edition.id, editionId))
+        .limit(1)
+    )[0];
+    const sections = await db
+      .select()
+      .from(schema.bookSection)
+      .where(eq(schema.bookSection.bookId, bookRow.id))
+      .orderBy(schema.bookSection.sortOrder);
+    const entries = await db
+      .select()
+      .from(schema.bookEntry)
+      .where(eq(schema.bookEntry.bookId, bookRow.id))
+      .orderBy(schema.bookEntry.sortOrder);
+
+    const absIds = entries.map((e) => e.abstractId);
+    const absRows = absIds.length
+      ? await db
+          .select({
+            id: schema.abstract.id,
+            title: schema.abstract.title,
+            level: schema.abstract.level,
+            format: schema.abstract.format,
+          })
+          .from(schema.abstract)
+          .where(inArray(schema.abstract.id, absIds))
+      : [];
+    const absById = new Map(absRows.map((a) => [a.id, a]));
+    const parts = await assembleBookAbstracts(absIds);
+
+    const entriesBySection = new Map<string, BookEntryView[]>();
+    let includedCount = 0;
+    for (const e of entries) {
+      const abs = absById.get(e.abstractId);
+      const meta = parts.get(e.abstractId);
+      const level = abs?.level ?? null;
+      const format = meta?.presentationType ?? abs?.format ?? null;
+      if (e.included) includedCount += 1;
+      const view: BookEntryView = {
+        entryId: e.id,
+        abstractId: e.abstractId,
+        code: e.code,
+        included: e.included,
+        title: abs?.title ?? "",
+        presentingAuthorName: meta?.presentingAuthorName ?? null,
+        level,
+        levelLabel: level ? ABSTRACT_LEVEL_LABELS[level] : null,
+        format,
+        formatLabel: format ? ABSTRACT_FORMAT_LABELS[format] : null,
+      };
+      const list = entriesBySection.get(e.sectionId) ?? [];
+      list.push(view);
+      entriesBySection.set(e.sectionId, list);
+    }
+
+    return {
+      bookId: bookRow.id,
+      editionId,
+      editionName: ed?.name ?? "",
+      status: bookRow.status,
+      publishedAt: bookRow.publishedAt,
+      sections: sections.map((s) => ({
+        sectionId: s.id,
+        title: s.title,
+        entries: entriesBySection.get(s.id) ?? [],
+      })),
+      includedCount,
+    };
+  }
+
   // Abstract book: assemble everything the printed proceedings need for one
   // meeting. Chair/admin only. The return is a plain data structure so the pure
   // renderBook in ./book is a function of it. Part B will read the same data.
@@ -2541,6 +2916,495 @@ export function createDataAccess(db: DB) {
         authorIndex,
         abstractCount: counter,
       };
+    },
+
+    // Generate (or regenerate) the draft book for a meeting from its accepted
+    // abstracts: bucket by (level, format, category) into sections, order each
+    // section alphabetically by presenting author last name, and assign codes.
+    // A published book is not clobbered; the chair reopens it first.
+    async generate(actor: Actor, editionId: string): Promise<BookView> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const ed = (
+        await db
+          .select({ id: schema.edition.id })
+          .from(schema.edition)
+          .where(eq(schema.edition.id, editionId))
+          .limit(1)
+      )[0];
+      if (!ed) throw new NotFoundError("meeting not found");
+
+      const existing = (
+        await db
+          .select()
+          .from(schema.abstractBook)
+          .where(eq(schema.abstractBook.editionId, editionId))
+          .limit(1)
+      )[0];
+      if (existing && existing.status === "published") {
+        throw new ValidationError(
+          "This book is published. Reopen it to edit before regenerating.",
+        );
+      }
+
+      const absRows = await db
+        .select({
+          id: schema.abstract.id,
+          title: schema.abstract.title,
+          level: schema.abstract.level,
+          format: schema.abstract.format,
+          categoryId: schema.abstract.categoryId,
+        })
+        .from(schema.abstract)
+        .where(
+          and(
+            eq(schema.abstract.editionId, editionId),
+            eq(schema.abstract.status, "accepted"),
+          ),
+        );
+
+      const parts = await assembleBookAbstracts(absRows.map((a) => a.id));
+      const categoryRows = await db
+        .select()
+        .from(schema.abstractCategory)
+        .where(eq(schema.abstractCategory.editionId, editionId));
+      const categoryById = new Map(categoryRows.map((c) => [c.id, c]));
+
+      type Row = (typeof absRows)[number];
+      const effFormat = (row: Row): AbstractFormat | null =>
+        parts.get(row.id)?.presentationType ?? row.format ?? null;
+      const presenter = (row: Row) => {
+        const authors = parts.get(row.id)?.authors ?? [];
+        return authors.find((a) => a.isPresenting) ?? authors[0] ?? null;
+      };
+
+      // Bucket accepted abstracts by (level, effective format, category).
+      const buckets = new Map<
+        string,
+        {
+          level: AbstractLevel | null;
+          format: AbstractFormat | null;
+          categoryId: string | null;
+          rows: Row[];
+        }
+      >();
+      for (const row of absRows) {
+        const format = effFormat(row);
+        const key = `${row.level ?? ""}|${format ?? ""}|${row.categoryId ?? ""}`;
+        const bucket =
+          buckets.get(key) ??
+          {
+            level: row.level,
+            format,
+            categoryId: row.categoryId ?? null,
+            rows: [],
+          };
+        bucket.rows.push(row);
+        buckets.set(key, bucket);
+      }
+
+      const levelIndex = (l: AbstractLevel | null) =>
+        l === null ? ABSTRACT_LEVELS.length : ABSTRACT_LEVELS.indexOf(l);
+      const formatIndex = (f: AbstractFormat | null) =>
+        f === "poster" ? 0 : f === "oral" ? 1 : 2;
+      const categoryIndex = (id: string | null) =>
+        id === null ? Number.MAX_SAFE_INTEGER : categoryById.get(id)?.sortOrder ?? 0;
+      const catName = (id: string | null) =>
+        id ? categoryById.get(id)?.name ?? null : null;
+
+      const orderedBuckets = [...buckets.values()].sort(
+        (a, b) =>
+          levelIndex(a.level) - levelIndex(b.level) ||
+          formatIndex(a.format) - formatIndex(b.format) ||
+          categoryIndex(a.categoryId) - categoryIndex(b.categoryId) ||
+          bookSectionLabel(a.level, a.format, catName(a.categoryId)).localeCompare(
+            bookSectionLabel(b.level, b.format, catName(b.categoryId)),
+            "en",
+            { sensitivity: "base" },
+          ),
+      );
+
+      // Starting order within a section: presenting author last name, then first
+      // name, then title.
+      for (const bucket of orderedBuckets) {
+        bucket.rows.sort((x, y) => {
+          const px = presenter(x);
+          const py = presenter(y);
+          return (
+            (px?.lastName ?? "").localeCompare(py?.lastName ?? "", "en", {
+              sensitivity: "base",
+            }) ||
+            (px?.firstName ?? "").localeCompare(py?.firstName ?? "", "en", {
+              sensitivity: "base",
+            }) ||
+            extractPlainText(x.title).localeCompare(
+              extractPlainText(y.title),
+              "en",
+              { sensitivity: "base" },
+            )
+          );
+        });
+      }
+
+      const bookId = existing?.id ?? crypto.randomUUID();
+      const sectionRows = orderedBuckets.map((bucket, i) => ({
+        id: crypto.randomUUID(),
+        bookId,
+        title: bookSectionLabel(bucket.level, bucket.format, catName(bucket.categoryId)),
+        sortOrder: i,
+      }));
+      const entryRows = orderedBuckets.flatMap((bucket, si) =>
+        bucket.rows.map((row, j) => ({
+          id: crypto.randomUUID(),
+          bookId,
+          sectionId: sectionRows[si].id,
+          abstractId: row.id,
+          sortOrder: j,
+          code: null as string | null,
+          included: true,
+        })),
+      );
+
+      if (existing) {
+        // Regenerate replaces a draft arrangement; deleting sections cascades to
+        // their entries.
+        await db
+          .delete(schema.bookSection)
+          .where(eq(schema.bookSection.bookId, bookId));
+        await db
+          .update(schema.abstractBook)
+          .set({ status: "draft", generatedById: actor.userId, updatedAt: new Date() })
+          .where(eq(schema.abstractBook.id, bookId));
+      } else {
+        await db.insert(schema.abstractBook).values({
+          id: bookId,
+          editionId,
+          status: "draft",
+          generatedById: actor.userId,
+        });
+      }
+      if (sectionRows.length) {
+        await db.insert(schema.bookSection).values(sectionRows);
+      }
+      for (const batch of chunkList(entryRows, 40)) {
+        await db.insert(schema.bookEntry).values(batch);
+      }
+      await recomputeBookCodes(bookId);
+
+      const view = await loadBookView(editionId);
+      if (!view) throw new NotFoundError("book not found after generate");
+      return view;
+    },
+
+    // The editor read model for a meeting's book, or null when none exists.
+    async get(actor: Actor, editionId: string): Promise<BookView | null> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      return loadBookView(editionId);
+    },
+
+    // Apply a drag-drop arrangement (sections in order, each with its entry ids
+    // in order), re-sequence positions, and reflow the affected prefix runs.
+    async reorder(
+      actor: Actor,
+      editionId: string,
+      arrangement: BookArrangementInput,
+    ): Promise<BookView> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const book = (
+        await db
+          .select()
+          .from(schema.abstractBook)
+          .where(eq(schema.abstractBook.editionId, editionId))
+          .limit(1)
+      )[0];
+      if (!book) throw new NotFoundError("no book for this meeting");
+      if (book.status === "published") {
+        throw new ValidationError("Reopen the book before editing.");
+      }
+
+      const sectionRows = await db
+        .select({ id: schema.bookSection.id })
+        .from(schema.bookSection)
+        .where(eq(schema.bookSection.bookId, book.id));
+      const validSections = new Set(sectionRows.map((s) => s.id));
+      const entryRows = await db
+        .select({ id: schema.bookEntry.id })
+        .from(schema.bookEntry)
+        .where(eq(schema.bookEntry.bookId, book.id));
+      const validEntries = new Set(entryRows.map((e) => e.id));
+
+      const placements: Array<{
+        entryId: string;
+        sectionId: string;
+        sortOrder: number;
+      }> = [];
+      const seen = new Set<string>();
+      for (const section of arrangement.sections) {
+        if (!validSections.has(section.sectionId)) {
+          throw new ValidationError("unknown section in arrangement");
+        }
+        section.entryIds.forEach((entryId, i) => {
+          if (!validEntries.has(entryId)) {
+            throw new ValidationError("unknown entry in arrangement");
+          }
+          if (seen.has(entryId)) {
+            throw new ValidationError("duplicate entry in arrangement");
+          }
+          seen.add(entryId);
+          placements.push({ entryId, sectionId: section.sectionId, sortOrder: i });
+        });
+      }
+      if (seen.size !== validEntries.size) {
+        throw new ValidationError("arrangement must include every entry once");
+      }
+
+      for (const p of placements) {
+        await db
+          .update(schema.bookEntry)
+          .set({ sectionId: p.sectionId, sortOrder: p.sortOrder, updatedAt: new Date() })
+          .where(eq(schema.bookEntry.id, p.entryId));
+      }
+      await recomputeBookCodes(book.id);
+
+      const view = await loadBookView(editionId);
+      if (!view) throw new NotFoundError("book not found");
+      return view;
+    },
+
+    // Exclude or re-include one entry (e.g. a post-acceptance withdrawal), then
+    // close or reopen the affected prefix run.
+    async setIncluded(
+      actor: Actor,
+      editionId: string,
+      entryId: string,
+      included: boolean,
+    ): Promise<BookView> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const book = (
+        await db
+          .select()
+          .from(schema.abstractBook)
+          .where(eq(schema.abstractBook.editionId, editionId))
+          .limit(1)
+      )[0];
+      if (!book) throw new NotFoundError("no book for this meeting");
+      if (book.status === "published") {
+        throw new ValidationError("Reopen the book before editing.");
+      }
+      const entry = (
+        await db
+          .select({ id: schema.bookEntry.id })
+          .from(schema.bookEntry)
+          .where(
+            and(
+              eq(schema.bookEntry.id, entryId),
+              eq(schema.bookEntry.bookId, book.id),
+            ),
+          )
+          .limit(1)
+      )[0];
+      if (!entry) throw new NotFoundError("entry not found");
+
+      await db
+        .update(schema.bookEntry)
+        .set({ included, updatedAt: new Date() })
+        .where(eq(schema.bookEntry.id, entryId));
+      await recomputeBookCodes(book.id);
+
+      const view = await loadBookView(editionId);
+      if (!view) throw new NotFoundError("book not found");
+      return view;
+    },
+
+    // The pure data the arranged renderer in ./book consumes on preview and
+    // publish: sections in order, included entries with their codes, ordered
+    // authors and numbered affiliations, sanitized title/body, and the
+    // all-authors-to-codes index. Excluded entries and empty sections are dropped.
+    async renderData(actor: Actor, editionId: string): Promise<BookRenderData> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const book = (
+        await db
+          .select()
+          .from(schema.abstractBook)
+          .where(eq(schema.abstractBook.editionId, editionId))
+          .limit(1)
+      )[0];
+      if (!book) throw new NotFoundError("no book for this meeting");
+      const ed = (
+        await db
+          .select({
+            name: schema.edition.name,
+            meetingStartsAt: schema.edition.meetingStartsAt,
+            meetingEndsAt: schema.edition.meetingEndsAt,
+          })
+          .from(schema.edition)
+          .where(eq(schema.edition.id, editionId))
+          .limit(1)
+      )[0];
+
+      const sections = await db
+        .select()
+        .from(schema.bookSection)
+        .where(eq(schema.bookSection.bookId, book.id))
+        .orderBy(schema.bookSection.sortOrder);
+      const allEntries = await db
+        .select()
+        .from(schema.bookEntry)
+        .where(eq(schema.bookEntry.bookId, book.id))
+        .orderBy(schema.bookEntry.sortOrder);
+      const entries = allEntries.filter((e) => e.included);
+
+      const absRows = entries.length
+        ? await db
+            .select()
+            .from(schema.abstract)
+            .where(
+              inArray(
+                schema.abstract.id,
+                entries.map((e) => e.abstractId),
+              ),
+            )
+        : [];
+      const absById = new Map(absRows.map((a) => [a.id, a]));
+      const parts = await assembleBookAbstracts(entries.map((e) => e.abstractId));
+
+      const bySection = new Map<string, typeof entries>();
+      for (const e of entries) {
+        const list = bySection.get(e.sectionId) ?? [];
+        list.push(e);
+        bySection.set(e.sectionId, list);
+      }
+
+      const renderSections: BookRenderSection[] = [];
+      for (const section of sections) {
+        const sectionEntries = (bySection.get(section.id) ?? []).sort(
+          (a, b) => a.sortOrder - b.sortOrder,
+        );
+        if (sectionEntries.length === 0) continue;
+        const renderEntries: BookRenderEntry[] = sectionEntries.map((e) => {
+          const abs = absById.get(e.abstractId);
+          const meta = parts.get(e.abstractId);
+          return {
+            code: e.code,
+            title: abs?.title ?? "",
+            background: abs?.background ?? null,
+            methods: abs?.methods ?? null,
+            results: abs?.results ?? null,
+            conclusions: abs?.conclusions ?? null,
+            bodyText: abs?.bodyText ?? null,
+            presentationType: meta?.presentationType ?? null,
+            authors: meta?.authors ?? [],
+            affiliations: meta?.affiliations ?? [],
+          };
+        });
+        renderSections.push({
+          id: section.id,
+          title: section.title,
+          codeRange: bookSectionCodeRange(sectionEntries.map((e) => e.code)),
+          entries: renderEntries,
+        });
+      }
+
+      // All-authors index: each author to the codes they appear in, alphabetical
+      // by last name. Built from arrangement data (codes), not pagination.
+      const indexByKey = new Map<
+        string,
+        { name: string; lastName: string; firstName: string; codes: string[] }
+      >();
+      for (const section of renderSections) {
+        for (const entry of section.entries) {
+          if (!entry.code) continue;
+          for (const author of entry.authors) {
+            const first = author.firstName.trim();
+            const last = author.lastName.trim();
+            if (!first && !last) continue;
+            const key = `${last.toLowerCase()} ${first.toLowerCase()}`;
+            const existingEntry =
+              indexByKey.get(key) ??
+              {
+                name: `${first} ${last}`.trim(),
+                lastName: last,
+                firstName: first,
+                codes: [] as string[],
+              };
+            if (!existingEntry.codes.includes(entry.code)) {
+              existingEntry.codes.push(entry.code);
+            }
+            indexByKey.set(key, existingEntry);
+          }
+        }
+      }
+      const authorIndex: BookRenderIndexEntry[] = [...indexByKey.values()]
+        .sort(
+          (a, b) =>
+            a.lastName.localeCompare(b.lastName, "en", { sensitivity: "base" }) ||
+            a.firstName.localeCompare(b.firstName, "en", { sensitivity: "base" }),
+        )
+        .map((entry) => ({ name: entry.name, codes: entry.codes }));
+
+      return {
+        edition: {
+          name: ed?.name ?? "",
+          meetingStartsAt: ed?.meetingStartsAt ?? null,
+          meetingEndsAt: ed?.meetingEndsAt ?? null,
+        },
+        status: book.status,
+        sections: renderSections,
+        authorIndex,
+        entryCount: entries.length,
+      };
+    },
+
+    // Freeze the book: store the rendered HTML (the caller renders it from
+    // renderData through the pure ./book renderer, which stays out of this data
+    // boundary) and flip status to published. The prior publishedHtml is kept
+    // until this succeeds, so a book is never left without a render.
+    async publish(
+      actor: Actor,
+      editionId: string,
+      publishedHtml: string,
+    ): Promise<{ status: "published"; publishedAt: Date }> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const book = (
+        await db
+          .select()
+          .from(schema.abstractBook)
+          .where(eq(schema.abstractBook.editionId, editionId))
+          .limit(1)
+      )[0];
+      if (!book) throw new NotFoundError("no book for this meeting");
+      const now = new Date();
+      await db
+        .update(schema.abstractBook)
+        .set({
+          status: "published",
+          publishedHtml,
+          publishedAt: now,
+          generatedById: actor.userId,
+          updatedAt: now,
+        })
+        .where(eq(schema.abstractBook.id, book.id));
+      return { status: "published", publishedAt: now };
+    },
+
+    // Reopen a published book for editing. The last publishedHtml is kept until a
+    // successful re-publish.
+    async reopen(actor: Actor, editionId: string): Promise<BookView> {
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
+      const book = (
+        await db
+          .select()
+          .from(schema.abstractBook)
+          .where(eq(schema.abstractBook.editionId, editionId))
+          .limit(1)
+      )[0];
+      if (!book) throw new NotFoundError("no book for this meeting");
+      await db
+        .update(schema.abstractBook)
+        .set({ status: "draft", updatedAt: new Date() })
+        .where(eq(schema.abstractBook.id, book.id));
+      const view = await loadBookView(editionId);
+      if (!view) throw new NotFoundError("book not found");
+      return view;
     },
   };
 

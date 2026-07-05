@@ -634,6 +634,77 @@ export const document = sqliteTable(
 );
 
 // ---------------------------------------------------------------------------
+// Abstract book layer. The chair-driven book builder for NEW meetings: one
+// abstract_book per edition holds the arrangement; book_section groups accepted
+// abstracts into the derived sections; book_entry is one abstract's placement,
+// carrying its computed presentation code (per-prefix running number) and its
+// position. Codes live here, never on abstract.code, which stays the archive's
+// printed record. publishedHtml is the frozen render stored on publish. Archive
+// abstracts never get a book row. See app/lib/book-numbering.ts for the reflow.
+// ---------------------------------------------------------------------------
+
+export const abstractBook = sqliteTable(
+  "abstract_book",
+  {
+    id: pk(),
+    editionId: text("edition_id")
+      .notNull()
+      .references(() => edition.id, { onDelete: "cascade" })
+      .unique(), // v1: one book per edition
+    status: text("status", { enum: ["draft", "published"] })
+      .notNull()
+      .default("draft"),
+    numberingScheme: text("numbering_scheme").notNull().default("prefix"),
+    publishedHtml: text("published_html"), // frozen render, set on publish
+    publishedAt: tsMs("published_at"),
+    generatedById: text("generated_by_id").references(() => user.id),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+);
+
+export const bookSection = sqliteTable(
+  "book_section",
+  {
+    id: pk(),
+    bookId: text("book_id")
+      .notNull()
+      .references(() => abstractBook.id, { onDelete: "cascade" }),
+    title: text("title").notNull(), // derived label, editable
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_book_section_book").on(t.bookId)],
+);
+
+export const bookEntry = sqliteTable(
+  "book_entry",
+  {
+    id: pk(),
+    bookId: text("book_id")
+      .notNull()
+      .references(() => abstractBook.id, { onDelete: "cascade" }),
+    sectionId: text("section_id")
+      .notNull()
+      .references(() => bookSection.id, { onDelete: "cascade" }),
+    abstractId: text("abstract_id")
+      .notNull()
+      .references(() => abstract.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").notNull().default(0), // position within section
+    code: text("code"), // computed/frozen presentation code; null for null-level items
+    included: integer("included", { mode: "boolean" }).notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique("uq_book_entry").on(t.bookId, t.abstractId),
+    index("ix_book_entry_book").on(t.bookId),
+    index("ix_book_entry_section").on(t.sectionId),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Invited speakers and sponsors, per edition. Invited speakers are keynotes and
 // award lectures a program item can point to; sponsors show on the public
 // program. Both carry an r2Key for an image (headshot, logo) that stays nullable
