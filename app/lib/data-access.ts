@@ -4163,8 +4163,10 @@ export function createDataAccess(db: DB) {
     },
 
     // Admin read of a single edition by id, for the edit and category screens.
+    // Chair-readable: chair-gated pages (program, speakers, book) load their
+    // edition through this. isChair already includes platform admins.
     async getById(actor: Actor, editionId: string) {
-      if (!isAdmin(actor)) throw new ForbiddenError();
+      if (!isChair(actor, editionId)) throw new ForbiddenError();
       const row = await db.query.edition.findFirst({
         where: eq(schema.edition.id, editionId),
       });
