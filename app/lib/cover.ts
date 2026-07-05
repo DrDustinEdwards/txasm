@@ -1,7 +1,7 @@
 // The shared book/program cover. One parameterized piece so the abstract book
 // and the program can never drift: they differ by a single title word today
-// ("Abstract Book" vs "Program"). It takes primitives, not BookData or
-// ProgramData, so it stays decoupled from both data shapes. Pure strings, no
+// ("Abstract Book" vs "Program"). It takes primitives, not the book or program
+// data shapes, so it stays decoupled from both. Pure strings, no
 // server imports, so it lives outside the data boundary and runs in the same
 // pure renderers as book.ts and program-book.ts.
 //

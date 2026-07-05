@@ -203,10 +203,9 @@ export interface DecisionInput {
   decisionMessage?: string;
 }
 
-// The assembled abstract-book data. getBookData returns this and the pure
-// renderBook in ./book turns it into HTML, so the template is a function of the
-// data. Title and body fields hold the stored sanitized HTML (em/sup/sub only)
-// and are rendered as-is; do not re-parse them.
+// Book author and affiliation shapes shared by the arranged renderer. Title and
+// body fields hold the stored sanitized HTML (em/sup/sub only) and are rendered
+// as-is; do not re-parse them.
 export interface BookAuthor {
   firstName: string;
   lastName: string;
@@ -221,46 +220,6 @@ export interface BookAffiliation {
   department: string | null;
   city: string | null;
   country: string | null;
-}
-
-export interface BookAbstract {
-  number: number; // stable 1..n sequence across the whole book
-  title: string; // sanitized HTML
-  background: string | null;
-  methods: string | null;
-  results: string | null;
-  conclusions: string | null;
-  bodyText: string | null; // fallback when the structured sections are empty
-  presentationType: PresentationType | null;
-  authors: BookAuthor[];
-  affiliations: BookAffiliation[];
-  presentingAuthorName: string | null; // for the table of contents
-}
-
-export interface BookCategory {
-  id: string | null; // null is the uncategorized group
-  name: string;
-  abstracts: BookAbstract[];
-}
-
-export interface BookIndexEntry {
-  name: string; // "First Last" for display
-  numbers: number[]; // abstract numbers this author appears on
-}
-
-export interface BookData {
-  edition: {
-    name: string;
-    season: Season;
-    year: number;
-    meetingStartsAt: Date | null;
-    meetingEndsAt: Date | null;
-    venueName: string | null;
-    city: string | null;
-  };
-  categories: BookCategory[];
-  authorIndex: BookIndexEntry[];
-  abstractCount: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -334,6 +293,8 @@ export interface BookRenderIndexEntry {
 export interface BookRenderData {
   edition: {
     name: string;
+    season: Season;
+    year: number;
     meetingStartsAt: Date | null;
     meetingEndsAt: Date | null;
   };
@@ -2431,7 +2392,7 @@ export function createDataAccess(db: DB) {
   // Per-abstract book parts (authors with affiliation ordinals, affiliation
   // blocks, decided presentation type, presenting author name) for a set of
   // accepted abstracts. Shared by the builder read model and the arranged
-  // renderer, mirroring getBookData's assembly.
+  // renderer, assembling authors, affiliations, and the presenting name.
   async function assembleBookAbstracts(abstractIds: string[]): Promise<
     Map<
       string,
@@ -2677,247 +2638,10 @@ export function createDataAccess(db: DB) {
     };
   }
 
-  // Abstract book: assemble everything the printed proceedings need for one
-  // meeting. Chair/admin only. The return is a plain data structure so the pure
-  // renderBook in ./book is a function of it. Part B will read the same data.
+  // Abstract book builder and reader. Chair/admin only. The read model and the
+  // arranged render data are plain structures so the pure ./book renderer stays a
+  // function of them.
   const books = {
-    async getBookData(actor: Actor, editionId: string): Promise<BookData> {
-      if (!isChair(actor, editionId)) throw new ForbiddenError();
-
-      const ed = await db.query.edition.findFirst({
-        where: eq(schema.edition.id, editionId),
-      });
-      if (!ed) throw new NotFoundError("meeting not found");
-
-      const front = {
-        name: ed.name,
-        season: ed.season,
-        year: ed.year,
-        meetingStartsAt: ed.meetingStartsAt,
-        meetingEndsAt: ed.meetingEndsAt,
-        venueName: ed.venueName,
-        city: ed.city,
-      };
-
-      const absRows = await db
-        .select()
-        .from(schema.abstract)
-        .where(
-          and(
-            eq(schema.abstract.editionId, editionId),
-            eq(schema.abstract.status, "accepted"),
-          ),
-        );
-
-      if (absRows.length === 0) {
-        return {
-          edition: front,
-          categories: [],
-          authorIndex: [],
-          abstractCount: 0,
-        };
-      }
-
-      const ids = absRows.map((a) => a.id);
-
-      const authorRows = await db
-        .select()
-        .from(schema.author)
-        .where(inArray(schema.author.abstractId, ids))
-        .orderBy(schema.author.ordinal);
-
-      const affiliationRows = await db
-        .select()
-        .from(schema.affiliation)
-        .where(inArray(schema.affiliation.abstractId, ids))
-        .orderBy(schema.affiliation.ordinal);
-
-      const links = authorRows.length
-        ? await db
-            .select()
-            .from(schema.authorAffiliation)
-            .where(
-              inArray(
-                schema.authorAffiliation.authorId,
-                authorRows.map((a) => a.id),
-              ),
-            )
-        : [];
-
-      const categoryRows = await db
-        .select()
-        .from(schema.abstractCategory)
-        .where(eq(schema.abstractCategory.editionId, editionId))
-        .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
-
-      // affiliation ordinal by its id (ids are globally unique, so this is safe
-      // across abstracts), then the ordinals attached to each author.
-      const affOrdinalById = new Map(
-        affiliationRows.map((a) => [a.id, a.ordinal]),
-      );
-      const ordinalsByAuthor = new Map<string, number[]>();
-      for (const link of links) {
-        const ord = affOrdinalById.get(link.affiliationId);
-        if (ord === undefined) continue;
-        const list = ordinalsByAuthor.get(link.authorId) ?? [];
-        list.push(ord);
-        ordinalsByAuthor.set(link.authorId, list);
-      }
-
-      const affiliationsByAbstract = new Map<string, BookAffiliation[]>();
-      for (const a of affiliationRows) {
-        const list = affiliationsByAbstract.get(a.abstractId) ?? [];
-        list.push({
-          ordinal: a.ordinal,
-          institution: a.institution,
-          department: a.department,
-          city: a.city,
-          country: a.country,
-        });
-        affiliationsByAbstract.set(a.abstractId, list);
-      }
-
-      const authorsByAbstract = new Map<string, BookAuthor[]>();
-      for (const a of authorRows) {
-        const list = authorsByAbstract.get(a.abstractId) ?? [];
-        list.push({
-          firstName: a.firstName,
-          lastName: a.lastName,
-          isPresenting: a.isPresenting,
-          isCorresponding: a.isCorresponding,
-          affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort(
-            (x, y) => x - y,
-          ),
-        });
-        authorsByAbstract.set(a.abstractId, list);
-      }
-
-      // decisions carry the presentation type; attach it for the book.
-      const decisionRows = await db
-        .select({
-          abstractId: schema.decision.abstractId,
-          presentationType: schema.decision.presentationType,
-        })
-        .from(schema.decision)
-        .where(inArray(schema.decision.abstractId, ids));
-      const presentationByAbstract = new Map(
-        decisionRows.map((d) => [d.abstractId, d.presentationType]),
-      );
-
-      function presentingName(authors: BookAuthor[]): string | null {
-        if (authors.length === 0) return null;
-        const presenting = authors.find((a) => a.isPresenting) ?? authors[0];
-        return `${presenting.firstName} ${presenting.lastName}`.trim() || null;
-      }
-
-      // Build each abstract (unnumbered), keyed by id for grouping.
-      const builtById = new Map<string, Omit<BookAbstract, "number">>();
-      for (const row of absRows) {
-        const authors = authorsByAbstract.get(row.id) ?? [];
-        builtById.set(row.id, {
-          title: row.title,
-          background: row.background,
-          methods: row.methods,
-          results: row.results,
-          conclusions: row.conclusions,
-          bodyText: row.bodyText,
-          presentationType: presentationByAbstract.get(row.id) ?? null,
-          authors,
-          affiliations: affiliationsByAbstract.get(row.id) ?? [],
-          presentingAuthorName: presentingName(authors),
-        });
-      }
-
-      // Group by category id, ordering abstracts within a group by title.
-      const rowsByCategory = new Map<string | null, typeof absRows>();
-      for (const row of absRows) {
-        const key = row.categoryId ?? null;
-        const list = rowsByCategory.get(key) ?? [];
-        list.push(row);
-        rowsByCategory.set(key, list);
-      }
-      function sortByTitle(a: (typeof absRows)[number], b: (typeof absRows)[number]) {
-        return extractPlainText(a.title).localeCompare(
-          extractPlainText(b.title),
-          "en",
-          { sensitivity: "base" },
-        );
-      }
-
-      // Categories in sortOrder then name, uncategorized last, empties dropped.
-      const orderedGroups: Array<{ id: string | null; name: string; rows: typeof absRows }> =
-        [];
-      for (const cat of categoryRows) {
-        const rows = rowsByCategory.get(cat.id);
-        if (rows && rows.length > 0) {
-          orderedGroups.push({ id: cat.id, name: cat.name, rows: [...rows].sort(sortByTitle) });
-        }
-      }
-      const uncategorized = rowsByCategory.get(null);
-      if (uncategorized && uncategorized.length > 0) {
-        orderedGroups.push({
-          id: null,
-          name: "Uncategorized",
-          rows: [...uncategorized].sort(sortByTitle),
-        });
-      }
-
-      // Assign the stable 1..n number in grouped order and assemble categories.
-      let counter = 0;
-      const categories: BookCategory[] = orderedGroups.map((group) => ({
-        id: group.id,
-        name: group.name,
-        abstracts: group.rows.map((row) => {
-          counter += 1;
-          const built = builtById.get(row.id)!;
-          return { ...built, number: counter };
-        }),
-      }));
-
-      // Author index: merge a person across abstracts by name, numbers ascending.
-      const indexByKey = new Map<
-        string,
-        { name: string; lastName: string; firstName: string; numbers: Set<number> }
-      >();
-      for (const category of categories) {
-        for (const abstract of category.abstracts) {
-          for (const author of abstract.authors) {
-            const first = author.firstName.trim();
-            const last = author.lastName.trim();
-            if (!first && !last) continue;
-            const key = `${last.toLowerCase()} ${first.toLowerCase()}`;
-            const entry =
-              indexByKey.get(key) ??
-              {
-                name: `${first} ${last}`.trim(),
-                lastName: last,
-                firstName: first,
-                numbers: new Set<number>(),
-              };
-            entry.numbers.add(abstract.number);
-            indexByKey.set(key, entry);
-          }
-        }
-      }
-      const authorIndex: BookIndexEntry[] = [...indexByKey.values()]
-        .sort(
-          (a, b) =>
-            a.lastName.localeCompare(b.lastName, "en", { sensitivity: "base" }) ||
-            a.firstName.localeCompare(b.firstName, "en", { sensitivity: "base" }),
-        )
-        .map((entry) => ({
-          name: entry.name,
-          numbers: [...entry.numbers].sort((x, y) => x - y),
-        }));
-
-      return {
-        edition: front,
-        categories,
-        authorIndex,
-        abstractCount: counter,
-      };
-    },
-
     // Generate (or regenerate) the draft book for a meeting from its accepted
     // abstracts: bucket by (level, format, category) into sections, order each
     // section alphabetically by presenting author last name, and assign codes.
@@ -3233,6 +2957,8 @@ export function createDataAccess(db: DB) {
         await db
           .select({
             name: schema.edition.name,
+            season: schema.edition.season,
+            year: schema.edition.year,
             meetingStartsAt: schema.edition.meetingStartsAt,
             meetingEndsAt: schema.edition.meetingEndsAt,
           })
@@ -3344,6 +3070,8 @@ export function createDataAccess(db: DB) {
       return {
         edition: {
           name: ed?.name ?? "",
+          season: ed?.season ?? "spring",
+          year: ed?.year ?? 0,
           meetingStartsAt: ed?.meetingStartsAt ?? null,
           meetingEndsAt: ed?.meetingEndsAt ?? null,
         },

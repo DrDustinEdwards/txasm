@@ -10,8 +10,7 @@ import {
   type BookSectionView,
   type BookView,
 } from "~/lib/data-access";
-import { renderArrangedBook, renderBook } from "~/lib/book";
-import { renderBookPdf } from "~/lib/book-pdf.server";
+import { publishArrangedBook } from "~/lib/book-pdf.server";
 import { formatDateTime } from "~/lib/format";
 
 export function meta(_args: Route.MetaArgs) {
@@ -32,16 +31,9 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   return { edition: { id: edition.id, name: edition.name }, book, pdf };
 }
 
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-// Generate, arrange, and publish are the builder; the pdf-* intents drive the
-// interim document/PDF path (the old numbered layout) that keeps the public
-// archive working in parallel until Part B rewires it to the arranged book.
+// Generate, arrange, and publish are the builder. publish also produces the
+// arranged PDF (best-effort, gated on Browser Rendering) and delivers it through
+// the document/R2 path; pdf-publish flips that PDF to public in the archive.
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
@@ -69,11 +61,15 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { book };
     }
     if (intent === "publish") {
-      const data = await da.books.renderData(actor, editionId);
-      const html = renderArrangedBook(data);
-      await da.books.publish(actor, editionId, html);
+      const outcome = await publishArrangedBook(env, da, actor, editionId);
       const book = await da.books.get(actor, editionId);
-      return { ok: "Book published. Codes are frozen.", book };
+      const note =
+        outcome === "ready"
+          ? " The PDF is ready."
+          : outcome === "kept-previous"
+            ? " Kept the previous PDF; the new render is pending Browser Rendering."
+            : " The PDF is pending Browser Rendering.";
+      return { ok: `Book published. Codes are frozen.${note}`, book };
     }
     if (intent === "reopen") {
       const book = await da.books.reopen(actor, editionId);
@@ -82,36 +78,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     if (intent === "pdf-publish") {
       await da.documents.publish(actor, String(form.get("documentId") ?? ""));
       return { ok: "The abstract book PDF is published." };
-    }
-    if (intent === "pdf-generate") {
-      const claim = await da.documents.recordGenerating(actor, {
-        editionId,
-        category: "abstract_book",
-      });
-      try {
-        const data = await da.books.getBookData(actor, editionId);
-        const html = renderBook(data);
-        const bytes = await renderBookPdf(html, env);
-        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-        const r2Key = `editions/${editionId}/abstract-book-${stamp}.pdf`;
-        const fileName = `TXASM ${titleCase(data.edition.season)} ${data.edition.year} Abstract Book.pdf`;
-        await env.BOOKS.put(r2Key, bytes, {
-          httpMetadata: { contentType: "application/pdf" },
-        });
-        await da.documents.recordReady(actor, claim.id, {
-          r2Key,
-          fileName,
-          abstractCount: data.abstractCount,
-        });
-        return { ok: "The abstract book PDF is ready." };
-      } catch (error) {
-        await da.documents.recordFailed(actor, claim.id);
-        console.error("[book] pdf generation failed", error);
-        const detail = error instanceof Error ? error.message : "";
-        return {
-          error: `The book PDF could not be generated.${detail ? ` ${detail}` : ""}`,
-        };
-      }
     }
     return { error: "Unknown action." };
   } catch (error) {
@@ -507,17 +473,17 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         </>
       )}
 
-      {/* Interim printable PDF, the old numbered layout, kept working in parallel
-          until Part B rewires the PDF to the arranged book. */}
+      {/* The published book's PDF, produced on publish via Browser Rendering and
+          delivered through the document/R2 path. Publish it to the public archive. */}
       <section className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Printable PDF (interim)</h2>
+        <h2 className="text-lg font-medium">Book PDF</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Generates the current numbered layout as a PDF via Browser Rendering for
-          the public archive. Part B will switch this to the arranged book above.
+          The PDF is produced from the arranged book when you publish, via Browser
+          Rendering. Publish it to the archive to make it public.
         </p>
         {!pdf ? (
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            No PDF generated yet.
+            No PDF yet. Publish the book to produce it.
           </p>
         ) : pdf.genStatus === "ready" ? (
           <div className="space-y-1 text-sm">
@@ -541,7 +507,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
             <p>
               {pdf.status === "published" ? (
                 <span className="font-medium text-green-700 dark:text-green-400">
-                  Published
+                  Published to the archive
                 </span>
               ) : (
                 <Form method="post" className="inline">
@@ -551,7 +517,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                     type="submit"
                     className="rounded-md border border-border px-2 py-1 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   >
-                    Publish PDF
+                    Publish to archive
                   </button>
                 </Form>
               )}
@@ -559,24 +525,14 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           </div>
         ) : pdf.genStatus === "generating" ? (
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            A generation is in progress. Refresh in a minute.
-          </p>
-        ) : pdf.genStatus === "failed" ? (
-          <p className="text-sm text-red-700 dark:text-red-400">
-            The last generation failed. Try again below.
+            The PDF is rendering. Refresh in a minute.
           </p>
         ) : (
-          <p className="text-sm text-gray-700 dark:text-gray-300">Pending</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            The PDF is pending Browser Rendering (Workers plan). The book is
+            published and its HTML preview is available above.
+          </p>
         )}
-        <Form method="post">
-          <input type="hidden" name="intent" value="pdf-generate" />
-          <button
-            type="submit"
-            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            {pdf ? "Regenerate PDF" : "Generate PDF"}
-          </button>
-        </Form>
       </section>
     </div>
   );
