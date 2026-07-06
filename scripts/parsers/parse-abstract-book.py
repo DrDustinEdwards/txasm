@@ -55,6 +55,21 @@ NEW_CODE_RE = re.compile(r'^([A-Z]{2,4}\s?\d{1,3}|[A-Z]{2,3}-\d{1,2}[TF])$')
 # (size 7) rather than flagged with the superscript bit, so we detect them by size.
 SMALL_SPAN_MAX_SIZE = 8
 
+# Second-layout topic headers are set larger than the body and the bold code/title
+# (about 14pt against ~12pt titles and ~11-12pt body). We key topic capture off
+# that size step. A line whose largest span meets this size, is not a code, and
+# reads like a heading is a topic header. Confirm the exact point size on the
+# first new-layout book each era; template drift can move it.
+TOPIC_HEADER_MIN_SIZE = 13
+
+# Structural section dividers in the second layout ("ORAL PRESENTATION ABSTRACTS",
+# "POSTER PRESENTATION ABSTRACTS") are set at the same large size as topic headers
+# but are not topics. They are excluded so they never become a category.
+SECTION_DIVIDER_RE = re.compile(
+    r'^(ORAL|POSTER)\s+PRESENTATION\s+ABSTRACTS?$|^ABSTRACTS?$|^PRESENTATION\s+ABSTRACTS?$',
+    re.IGNORECASE,
+)
+
 # Words that mark an institution line, used in the second layout to tell a single
 # unnumbered affiliation from a body paragraph and to spot wrapped tail lines.
 INST_KEYWORDS = (
@@ -102,6 +117,12 @@ def is_italic_sized(span):
 def is_small(span):
     # Second-layout ref/ordinal marker: small type instead of the superscript bit.
     return round(span.get('size', 11)) <= SMALL_SPAN_MAX_SIZE
+
+def line_max_size(spans):
+    # Largest span size on a line, used to spot the second-layout topic headers,
+    # which sit a step above the body and the bold title.
+    sizes = [s.get('size', 0) for s in spans if s.get('text', '').strip()]
+    return max(sizes) if sizes else 0
 
 def stext(span):
     return span.get('text', '').strip()
@@ -372,6 +393,30 @@ def parse_author_line_sized(spans):
             current_parts.append(t)
     flush()
     return authors, review_flags, saw_ref
+
+
+def is_topic_header_sized(full, spans):
+    """Second-layout topic header: a line set a size step above the body and the
+    bold title (about 14pt), not a code, not a structural section divider, and
+    reading like a heading. Mirrors the old-layout is_topic_header but keys off
+    size rather than the all-bold signal, since new-layout titles are also bold.
+    """
+    t = full.strip()
+    if not t or t[0].isdigit():
+        return False
+    if line_max_size(spans) < TOPIC_HEADER_MIN_SIZE:
+        return False
+    if NEW_CODE_RE.match(t):
+        return False
+    if SECTION_DIVIDER_RE.match(t):
+        return False
+    if len(t) > 100:
+        return False
+    words = [w for w in t.split() if len(w) > 3]
+    if not words:
+        return False
+    cap_count = sum(1 for w in words if w[0].isupper() or w.isupper())
+    return cap_count / len(words) >= 0.6
 
 
 def infer_level_new(code):
@@ -708,15 +753,19 @@ class AbstractBookParser:
         affiliation block (lines that open with a small ordinal) or a single
         unnumbered institution line, then the body.
 
-        Topics are not captured for this layout: these books group by the code
-        prefix (undergraduate, graduate, faculty theme) rather than a separate
-        topic taxonomy, and the section headers do not map cleanly to per-abstract
-        categories. Every abstract carries topic=None, so the importer stores no
-        category. This keeps the output import-ready without a manual pass.
+        Topic capture: these books carry section headers set a size step above the
+        body and the bold title (about 14pt), for example "Undergraduate Students"
+        or "GS Medical Microbiology". is_topic_header_sized detects them, and each
+        abstract inherits the most recent header as its topic, so a new-layout book
+        imports categorized. Structural dividers ("ORAL PRESENTATION ABSTRACTS")
+        are excluded. A book with no such headers yields no topics and every
+        abstract keeps topic=None, unchanged from before.
         """
+        topics = []
         abstracts = []
         withdrawn = []
         current = None
+        current_topic = None
         # state: 'title' | 'authors' | 'affiliations' | 'body'
         state = None
 
@@ -755,6 +804,17 @@ class AbstractBookParser:
             if not full:
                 continue
 
+            # A topic header (size step above the title/body) closes the current
+            # abstract and sets the topic for the ones that follow.
+            if is_topic_header_sized(full, spans):
+                flush()
+                state = None
+                name = re.sub(r'\s+', ' ', full).strip()
+                if name not in topics:
+                    topics.append(name)
+                current_topic = name
+                continue
+
             # A lone code line opens a new abstract.
             if NEW_CODE_RE.match(full):
                 flush()
@@ -763,7 +823,7 @@ class AbstractBookParser:
                     'code': code,
                     'level': infer_level_new(code),
                     'format': infer_format_new(code),
-                    'topic': None,
+                    'topic': current_topic,
                     'title_html': '',
                     '_title_html_parts': [],
                     'authors': [],
@@ -829,7 +889,7 @@ class AbstractBookParser:
                 current['_body_parts'].append(body_html)
 
         flush()
-        return [], abstracts, withdrawn
+        return topics, abstracts, withdrawn
 
 
 # ---------------------------------------------------------------------------
