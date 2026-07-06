@@ -57,6 +57,11 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       registrationClosesAt: parseDate(form.get("registrationClosesAt")),
       submissionOpensAt: parseDate(form.get("submissionOpensAt")),
       submissionDeadline: parseDate(form.get("submissionDeadline")),
+      meetingStartsAt: parseDate(form.get("meetingStartsAt")),
+      meetingEndsAt: parseDate(form.get("meetingEndsAt")),
+      venueName: String(form.get("venueName") ?? ""),
+      venueAddress: String(form.get("venueAddress") ?? ""),
+      city: String(form.get("city") ?? ""),
     };
     const { env } = context.get(cloudflareContext);
     await getDataAccess(env).editions.update(actor, params.editionId, patch);
@@ -178,6 +183,71 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             ))}
           </select>
         </div>
+
+        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
+          <legend className="px-1 text-sm font-medium">Meeting dates and venue</legend>
+          <div className="space-y-1">
+            <label htmlFor="meetingStartsAt" className="block text-sm font-medium">
+              Starts
+            </label>
+            <input
+              id="meetingStartsAt"
+              name="meetingStartsAt"
+              type="datetime-local"
+              defaultValue={toDateTimeLocal(edition.meetingStartsAt)}
+              className={inputClass}
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="meetingEndsAt" className="block text-sm font-medium">
+              Ends
+            </label>
+            <input
+              id="meetingEndsAt"
+              name="meetingEndsAt"
+              type="datetime-local"
+              defaultValue={toDateTimeLocal(edition.meetingEndsAt)}
+              className={inputClass}
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="venueName" className="block text-sm font-medium">
+              Venue
+            </label>
+            <input
+              id="venueName"
+              name="venueName"
+              type="text"
+              defaultValue={edition.venueName ?? ""}
+              placeholder="University Conference Center"
+              className={inputClass}
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="venueAddress" className="block text-sm font-medium">
+              Address
+            </label>
+            <input
+              id="venueAddress"
+              name="venueAddress"
+              type="text"
+              defaultValue={edition.venueAddress ?? ""}
+              className={inputClass}
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="city" className="block text-sm font-medium">
+              City
+            </label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              defaultValue={edition.city ?? ""}
+              className={inputClass}
+            />
+          </div>
+        </fieldset>
 
         <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
           <legend className="px-1 text-sm font-medium">Registration window</legend>

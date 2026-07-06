@@ -353,6 +353,11 @@ export interface EditionPatch {
   registrationClosesAt?: Date | null;
   submissionOpensAt?: Date | null;
   submissionDeadline?: Date | null;
+  meetingStartsAt?: Date | null;
+  meetingEndsAt?: Date | null;
+  venueName?: string | null;
+  venueAddress?: string | null;
+  city?: string | null;
 }
 
 export interface RegistrationCategoryInput {
@@ -4215,6 +4220,20 @@ export function createDataAccess(db: DB) {
         );
       }
 
+      const meetStarts =
+        patch.meetingStartsAt !== undefined
+          ? patch.meetingStartsAt
+          : row.meetingStartsAt;
+      const meetEnds =
+        patch.meetingEndsAt !== undefined
+          ? patch.meetingEndsAt
+          : row.meetingEndsAt;
+      if (meetStarts && meetEnds && meetEnds.getTime() < meetStarts.getTime()) {
+        throw new ValidationError(
+          "The meeting cannot end before it starts.",
+        );
+      }
+
       const set: Partial<typeof schema.edition.$inferInsert> = {};
       if (patch.status !== undefined) set.status = patch.status;
       if (patch.registrationOpensAt !== undefined) {
@@ -4228,6 +4247,21 @@ export function createDataAccess(db: DB) {
       }
       if (patch.submissionDeadline !== undefined) {
         set.submissionDeadline = patch.submissionDeadline;
+      }
+      if (patch.meetingStartsAt !== undefined) {
+        set.meetingStartsAt = patch.meetingStartsAt;
+      }
+      if (patch.meetingEndsAt !== undefined) {
+        set.meetingEndsAt = patch.meetingEndsAt;
+      }
+      if (patch.venueName !== undefined) {
+        set.venueName = patch.venueName?.trim() || null;
+      }
+      if (patch.venueAddress !== undefined) {
+        set.venueAddress = patch.venueAddress?.trim() || null;
+      }
+      if (patch.city !== undefined) {
+        set.city = patch.city?.trim() || null;
       }
 
       if (Object.keys(set).length > 0) {
