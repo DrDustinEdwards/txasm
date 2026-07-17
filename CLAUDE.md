@@ -1,93 +1,42 @@
-# CLAUDE.md: txasm
+# CLAUDE.md - txasm
 
-Engineering conventions for this repo. Read this before writing code.
+Portfolio-wide rules live in Capsid, not here. Read `capsid/conventions.md` first, then `txasm/core.md`. This file holds only what is true of this repo.
 
 ## What this is
 
-txasm.org: a conference and abstract-management platform for the Texas Branch of the American Society for Microbiology, replacing the paid Oxford Abstracts service and the old WordPress site. It runs the full lifecycle of a meeting twice a year: registration and payment, abstract submission and editing, reviewer invitation and rubric scoring, accept/reject decisions, the program schedule, and an auto-generated abstract book PDF. Solo-maintained. Each meeting is an edition; the same code runs every meeting forever. The canonical what-and-why is the build kickoff in the project vault; this file is the how.
+txasm.org: a conference and abstract-management platform for the Texas Branch of the American Society for Microbiology, replacing the paid Oxford Abstracts service and the old WordPress site. It runs the full lifecycle of a meeting twice a year: registration and payment, abstract submission and editing, reviewer invitation and rubric scoring, accept/reject decisions, the program schedule, and an auto-generated abstract book PDF. Solo-maintained. Each meeting is an edition; the same code runs every meeting forever.
 
-## Stack (fixed)
+## Session ritual
 
-- React Router v8 (framework mode) + React 19 + TypeScript.
-- Vite with the official Cloudflare plugin (@cloudflare/vite-plugin). The dev server runs in workerd, so local dev mirrors production.
-- Cloudflare Workers for compute. Cloudflare D1 (SQLite) for data via Drizzle ORM. Cloudflare R2 for uploads (figures, camera-ready files, generated books). Cloudflare KV for sessions and cache. Cron Triggers for deadline jobs and reminders. Browser Rendering for the book PDF.
-- Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions live in KV via Better Auth secondary storage. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
-- PayPal for registration payments (checkout plus a signature-verified webhook). Cloudflare Email Service (Email Sending) for transactional email via the native send_email binding. Email goes live at cutover once txasm.org is on Cloudflare DNS and the domain is onboarded.
-- Tailwind v4 for styling. lucide-react for icons.
+Start: read `capsid/conventions.md`, then `txasm/core.md`.
+End: write a `session-YYYY-MM-DD.md` episodic (type `episodic`, under ~2KB) to the txasm namespace. Decisions go to `txasm/decisions.md`.
 
-There is no Next.js here. If a doc or habit assumes Next, translate it to React Router before using it.
+## Stack (repo-specific additions to the house stack)
 
-## Hard rules
+- React Router v8 + React 19 + TypeScript, Vite with @cloudflare/vite-plugin. Dev server runs in workerd, so local dev mirrors production.
+- D1 via Drizzle, R2 for uploads (figures, camera-ready files, generated books), KV for sessions and cache, Cron Triggers for deadline jobs and reminders, Browser Rendering for the book PDF.
+- Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions in KV via Better Auth secondary storage. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
+- PayPal for registration payments (checkout plus a signature-verified webhook). Cloudflare Email Service via the native send_email binding; email goes live at cutover once txasm.org is on Cloudflare DNS.
+- Tailwind v4, lucide-react. shadcn/ui is permitted here (app-heavy admin surface), re-themed onto house tokens.
 
-1. All Cloudflare, native bindings. Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (context.get(cloudflareContext).env, from app/load-context.ts) inside loaders and actions. Never call a Cloudflare service over HTTP and never reach for a Node-only API. If something needs nodejs_compat, flag it before adding it.
-
-2. The data-access layer is the security boundary. D1 has no row-level security, so authorization lives in application code. Every read and write goes through createDataAccess(db) in app/lib/data-access.ts. Nothing imports the Drizzle client or app/db/schema.ts anywhere else. Enforce this with an eslint no-restricted-imports rule and forbid bypass in review. Roles are admin, chair, reviewer (explicit grants); author and attendee are derived from ownership and a paid registration. Conflict of interest is enforced at assignment time.
-
-3. Server and client are separated by file. A route module co-locates a server loader/action with a client component. Any server-only code (database, secrets, the Better Auth instance, R2, PayPal, the email helper) lives in a *.server.ts module. A server import leaking into the client bundle is a build break and a security problem; treat it as a blocker. The PayPal keys must never reach the client.
-
-4. Editions are first-class. Every domain row carries edition_id, and every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive.
-
-5. Drizzle for all data access. Define schema in app/db/schema.ts. Generate migrations with drizzle-kit, apply with wrangler. Additive migrations only once data exists. Do not hand-write SQL in route code; use the query builder, behind the data-access layer.
-
-6. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path.
-
-7. PDF book is a batch job. Render the book as HTML, convert with Browser Rendering and Paged.js for the TOC, page numbers, running headers, and author index. Run it from a cron or an admin action, never a user request, and store the result in R2.
-
-8. Accessibility target is WCAG 2.2 AA on all public and author-facing surfaces.
-
-## House rules (non-negotiable)
-
-- No em dashes anywhere, in copy or code comments.
-- No AI-writing tells in copy or comments.
-- Scoped commits: explicit git add of named paths, never git add -A.
-- Specs and decisions are recorded in the txasm project vault.
+Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (`context.get(cloudflareContext).env`, from `app/load-context.ts`).
 
 ## Commands
 
-- npm run dev - Vite dev server in workerd, bindings available locally.
-- npm run build - production build (client + server).
-- npm run deploy - wrangler deploy (do not touch txasm.org DNS until cutover).
-- npm run typecheck - wrangler types + react-router typegen + tsc -b.
-- npm run db:generate - generate a Drizzle migration from schema changes.
-- npm run db:migrate - apply migrations to local D1.
-- npm run db:migrate:prod - apply migrations to remote D1.
+- `npm run dev` - Vite dev server in workerd, bindings available locally
+- `npm run build` - production build (client + server)
+- `npm run deploy` - wrangler deploy (do not touch txasm.org DNS until cutover)
+- `npm run typecheck` - wrangler types + react-router typegen + tsc -b
+- `npm run db:generate` / `db:migrate` / `db:migrate:prod`
 
-## File layout
+## Hard rules
 
-```
-app/
-  root.tsx                 root layout: html, theme
-  routes.ts                route config
-  routes/
-    _index.tsx             public org home
-    meetings.*             meeting pages, programs, archive
-    branch-officers.tsx    current officers
-    register.$edition.tsx  registration + PayPal checkout
-    submit.$edition.*      abstract submission, edit until deadline
-    review.*               reviewer dashboards, rubric scoring
-    admin.*                chair/admin: assignments, decisions, program, book
-    api.auth.$.ts          Better Auth catch-all
-    api.paypal-webhook.ts  PayPal webhook (signature-verified, own path)
-  db/
-    schema.ts              Drizzle schema (editions, users/roles, registrations, abstracts/authors, reviews)
-    index.server.ts        drizzle(env.DB) factory
-  lib/
-    data-access.ts         the only place that imports schema and the Drizzle client
-    auth.server.ts         Better Auth instance (magic-link, KV sessions)
-    email.server.ts        Cloudflare Email Service helper (send_email binding)
-    paypal.server.ts       PayPal REST + webhook verification
-    r2.server.ts           R2 upload/read helpers
-    book.server.ts         abstract book HTML + Browser Rendering
-workers/
-  app.ts                   worker entry; injects context.cloudflare.env; cron handler
-drizzle/                   generated migrations
-wrangler.jsonc             bindings
-```
+1. The data-access layer is the security boundary. D1 has no row-level security, so authorization lives in application code. Every read and write goes through `createDataAccess(db)` in `app/lib/data-access.ts`. Nothing imports the Drizzle client or `app/db/schema.ts` anywhere else. Enforced by an eslint no-restricted-imports rule; forbid bypass in review. Roles are admin, chair, reviewer (explicit grants); author and attendee are derived from ownership and a paid registration. Conflict of interest is enforced at assignment time.
+2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive.
+3. Drizzle for all data access, behind the data-access layer. Generate migrations with drizzle-kit, apply with wrangler. Additive migrations only once data exists. Do not hand-write SQL in route code.
+4. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.
+5. PDF book is a batch job. Render as HTML, convert with Browser Rendering and Paged.js for the TOC, page numbers, running headers, and author index. Run from a cron or an admin action, never a user request. Store the result in R2.
 
-## Reference, do not copy blindly
+## Definition of done
 
-Study the germomics, recova, and foxing repos for house style (token wiring, theme switching, lib helper shape, Drizzle usage), then apply current best practice for React Router v8 on Cloudflare. When a community template disagrees with an old habit, prefer the template.
-
-## Definition of done for a feature
-
-Type-checks clean, server/client boundary respected, every data path routes through the data-access layer, accessible, works against local D1 and a preview deploy, no regression to the worker bundle, scoped commit, decision recorded in the vault.
+Type-checks clean, server/client boundary respected, every data path routes through the data-access layer, accessible, works against local D1 and a preview deploy, no regression to the worker bundle, scoped commit, decision recorded in `txasm/decisions.md`.
