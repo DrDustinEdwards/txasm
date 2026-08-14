@@ -1,0 +1,2 @@
+* text=auto
+.claude/hooks/*.sh text eol=lf
