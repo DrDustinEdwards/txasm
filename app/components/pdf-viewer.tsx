@@ -67,7 +67,7 @@ export function PdfViewer({
     setNumPages(0);
     setPage(1);
 
-    (async () => {
+    void (async () => {
       try {
         const pdfjs = (await import(
           /* @vite-ignore */ PDFJS_URL
@@ -112,7 +112,7 @@ export function PdfViewer({
     if (status !== "ready" || !doc || !canvas) return;
     let cancelled = false;
 
-    (async () => {
+    void (async () => {
       try {
         const pdfPage = await doc.getPage(page);
         if (cancelled) return;

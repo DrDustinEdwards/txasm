@@ -46,6 +46,19 @@ export default tseslint.config(
     },
   },
   {
+    // Cloudflare Workers best practice: a floating promise can be cut off when
+    // the request ends. Await it, return it, or hand it to ctx.waitUntil. Type
+    // aware, so limited to the files the tsconfig project covers (scripts/ is
+    // outside it).
+    files: ["app/**/*.{ts,tsx}", "workers/**/*.ts"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: { projectService: true },
+    },
+    plugins: { "@typescript-eslint": tseslint.plugin },
+    rules: { "@typescript-eslint/no-floating-promises": "error" },
+  },
+  {
     // The infrastructure boundary itself. These three files are allowed to import
     // the schema and the Drizzle client; nothing else is.
     files: [
