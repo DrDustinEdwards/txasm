@@ -1,0 +1,28 @@
+{
+  "commit": "c3facc09914c987e9f6007ae6f74f6280e6ec77f",
+  "measured": "2026-10-09",
+  "knip": {
+    "version": "6.41.0",
+    "unusedFiles": 1,
+    "unusedDependencies": 0,
+    "unusedDevDependencies": 0,
+    "unlistedDependencies": 0,
+    "unresolvedImports": 0,
+    "unusedExports": 30,
+    "unusedExportedTypes": 56,
+    "duplicateExports": 3
+  },
+  "jscpd": {
+    "version": "4.3.0",
+    "clones": 33,
+    "duplicatedLines": 421,
+    "percentage": 1.97
+  },
+  "weight": {
+    "allJsGzip": 182048,
+    "allCssGzip": 7761,
+    "heaviestRoute": "routes/abstracts.$abstractId.edit",
+    "heaviestRouteGzip": 125007,
+    "lightestRouteGzip": 116250
+  }
+}

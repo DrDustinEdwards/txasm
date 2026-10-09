@@ -16,3 +16,6 @@ worker-configuration.d.ts
 !.dev.vars.example
 !.env.example
 scripts/_generated/
+
+# no-bloat reports
+/jscpd-report/

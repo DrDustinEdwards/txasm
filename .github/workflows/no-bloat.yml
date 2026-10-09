@@ -1,0 +1,85 @@
+# The no-bloat checks (Knip, jscpd, gzip weight per route) on every pull request. WARN-ONLY: they report to the run's
+# summary and never turn a pull request red. A number above no-bloat/baseline.json is a ::warning::, not a failure.
+# Knip and jscpd run through npx at the major the baseline measured; neither is a dependency of the app.
+# See no-bloat/README.md.
+
+name: No bloat
+
+on:
+  pull_request:
+
+concurrency:
+  group: no-bloat-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    name: Dead code, duplication and route weight (warn only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Nothing in this workflow may turn a pull request red, including the install.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Knip
+        continue-on-error: true
+        run: |
+          {
+            echo '### Knip (unused files, exports and dependencies)'
+            echo '```'
+            npx --yes knip@6 --no-progress --no-exit-code
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: jscpd
+        continue-on-error: true
+        run: |
+          npx --yes jscpd@4 --silent --reporters console,json --output jscpd-report > jscpd.txt || true
+          {
+            echo '### jscpd (duplication, against no-bloat/baseline.json)'
+            echo '```'
+            cat jscpd.txt
+            node -e '
+              const now = require("./jscpd-report/jscpd-report.json").statistics.total;
+              const base = require("./no-bloat/baseline.json").jscpd;
+              console.log(`now ${now.clones} clones, ${now.duplicatedLines} lines (${now.percentage}%); baseline ${base.clones} clones, ${base.duplicatedLines} lines (${base.percentage}%)`);
+              if (now.percentage > base.percentage) console.log(`::warning::duplication ${now.percentage}% is above the baseline ${base.percentage}%`);
+            '
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY" | grep '^::warning::' || true
+
+      - name: Route weight
+        continue-on-error: true
+        run: |
+          # A tool that could not run is a warning on the run, not a silent pass: continue-on-error alone hides it.
+          if npm run build && node scripts/measure-route-weight.mjs > weight.txt && node scripts/measure-route-weight.mjs --json > weight.json; then
+            {
+              echo '### Weight per route (gzip JS and CSS, against no-bloat/baseline.json)'
+              echo '```'
+              cat weight.txt
+              node -e '
+                const now = require("./weight.json");
+                const base = require("./no-bloat/baseline.json").weight;
+                const top = now.routes[0];
+                console.log(`heaviest now ${top.total} B (${top.id}); baseline ${base.heaviestRouteGzip} B (${base.heaviestRoute})`);
+                if (top.total > base.heaviestRouteGzip * 1.05) console.log(`::warning::heaviest route ${top.total} B gzip is over 5% above the baseline ${base.heaviestRouteGzip} B`);
+              '
+              echo '```'
+            } | tee -a "$GITHUB_STEP_SUMMARY" | grep '^::warning::' || true
+          else
+            echo "::warning::the route weight report could not run; see this step's log"
+            exit 1
+          fi
