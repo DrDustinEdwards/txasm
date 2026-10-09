@@ -7,7 +7,13 @@
 	// Keep dashboard-set secrets (BETTER_AUTH_SECRET, BETTER_AUTH_URL, RESEND_API_KEY,
 	// STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ADMIN_EMAIL) from being wiped on deploy.
 	"keep_vars": true,
-	"observability": { "enabled": true },
+	// Logs and traces, with the sampling rate stated. A low-traffic site can keep
+	// every log; traces are sampled to stay inside the plan's event budget.
+	"observability": {
+		"enabled": true,
+		"logs": { "enabled": true, "head_sampling_rate": 1, "invocation_logs": true },
+		"traces": { "enabled": true, "head_sampling_rate": 0.1 }
+	},
 	"upload_source_maps": true,
 	// Non-secret email config. EMAIL_ENABLED stays off until cutover; flipping it
 	// on together with the SEND_EMAIL binding below makes transactional email live.

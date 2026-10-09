@@ -164,7 +164,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   function submitReorder(nextSections: BookSectionView[]) {
     if (!book) return;
     setBook({ ...book, sections: nextSections });
-    fetcher.submit(
+    void fetcher.submit(
       {
         intent: "reorder",
         arrangement: JSON.stringify(arrangementFrom(nextSections)),
@@ -215,7 +215,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   }
 
   function toggleIncluded(entryId: string, included: boolean) {
-    fetcher.submit({ intent: "setIncluded", entryId, included: String(included) }, { method: "post" });
+    void fetcher.submit({ intent: "setIncluded", entryId, included: String(included) }, { method: "post" });
   }
 
   return (
