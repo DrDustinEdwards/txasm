@@ -102,4 +102,5 @@ export default [
   route("api/awards-search", "routes/api.awards-search.ts"),
   route("api/abstracts-search", "routes/api.abstracts-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
+  route("health", "routes/health.ts"),
 ] satisfies RouteConfig;
