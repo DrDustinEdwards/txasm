@@ -14,3 +14,6 @@ export interface CloudflareContext {
 }
 
 export const cloudflareContext = createContext<CloudflareContext>();
+
+// planted
+export const planted: number = "not a number";
