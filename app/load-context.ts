@@ -14,6 +14,3 @@ export interface CloudflareContext {
 }
 
 export const cloudflareContext = createContext<CloudflareContext>();
-
-// planted
-import "./db/schema";
