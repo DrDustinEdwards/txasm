@@ -1,4 +1,3 @@
-import "./does-not-exist.css";
 import {
   isRouteErrorResponse,
   Links,
