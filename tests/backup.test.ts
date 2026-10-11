@@ -13,6 +13,7 @@ import {
   getBackupHealth,
   runNightlyBackup,
 } from "../app/lib/backup.server";
+import { REQUIRED_TABLES, dumpProblems } from "../app/lib/backup-checks";
 
 // Real D1 and R2 in-process, with the real migrations applied, so the table list
 // is the site's own: a new migration that adds a token table fails the credential
@@ -51,6 +52,9 @@ before(async () => {
     .prepare(
       "INSERT INTO user (id, name, email, email_verified, created_at, updated_at) VALUES ('u1', 'Ada', 'ada@example.org', 1, 1, 1)",
     )
+    .run();
+  await db
+    .prepare("INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)")
     .run();
   await db
     .prepare(
@@ -169,4 +173,54 @@ test("a dump older than 26 hours warns", async () => {
   } finally {
     await old.dispose();
   }
+});
+
+// Planted failures: each case breaks exactly one check, and the check must name it.
+const goodDump = () => ({
+  tables: REQUIRED_TABLES.map((name) => ({ name, rows: 1 })),
+});
+const goodCounts = () => Object.fromEntries(REQUIRED_TABLES.map((n) => [n, 1]));
+
+test("a good dump has no problems", () => {
+  assert.deepEqual(dumpProblems(goodDump(), goodCounts()), []);
+});
+
+test("an empty dump is refused", () => {
+  const problems = dumpProblems({ tables: [] }, goodCounts());
+  assert.ok(problems.includes("the dump holds no tables"));
+});
+
+test("an excluded table in the dump is refused", () => {
+  const dump = goodDump();
+  dump.tables.push({ name: "verification", rows: 1 });
+  assert.match(dumpProblems(dump, goodCounts()).join(";"), /verification is in the dump/);
+});
+
+test("a missing required table is refused and named", () => {
+  for (const name of REQUIRED_TABLES) {
+    const dump = goodDump();
+    dump.tables = dump.tables.filter((t) => t.name !== name);
+    assert.match(dumpProblems(dump, goodCounts()).join(";"), new RegExp(`${name} is missing`));
+  }
+});
+
+test("a row count that disagrees with the live table is refused", () => {
+  const dump = goodDump();
+  dump.tables.find((t) => t.name === "registration")!.rows = 0;
+  const counts = { ...goodCounts(), registration: 3 };
+  assert.match(dumpProblems(dump, counts).join(";"), /registration dumped 0 rows but has 3/);
+});
+
+test("an emptied database never gets the complete marker", async () => {
+  const before = await getBackupHealth(env);
+  await db.prepare("DELETE FROM platform_settings").run();
+  try {
+    await assert.rejects(runNightlyBackup(env), /left incomplete.*platform_settings dumped empty/);
+  } finally {
+    await db
+      .prepare("INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)")
+      .run();
+  }
+  const after = await getBackupHealth(env);
+  assert.equal(after.last_ok, before.last_ok, "the failed run must not become the latest");
 });

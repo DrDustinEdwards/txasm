@@ -10,30 +10,41 @@ import {
   backupHealth,
   dumpDatabase,
   pruneDumps,
+  writeCompleteMarker,
   type BackupHealth,
 } from "@dustinedwards/d1-dump";
+import { REQUIRED_TABLES, dumpProblems } from "./backup-checks";
+import { EXCLUDED_TABLES } from "./backup-excluded";
 
-// Excluded whole. Sessions are not in D1 at all (Better Auth keeps them in KV).
-export const EXCLUDED_TABLES = [
-  // Better Auth magic-link tokens and other one-time verification values.
-  "verification",
-  // Better Auth account rows carry access, refresh and id tokens and a password
-  // hash column. Sign-in is magic-link only, so the table holds no data the
-  // site needs back; a user signs in again and the row is recreated.
-  "account",
-  // Reviewer and chair invitations carry a live one-time accept token.
-  "invitation",
-] as const;
+export { EXCLUDED_TABLES };
 
 type BackupEnv = Pick<Env, "DB" | "BOOKS">;
 
+async function liveCounts(env: BackupEnv): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {};
+  for (const name of REQUIRED_TABLES) {
+    const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM "${name}"`).first<{
+      n: number;
+    }>();
+    counts[name] = row?.n ?? 0;
+  }
+  return counts;
+}
+
+// Dump unmarked, check, then mark complete. A dump that fails its checks is kept
+// as evidence but never counts as the latest, and this throws so the failure
+// shows in Workers Logs while the health age keeps growing toward its warning.
 export async function runNightlyBackup(env: BackupEnv): Promise<void> {
   const dump = await dumpDatabase(env.DB, env.BOOKS, {
     exclude: [...EXCLUDED_TABLES],
+    markComplete: false,
   });
-  console.log(
-    JSON.stringify({ event: "backup.dumped", run_id: dump.run_id }),
-  );
+  const problems = dumpProblems(dump, await liveCounts(env));
+  if (problems.length > 0) {
+    throw new Error(`backup ${dump.run_id} left incomplete: ${problems.join("; ")}`);
+  }
+  await writeCompleteMarker(env.BOOKS, dump);
+  console.log(JSON.stringify({ event: "backup.dumped", run_id: dump.run_id }));
   const pruned = await pruneDumps(env.BOOKS);
   console.log(JSON.stringify({ event: "backup.pruned", ...pruned }));
 }
