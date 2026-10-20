@@ -8,7 +8,6 @@ txasm.org: a conference and abstract-management platform for the Texas Branch of
 
 ## Session ritual
 
-Start: read `capsid/conventions.md`, then `txasm/core.md`.
 End: write a `session-YYYY-MM-DD.md` episodic (type `episodic`, under ~2KB) to the txasm namespace. Decisions go to `txasm/decisions.md`.
 
 ## Stack (repo-specific additions to the house stack)
