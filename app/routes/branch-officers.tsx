@@ -1,14 +1,18 @@
 import { useId, useRef, useState } from "react";
 import type { Route } from "./+types/branch-officers";
 import { pageTitle } from "~/lib/site-meta";
+import { cloudflareContext } from "~/load-context";
 import {
-  ADVISORY_BOARD,
+  getDataAccess,
   type Officer,
-  OFFICERS,
-  PAST_OFFICER_TABS,
   type PastOfficer,
   type PastOfficerTab,
-} from "~/lib/officers";
+} from "~/lib/data-access";
+
+// The page reads the officers table; admins edit it at /admin/officers.
+export async function loader({ context }: Route.LoaderArgs) {
+  return getDataAccess(context.get(cloudflareContext).env).branchOfficers.getPage();
+}
 
 export function meta({ matches }: Route.MetaArgs) {
   return [
@@ -164,7 +168,8 @@ function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
   );
 }
 
-export default function BranchOfficers() {
+export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
+  const { officers, board, pastTabs } = loaderData;
   return (
     <div className="space-y-10">
       <header className="space-y-3">
@@ -187,7 +192,7 @@ export default function BranchOfficers() {
           Current officers
         </h2>
         <ul className="grid gap-4 sm:grid-cols-2">
-          {OFFICERS.map((officer) => (
+          {officers.map((officer) => (
             <li key={`${officer.role}-${officer.name}`}>
               <OfficerCard officer={officer} />
             </li>
@@ -203,7 +208,7 @@ export default function BranchOfficers() {
           Advisory board
         </h2>
         <ul className="grid gap-3 sm:grid-cols-2">
-          {ADVISORY_BOARD.map((member) => (
+          {board.map((member) => (
             <li
               key={member.name}
               className="rounded-lg border border-border bg-surface-raised p-4"
@@ -230,7 +235,7 @@ export default function BranchOfficers() {
             see its record of term, name, and institution.
           </p>
         </div>
-        <PastOfficersTabs tabs={PAST_OFFICER_TABS} />
+        <PastOfficersTabs tabs={pastTabs} />
       </section>
     </div>
   );

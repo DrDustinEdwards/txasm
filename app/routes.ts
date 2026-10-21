@@ -36,6 +36,7 @@ export default [
     route("admin/awards", "routes/admin.awards.tsx"),
     route("admin/awards/:slug", "routes/admin.awards.$slug.tsx"),
     route("admin/documents", "routes/admin.documents.tsx"),
+    route("admin/officers", "routes/admin.officers.tsx"),
     route("admin/editions/new", "routes/admin.editions.new.tsx"),
     route("admin/editions/:editionId", "routes/admin.editions.$editionId.tsx"),
     route(
