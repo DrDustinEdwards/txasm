@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import {
   type Actor,
@@ -16,8 +16,10 @@ import {
   type ProgramSessionInput,
   type ProgramSessionPatch,
   type ProgramSessionResolved,
+  listEditionSpeakers,
+  listEditionSponsors,
+  loadResolvedProgram,
   type PublicProgram,
-  resolveProgram,
 } from "./program-model";
 import { PLATFORM_SETTINGS_ID, resolveSettings } from "./settings";
 
@@ -30,23 +32,7 @@ export function createProgramSessions(db: DB) {
       editionId: string,
     ): Promise<ProgramSessionResolved[]> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const sessions = await db
-        .select()
-        .from(schema.programSession)
-        .where(eq(schema.programSession.editionId, editionId))
-        .orderBy(schema.programSession.sortOrder);
-      if (sessions.length === 0) return [];
-      const items = await db
-        .select()
-        .from(schema.programItem)
-        .where(
-          inArray(
-            schema.programItem.sessionId,
-            sessions.map((s) => s.id),
-          ),
-        )
-        .orderBy(schema.programItem.sortOrder);
-      return resolveProgram(db, editionId, sessions, items);
+      return loadResolvedProgram(db, editionId);
     },
 
     async create(actor: Actor, input: ProgramSessionInput) {
@@ -154,49 +140,11 @@ export function createProgramSessions(db: DB) {
       });
       if (!ed) return null;
       if (!PROGRAM_PUBLIC_STATUSES.includes(ed.status)) return null;
-      const sessions = await db
-        .select()
-        .from(schema.programSession)
-        .where(eq(schema.programSession.editionId, editionId))
-        .orderBy(schema.programSession.sortOrder);
-      const items = sessions.length
-        ? await db
-            .select()
-            .from(schema.programItem)
-            .where(
-              inArray(
-                schema.programItem.sessionId,
-                sessions.map((s) => s.id),
-              ),
-            )
-            .orderBy(schema.programItem.sortOrder)
-        : [];
-      const resolved = await resolveProgram(db, editionId, sessions, items);
+      const resolved = await loadResolvedProgram(db, editionId);
 
-      const sponsorRows = await db
-        .select({
-          id: schema.sponsor.id,
-          name: schema.sponsor.name,
-          tier: schema.sponsor.tier,
-          url: schema.sponsor.url,
-          logoR2Key: schema.sponsor.logoR2Key,
-        })
-        .from(schema.sponsor)
-        .where(eq(schema.sponsor.editionId, editionId))
-        .orderBy(schema.sponsor.sortOrder, schema.sponsor.name);
+      const sponsorRows = await listEditionSponsors(db, editionId);
 
-      const speakerRows = await db
-        .select({
-          id: schema.invitedSpeaker.id,
-          name: schema.invitedSpeaker.name,
-          affiliation: schema.invitedSpeaker.affiliation,
-          role: schema.invitedSpeaker.role,
-          talkTitle: schema.invitedSpeaker.talkTitle,
-          bio: schema.invitedSpeaker.bio,
-        })
-        .from(schema.invitedSpeaker)
-        .where(eq(schema.invitedSpeaker.editionId, editionId))
-        .orderBy(schema.invitedSpeaker.sortOrder, schema.invitedSpeaker.name);
+      const speakerRows = await listEditionSpeakers(db, editionId);
 
       return {
         days: groupSessionsIntoDays(resolved),
@@ -218,24 +166,7 @@ export function createProgramSessions(db: DB) {
         where: eq(schema.edition.id, editionId),
       });
       if (!ed) throw new NotFoundError("meeting not found");
-      const sessions = await db
-        .select()
-        .from(schema.programSession)
-        .where(eq(schema.programSession.editionId, editionId))
-        .orderBy(schema.programSession.sortOrder);
-      const items = sessions.length
-        ? await db
-            .select()
-            .from(schema.programItem)
-            .where(
-              inArray(
-                schema.programItem.sessionId,
-                sessions.map((s) => s.id),
-              ),
-            )
-            .orderBy(schema.programItem.sortOrder)
-        : [];
-      const resolved = await resolveProgram(db, editionId, sessions, items);
+      const resolved = await loadResolvedProgram(db, editionId);
       return {
         days: groupSessionsIntoDays(resolved),
         meetingStartsAt: ed.meetingStartsAt,
@@ -303,49 +234,11 @@ export function createProgram(db: DB) {
       });
       const identity = settingsRow ? resolveSettings(settingsRow) : null;
 
-      const sessions = await db
-        .select()
-        .from(schema.programSession)
-        .where(eq(schema.programSession.editionId, editionId))
-        .orderBy(schema.programSession.sortOrder);
-      const items = sessions.length
-        ? await db
-            .select()
-            .from(schema.programItem)
-            .where(
-              inArray(
-                schema.programItem.sessionId,
-                sessions.map((s) => s.id),
-              ),
-            )
-            .orderBy(schema.programItem.sortOrder)
-        : [];
-      const resolved = await resolveProgram(db, editionId, sessions, items);
+      const resolved = await loadResolvedProgram(db, editionId);
 
-      const speakers = await db
-        .select({
-          id: schema.invitedSpeaker.id,
-          name: schema.invitedSpeaker.name,
-          affiliation: schema.invitedSpeaker.affiliation,
-          role: schema.invitedSpeaker.role,
-          talkTitle: schema.invitedSpeaker.talkTitle,
-          bio: schema.invitedSpeaker.bio,
-        })
-        .from(schema.invitedSpeaker)
-        .where(eq(schema.invitedSpeaker.editionId, editionId))
-        .orderBy(schema.invitedSpeaker.sortOrder, schema.invitedSpeaker.name);
+      const speakers = await listEditionSpeakers(db, editionId);
 
-      const sponsors = await db
-        .select({
-          id: schema.sponsor.id,
-          name: schema.sponsor.name,
-          tier: schema.sponsor.tier,
-          url: schema.sponsor.url,
-          logoR2Key: schema.sponsor.logoR2Key,
-        })
-        .from(schema.sponsor)
-        .where(eq(schema.sponsor.editionId, editionId))
-        .orderBy(schema.sponsor.sortOrder, schema.sponsor.name);
+      const sponsors = await listEditionSponsors(db, editionId);
 
       return {
         meeting: {
