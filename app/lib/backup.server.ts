@@ -1,22 +1,15 @@
-// Nightly D1 backup into the BOOKS bucket under backups/json/, using d1-dump. It
-// is a system job with no acting user, so like the auth helpers it reads the D1
-// binding directly (it never imports the schema or the Drizzle client). It
-// copies whole tables, so it is the one place that must be told which tables
-// must not be copied.
-//
-// Never back up live credentials or one-time tokens: a backup is one more place a
-// session could leak from, and restoring one would revive old sign-ins.
+// Nightly D1 backup into the BOOKS bucket under backups/json/, by d1-dump's
+// runCheckedBackup: dump without the marker, check, mark complete, prune. A run
+// that fails a check throws BackupIncomplete and keeps its objects without the
+// marker, so the failure shows in Workers Logs while the health age keeps growing.
+// It is a system job with no acting user, so like the auth helpers it reads the
+// D1 binding directly (it never imports the schema or the Drizzle client).
 import {
   backupHealth,
-  dumpDatabase,
-  pruneDumps,
-  writeCompleteMarker,
+  runCheckedBackup,
   type BackupHealth,
 } from "@dustinedwards/d1-dump";
-import { REQUIRED_TABLES, dumpProblems } from "./backup-checks";
-import { EXCLUDED_TABLES } from "./backup-excluded";
-
-export { EXCLUDED_TABLES };
+import { EXCLUDED_TABLES, REQUIRED_TABLES, countProblems } from "./backup-checks";
 
 type BackupEnv = Pick<Env, "DB" | "BOOKS">;
 
@@ -31,21 +24,13 @@ async function liveCounts(env: BackupEnv): Promise<Record<string, number>> {
   return counts;
 }
 
-// Dump unmarked, check, then mark complete. A dump that fails its checks is kept
-// as evidence but never counts as the latest, and this throws so the failure
-// shows in Workers Logs while the health age keeps growing toward its warning.
 export async function runNightlyBackup(env: BackupEnv): Promise<void> {
-  const dump = await dumpDatabase(env.DB, env.BOOKS, {
+  const { dump, pruned } = await runCheckedBackup(env.DB, env.BOOKS, {
     exclude: [...EXCLUDED_TABLES],
-    markComplete: false,
+    required: [...REQUIRED_TABLES],
+    check: async (d) => countProblems(d, await liveCounts(env)),
   });
-  const problems = dumpProblems(dump, await liveCounts(env));
-  if (problems.length > 0) {
-    throw new Error(`backup ${dump.run_id} left incomplete: ${problems.join("; ")}`);
-  }
-  await writeCompleteMarker(env.BOOKS, dump);
   console.log(JSON.stringify({ event: "backup.dumped", run_id: dump.run_id }));
-  const pruned = await pruneDumps(env.BOOKS);
   console.log(JSON.stringify({ event: "backup.pruned", ...pruned }));
 }
 

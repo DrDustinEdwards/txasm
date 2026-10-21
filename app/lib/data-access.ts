@@ -45,7 +45,7 @@ import { computeBookCodes, type NumberingEntry } from "./book-numbering";
 
 // Default hard word limit for the abstract body when a meeting sets none. Named
 // config lives in ./vocab; this alias keeps the existing call sites.
-export const DEFAULT_BODY_WORD_LIMIT = DEFAULT_WORD_LIMIT;
+const DEFAULT_BODY_WORD_LIMIT = DEFAULT_WORD_LIMIT;
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
 // Enforce with an eslint no-restricted-imports rule on every other module so
@@ -112,7 +112,7 @@ export interface Actor {
   grants: Grant[];
 }
 
-export async function loadActor(db: DB, userId: string): Promise<Actor> {
+async function loadActor(db: DB, userId: string): Promise<Actor> {
   const rows = await db
     .select({ role: schema.roleGrant.role, editionId: schema.roleGrant.editionId })
     .from(schema.roleGrant)
@@ -391,7 +391,7 @@ function normalizeCurrency(currency?: string) {
 // Institution dedup key: lowercased, trimmed, whitespace collapsed, and LIKE
 // wildcards removed so it is safe to interpolate into a search pattern. The seed
 // and the ensure path use this same function so the unique index lines up.
-export function normalizeInstitutionName(name: string): string {
+function normalizeInstitutionName(name: string): string {
   return name
     .trim()
     .toLowerCase()
@@ -983,7 +983,7 @@ function validateRecipient(input: AwardRecipientInput) {
 // JSON array and returned parsed. The single row is enforced by a fixed id.
 // ---------------------------------------------------------------------------
 
-export const PLATFORM_SETTINGS_ID = "default";
+const PLATFORM_SETTINGS_ID = "default";
 
 export interface FooterLink {
   label: string;
@@ -1084,7 +1084,7 @@ function chunk<T>(items: T[], size: number): T[][] {
   return out;
 }
 
-export function createDataAccess(db: DB) {
+function createDataAccess(db: DB) {
   // Shared guard: the abstract exists and the actor may edit it now. A chair of
   // the meeting may edit any time; the submitter may edit only before the
   // submission deadline. Returns the row.
@@ -5773,7 +5773,7 @@ export function getActor(env: Env, userId: string): Promise<Actor> {
 // A fixed system account that owns imported abstracts (abstract.submitterId is
 // notnull). It is not a real sign-in account; the id is stable so re-imports do
 // not multiply system users.
-export const SYSTEM_IMPORT_USER_ID = "system-import";
+const SYSTEM_IMPORT_USER_ID = "system-import";
 const SYSTEM_IMPORT_USER_EMAIL = "import@system.txasm.invalid";
 
 export interface ImportEditionInput {
@@ -5805,7 +5805,7 @@ export interface ImportAbstractInput {
   code?: string | null;
 }
 
-export function createMeetingImporter(db: DB) {
+function createMeetingImporter(db: DB) {
   // Upsert the system import user and return its id. Safe to call repeatedly.
   async function ensureSystemUser(): Promise<string> {
     await db

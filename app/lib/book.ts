@@ -15,7 +15,7 @@ import type {
   BookRenderEntry,
 } from "./data-access";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
-import { escapeHtml } from "./format";
+import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { isEmptyRichText } from "./richtext";
 
 // Escape a string for use inside a CSS string literal (the running header).

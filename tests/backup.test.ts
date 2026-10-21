@@ -5,15 +5,12 @@ import { Miniflare } from "miniflare";
 import {
   dumpDatabase,
   runRestoreDrill,
+  standardProblems,
   type D1Like,
   type R2Like,
 } from "@dustinedwards/d1-dump";
-import {
-  EXCLUDED_TABLES,
-  getBackupHealth,
-  runNightlyBackup,
-} from "../app/lib/backup.server";
-import { REQUIRED_TABLES, dumpProblems } from "../app/lib/backup-checks";
+import { getBackupHealth, runNightlyBackup } from "../app/lib/backup.server";
+import { EXCLUDED_TABLES, REQUIRED_TABLES, countProblems } from "../app/lib/backup-checks";
 
 // Real D1 and R2 in-process, with the real migrations applied, so the table list
 // is the site's own: a new migration that adds a token table fails the credential
@@ -176,31 +173,28 @@ test("a dump older than 26 hours warns", async () => {
 });
 
 // Planted failures: each case breaks exactly one check, and the check must name it.
+// The excluded and required cases run d1-dump's standard checks with txasm's lists.
 const goodDump = () => ({
   tables: REQUIRED_TABLES.map((name) => ({ name, rows: 1 })),
 });
+const siteOptions = { exclude: [...EXCLUDED_TABLES], required: [...REQUIRED_TABLES] };
 const goodCounts = () => Object.fromEntries(REQUIRED_TABLES.map((n) => [n, 1]));
 
 test("a good dump has no problems", () => {
-  assert.deepEqual(dumpProblems(goodDump(), goodCounts()), []);
-});
-
-test("an empty dump is refused", () => {
-  const problems = dumpProblems({ tables: [] }, goodCounts());
-  assert.ok(problems.includes("the dump holds no tables"));
+  assert.deepEqual(countProblems(goodDump(), goodCounts()), []);
 });
 
 test("an excluded table in the dump is refused", () => {
   const dump = goodDump();
   dump.tables.push({ name: "verification", rows: 1 });
-  assert.match(dumpProblems(dump, goodCounts()).join(";"), /verification is in the dump/);
+  assert.match(standardProblems(dump as never, siteOptions).join(";"), /verification is in the dump/);
 });
 
 test("a missing required table is refused and named", () => {
   for (const name of REQUIRED_TABLES) {
     const dump = goodDump();
     dump.tables = dump.tables.filter((t) => t.name !== name);
-    assert.match(dumpProblems(dump, goodCounts()).join(";"), new RegExp(`${name} is missing`));
+    assert.match(standardProblems(dump as never, siteOptions).join(";"), new RegExp(`${name} is missing`));
   }
 });
 
@@ -208,7 +202,7 @@ test("a row count that disagrees with the live table is refused", () => {
   const dump = goodDump();
   dump.tables.find((t) => t.name === "registration")!.rows = 0;
   const counts = { ...goodCounts(), registration: 3 };
-  assert.match(dumpProblems(dump, counts).join(";"), /registration dumped 0 rows but has 3/);
+  assert.match(countProblems(dump, counts).join(";"), /registration dumped 0 rows but has 3/);
 });
 
 test("an emptied database never gets the complete marker", async () => {

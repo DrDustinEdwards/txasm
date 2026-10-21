@@ -35,17 +35,3 @@ export function txasmMarkPaths(fill: string): string {
   ).join("");
 }
 
-// A standalone mark svg with the given fill, for any spot that wants the whole
-// element rather than the bare paths.
-export function txasmMarkSvg({
-  className,
-  fill,
-}: {
-  className?: string;
-  fill: string;
-}): string {
-  const cls = className ? ` class="${className}"` : "";
-  return `<svg${cls} viewBox="${TXASM_MARK_VIEWBOX}" xmlns="http://www.w3.org/2000/svg">${txasmMarkPaths(
-    fill,
-  )}</svg>`;
-}
