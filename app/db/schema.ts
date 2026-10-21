@@ -905,6 +905,29 @@ export const award = sqliteTable("award", {
   updatedAt: updatedAt(),
 });
 
+// The branch officers page: the current officers, the advisory board and the
+// past officers, one row each. A past officer's role is the office, which
+// groups the page's tabs; tabs and rows follow sort_order. Past rows may lack
+// a name or term where the record has gaps.
+export const branchOfficer = sqliteTable(
+  "branch_officer",
+  {
+    id: pk(),
+    section: text("section", { enum: ["officer", "board", "past"] }).notNull(),
+    role: text("role"), // the office; null for the advisory board
+    name: text("name"),
+    affiliation: text("affiliation"), // institution for board and past rows
+    location: text("location"),
+    phone: text("phone"),
+    email: text("email"),
+    term: text("term"), // past rows, e.g. "2024-2025"
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_branch_officer_section").on(t.section, t.sortOrder)],
+);
+
 export const awardRecipient = sqliteTable(
   "award_recipient",
   {

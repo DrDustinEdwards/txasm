@@ -377,3 +377,13 @@ export const SPONSOR_TIERS = [
   "Partner",
 ] as const;
 export type SponsorTier = (typeof SPONSOR_TIERS)[number];
+
+// Sections of the branch officers page, in page order.
+export const OFFICER_SECTIONS = ["officer", "board", "past"] as const;
+export type OfficerSection = (typeof OFFICER_SECTIONS)[number];
+
+export const OFFICER_SECTION_LABELS: Record<OfficerSection, string> = {
+  officer: "Current officers",
+  board: "Advisory board",
+  past: "Past officers",
+};

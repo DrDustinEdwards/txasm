@@ -25,6 +25,7 @@ import {
   createSponsors,
 } from "./data-access/speakers-sponsors";
 import { createAwardRecipients, createAwards } from "./data-access/awards";
+import { createBranchOfficers } from "./data-access/officers";
 import { createDocuments } from "./data-access/documents";
 import { createSettings } from "./data-access/settings";
 import { createMeetingImporter } from "./data-access/importer";
@@ -111,6 +112,12 @@ export type {
   AwardSearchResult,
 } from "./data-access/awards";
 export type {
+  BranchOfficerInput,
+  Officer,
+  PastOfficer,
+  PastOfficerTab,
+} from "./data-access/officers";
+export type {
   DocumentUploadInput,
   DocumentPatch,
 } from "./data-access/documents";
@@ -155,6 +162,7 @@ function createDataAccess(db: DB) {
     sponsors: createSponsors(db),
     awards: createAwards(db),
     awardRecipients: createAwardRecipients(db),
+    branchOfficers: createBranchOfficers(db),
     publicAbstracts: createPublicAbstracts(db),
     institutions: createInstitutions(db),
     registrations: createRegistrations(db),
