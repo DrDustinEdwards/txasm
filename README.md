@@ -1,79 +1,11 @@
-# Welcome to React Router!
+# txasm
 
-A modern, production-ready template for building full-stack React applications using React Router.
+txasm.org: the conference and abstract-management platform for the Texas Branch of the American Society for Microbiology. React Router 8 on Cloudflare Workers, with D1, R2, KV and Browser Rendering. Private.
 
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Previewing the Production Build
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-Deployment is done using the Wrangler CLI.
-
-To build and deploy directly to production:
+How to work in this repo: `CLAUDE.md`. The nightly D1 backup and its restore: `app/lib/backup.server.ts` and the [d1-dump](https://github.com/DrDustinEdwards/d1-dump) README.
 
 ```sh
-npm run deploy
+npm ci
+npm run dev        # Vite in workerd, bindings local
+npm run typecheck && npm run lint && npm test
 ```
-
-To deploy a preview URL:
-
-```sh
-npx wrangler versions upload
-```
-
-You can then promote a version to production after verification or roll it out progressively.
-
-```sh
-npx wrangler versions deploy
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.

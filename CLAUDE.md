@@ -26,11 +26,12 @@ Reach D1, R2, KV, the send_email binding, and Browser Rendering through the inje
 - `npm run build` - production build (client + server)
 - `npm run deploy` - wrangler deploy (do not touch txasm.org DNS until cutover)
 - `npm run typecheck` - wrangler types + react-router typegen + tsc -b
+- `npm run lint` and `npm test` - eslint, and the node tests in `tests/` (real D1 and R2 in Miniflare)
 - `npm run db:generate` / `db:migrate` / `db:migrate:prod`
 
 ## Hard rules
 
-1. The data-access layer is the security boundary. D1 has no row-level security, so authorization lives in application code. Every read and write goes through `createDataAccess(db)` in `app/lib/data-access.ts`. Nothing imports the Drizzle client or `app/db/schema.ts` anywhere else. Enforced by an eslint no-restricted-imports rule; forbid bypass in review. Roles are admin, chair, reviewer (explicit grants); author and attendee are derived from ownership and a paid registration. Conflict of interest is enforced at assignment time.
+1. The data-access layer is the security boundary. D1 has no row-level security, so authorization lives in application code. Every read and write goes through `getDataAccess(env)` in `app/lib/data-access.ts`. Nothing imports the Drizzle client or `app/db/schema.ts` anywhere else. Enforced by an eslint no-restricted-imports rule; forbid bypass in review. Roles are admin, chair, reviewer (explicit grants); author and attendee are derived from ownership and a paid registration. Conflict of interest is enforced at assignment time.
 2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive.
 3. Migrations are generated with drizzle-kit, applied with wrangler, and additive only once data exists.
 4. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.
