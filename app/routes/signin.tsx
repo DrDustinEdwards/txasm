@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/signin";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Sign in | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Sign in") }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -1,5 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -17,8 +18,8 @@ import {
 } from "~/lib/vocab";
 import { toDateTimeLocal } from "~/lib/format";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Edit meeting | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Edit meeting") }];
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

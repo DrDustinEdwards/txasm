@@ -1,5 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.new";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -16,8 +17,8 @@ import {
   type Season,
 } from "~/lib/vocab";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "New meeting | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "New meeting") }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

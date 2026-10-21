@@ -1,5 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.abstract-categories";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -8,8 +9,8 @@ import {
   getDataAccess,
 } from "~/lib/data-access";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Abstract categories | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Abstract categories") }];
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
