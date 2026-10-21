@@ -1,13 +1,14 @@
 import tseslint from "typescript-eslint";
 
-// The data-access layer is the security boundary (CLAUDE.md hard rule 2). D1 has
+// The data-access layer is the security boundary (CLAUDE.md hard rule 1). D1 has
 // no row-level security, so authorization lives in application code, and every
 // read and write must go through createDataAccess in app/lib/data-access.ts.
 //
 // This rule forbids importing the Drizzle schema, the Drizzle client factory, or
 // the D1 client constructor anywhere outside the three files that make up the
 // data/auth infrastructure: the schema factory (app/db/index.server.ts), the
-// data-access layer itself (app/lib/data-access.ts), and the Better Auth instance
+// data-access layer itself (app/lib/data-access.ts and its modules under
+// app/lib/data-access/), and the Better Auth instance
 // (app/lib/auth.server.ts, whose adapter legitimately needs the schema). Routes
 // and components reach data through getDataAccess(env) only.
 const boundaryPatterns = [
@@ -59,11 +60,12 @@ export default tseslint.config(
     rules: { "@typescript-eslint/no-floating-promises": "error" },
   },
   {
-    // The infrastructure boundary itself. These three files are allowed to import
+    // The infrastructure boundary itself. These files are allowed to import
     // the schema and the Drizzle client; nothing else is.
     files: [
       "app/db/index.server.ts",
       "app/lib/data-access.ts",
+      "app/lib/data-access/**/*.ts",
       "app/lib/auth.server.ts",
     ],
     rules: { "no-restricted-imports": "off" },
