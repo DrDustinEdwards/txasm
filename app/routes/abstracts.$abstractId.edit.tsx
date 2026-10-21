@@ -1,41 +1,53 @@
 import { useEffect, useRef, useState } from "react";
-import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from "react-router";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
+  type AffiliationInput,
+  type AuthorInput,
   DeadlinePassedError,
   ForbiddenError,
-  NotFoundError,
-  ValidationError,
   getActor,
   getDataAccess,
   isChair,
-  type AffiliationInput,
-  type AuthorInput,
+  NotFoundError,
+  ValidationError,
 } from "~/lib/data-access";
 import {
-  ABSTRACT_LEVELS,
   ABSTRACT_LEVEL_LABELS,
+  ABSTRACT_LEVELS,
   ABSTRACT_STATUS_LABELS,
-  DECISION_OUTCOME_LABELS,
-  DEFAULT_WORD_LIMIT,
-  PRESENTATION_PREFERENCES,
-  PRESENTATION_PREFERENCE_LABELS,
-  PRESENTATION_TYPE_LABELS,
   type AbstractLevel,
-  type DecisionOutcome,
+  DEFAULT_WORD_LIMIT,
+  PRESENTATION_PREFERENCE_LABELS,
+  PRESENTATION_PREFERENCES,
   type PresentationPreference,
-  type PresentationType,
 } from "~/lib/vocab";
 import { formatDateTime } from "~/lib/format";
 import { countWords } from "~/lib/richtext";
 import { RichEditor } from "~/components/rich-editor";
+import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
 import {
-  InstitutionAutocomplete,
-  type InstitutionSuggestion,
-} from "~/components/institution-autocomplete";
+  AffiliationsFieldset,
+  type AffiliationState,
+  AuthorsFieldset,
+  type AuthorState,
+  emptyAffiliation,
+  emptyAuthor,
+  inputClass,
+} from "~/components/abstract-authors";
+import {
+  DecisionPanel,
+  ReadOnlyAbstract,
+} from "~/components/abstract-read-only";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Edit abstract") }];
@@ -203,44 +215,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     throw error;
   }
 }
-
-interface AuthorState {
-  firstName: string;
-  lastName: string;
-  email: string;
-  isPresenting: boolean;
-  isCorresponding: boolean;
-  affiliationOrdinals: number[];
-}
-
-interface AffiliationState {
-  institution: string;
-  department: string;
-  city: string;
-  region: string;
-  country: string;
-}
-
-function emptyAuthor(): AuthorState {
-  return {
-    firstName: "",
-    lastName: "",
-    email: "",
-    isPresenting: false,
-    isCorresponding: false,
-    affiliationOrdinals: [],
-  };
-}
-
-function emptyAffiliation(): AffiliationState {
-  return { institution: "", department: "", city: "", region: "", country: "" };
-}
-
-const inputClass =
-  "w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-const smallButton =
-  "rounded-md border border-border-strong px-2 py-1 text-sm text-text disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const { abstract, edition, categories, editable, decision } = loaderData;
@@ -488,247 +462,23 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <fieldset className="space-y-4 rounded-md border border-border p-4">
-          <legend className="px-1 text-sm font-medium text-text">
-            Affiliations
-          </legend>
-          <p className="text-sm text-text-muted">
-            Number each affiliation once, then attach it to authors below. Start
-            typing to pick a known institution or add a new one.
-          </p>
-          {affiliations.length === 0 ? (
-            <p className="text-sm text-text-muted">No affiliations added.</p>
-          ) : (
-            <ol className="space-y-4">
-              {affiliations.map((affiliation, index) => (
-                <li key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-text">
-                      Affiliation {index + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeAffiliation(index)}
-                      className="text-sm font-medium text-red-700 hover:underline dark:text-red-400"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <InstitutionAutocomplete
-                        id={`institution-${index}`}
-                        label="Institution"
-                        value={affiliation.institution}
-                        onChange={(name) =>
-                          updateAffiliation(index, { institution: name })
-                        }
-                        onSelect={(suggestion) =>
-                          selectInstitution(index, suggestion)
-                        }
-                        inputClassName={inputClass}
-                      />
-                    </div>
-                    <label className="space-y-1">
-                      <span className="block text-sm">Department</span>
-                      <input
-                        type="text"
-                        value={affiliation.department}
-                        onChange={(e) =>
-                          updateAffiliation(index, {
-                            department: e.target.value,
-                          })
-                        }
-                        className={inputClass}
-                      />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="block text-sm">City</span>
-                      <input
-                        type="text"
-                        value={affiliation.city}
-                        onChange={(e) =>
-                          updateAffiliation(index, { city: e.target.value })
-                        }
-                        className={inputClass}
-                      />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="block text-sm">State or province</span>
-                      <input
-                        type="text"
-                        value={affiliation.region}
-                        onChange={(e) =>
-                          updateAffiliation(index, { region: e.target.value })
-                        }
-                        className={inputClass}
-                      />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="block text-sm">Country</span>
-                      <input
-                        type="text"
-                        value={affiliation.country}
-                        onChange={(e) =>
-                          updateAffiliation(index, { country: e.target.value })
-                        }
-                        className={inputClass}
-                      />
-                    </label>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-          <button
-            type="button"
-            onClick={addAffiliation}
-            className="rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            Add affiliation
-          </button>
-        </fieldset>
+        <AffiliationsFieldset
+          affiliations={affiliations}
+          updateAffiliation={updateAffiliation}
+          selectInstitution={selectInstitution}
+          addAffiliation={addAffiliation}
+          removeAffiliation={removeAffiliation}
+        />
 
-        <fieldset className="space-y-4 rounded-md border border-border p-4">
-          <legend className="px-1 text-sm font-medium text-text">Authors</legend>
-          <ol className="space-y-4">
-            {authors.map((author, index) => (
-              <li
-                key={index}
-                className="space-y-3 rounded-md border border-border p-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-text">
-                    Author {index + 1}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => moveAuthor(index, -1)}
-                      disabled={index === 0}
-                      aria-label={`Move author ${index + 1} up`}
-                      className={smallButton}
-                    >
-                      Up
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveAuthor(index, 1)}
-                      disabled={index === authors.length - 1}
-                      aria-label={`Move author ${index + 1} down`}
-                      className={smallButton}
-                    >
-                      Down
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeAuthor(index)}
-                      className="text-sm font-medium text-red-700 hover:underline dark:text-red-400"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <label className="space-y-1">
-                    <span className="block text-sm">First name</span>
-                    <input
-                      type="text"
-                      value={author.firstName}
-                      onChange={(e) =>
-                        updateAuthor(index, { firstName: e.target.value })
-                      }
-                      className={inputClass}
-                    />
-                  </label>
-                  <label className="space-y-1">
-                    <span className="block text-sm">Last name</span>
-                    <input
-                      type="text"
-                      value={author.lastName}
-                      onChange={(e) =>
-                        updateAuthor(index, { lastName: e.target.value })
-                      }
-                      className={inputClass}
-                    />
-                  </label>
-                  <label className="space-y-1 sm:col-span-2">
-                    <span className="block text-sm">Email</span>
-                    <input
-                      type="email"
-                      value={author.email}
-                      onChange={(e) =>
-                        updateAuthor(index, { email: e.target.value })
-                      }
-                      className={inputClass}
-                    />
-                  </label>
-                </div>
-                <div className="flex flex-wrap items-center gap-4">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={author.isPresenting}
-                      onChange={(e) =>
-                        updateAuthor(index, { isPresenting: e.target.checked })
-                      }
-                      className="h-4 w-4"
-                    />
-                    Presenting
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={author.isCorresponding}
-                      onChange={(e) =>
-                        updateAuthor(index, {
-                          isCorresponding: e.target.checked,
-                        })
-                      }
-                      className="h-4 w-4"
-                    />
-                    Corresponding
-                  </label>
-                </div>
-                {affiliations.length > 0 ? (
-                  <fieldset className="space-y-1">
-                    <legend className="text-sm">Affiliations</legend>
-                    <div className="flex flex-wrap gap-3">
-                      {affiliations.map((_, affIndex) => {
-                        const ordinal = affIndex + 1;
-                        return (
-                          <label
-                            key={affIndex}
-                            className="flex items-center gap-1 text-sm"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={author.affiliationOrdinals.includes(
-                                ordinal,
-                              )}
-                              onChange={() =>
-                                toggleAffiliationForAuthor(index, ordinal)
-                              }
-                              className="h-4 w-4"
-                            />
-                            {ordinal}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-          <button
-            type="button"
-            onClick={addAuthor}
-            className="rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            Add author
-          </button>
-        </fieldset>
+        <AuthorsFieldset
+          authors={authors}
+          affiliations={affiliations}
+          updateAuthor={updateAuthor}
+          addAuthor={addAuthor}
+          removeAuthor={removeAuthor}
+          moveAuthor={moveAuthor}
+          toggleAffiliationForAuthor={toggleAffiliationForAuthor}
+        />
 
         <input type="hidden" name="authors" value={JSON.stringify(authors)} />
         <input
@@ -776,95 +526,6 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </Link>
         </div>
       </Form>
-    </div>
-  );
-}
-
-function DecisionPanel({
-  decision,
-}: {
-  decision: {
-    outcome: string;
-    presentationType: string | null;
-    decisionMessage: string | null;
-  } | null;
-}) {
-  if (!decision) return null;
-  const tone =
-    decision.outcome === "accept"
-      ? "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950"
-      : decision.outcome === "reject"
-        ? "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950"
-        : "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950";
-  return (
-    <section role="status" className={`space-y-2 rounded-md border p-4 ${tone}`}>
-      <h2 className="text-lg font-medium">Decision</h2>
-      <p className="text-sm">
-        <span className="font-medium">Outcome:</span>{" "}
-        {DECISION_OUTCOME_LABELS[decision.outcome as DecisionOutcome] ??
-          decision.outcome}
-        {decision.presentationType
-          ? ` (${
-              PRESENTATION_TYPE_LABELS[
-                decision.presentationType as PresentationType
-              ] ?? decision.presentationType
-            } presentation)`
-          : ""}
-      </p>
-      {decision.decisionMessage ? (
-        <div className="space-y-1">
-          <h3 className="text-sm font-medium">Message from the organizers</h3>
-          <div
-            className="text-sm"
-            dangerouslySetInnerHTML={{ __html: decision.decisionMessage }}
-          />
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function ReadOnlyAbstract({
-  bodyText,
-  authors,
-  affiliations,
-}: {
-  bodyText: string;
-  authors: Array<{ firstName: string; lastName: string }>;
-  affiliations: Array<{ institution: string }>;
-}) {
-  return (
-    <div className="space-y-4">
-      {bodyText.trim().length > 0 ? (
-        <section className="space-y-1">
-          <h2 className="text-sm font-medium text-text">Abstract</h2>
-          <div
-            className="text-text"
-            dangerouslySetInnerHTML={{ __html: bodyText }}
-          />
-        </section>
-      ) : null}
-      {authors.length > 0 ? (
-        <section className="space-y-1">
-          <h2 className="text-sm font-medium text-text">Authors</h2>
-          <p className="text-text">
-            {authors
-              .map((a) => `${a.firstName} ${a.lastName}`.trim())
-              .filter(Boolean)
-              .join(", ")}
-          </p>
-        </section>
-      ) : null}
-      {affiliations.length > 0 ? (
-        <section className="space-y-1">
-          <h2 className="text-sm font-medium text-text">Affiliations</h2>
-          <ol className="list-decimal pl-5 text-text">
-            {affiliations.map((a, i) => (
-              <li key={i}>{a.institution}</li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
     </div>
   );
 }

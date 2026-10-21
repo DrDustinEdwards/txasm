@@ -348,7 +348,7 @@ export async function acceptedAbstractsInBookOrder(
 // published book's book_entry.code (absent until the book is published) and
 // their title and presenting author from a direct fetch, so an item whose
 // abstract is no longer accepted still shows a title (with a null code).
-export async function resolveProgram(
+async function resolveProgram(
   db: DB,
   editionId: string,
   sessions: Array<typeof schema.programSession.$inferSelect>,
@@ -477,4 +477,60 @@ export async function resolveProgram(
           customTitle: item.customTitle,
         })),
     }));
+}
+
+// An edition's sessions in order, each with its items in order, resolved. No
+// sessions is an empty program, without the item and book-code reads.
+export async function loadResolvedProgram(
+  db: DB,
+  editionId: string,
+): Promise<ProgramSessionResolved[]> {
+  const sessions = await db
+    .select()
+    .from(schema.programSession)
+    .where(eq(schema.programSession.editionId, editionId))
+    .orderBy(schema.programSession.sortOrder);
+  if (sessions.length === 0) return [];
+  const items = await db
+    .select()
+    .from(schema.programItem)
+    .where(
+      inArray(
+        schema.programItem.sessionId,
+        sessions.map((s) => s.id),
+      ),
+    )
+    .orderBy(schema.programItem.sortOrder);
+  return resolveProgram(db, editionId, sessions, items);
+}
+
+// The invited speakers and sponsors of an edition, in display order, as the
+// public program and the printable program show them.
+export function listEditionSpeakers(db: DB, editionId: string) {
+  return db
+    .select({
+      id: schema.invitedSpeaker.id,
+      name: schema.invitedSpeaker.name,
+      affiliation: schema.invitedSpeaker.affiliation,
+      role: schema.invitedSpeaker.role,
+      talkTitle: schema.invitedSpeaker.talkTitle,
+      bio: schema.invitedSpeaker.bio,
+    })
+    .from(schema.invitedSpeaker)
+    .where(eq(schema.invitedSpeaker.editionId, editionId))
+    .orderBy(schema.invitedSpeaker.sortOrder, schema.invitedSpeaker.name);
+}
+
+export function listEditionSponsors(db: DB, editionId: string) {
+  return db
+    .select({
+      id: schema.sponsor.id,
+      name: schema.sponsor.name,
+      tier: schema.sponsor.tier,
+      url: schema.sponsor.url,
+      logoR2Key: schema.sponsor.logoR2Key,
+    })
+    .from(schema.sponsor)
+    .where(eq(schema.sponsor.editionId, editionId))
+    .orderBy(schema.sponsor.sortOrder, schema.sponsor.name);
 }

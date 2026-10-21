@@ -509,7 +509,11 @@ export const review = sqliteTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [unique("uq_review_assignment").on(t.assignmentId)],
+  (t) => [
+    unique("uq_review_assignment").on(t.assignmentId),
+    // Decisions and the chair's review list read submitted reviews by abstract.
+    index("ix_review_abstract").on(t.abstractId, t.status),
+  ],
 );
 
 export const reviewScore = sqliteTable(
