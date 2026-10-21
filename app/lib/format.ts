@@ -1,17 +1,6 @@
 // Display helpers shared by routes and the print renderers. No data or server
 // imports, so this is safe on both sides of the server/client boundary.
 
-// Escape a plain-text value for safe insertion into HTML or SVG markup. The
-// book, program, and cover renderers share this so plain fields (names, dates,
-// titles) can never inject markup into the print document.
-export function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 // Money is stored in cents. Format to a currency string only for display.
 export function formatMoney(amountCents: number, currency: string) {
   return new Intl.NumberFormat("en-US", {

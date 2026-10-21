@@ -9,6 +9,7 @@
 // Turning it on later is a config change (uncomment the binding, set
 // EMAIL_ENABLED), not a code change.
 
+import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { extractPlainText } from "./richtext";
 
 // The send_email binding shape we use, per the Cloudflare Email Sending API. It
@@ -57,7 +58,7 @@ export interface SendResult {
 
 // Configured only when the flag is on, the binding exists, and a from address is
 // set. All three are true only after cutover.
-export function isEmailConfigured(env: Env): boolean {
+function isEmailConfigured(env: Env): boolean {
   const e = emailEnv(env);
   return (
     flagOn(e.EMAIL_ENABLED) &&
@@ -110,14 +111,6 @@ export async function sendEmail(
 // copy, no secrets. Plain-text fields that may carry stored HTML are stripped
 // with extractPlainText.
 // ---------------------------------------------------------------------------
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 function htmlParagraphs(lines: string[]): string {
   return lines
@@ -184,22 +177,3 @@ export function decisionEmail(input: {
   };
 }
 
-// Defined for later. Registration receipts are wired once payments are built.
-export function registrationReceiptEmail(input: {
-  meetingName: string;
-  categoryLabel: string;
-  amountFormatted: string;
-}): EmailContent {
-  const lines = [
-    `Thank you for registering for ${input.meetingName}.`,
-    `Registration: ${input.categoryLabel}`,
-    `Amount paid: ${input.amountFormatted}`,
-    "We look forward to seeing you there.",
-    "Texas Branch ASM",
-  ];
-  return {
-    subject: `Your registration receipt for ${input.meetingName}`,
-    text: lines.join("\n\n"),
-    html: htmlParagraphs(lines),
-  };
-}

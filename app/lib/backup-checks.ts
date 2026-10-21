@@ -1,6 +1,21 @@
-// The checks a nightly dump must pass before it is marked complete. Pure (no
-// d1-dump, no bindings) so tests can plant a bad dump and watch each check go red.
-import { EXCLUDED_TABLES } from "./backup-excluded";
+// What txasm's nightly dump must leave out and carry, for d1-dump's runCheckedBackup, which runs
+// the standard checks (not empty, nothing excluded present, every required table there) and
+// countProblems below. Pure (no bindings) so tests can plant a bad dump.
+import type { DumpResult } from "@dustinedwards/d1-dump";
+
+// Never back up live credentials or one-time tokens: a backup is one more place a
+// session could leak from, and restoring one would revive old sign-ins. Sessions are
+// not in D1 at all (Better Auth keeps them in KV).
+export const EXCLUDED_TABLES = [
+  // Better Auth magic-link tokens and other one-time verification values.
+  "verification",
+  // Better Auth account rows carry access, refresh and id tokens and a password
+  // hash column. Sign-in is magic-link only, so the table holds no data the
+  // site needs back; a user signs in again and the row is recreated.
+  "account",
+  // Reviewer and chair invitations carry a live one-time accept token.
+  "invitation",
+] as const;
 
 // The irreplaceable data: people, registrations (payment state lives on
 // registration), abstracts and their authors, reviews and decisions, and the
@@ -21,29 +36,16 @@ export const REQUIRED_TABLES = [
 // it is an emptied or wrong database, not a quiet one.
 const ALWAYS_NON_EMPTY = "platform_settings";
 
-export type DumpSummary = {
-  tables: Array<{ name: string; rows: number }>;
-};
-
-/** One message per failed check; empty means the dump may be marked complete. */
-export function dumpProblems(
-  dump: DumpSummary,
+/** txasm's own checks: one message per failed check; empty means they pass. */
+export function countProblems(
+  dump: Pick<DumpResult, "tables">,
   liveCounts: Record<string, number>,
 ): string[] {
   const problems: string[] = [];
-  if (dump.tables.length === 0) problems.push("the dump holds no tables");
   const byName = new Map(dump.tables.map((t) => [t.name, t.rows]));
-
-  for (const name of EXCLUDED_TABLES) {
-    if (byName.has(name)) problems.push(`${name} is in the dump but must be excluded`);
-  }
-
   for (const name of REQUIRED_TABLES) {
     const dumped = byName.get(name);
-    if (dumped === undefined) {
-      problems.push(`${name} is missing from the dump`);
-      continue;
-    }
+    if (dumped === undefined) continue; // d1-dump's required check names it
     const live = liveCounts[name];
     if (live === undefined) problems.push(`no live count for ${name}`);
     else if (dumped !== live) problems.push(`${name} dumped ${dumped} rows but has ${live}`);

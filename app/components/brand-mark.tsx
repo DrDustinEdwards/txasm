@@ -25,5 +25,3 @@ export function BrandMark({ className, title = "TXASM" }: Props) {
     </svg>
   );
 }
-
-export default BrandMark;

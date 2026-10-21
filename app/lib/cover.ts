@@ -14,7 +14,7 @@
 // presentation attributes, only inline style).
 
 import { TEXAS_STATE_PATH, txasmMarkPaths } from "./brand-svg";
-import { escapeHtml } from "./format";
+import { escapeHtml } from "@dustinedwards/site-runtime/html";
 
 type CoverInput = {
   meetingName: string;

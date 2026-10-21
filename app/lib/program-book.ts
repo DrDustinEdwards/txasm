@@ -16,7 +16,7 @@ import type {
   SponsorPublic,
 } from "./data-access";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
-import { escapeHtml } from "./format";
+import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
 
 // Escape a string for use inside a CSS string literal (the running header).

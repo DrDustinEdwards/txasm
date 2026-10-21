@@ -29,7 +29,7 @@ export interface NumberingEntry {
 }
 
 // The prefix for an entry, or null when it carries no code (missing level/format).
-export function codePrefix(
+function codePrefix(
   level: AbstractLevel | null,
   format: AbstractFormat | null,
 ): string | null {

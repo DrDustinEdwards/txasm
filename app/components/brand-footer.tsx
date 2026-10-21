@@ -60,5 +60,3 @@ export function BrandFooter({ className, size = 36, tagline = true }: Props) {
     </div>
   );
 }
-
-export default BrandFooter;
