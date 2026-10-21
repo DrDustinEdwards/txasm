@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -20,8 +21,8 @@ import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Decisions | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Decisions") }];
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

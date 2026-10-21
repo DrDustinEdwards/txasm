@@ -7,6 +7,7 @@ import {
   useSearchParams,
 } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.program";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -30,8 +31,8 @@ import {
   speakerRoleLabel,
 } from "~/lib/vocab";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Program | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Program") }];
 }
 
 // Named config, not a bare literal: one day in milliseconds, for enumerating the

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
@@ -36,8 +37,8 @@ import {
   type InstitutionSuggestion,
 } from "~/components/institution-autocomplete";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Edit abstract | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Edit abstract") }];
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

@@ -16,6 +16,7 @@ import type {
 } from "./data-access";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { PAGED_JS_SCRIPTS } from "./paged";
 import { isEmptyRichText } from "./richtext";
 
 // Escape a string for use inside a CSS string literal (the running header).
@@ -277,18 +278,7 @@ export function renderArrangedBook(data: BookRenderData): string {
 </head>
 <body>
 ${body}
-<script>
-  // Signal when Paged.js has finished laying out the pages, the same hook the
-  // numbered book uses. The Part B PDF render waits on it; the browser preview
-  // ignores it. Must run before the polyfill so the auto runner picks up config.
-  window.PagedConfig = {
-    auto: true,
-    after: () => {
-      document.documentElement.setAttribute("data-pagedjs-done", "true");
-    },
-  };
-</script>
-<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>
+${PAGED_JS_SCRIPTS}
 </body>
 </html>`;
 }

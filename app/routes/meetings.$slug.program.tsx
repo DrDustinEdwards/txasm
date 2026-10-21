@@ -1,4 +1,5 @@
 import type { Route } from "./+types/meetings.$slug.program";
+import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import {
   NotFoundError,
@@ -12,8 +13,8 @@ import { formatDateTime } from "~/lib/format";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumbs } from "~/components/breadcrumbs";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Program | Texas Branch ASM" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: pageTitle(matches, "Program") }];
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
