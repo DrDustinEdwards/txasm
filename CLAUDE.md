@@ -1,15 +1,14 @@
 # CLAUDE.md - txasm
 
-Portfolio-wide rules live in Capsid, not here. Read `capsid/conventions.md` first, then `txasm/core.md`. This file holds only what is true of this repo.
+Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo.
 
 ## What this is
 
 txasm.org: a conference and abstract-management platform for the Texas Branch of the American Society for Microbiology, replacing the paid Oxford Abstracts service and the old WordPress site. It runs the full lifecycle of a meeting twice a year: registration and payment, abstract submission and editing, reviewer invitation and rubric scoring, accept/reject decisions, the program schedule, and an auto-generated abstract book PDF. Solo-maintained. Each meeting is an edition; the same code runs every meeting forever.
 
-## Session ritual
+Decisions go to `txasm/decisions.md`.
 
-Start: read `capsid/conventions.md`, then `txasm/core.md`.
-End: write a `session-YYYY-MM-DD.md` episodic (type `episodic`, under ~2KB) to the txasm namespace. Decisions go to `txasm/decisions.md`.
+- Tests: keep the minimal set (a few browser tests for flows that must never break, one integration test per real behaviour, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
 
 ## Stack (repo-specific additions to the house stack)
 
