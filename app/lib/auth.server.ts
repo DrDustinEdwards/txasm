@@ -21,7 +21,7 @@ import { magicLinkEmail, sendEmail } from "./email.server";
 // The instance is built per environment and cached, since the worker env is
 // stable within an isolate. The adapter needs the schema and the Drizzle client,
 // which is why this file sits inside the data/auth boundary alongside
-// app/lib/data-access.ts and app/db/index.server.ts.
+// the data-access layer and app/db/index.server.ts.
 function buildAuth(env: Env) {
   const db = getDb(env);
 
