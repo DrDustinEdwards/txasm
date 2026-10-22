@@ -1,5 +1,6 @@
-# Typecheck, lint, tests and build on every pull request and on main. One job and an npm cache keep the Actions
-# minutes low; the steps run in order and the first red one stops the run.
+# Typecheck, lint, tests and build on every pull request and on main, then a deploy from main. One job and an
+# npm cache keep the Actions minutes low; the steps run in order and the first red one stops the run. A run on
+# main is never cancelled, so a deploy cannot stop halfway.
 
 name: CI
 
@@ -10,7 +11,7 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -43,3 +44,38 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # A merge to main deploys once CI is green: migrations first, then the Worker. Dormant until the repo
+  # variable CF_DEPLOY is 'true', so CI stays green before the Cloudflare token is added.
+  deploy:
+    name: Deploy
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.CF_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Apply D1 migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run db:migrate:prod
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy
