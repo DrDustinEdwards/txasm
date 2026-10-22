@@ -1,6 +1,7 @@
 import { createRequestHandler, RouterContextProvider } from "react-router";
 import { cloudflareContext } from "../app/load-context";
 import { runNightlyBackup } from "../app/lib/backup.server";
+import { withSecurityHeaders } from "../app/lib/security-headers";
 
 const requestHandler = createRequestHandler(
   () => import("virtual:react-router/server-build"),
@@ -13,7 +14,7 @@ export default {
     // reach bindings through context.get(cloudflareContext), never ambiently.
     const context = new RouterContextProvider();
     context.set(cloudflareContext, { env, ctx });
-    return requestHandler(request, context);
+    return withSecurityHeaders(await requestHandler(request, context));
   },
 
   // The cron fires daily (see wrangler.jsonc). It takes the nightly D1 backup;

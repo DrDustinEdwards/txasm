@@ -15,8 +15,8 @@ Decisions go to `txasm/decisions.md`.
 - React Router v8 + React 19 + TypeScript, Vite with @cloudflare/vite-plugin. Dev server runs in workerd, so local dev mirrors production.
 - D1 via Drizzle, R2 for uploads (figures, camera-ready files, generated books), KV for sessions and cache, Cron Triggers for deadline jobs and reminders, Browser Rendering for the book PDF.
 - Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions in KV via Better Auth secondary storage. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
-- PayPal for registration payments (checkout plus a signature-verified webhook). Cloudflare Email Service via the native send_email binding; email goes live at cutover once txasm.org is on Cloudflare DNS.
-- Tailwind v4, lucide-react. shadcn/ui is permitted here (app-heavy admin surface), re-themed onto house tokens.
+- PayPal for registration payments: not built yet (only the schema columns exist); checkout and a signature-verified webhook come with it. Cloudflare Email Service via the native send_email binding; email goes live at cutover once txasm.org is on Cloudflare DNS.
+- Tailwind v4.
 
 Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (`context.get(cloudflareContext).env`, from `app/load-context.ts`).
 

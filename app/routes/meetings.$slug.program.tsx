@@ -254,7 +254,7 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
             key={sponsor.id}
             className="rounded border border-gray-200 px-3 py-2 text-sm dark:border-gray-800"
           >
-            {sponsor.url ? (
+            {sponsor.url && /^https?:\/\//i.test(sponsor.url) ? (
               <a
                 href={sponsor.url}
                 target="_blank"

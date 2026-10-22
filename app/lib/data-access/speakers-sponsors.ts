@@ -169,9 +169,21 @@ export function createInvitedSpeakers(db: DB) {
   };
 }
 
-// Sponsors, per edition. Chair/admin only. All fields are plain text and
-// escaped at render time. The logo r2 key is not written here; upload is
-// deferred.
+// A sponsor link is rendered as an href on the public program, where escaping
+// does not stop a javascript: URL, so only http and https are stored (Grok audit
+// 2026-10-21, TX-2; the same rule settings applies to the Facebook URL).
+function sponsorUrl(raw: string | null | undefined): string | null {
+  const url = raw?.trim() ?? "";
+  if (!url) return null;
+  if (!/^https?:\/\//i.test(url)) {
+    throw new ValidationError("The sponsor link must start with http:// or https://.");
+  }
+  return url;
+}
+
+// Sponsors, per edition. Chair/admin only. Name and tier are plain text and
+// escaped at render time; the link must be http or https. The logo r2 key is not
+// written here; upload is deferred.
 export function createSponsors(db: DB) {
   return {
     async listForEdition(actor: Actor, editionId: string) {
@@ -193,7 +205,7 @@ export function createSponsors(db: DB) {
           editionId: input.editionId,
           name,
           tier: input.tier?.trim() || null,
-          url: input.url?.trim() || null,
+          url: sponsorUrl(input.url),
           sortOrder: input.sortOrder ?? 0,
         })
         .returning();
@@ -214,7 +226,7 @@ export function createSponsors(db: DB) {
         set.name = name;
       }
       if (patch.tier !== undefined) set.tier = patch.tier?.trim() || null;
-      if (patch.url !== undefined) set.url = patch.url?.trim() || null;
+      if (patch.url !== undefined) set.url = sponsorUrl(patch.url);
       if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
 
       if (Object.keys(set).length > 0) {

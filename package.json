@@ -27,7 +27,7 @@
     "better-auth": "^1.6.22",
     "drizzle-orm": "^0.45.2",
     "isbot": "^5.1.36",
-    "pdfjs-dist": "^6.1.200",
+    "pdfjs-dist": "^6.4.299",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router": "8.0.0"
