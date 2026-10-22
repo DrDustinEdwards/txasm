@@ -12,10 +12,6 @@ EMAIL_ENABLED=false
 EMAIL_FROM=no-reply@txasm.org
 EMAIL_FROM_NAME=TXASM
 
-# Stripe (REST). Use test keys locally; the webhook secret is per endpoint.
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-
 # Platform admins. ADMIN_EMAILS is a comma-separated allowlist; every matching
 # email is seeded as a platform admin on first sign-in. ADMIN_EMAIL is the older
 # single-value form, still honored when ADMIN_EMAILS is not set.

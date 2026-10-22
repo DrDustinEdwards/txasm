@@ -52,6 +52,13 @@ function buildAuth(env: Env) {
       },
     },
     emailAndPassword: { enabled: false },
+    // The limiter counts in KV (secondaryStorage), so it holds across isolates. It
+    // is on in every environment rather than only when NODE_ENV says production,
+    // and it keys on Cloudflare's client address. The magic-link plugin adds its
+    // own rule of 5 requests a minute on /sign-in/magic-link (Grok audit
+    // 2026-10-21, TX-4).
+    rateLimit: { enabled: true },
+    advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
     plugins: [
       magicLink({
         sendMagicLink: async ({ email, url }) => {

@@ -29,10 +29,30 @@ export async function action({
 
   const { env } = context.get(cloudflareContext);
   try {
-    await getAuth(env).api.signInMagicLink({
-      body: { email, callbackURL: "/" },
-      headers: request.headers,
-    });
+    // Through Better Auth's HTTP handler, not auth.api: only the handler runs the
+    // rate limiter, so a direct api call let the form skip it (Grok audit
+    // 2026-10-21, TX-4).
+    const headers = new Headers({ "Content-Type": "application/json" });
+    for (const name of ["origin", "cf-connecting-ip", "user-agent"]) {
+      const value = request.headers.get(name);
+      if (value) headers.set(name, value);
+    }
+    const response = await getAuth(env).handler(
+      new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email, callbackURL: "/" }),
+      }),
+    );
+    if (response.status === 429) {
+      return {
+        ok: false,
+        error: "Too many sign-in requests. Wait a minute and try again.",
+      };
+    }
+    if (!response.ok) {
+      throw new Error(`magic link request returned ${response.status}`);
+    }
     return { ok: true };
   } catch (error) {
     console.error("[signin] magic link failed", error);
