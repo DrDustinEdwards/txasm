@@ -1,6 +1,6 @@
 // What txasm's nightly dump must leave out and carry, for d1-dump's runCheckedBackup, which runs
-// the standard checks (not empty, nothing excluded present, every required table there) and
-// countProblems below. Pure (no bindings) so tests can plant a bad dump.
+// the standard checks (not empty, nothing excluded present, every counted table there with its
+// live row count) and siteProblems below. Pure (no bindings) so tests can plant a bad dump.
 import type { DumpResult } from "@dustinedwards/d1-dump";
 
 // Never back up live credentials or one-time tokens: a backup is one more place a
@@ -20,7 +20,7 @@ export const EXCLUDED_TABLES = [
 // The irreplaceable data: people, registrations (payment state lives on
 // registration), abstracts and their authors, reviews and decisions, and the
 // edition and platform settings every page reads. Each must be dumped and match
-// the live row count.
+// the live row count, read straight after the dump (d1-dump's `counted`).
 export const REQUIRED_TABLES = [
   "user",
   "edition",
@@ -36,22 +36,8 @@ export const REQUIRED_TABLES = [
 // it is an emptied or wrong database, not a quiet one.
 const ALWAYS_NON_EMPTY = "platform_settings";
 
-/** txasm's own checks: one message per failed check; empty means they pass. */
-export function countProblems(
-  dump: Pick<DumpResult, "tables">,
-  liveCounts: Record<string, number>,
-): string[] {
-  const problems: string[] = [];
-  const byName = new Map(dump.tables.map((t) => [t.name, t.rows]));
-  for (const name of REQUIRED_TABLES) {
-    const dumped = byName.get(name);
-    if (dumped === undefined) continue; // d1-dump's required check names it
-    const live = liveCounts[name];
-    if (live === undefined) problems.push(`no live count for ${name}`);
-    else if (dumped !== live) problems.push(`${name} dumped ${dumped} rows but has ${live}`);
-  }
-  if ((byName.get(ALWAYS_NON_EMPTY) ?? 0) === 0) {
-    problems.push(`${ALWAYS_NON_EMPTY} dumped empty`);
-  }
-  return problems;
+/** txasm's own check: one message per failure; empty means it passes. */
+export function siteProblems(dump: Pick<DumpResult, "tables">): string[] {
+  const rows = dump.tables.find((t) => t.name === ALWAYS_NON_EMPTY)?.rows ?? 0;
+  return rows === 0 ? [`${ALWAYS_NON_EMPTY} dumped empty`] : [];
 }
