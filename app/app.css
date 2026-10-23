@@ -1,9 +1,6 @@
-/* Capsomer's layers sit above Tailwind's base and below its components and
-   utilities: Capsomer's element rules and components win over the preflight,
-   and the Tailwind classes still on the pages win over Capsomer until each
-   screen moves (the txasm-onto-Capsomer plan, 2026-10-23). */
-@layer theme, base, reset, cap, components, utilities;
-@import "tailwindcss" source(".");
+/* Capsomer's layers, with txasm's own reset under them. txasm's page classes
+   below are unlayered, so they win over Capsomer's where they meet. */
+@layer reset, cap;
 @import "capsomer/tokens.css";
 @import "capsomer/family-navy.css" layer(cap.tokens);
 @import "capsomer/site-txasm.css";
@@ -23,37 +20,6 @@
 @import "capsomer/empty.css";
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
-
-/* The Tailwind names the pages still use, on Capsomer's tokens (the navy
-   family, both themes). They go with Tailwind. */
-@theme {
-  --font-sans: var(--face);
-  --color-primary: var(--primary);
-  --color-on-primary: var(--primary-fg);
-  --color-accent: var(--accent-text);
-  --color-text: var(--text);
-  --color-text-muted: var(--muted);
-  --color-link: var(--accent-text);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface);
-  --color-panel: var(--raised);
-  --color-border: var(--line);
-  --color-border-strong: var(--line-strong);
-  --color-focus: var(--ring);
-}
-
-/* Dark applies by system preference and is forced by data-theme on <html>, as
-   Capsomer's tokens do. The dark: variant follows the same rule. */
-@custom-variant dark {
-  &:where([data-theme="dark"], [data-theme="dark"] *) {
-    @slot;
-  }
-  @media (prefers-color-scheme: dark) {
-    &:where(:not([data-theme="light"]):not([data-theme="light"] *)) {
-      @slot;
-    }
-  }
-}
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,
