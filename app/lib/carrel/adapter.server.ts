@@ -56,9 +56,9 @@ function parse(source: string): PageSource {
   }
 }
 
-/** Prelum's render, loaded on first use so the public routes never parse it. */
+/** Prelum's render without math (`$` is text, so no KaTeX in the upload), loaded on first use so the public routes never parse it. */
 async function renderBody(body: string): Promise<{ html: string; renderVersion: string }> {
-  const { render } = await import("@drdustinedwards/site-helpers/render");
+  const { render } = await import("@drdustinedwards/site-helpers/render/nomath");
   try {
     const out = await render({
       file: "page.md",
