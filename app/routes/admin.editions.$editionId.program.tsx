@@ -21,11 +21,8 @@ import { renderProgramBook } from "~/lib/program-book";
 import { renderBookPdf } from "~/lib/book-pdf.server";
 import { ProgramDocumentPanel } from "~/components/program-builder/document-panel";
 import { SessionFields, Slot } from "~/components/program-builder/sessions";
-import {
-  buildDayKeys,
-  dayTabLabel,
-  NO_DATE_KEY,
-} from "~/components/program-builder/shared";
+import { buildDayKeys, dayTabLabel } from "~/components/program-builder/shared";
+import { NO_DATE_KEY, PDF_MIME_TYPE } from "~/lib/vocab";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Program") }];
@@ -123,7 +120,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       const fileName = `${data.meeting.name} Program.pdf`;
 
       await env.BOOKS.put(r2Key, bytes, {
-        httpMetadata: { contentType: "application/pdf" },
+        httpMetadata: { contentType: PDF_MIME_TYPE },
       });
       await da.documents.recordReady(actor, generatingId, {
         r2Key,

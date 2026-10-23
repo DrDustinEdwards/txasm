@@ -13,6 +13,7 @@
 import puppeteer from "@cloudflare/puppeteer";
 import { renderArrangedBook } from "./book";
 import type { Actor, DataAccess } from "./data-access";
+import { PDF_MIME_TYPE } from "./vocab";
 
 const RENDER_TIMEOUT_MS = 90_000; // overall ceiling for one render
 const LOAD_TIMEOUT_MS = 60_000; // setContent, including the Paged.js CDN fetch
@@ -135,7 +136,7 @@ export async function publishArrangedBook(
     const season = data.edition.season;
     const fileName = `TXASM ${season.charAt(0).toUpperCase()}${season.slice(1)} ${data.edition.year} Abstract Book.pdf`;
     await env.BOOKS.put(r2Key, bytes, {
-      httpMetadata: { contentType: "application/pdf" },
+      httpMetadata: { contentType: PDF_MIME_TYPE },
     });
     await da.documents.recordReady(actor, claimId, {
       r2Key,

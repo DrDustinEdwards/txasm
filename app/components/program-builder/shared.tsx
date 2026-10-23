@@ -4,13 +4,11 @@ import type {
   ProgramItemKind,
   ProgramSessionResolved,
 } from "~/lib/data-access";
-import { PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
+import { NO_DATE_KEY, PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
 
 // Named config, not a bare literal: one day in milliseconds, for enumerating the
 // meeting date range into day tabs.
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-export const NO_DATE_KEY = "no-date";
 
 export const inputClass =
   "w-full rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";

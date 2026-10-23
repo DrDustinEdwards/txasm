@@ -6,6 +6,7 @@ import {
   type DocumentCategory,
   type DocumentStatus,
   fileKindForMime,
+  PDF_MIME_TYPE,
   type Season,
 } from "../vocab";
 import {
@@ -237,7 +238,7 @@ export function createDocuments(db: DB) {
           `A document with slug "${slug}" already exists.`,
         );
       }
-      const mimeType = input.mimeType ?? "application/pdf";
+      const mimeType = input.mimeType ?? PDF_MIME_TYPE;
       const [created] = await db
         .insert(schema.document)
         .values({
