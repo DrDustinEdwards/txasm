@@ -5,12 +5,12 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "typecheck": "wrangler types && react-router typegen && tsc -b",
+    "typecheck": "devkit-bootstrap --types-only && react-router typegen && tsc -b",
     "lint": "eslint .",
     "test": "tsx --test tests/*.test.ts",
     "deploy": "npm run build && wrangler deploy",
     "preview": "npm run build && vite preview",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "devkit-bootstrap --types-only",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply txasm --local",
     "db:migrate:prod": "wrangler d1 migrations apply txasm --remote",
@@ -18,7 +18,7 @@
     "import:meeting": "tsx scripts/import-meeting.ts",
     "import:awards": "tsx scripts/import-awards.ts",
     "load:documents": "tsx scripts/load-documents.ts",
-    "postinstall": "wrangler types"
+    "postinstall": "devkit-bootstrap"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.1.0",
