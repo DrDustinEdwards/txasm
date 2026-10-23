@@ -1,6 +1,7 @@
 # The no-bloat checks (Knip, jscpd, gzip weight per route) on every pull request. WARN-ONLY: they report to the run's
 # summary and never turn a pull request red. A number above its baseline is a ::warning::, not a failure.
-# Knip and jscpd run through npx at the major the baseline measured; neither is a dependency of the app.
+# Knip and jscpd are devkit's shared workflow with warn-only (devkit-no-bloat --warn-only against .no-bloat.json, both
+# run through npx at the specs it names; neither is a dependency of the app). Route weight stays a job here.
 # See no-bloat/README.md.
 
 name: No bloat
@@ -16,11 +17,16 @@ permissions:
   contents: read
 
 jobs:
-  report:
-    name: Dead code, duplication and route weight (warn only)
+  no-bloat:
+    uses: DrDustinEdwards/devkit/.github/workflows/no-bloat.yml@9458af9d1521d77ed5bca0f7454c07eea3869221 # v0.11.0
+    with:
+      warn-only: true
+
+  route-weight:
+    name: Route weight (warn only)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Nothing in this workflow may turn a pull request red, including the install.
+    # Nothing in this job may turn a pull request red, including the install.
     continue-on-error: true
 
     steps:
@@ -33,33 +39,6 @@ jobs:
 
       - name: Install
         run: npm ci
-
-      - name: Knip
-        continue-on-error: true
-        run: |
-          {
-            echo '### Knip (unused files, exports and dependencies)'
-            echo '```'
-            npx --yes knip@6 --no-progress --no-exit-code
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: jscpd
-        continue-on-error: true
-        run: |
-          npx --yes jscpd@4 --silent --reporters console,json --output jscpd-report > jscpd.txt || true
-          {
-            echo '### jscpd (duplication, against no-bloat/baseline.json)'
-            echo '```'
-            cat jscpd.txt
-            node -e '
-              const now = require("./jscpd-report/jscpd-report.json").statistics.total;
-              const base = require("./no-bloat/baseline.json").jscpd;
-              console.log(`now ${now.clones} clones, ${now.duplicatedLines} lines (${now.percentage}%); baseline ${base.clones} clones, ${base.duplicatedLines} lines (${base.percentage}%)`);
-              if (now.percentage > base.percentage) console.log(`::warning::duplication ${now.percentage}% is above the baseline ${base.percentage}%`);
-            '
-            echo '```'
-          } | tee -a "$GITHUB_STEP_SUMMARY" | grep '^::warning::' || true
 
       - name: Route weight
         continue-on-error: true
