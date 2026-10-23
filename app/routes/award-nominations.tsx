@@ -19,8 +19,8 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
 
 export default function AwardNominations({ loaderData }: Route.ComponentProps) {
   return (
-    <div className="mx-auto max-w-3xl space-y-3">
-      <h1 className="text-3xl font-semibold tracking-tight text-text">{loaderData.title}</h1>
+    <div className="reading stack-3">
+      <h1 className="page-title">{loaderData.title}</h1>
       <div className="page-prose" dangerouslySetInnerHTML={{ __html: loaderData.html }} />
     </div>
   );

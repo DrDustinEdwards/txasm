@@ -30,9 +30,6 @@ const MAX_SCALE = 3;
 const SCALE_STEP = 0.25;
 const DEFAULT_SCALE = 1.2;
 
-const controlButton =
-  "inline-flex items-center rounded-md border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-50 disabled:hover:bg-transparent";
-
 export function PdfViewer({
   url,
   title,
@@ -174,39 +171,27 @@ export function PdfViewer({
   // fails. It always offers the raw PDF so the content is reachable without the
   // interactive viewer (and for assistive technology).
   const fallback = (
-    <p className="text-sm text-text-muted">
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-        className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-      >
+    <p className="small">
+      <a href={url} target="_blank" rel="noreferrer">
         Open the PDF in a new tab
       </a>
     </p>
   );
 
   if (!mounted) {
-    return (
-      <div className="rounded-lg border border-border bg-panel p-6">
-        {fallback}
-      </div>
-    );
+    return <div className="pdf-viewer">{fallback}</div>;
   }
 
   return (
-    <div
-      role="group"
-      aria-label={label}
-      className="space-y-3 rounded-lg border border-border bg-panel p-3"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1">
+    <div role="group" aria-label={label} className="pdf-viewer stack-3">
+      <div className="cluster pdf-viewer-bar">
+        <div className="cap-btn-group" role="group" aria-label="Pages">
           <button
             type="button"
             onClick={goPrev}
             disabled={status !== "ready" || page <= 1}
-            className={controlButton}
+            className="cap-btn"
+            data-size="sm"
             aria-label="Previous page"
           >
             Previous
@@ -215,33 +200,34 @@ export function PdfViewer({
             type="button"
             onClick={goNext}
             disabled={status !== "ready" || page >= numPages}
-            className={controlButton}
+            className="cap-btn"
+            data-size="sm"
             aria-label="Next page"
           >
             Next
           </button>
         </div>
-        <p className="text-sm text-text-muted" aria-live="polite">
+        <p className="small cap-muted" aria-live="polite">
           {status === "ready" ? `Page ${page} of ${numPages}` : "Loading"}
         </p>
-        <div className="ml-auto flex items-center gap-1">
+        <div className="cluster pdf-viewer-zoom">
           <button
             type="button"
             onClick={zoomOut}
             disabled={status !== "ready" || scale <= MIN_SCALE}
-            className={controlButton}
+            className="cap-btn"
+            data-size="sm"
             aria-label="Zoom out"
           >
             Zoom out
           </button>
-          <span className="w-12 text-center text-sm text-text-muted">
-            {Math.round(scale * 100)}%
-          </span>
+          <span className="small cap-muted cap-num">{Math.round(scale * 100)}%</span>
           <button
             type="button"
             onClick={zoomIn}
             disabled={status !== "ready" || scale >= MAX_SCALE}
-            className={controlButton}
+            className="cap-btn"
+            data-size="sm"
             aria-label="Zoom in"
           >
             Zoom in
@@ -253,15 +239,15 @@ export function PdfViewer({
         tabIndex={0}
         onKeyDown={onKeyDown}
         aria-label={`${label}. Use the arrow keys to change page and the plus and minus keys to zoom.`}
-        className="max-h-[80vh] overflow-auto rounded border border-border bg-surface-raised p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        className="pdf-viewer-page"
       >
         {status === "error" ? (
-          <div className="p-6">
-            <p className="text-sm text-text">The viewer could not load this PDF.</p>
-            <div className="mt-2">{fallback}</div>
+          <div className="stack-2 pdf-viewer-error">
+            <p className="small">The viewer could not load this PDF.</p>
+            {fallback}
           </div>
         ) : (
-          <canvas ref={canvasRef} className="mx-auto block max-w-full" />
+          <canvas ref={canvasRef} />
         )}
       </div>
 

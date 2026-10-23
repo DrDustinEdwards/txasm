@@ -87,79 +87,54 @@ const SPONSOR_TIERS: SponsorTier[] = [
 
 export default function Sponsorship() {
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          Sponsorship
-        </h1>
-        <p className="max-w-2xl text-text-muted">
+    <div className="stack-8">
+      <header className="stack-3">
+        <h1 className="page-title">Sponsorship</h1>
+        <p className="lead">
           Sponsors help the branch keep meeting registration affordable, fund the
           student awards, and support travel for early-career researchers. Support
           is welcome from companies, laboratories, academic departments, and
           individuals.
         </p>
         <p>
-          <a
-            href={SPONSOR_REGISTRATION_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
+          <a href={SPONSOR_REGISTRATION_URL} target="_blank" rel="noreferrer" className="cap-btn" data-variant="primary">
             Sponsor registration
           </a>
         </p>
       </header>
 
-      <section aria-labelledby="tiers-heading" className="space-y-4">
-        <h2 id="tiers-heading" className="text-xl font-semibold text-text">
+      <section aria-labelledby="tiers-heading" className="stack-4">
+        <h2 id="tiers-heading" className="section-title">
           Sponsorship levels
         </h2>
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid-2">
           {SPONSOR_TIERS.map((tier) => (
-            <li key={tier.name}>
-              <article className="flex h-full flex-col rounded-lg border border-border bg-surface-raised p-5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-lg font-semibold text-text">
-                    {tier.name}
-                  </h3>
-                  <p className="text-lg font-semibold text-text">
-                    {tier.amount}
-                  </p>
-                </div>
-                <p className="mt-1 text-sm text-text-muted">{tier.audience}</p>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-text-muted">
-                  {tier.benefits.map((benefit) => (
-                    <li key={benefit}>{benefit}</li>
-                  ))}
-                </ul>
-              </article>
+            <li key={tier.name} className="card stack-1">
+              <div className="spread">
+                <h3 className="subsection-title">{tier.name}</h3>
+                <p className="subsection-title">{tier.amount}</p>
+              </div>
+              <p className="small cap-muted">{tier.audience}</p>
+              <ul className="bullets small cap-muted tier-benefits">
+                {tier.benefits.map((benefit) => (
+                  <li key={benefit}>{benefit}</li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
       </section>
 
-      <section aria-labelledby="contact-heading" className="space-y-2">
-        <h2 id="contact-heading" className="text-xl font-semibold text-text">
+      <section aria-labelledby="contact-heading" className="stack-2">
+        <h2 id="contact-heading" className="section-title">
           Become a sponsor
         </h2>
-        <p className="max-w-2xl text-text-muted">
+        <p className="lead">
           Complete the{" "}
-          <a
-            href={SPONSOR_REGISTRATION_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
+          <a href={SPONSOR_REGISTRATION_URL} target="_blank" rel="noreferrer">
             sponsor registration form
           </a>{" "}
-          to reserve a level, or reach the branch through the{" "}
-          <Link
-            to="/contact"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            contact page
-          </Link>{" "}
-          to discuss sponsoring an upcoming meeting.
+          to reserve a level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss sponsoring an upcoming meeting.
         </p>
       </section>
     </div>

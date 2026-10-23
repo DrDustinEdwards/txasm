@@ -2,7 +2,7 @@
    utilities: Capsomer's element rules and components win over the preflight,
    and the Tailwind classes still on the pages win over Capsomer until each
    screen moves (the txasm-onto-Capsomer plan, 2026-10-23). */
-@layer theme, base, cap, components, utilities;
+@layer theme, base, reset, cap, components, utilities;
 @import "tailwindcss" source(".");
 @import "capsomer/tokens.css";
 @import "capsomer/family-navy.css" layer(cap.tokens);
@@ -14,6 +14,14 @@
 @import "capsomer/popover.css";
 @import "capsomer/theme-switch.css";
 @import "capsomer/breadcrumb.css";
+@import "capsomer/button.css";
+@import "capsomer/field.css";
+@import "capsomer/select.css";
+@import "capsomer/tabs.css";
+@import "capsomer/banner.css";
+@import "capsomer/status.css";
+@import "capsomer/empty.css";
+@import "capsomer/table.css";
 
 /* The Tailwind names the pages still use, on Capsomer's tokens (the navy
    family, both themes). They go with Tailwind. */
@@ -63,7 +71,7 @@
 }
 
 /* The public page frame: the site header, a centred column, the footer. Pages
-   read at 16px; the header and controls keep Capsomer's comfortable density. */
+   read at 16px, controls included; the header keeps Capsomer's sizes. */
 .txasm-page {
   display: flex;
   flex-direction: column;
@@ -93,6 +101,9 @@
 .txasm-main {
   --text-size: 1rem;
   --leading: 1.5;
+  --fs-body: 1rem;
+  --fs-detail: 0.875rem;
+  --fs-lead: 1.125rem;
   flex: 1;
   padding-block: 2.5rem;
   font-size: var(--text-size);
@@ -132,6 +143,290 @@
   }
   & p {
     margin: var(--space-2) 0 0;
+  }
+}
+
+/* What the pages assume of an element before any class: no margins, plain
+   lists, inherited heading sizes. Below Capsomer, so its components win. */
+@layer reset {
+  :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote, pre) {
+    margin: 0;
+  }
+  :where(ul, ol) {
+    list-style: none;
+    padding: 0;
+  }
+  :where(h1, h2, h3, h4) {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  :where(img, video, canvas) {
+    display: block;
+    max-width: 100%;
+  }
+  :where(fieldset) {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  :where(legend) {
+    padding: 0;
+  }
+  :where(table) {
+    border-collapse: collapse;
+  }
+}
+
+/* Page type: one title per page, section and subsection headings, the lead
+   paragraph under a title, and smaller lines. */
+.page-title {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.section-title {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.subsection-title {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.lead {
+  max-width: 42rem;
+  color: var(--muted);
+}
+.small {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.tiny {
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.strong {
+  font-weight: 600;
+}
+
+/* Rhythm and layout: a stack spaces its children (the number is Tailwind's
+   step it replaced, in quarters of a rem), a cluster lines them up and wraps,
+   a spread pushes them to both ends. */
+.stack-1 > * + * { margin-top: 0.25rem; }
+.stack-2 > * + * { margin-top: 0.5rem; }
+.stack-3 > * + * { margin-top: 0.75rem; }
+.stack-4 > * + * { margin-top: 1rem; }
+.stack-6 > * + * { margin-top: 1.5rem; }
+.stack-8 > * + * { margin-top: 2rem; }
+.stack-10 > * + * { margin-top: 2.5rem; }
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.spread {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.grid-2,
+.grid-3,
+.grid-4 {
+  display: grid;
+  gap: 1rem;
+  @media (width >= 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (width >= 640px) {
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (width >= 1024px) {
+  .grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.narrow {
+  max-width: 28rem;
+  margin-inline: auto;
+}
+.reading {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+.home-tagline {
+  font-size: 1.125rem;
+  color: var(--text);
+}
+
+.officer-contact {
+  margin-top: 0.75rem;
+}
+.past-officer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  @media (width >= 640px) {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 1rem;
+    & > :first-child {
+      flex: none;
+      width: 7rem;
+    }
+  }
+}
+
+.doc-pager {
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.tier-benefits {
+  margin-top: 0.75rem;
+}
+.trail-years {
+  gap: 0.5rem;
+}
+
+.recipient {
+  gap: 0.5rem;
+}
+
+.filters {
+  align-items: end;
+}
+.rule-below {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.abstract-row {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  & > :first-child {
+    flex: none;
+  }
+  & > :last-child {
+    min-width: 0;
+  }
+}
+.abstract-title {
+  font-size: 1.5rem;
+}
+.affiliation {
+  display: flex;
+  gap: 0.5rem;
+}
+.abstract-body {
+  & sub {
+    vertical-align: sub;
+  }
+  & sup {
+    vertical-align: super;
+  }
+}
+
+.program-item {
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.tracks {
+  overflow-x: auto;
+  & > div {
+    display: grid;
+    gap: 1rem;
+  }
+}
+.speaker-bio {
+  margin-top: 0.5rem;
+}
+.sponsor {
+  padding: 0.5rem 0.75rem;
+}
+
+/* The PDF viewer's frame; pdf.js paints the canvas. */
+.pdf-viewer {
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--raised);
+}
+.pdf-viewer-bar {
+  gap: 0.5rem;
+}
+.pdf-viewer-zoom {
+  gap: 0.25rem;
+  margin-left: auto;
+  & > span {
+    width: 3rem;
+    text-align: center;
+  }
+}
+.pdf-viewer-page {
+  max-height: 80vh;
+  overflow: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  & canvas {
+    display: block;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}
+.pdf-viewer-error {
+  padding: 1.5rem;
+}
+
+.error-stack {
+  overflow-x: auto;
+  background: var(--raised);
+}
+
+/* A card, and a list of rows in one card. */
+.card {
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+.card-list {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  & > li {
+    padding: 0.75rem 1rem;
+  }
+  & > li + li {
+    border-top: 1px solid var(--line);
+  }
+}
+/* A card that is one link: the edge darkens on hover. */
+.card-link {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  &:hover {
+    border-color: var(--line-strong);
+  }
+}
+.bullets {
+  list-style: disc;
+  padding-left: 1.25rem;
+  & > li + li {
+    margin-top: 0.25rem;
   }
 }
 

@@ -11,20 +11,15 @@ export function DocumentList({
   basePath: string;
 }) {
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border bg-surface-raised">
+    <ul className="card-list">
       {documents.map((doc) => {
         const subtitle = documentSubtitle(doc);
         return (
-          <li key={doc.slug} className="p-4">
-            <Link
-              to={`${basePath}/${doc.slug}`}
-              className="font-medium text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            >
+          <li key={doc.slug}>
+            <Link to={`${basePath}/${doc.slug}`} className="strong">
               {doc.title}
             </Link>
-            {subtitle ? (
-              <p className="mt-1 text-sm text-text-muted">{subtitle}</p>
-            ) : null}
+            {subtitle ? <p className="small cap-muted">{subtitle}</p> : null}
           </li>
         );
       })}

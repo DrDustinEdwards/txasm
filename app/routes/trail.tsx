@@ -1,4 +1,5 @@
 import { useRouteLoaderData } from "react-router";
+import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/trail";
 import type { loader as rootLoader } from "~/root";
 import { pageTitle } from "~/lib/site-meta";
@@ -29,36 +30,26 @@ export default function Trail() {
   const foundingYear = rootData?.settings?.foundingYear ?? null;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          Host cities of the Texas Branch
-        </h1>
-        <p className="max-w-2xl text-text-muted">
+    <div className="stack-8">
+      <header className="stack-3">
+        <h1 className="page-title">Host cities of the Texas Branch</h1>
+        <p className="lead">
           The branch has gathered across Texas twice a year since its
           {foundingYear ? ` founding in ${foundingYear}` : " founding"}. This
           trail records the meetings on file and the cities that hosted them.
         </p>
       </header>
 
-      <section aria-labelledby="trail-heading" className="space-y-4">
-        <h2 id="trail-heading" className="text-xl font-semibold text-text">
+      <section aria-labelledby="trail-heading" className="stack-4">
+        <h2 id="trail-heading" className="section-title">
           Meetings on record
         </h2>
-        <div className="rounded-lg border border-border bg-panel p-4">
-          <p className="text-sm text-text-muted">
-            The host city for each year is being added. The years currently on
-            record are listed below.
-          </p>
-        </div>
-        <ul className="grid gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <Banner tone="info">The host city for each year is being added. The years currently on record are listed below.</Banner>
+        <ul className="grid-4 trail-years">
           {MEETING_YEARS.map((year) => (
-            <li
-              key={year}
-              className="rounded-lg border border-border bg-surface-raised px-4 py-3"
-            >
-              <p className="font-medium text-text">{year}</p>
-              <p className="mt-1 text-sm text-text-muted">Host city to be added</p>
+            <li key={year} className="card">
+              <p className="strong">{year}</p>
+              <p className="small cap-muted">Host city to be added</p>
             </li>
           ))}
         </ul>

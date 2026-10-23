@@ -1,3 +1,4 @@
+import { Empty } from "capsomer/react/empty";
 import type { Route } from "./+types/archive.$category";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
@@ -38,31 +39,22 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
   const { title, basePath, documents } = loaderData;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          {title}
-        </h1>
-        <p className="max-w-2xl text-text-muted">
+    <div className="stack-8">
+      <header className="stack-3">
+        <h1 className="page-title">{title}</h1>
+        <p className="lead">
           The branch's archive of {title.toLowerCase()} from past meetings. Open
           one to read it in the viewer or download the PDF.
         </p>
       </header>
 
-      {documents.length === 0 ? (
-        <section
-          aria-label={title}
-          className="rounded-lg border border-border bg-panel p-6"
-        >
-          <p className="text-text-muted">
-            Documents are being added and will be listed here.
-          </p>
-        </section>
-      ) : (
-        <section aria-label={title}>
+      <section aria-label={title}>
+        {documents.length === 0 ? (
+          <Empty kind="nothing-yet" title="Documents are being added and will be listed here." />
+        ) : (
           <DocumentList documents={documents} basePath={basePath} />
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }

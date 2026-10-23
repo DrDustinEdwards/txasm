@@ -85,11 +85,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-16">
-      <h1 className="text-2xl font-semibold text-text">{heading}</h1>
-      <p className="mt-3 text-text-muted">{detail}</p>
+    <main id="main" className="txasm-frame txasm-main reading stack-3">
+      <h1 className="page-title">{heading}</h1>
+      <p className="cap-muted">{detail}</p>
       {import.meta.env.DEV && error instanceof Error && error.stack ? (
-        <pre className="mt-6 overflow-x-auto rounded bg-panel p-4 text-sm text-text">
+        <pre className="card small error-stack">
           <code>{error.stack}</code>
         </pre>
       ) : null}

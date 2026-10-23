@@ -1,4 +1,6 @@
 import { Form, Link } from "react-router";
+import { Empty } from "capsomer/react/empty";
+import { Field } from "capsomer/react/field";
 import type { Route } from "./+types/meetings.$slug.abstracts";
 import { cloudflareContext } from "~/load-context";
 import {
@@ -63,9 +65,6 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
   };
 }
 
-const inputClass =
-  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
 type Group = { topic: string | null; abstracts: PublicAbstractSummary[] };
 
 function groupByTopic(abstracts: PublicAbstractSummary[]): Group[] {
@@ -103,7 +102,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
   const filtered = filters.level || filters.format || filters.topic;
 
   return (
-    <div className="space-y-8">
+    <div className="stack-8">
       <Breadcrumb
         renderLink={renderLink}
         items={[
@@ -113,32 +112,17 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         ]}
       />
 
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          {edition.name}
-        </h1>
-        <p className="text-lg text-text-muted">Abstracts</p>
-        <p className="text-sm text-text-muted">
-          {`${SEASON_LABELS[edition.season]} ${edition.year}`} ·{" "}
-          <Link
-            to={`/meetings/${edition.slug}/program`}
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            Program
-          </Link>
+      <header className="stack-2">
+        <h1 className="page-title">{edition.name}</h1>
+        <p className="home-tagline cap-muted">Abstracts</p>
+        <p className="small cap-muted">
+          {`${SEASON_LABELS[edition.season]} ${edition.year}`} · <Link to={`/meetings/${edition.slug}/program`}>Program</Link>
         </p>
       </header>
 
-      <Form
-        method="get"
-        aria-label="Filter abstracts"
-        className="grid gap-3 rounded-lg border border-border bg-surface-raised p-5 sm:grid-cols-4 sm:items-end"
-      >
-        <div className="space-y-1">
-          <label htmlFor="level" className="block text-sm font-medium text-text">
-            Level
-          </label>
-          <select id="level" name="level" defaultValue={filters.level} className={inputClass}>
+      <Form method="get" aria-label="Filter abstracts" className="card grid-4 filters">
+        <Field label="Level">
+          <select id="level" name="level" defaultValue={filters.level} className="cap-select">
             <option value="">All levels</option>
             {ABSTRACT_LEVELS.map((l) => (
               <option key={l} value={l}>
@@ -146,12 +130,9 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="format" className="block text-sm font-medium text-text">
-            Format
-          </label>
-          <select id="format" name="format" defaultValue={filters.format} className={inputClass}>
+        </Field>
+        <Field label="Format">
+          <select id="format" name="format" defaultValue={filters.format} className="cap-select">
             <option value="">All formats</option>
             {ABSTRACT_FORMATS.map((f) => (
               <option key={f} value={f}>
@@ -159,12 +140,9 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="topic" className="block text-sm font-medium text-text">
-            Topic
-          </label>
-          <select id="topic" name="topic" defaultValue={filters.topic} className={inputClass}>
+        </Field>
+        <Field label="Topic">
+          <select id="topic" name="topic" defaultValue={filters.topic} className="cap-select">
             <option value="">All topics</option>
             {topics.map((t) => (
               <option key={t} value={t}>
@@ -173,85 +151,49 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
             ))}
             <option value={NO_TOPIC}>{untopicedLabel}</option>
           </select>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
+        </Field>
+        <div className="cluster">
+          <button type="submit" className="cap-btn" data-variant="primary">
             Apply
           </button>
           {filtered ? (
-            <Link
-              to={`/meetings/${edition.slug}/abstracts`}
-              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            >
+            <Link to={`/meetings/${edition.slug}/abstracts`} className="cap-btn">
               Clear
             </Link>
           ) : null}
         </div>
       </Form>
 
-      <p className="text-sm text-text-muted" aria-live="polite">
-        {filtered
-          ? `${abstracts.length} of ${total} abstracts`
-          : `${total} abstracts`}
+      <p className="small cap-muted" aria-live="polite">
+        {filtered ? `${abstracts.length} of ${total} abstracts` : `${total} abstracts`}
       </p>
 
       {groups.length === 0 ? (
-        <p className="rounded-lg border border-border bg-panel p-6 text-text-muted">
-          No abstracts match these filters.
-        </p>
+        <Empty kind="no-match" title="No abstracts match these filters." />
       ) : (
-        <div className="space-y-10">
+        <div className="stack-10">
           {groups.map((group) => {
             const label = group.topic ?? untopicedLabel;
             return (
-              <section
-                key={group.topic ?? NO_TOPIC}
-                aria-label={label}
-                className="space-y-4"
-              >
-                <h2 className="border-b border-border pb-2 text-xl font-semibold text-text">
-                  {label}
-                </h2>
-              <ul className="space-y-4">
-                {group.abstracts.map((abstract) => {
-                  const line = metaLine(abstract);
-                  return (
-                    <li
-                      key={abstract.number}
-                      className="rounded-lg border border-border bg-surface-raised p-4"
-                    >
-                      <div className="flex gap-3">
-                        <span className="shrink-0 text-sm font-semibold text-text-muted">
-                          {abstract.code ?? abstract.number}
-                        </span>
-                        <div className="min-w-0 space-y-1">
-                          <Link
-                            to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
-                            className="font-medium text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                          >
-                            <span
-                              dangerouslySetInnerHTML={{ __html: abstract.title }}
-                            />
+              <section key={group.topic ?? NO_TOPIC} aria-label={label} className="stack-4">
+                <h2 className="section-title rule-below">{label}</h2>
+                <ul className="stack-4">
+                  {group.abstracts.map((abstract) => {
+                    const line = metaLine(abstract);
+                    return (
+                      <li key={abstract.number} className="card abstract-row">
+                        <span className="small strong cap-muted">{abstract.code ?? abstract.number}</span>
+                        <div className="stack-1">
+                          <Link to={`/meetings/${edition.slug}/abstracts/${abstract.number}`} className="strong">
+                            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
                           </Link>
-                          {abstract.authors.length > 0 ? (
-                            <p className="text-sm text-text-muted">
-                              {abstract.authors.map((a) => a.name).join(", ")}
-                            </p>
-                          ) : null}
-                          {line ? (
-                            <p className="text-xs uppercase tracking-wide text-text-muted">
-                              {line}
-                            </p>
-                          ) : null}
+                          {abstract.authors.length > 0 ? <p className="small cap-muted">{abstract.authors.map((a) => a.name).join(", ")}</p> : null}
+                          {line ? <p className="cap-label">{line}</p> : null}
                         </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                      </li>
+                    );
+                  })}
+                </ul>
               </section>
             );
           })}
