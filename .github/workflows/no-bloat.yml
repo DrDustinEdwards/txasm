@@ -1,5 +1,5 @@
 # The no-bloat checks (Knip, jscpd, gzip weight per route) on every pull request. WARN-ONLY: they report to the run's
-# summary and never turn a pull request red. A number above no-bloat/baseline.json is a ::warning::, not a failure.
+# summary and never turn a pull request red. A number above its baseline is a ::warning::, not a failure.
 # Knip and jscpd run through npx at the major the baseline measured; neither is a dependency of the app.
 # See no-bloat/README.md.
 
@@ -65,21 +65,8 @@ jobs:
         continue-on-error: true
         run: |
           # A tool that could not run is a warning on the run, not a silent pass: continue-on-error alone hides it.
-          if npm run build && node scripts/measure-route-weight.mjs > weight.txt && node scripts/measure-route-weight.mjs --json > weight.json; then
-            {
-              echo '### Weight per route (gzip JS and CSS, against no-bloat/baseline.json)'
-              echo '```'
-              cat weight.txt
-              node -e '
-                const now = require("./weight.json");
-                const base = require("./no-bloat/baseline.json").weight;
-                const top = now.routes[0];
-                console.log(`heaviest now ${top.total} B (${top.id}); baseline ${base.heaviestRouteGzip} B (${base.heaviestRoute})`);
-                if (top.total > base.heaviestRouteGzip * 1.05) console.log(`::warning::heaviest route ${top.total} B gzip is over 5% above the baseline ${base.heaviestRouteGzip} B`);
-              '
-              echo '```'
-            } | tee -a "$GITHUB_STEP_SUMMARY" | grep '^::warning::' || true
-          else
+          # devkit-route-weight writes its table to the summary and warns against the baseline in .route-weight.json.
+          if ! (npm run build && npx devkit-route-weight); then
             echo "::warning::the route weight report could not run; see this step's log"
             exit 1
           fi

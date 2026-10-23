@@ -6,6 +6,6 @@ Three checks run on every pull request in `.github/workflows/no-bloat.yml`. **Th
 | --- | --- | --- | --- |
 | Unused files, exports, dependencies | Knip | `npx --yes knip@6` | `knip.json` |
 | Duplicated blocks | jscpd | `npx --yes jscpd@4` | `.jscpd.json` |
-| JS and CSS weight per route, gzip | `scripts/measure-route-weight.mjs` | `npm run build && node scripts/measure-route-weight.mjs` | `build/client` |
+| JS and CSS weight per route, gzip | devkit's `devkit-route-weight` | `npm run build && npx devkit-route-weight` | `build/client`, `.route-weight.json` |
 
-`baseline.json` holds the numbers measured at the commit it names; `baseline.md` is the full report with what each number means. Refresh both in the same pull request as a cleanup, so the next report shows the change.
+`baseline.json` holds the Knip and jscpd numbers measured at the commit it names, and `.route-weight.json` each route's weight (`npx devkit-route-weight --write-baseline`); `baseline.md` is the full report with what each number means. Refresh both in the same pull request as a cleanup, so the next report shows the change.

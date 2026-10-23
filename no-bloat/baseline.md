@@ -10,7 +10,7 @@ Capsid job job_5ca7d118fba5 asks for this report at `txasm/baseline.md` in Capsi
 npm ci
 npx --yes knip@6 --no-progress          # reads knip.json
 npx --yes jscpd@4                       # reads .jscpd.json
-npm run build && node scripts/measure-route-weight.mjs
+npm run build && npx devkit-route-weight
 ```
 
 ## Knip (unused files, exports, dependencies)
@@ -44,7 +44,7 @@ jscpd also prints a "javascript" row of 53 files and 0 clones: that is its own s
 
 ## Weight per route (gzip, first visit, JS and CSS)
 
-From the client build's route manifest (`scripts/measure-route-weight.mjs`, the same script as dustinedwards-info). The whole client build is 71 JS files at 182,048 B gzip and 1 CSS file at 7,761 B. Every route ships the one stylesheet.
+From the client build's route manifest (then `scripts/measure-route-weight.mjs`, now devkit's `devkit-route-weight`). The whole client build is 71 JS files at 182,048 B gzip and 1 CSS file at 7,761 B. Every route ships the one stylesheet.
 
 | Route | Total B | JS B |
 | --- | --- | --- |
@@ -64,4 +64,4 @@ Dependencies: 9 direct runtime, 15 direct dev; 540 packages in `package-lock.jso
 
 ## The CI check
 
-`.github/workflows/no-bloat.yml` runs on every pull request, warn-only: the job and every step are `continue-on-error`, and Knip runs with `--no-exit-code`. Each tool writes to the run's summary; duplication above the baseline percentage, or a heaviest route more than 5% above the baseline, adds a `::warning::`. Locally the three tools take about 4 s (Knip), 2 s (jscpd) and 6 s (build plus weight); with checkout, setup-node with the npm cache and `npm ci`, expect about 1.5 to 2 minutes of Actions time per pull request push.
+`.github/workflows/no-bloat.yml` runs on every pull request, warn-only: the job and every step are `continue-on-error`, and Knip runs with `--no-exit-code`. Each tool writes to the run's summary; duplication above the baseline percentage, or a route grown past its baseline in `.route-weight.json` by more than 5% and 1 KB, adds a `::warning::`. Locally the three tools take about 4 s (Knip), 2 s (jscpd) and 6 s (build plus weight); with checkout, setup-node with the npm cache and `npm ci`, expect about 1.5 to 2 minutes of Actions time per pull request push.
