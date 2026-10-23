@@ -17,6 +17,7 @@ Decisions go to `txasm/decisions.md`.
 - Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions in KV via Better Auth secondary storage. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
 - PayPal for registration payments: not built yet (only the schema columns exist); checkout and a signature-verified webhook come with it. Cloudflare Email Service via the native send_email binding; email goes live at cutover once txasm.org is on Cloudflare DNS.
 - Tailwind v4.
+- Carrel edits the site pages (`page` in D1: home, award-nominations) through `@dustinedwards/site-api` at /api/carrel/v1 (`app/lib/carrel`, its key the CARREL_SITE_KEY secret), rendering markdown with Prelum.
 
 Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (`context.get(cloudflareContext).env`, from `app/load-context.ts`).
 

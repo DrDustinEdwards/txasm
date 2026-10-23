@@ -10,6 +10,8 @@ interface Env {
   ADMIN_EMAIL: string;
   // Comma-separated admin allowlist. Optional; falls back to ADMIN_EMAIL.
   ADMIN_EMAILS?: string;
+  // Carrel's site API key (app/lib/carrel/handler.server.ts). Unset: the API refuses every call.
+  CARREL_SITE_KEY?: string;
 }
 
 declare namespace Cloudflare {
@@ -18,5 +20,6 @@ declare namespace Cloudflare {
     BETTER_AUTH_URL: string;
     ADMIN_EMAIL: string;
     ADMIN_EMAILS?: string;
+    CARREL_SITE_KEY?: string;
   }
 }

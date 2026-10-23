@@ -1,19 +1,22 @@
 import { useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import type { loader as rootLoader } from "~/root";
+import { getDataAccess } from "~/lib/data-access";
+import { cloudflareContext } from "~/load-context";
 
-export function meta(_args: Route.MetaArgs) {
+// The welcome and the next-meeting note are edited in Carrel (app/lib/carrel) and stored in D1.
+export async function loader({ context }: Route.LoaderArgs) {
+  return getDataAccess(context.get(cloudflareContext).env).pages.published("home");
+}
+
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: "Texas Branch ASM" },
-    {
-      name: "description",
-      content:
-        "The Texas Branch of the American Society for Microbiology. Meetings, abstracts, and member news.",
-    },
+    { title: loaderData?.title ?? "Texas Branch ASM" },
+    { name: "description", content: loaderData?.description ?? "" },
   ];
 }
 
-export default function Home() {
+export default function Home({ loaderData }: Route.ComponentProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
   const settings = rootData?.settings;
 
@@ -27,15 +30,9 @@ export default function Home() {
           {settings.tagline}
         </p>
       ) : null}
-      <p className="text-gray-600 dark:text-gray-400">
-        We bring Texas microbiologists together twice a year to share research,
-        mentor students, and recognize the best work in the field. Registration,
-        abstract submission, and the meeting program all live here.
-      </p>
-      <p className="text-gray-600 dark:text-gray-400">
-        Details for the next meeting are on the way. Check back soon, or see the
-        people who run the branch.
-      </p>
+      {loaderData ? (
+        <div className="page-prose" dangerouslySetInnerHTML={{ __html: loaderData.html }} />
+      ) : null}
     </div>
   );
 }

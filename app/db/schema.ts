@@ -958,6 +958,41 @@ export const awardRecipient = sqliteTable(
   ],
 );
 
+// Site pages Carrel edits through the site API (app/lib/carrel). Each row backs
+// a route that already exists (home, award-nominations), so the set is fixed by
+// the site: Carrel edits and publishes, never creates or takes one down. source
+// is Carrel's working copy (front matter and markdown); title, description and
+// html are what the route shows, set only on publish, html rendered by Prelum at
+// renderVersion. page_revision is the machine path's audit log (hard rule 4's
+// pattern): every Carrel write appends one, in the same batch, naming the change.
+export const page = sqliteTable("page", {
+  slug: text("slug").primaryKey(),
+  source: text("source").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  html: text("html").notNull(),
+  renderVersion: text("render_version").notNull(),
+  publishedAt: tsMs("published_at"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const pageRevision = sqliteTable(
+  "page_revision",
+  {
+    id: pk(),
+    pageSlug: text("page_slug")
+      .notNull()
+      .references(() => page.slug, { onDelete: "cascade" }),
+    event: text("event", { enum: ["save", "publish"] }).notNull(),
+    changeId: text("change_id").notNull(),
+    version: text("version").notNull(),
+    source: text("source").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ix_page_revision_page").on(t.pageSlug, t.createdAt)],
+);
+
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter. Add once the core above is agreed.

@@ -112,3 +112,21 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
+
+/* A page's text from Carrel, as Prelum renders it (app/lib/carrel). The same
+   type the hand-built pages use: muted body text, h2 and h3 in the text color,
+   numbered and bulleted lists indented, links in the link color. */
+.page-prose {
+  color: var(--text-muted);
+  & > * + * { margin-top: 1.25rem; }
+  & h2 { margin-top: 2.5rem; font-size: 1.5rem; line-height: 2rem; font-weight: 600; color: var(--text); }
+  & h3 { font-size: 1.125rem; line-height: 1.75rem; font-weight: 600; color: var(--text); }
+  & ol { list-style: decimal; padding-left: 1.5rem; }
+  & ul { list-style: disc; padding-left: 1.5rem; }
+  & li + li { margin-top: 0.5rem; }
+  & a { color: var(--link); overflow-wrap: anywhere; }
+  & a:hover { text-decoration: underline; }
+  & a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  & .heading-anchor { margin-left: 0.4em; color: var(--text-muted); opacity: 0; }
+  & :is(h2, h3):hover .heading-anchor, & .heading-anchor:focus-visible { opacity: 1; }
+}
