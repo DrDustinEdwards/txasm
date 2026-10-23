@@ -21,10 +21,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const edition = await da.editions.getById(actor, params.editionId);
   const abstracts = await da.abstracts.listForEdition(actor, params.editionId);
   const grants = await da.roles.listForEdition(actor, params.editionId);
-  const assignments = await da.reviews.listAssignmentsForEdition(
-    actor,
-    params.editionId,
-  );
+  const assignments = await da.reviews.listAssignmentsForEdition(actor, params.editionId);
   const reviewers = grants
     .filter((g) => g.role === "reviewer")
     .map((g) => ({ userId: g.userId, name: g.name, email: g.email }));
@@ -52,10 +49,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
         return { error: "Choose a reviewer.", abstractId };
       }
       // Skip a duplicate before it reaches the unique constraint.
-      const current = await da.reviews.listAssignmentsForEdition(
-        actor,
-        params.editionId,
-      );
+      const current = await da.reviews.listAssignmentsForEdition(actor, params.editionId);
       const already = current.some(
         (a) => a.abstractId === abstractId && a.reviewerId === reviewerId,
       );
@@ -91,16 +85,12 @@ function titleCase(value: string) {
     .join(" ");
 }
 
-const inputClass =
-  "rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
 export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   const { edition, abstracts, reviewers, assignments } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
-  const rowError =
-    actionData && "error" in actionData ? actionData : null;
+  const rowError = actionData && "error" in actionData ? actionData : null;
 
   const byAbstract = new Map<string, typeof assignments>();
   for (const a of assignments) {
@@ -110,108 +100,81 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Assign reviewers</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">Assign reviewers</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/roles`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/roles`} className="strong">
             Chairs and reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
       </div>
 
       {reviewers.length === 0 ? (
-        <p
-          role="status"
-          className="rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-        >
-          No reviewers on this meeting yet. Add reviewers first under Chairs and
-          reviewers.
+        <p role="status" className="card card-s card-sunken small">
+          No reviewers on this meeting yet. Add reviewers first under Chairs and reviewers.
         </p>
       ) : null}
 
       {abstracts.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No submitted abstracts yet.
-        </p>
+        <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="stack-4">
           {abstracts.map((abstract) => {
             const assigned = byAbstract.get(abstract.id) ?? [];
             const assignedIds = new Set(assigned.map((a) => a.reviewerId));
             const available = reviewers.filter((r) => !assignedIds.has(r.userId));
             const showError =
-              rowError && "abstractId" in rowError
-                ? rowError.abstractId === abstract.id
-                : false;
+              rowError && "abstractId" in rowError ? rowError.abstractId === abstract.id : false;
 
             return (
-              <li
-                key={abstract.id}
-                className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <h2 className="font-medium">
+              <li key={abstract.id} className="card stack-3">
+                <div className="spread">
+                  <div className="stack-1">
+                    <h2 className="strong">
                       {abstract.title ? (
-                        <span
-                          dangerouslySetInnerHTML={{ __html: abstract.title }}
-                        />
+                        <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
                       ) : (
-                        <span className="text-gray-500">Untitled</span>
+                        <span className="cap-muted">Untitled</span>
                       )}
                     </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="small cap-muted">
                       {abstract.authorNames.length > 0
                         ? abstract.authorNames.join(", ")
                         : "No authors listed"}
                     </p>
                   </div>
-                  <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  <span className="cap-badge" data-variant="secondary">
                     {titleCase(abstract.status)}
                   </span>
                 </div>
 
                 {showError && rowError && "error" in rowError ? (
-                  <p
-                    role="alert"
-                    className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-                  >
+                  <p role="alert" className="cap-alert">
                     {rowError.error}
                   </p>
                 ) : null}
 
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Reviewers</h3>
+                <div className="stack-2">
+                  <h3 className="small strong">Reviewers</h3>
                   {assigned.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      None assigned yet.
-                    </p>
+                    <p className="small cap-muted">None assigned yet.</p>
                   ) : (
-                    <ul className="space-y-1">
+                    <ul className="stack-1">
                       {assigned.map((a) => (
-                        <li
-                          key={a.assignmentId}
-                          className="flex flex-wrap items-center justify-between gap-2 text-sm"
-                        >
+                        <li key={a.assignmentId} className="spread small">
                           <span>
                             {a.reviewerName || a.reviewerEmail}{" "}
                             <span
                               className={
                                 a.reviewSubmitted
-                                  ? "text-green-700 dark:text-green-400"
-                                  : "text-gray-600 dark:text-gray-400"
+                                  ? "ok-text"
+                                  : "cap-muted"
                               }
                             >
                               ({a.reviewSubmitted ? "review submitted" : "assigned"})
@@ -219,22 +182,11 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                           </span>
                           <Form method="post">
                             <input type="hidden" name="intent" value="unassign" />
-                            <input
-                              type="hidden"
-                              name="abstractId"
-                              value={abstract.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="assignmentId"
-                              value={a.assignmentId}
-                            />
-                            <button
-                              type="submit"
-                              className="font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                            >
+                            <input type="hidden" name="abstractId" value={abstract.id} />
+                            <input type="hidden" name="assignmentId" value={a.assignmentId} />
+                            <button type="submit" className="link-button strong">
                               Unassign
-                              <span className="sr-only">
+                              <span className="cap-sr-only">
                                 {" "}
                                 {a.reviewerName || a.reviewerEmail}
                               </span>
@@ -247,24 +199,18 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 {available.length > 0 ? (
-                  <Form
-                    method="post"
-                    className="flex flex-wrap items-end gap-2"
-                  >
+                  <Form method="post" className="cluster cluster-end">
                     <input type="hidden" name="intent" value="assign" />
                     <input type="hidden" name="abstractId" value={abstract.id} />
-                    <div className="space-y-1">
-                      <label
-                        htmlFor={`reviewer-${abstract.id}`}
-                        className="block text-sm font-medium"
-                      >
+                    <div className="stack-1">
+                      <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
                         Add a reviewer
                       </label>
                       <select
                         id={`reviewer-${abstract.id}`}
                         name="reviewerId"
                         defaultValue=""
-                        className={inputClass}
+                        className="cap-select"
                       >
                         <option value="" disabled>
                           Choose a reviewer
@@ -279,21 +225,22 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
+                      className="cap-btn"
+                      data-variant="primary"
                     >
                       Assign
                     </button>
                   </Form>
                 ) : reviewers.length > 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="small cap-muted">
                     Every reviewer on this meeting is already assigned.
                   </p>
                 ) : null}
 
-                <p className="text-sm">
+                <p className="small">
                   <Link
                     to={`/admin/editions/${edition.id}/review/${abstract.id}`}
-                    className="font-medium text-blue-700 hover:underline dark:text-blue-400"
+                    className="strong"
                   >
                     Read reviews ({abstract.reviewCount})
                   </Link>

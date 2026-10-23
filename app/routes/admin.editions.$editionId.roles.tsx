@@ -71,9 +71,6 @@ function roleLabel(role: string) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
 export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const { edition, grants } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -85,39 +82,28 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const reviewers = grants.filter((g) => g.role === "reviewer");
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Chairs and reviewers</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-8">
+      <div className="stack-2">
+        <h1 className="page-title">Chairs and reviewers</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Grant a role by email. The person must have signed in at least once so
-          their account exists. Roles apply to this meeting only.
+        <p className="cap-muted">
+          Grant a role by email. The person must have signed in at least once so their account
+          exists. Roles apply to this meeting only.
         </p>
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
-      <RoleList
-        title="Chairs"
-        editionId={edition.id}
-        empty="No chairs yet."
-        grants={chairs}
-      />
+      <RoleList title="Chairs" editionId={edition.id} empty="No chairs yet." grants={chairs} />
       <RoleList
         title="Reviewers"
         editionId={edition.id}
@@ -125,12 +111,12 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
         grants={reviewers}
       />
 
-      <section className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Add a chair or reviewer</h2>
-        <Form method="post" className="space-y-4" noValidate>
+      <section className="card stack-4">
+        <h2 className="subsection-title">Add a chair or reviewer</h2>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <div className="space-y-1">
-            <label htmlFor="email" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="email" className="cap-field-label">
               Email
             </label>
             <input
@@ -140,23 +126,19 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
               required
               autoComplete="off"
               placeholder="person@university.edu"
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="role" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="role" className="cap-field-label">
               Role
             </label>
-            <select id="role" name="role" defaultValue="reviewer" className={inputClass}>
+            <select id="role" name="role" defaultValue="reviewer" className="cap-select">
               <option value="reviewer">Reviewer</option>
               <option value="chair">Chair</option>
             </select>
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add role"}
           </button>
         </Form>
@@ -177,35 +159,27 @@ function RoleList({
   grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
 }) {
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-medium">{title}</h2>
+    <section className="stack-3">
+      <h2 className="subsection-title">{title}</h2>
       {grants.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">{empty}</p>
+        <p>{empty}</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="stack-2">
           {grants.map((grant) => (
-            <li
-              key={`${grant.userId}-${grant.role}`}
-              className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 p-3 dark:border-gray-800"
-            >
-              <span className="text-sm">
-                <span className="font-medium">{grant.name || grant.email}</span>
-                {grant.name ? (
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {" "}
-                    {grant.email}
-                  </span>
-                ) : null}
+            <li key={`${grant.userId}-${grant.role}`} className="card card-s spread">
+              <span className="small">
+                <span className="strong">{grant.name || grant.email}</span>
+                {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
               </span>
               <Form method="post">
                 <input type="hidden" name="intent" value="revoke" />
                 <input type="hidden" name="userId" value={grant.userId} />
                 <input type="hidden" name="role" value={grant.role} />
-                <button
-                  type="submit"
-                  className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
-                  Remove <span className="sr-only">{roleLabel(grant.role)} {grant.email}</span>
+                <button type="submit" className="link-button small strong">
+                  Remove{" "}
+                  <span className="cap-sr-only">
+                    {roleLabel(grant.role)} {grant.email}
+                  </span>
                 </button>
               </Form>
             </li>

@@ -22,6 +22,7 @@
 @import "capsomer/status.css";
 @import "capsomer/empty.css";
 @import "capsomer/table.css";
+@import "capsomer/listbox.css";
 
 /* The Tailwind names the pages still use, on Capsomer's tokens (the navy
    family, both themes). They go with Tailwind. */
@@ -210,6 +211,11 @@
 .stack-6 > * + * { margin-top: 1.5rem; }
 .stack-8 > * + * { margin-top: 2rem; }
 .stack-10 > * + * { margin-top: 2.5rem; }
+/* A check or a button straight in a stack takes its own line, as a block would. */
+[class*="stack-"] > :is(.cap-check, .cap-btn) {
+  display: flex;
+  width: fit-content;
+}
 .cluster {
   display: flex;
   flex-wrap: wrap;
@@ -434,4 +440,147 @@
   & a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   & .heading-anchor { margin-left: 0.4em; color: var(--muted); opacity: 0; }
   & :is(h2, h3):hover .heading-anchor, & .heading-anchor:focus-visible { opacity: 1; }
+}
+
+/* Card variants: smaller padding, a sunken note, a dashed add-row, a warning edge. */
+.card-s {
+  padding: 0.75rem;
+  border-radius: var(--radius-m);
+}
+.card-sunken {
+  background: var(--sunken);
+}
+.card-dashed {
+  border-style: dashed;
+}
+.card-warn {
+  border-color: var(--warn);
+}
+
+/* More layout pieces for the admin and author screens. */
+.cluster-start { align-items: flex-start; }
+.cluster-end { align-items: flex-end; }
+.cluster-tight { gap: 0.25rem; }
+.cluster-right { justify-content: flex-end; }
+.push-end { margin-inline-start: auto; }
+.grow { flex: 1; min-width: 0; }
+.shrink { min-width: 0; }
+.relative { position: relative; }
+.inline { display: inline; }
+.block { display: block; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.span-2 {
+  @media (width >= 640px) {
+    grid-column: span 2;
+  }
+}
+.short-field { max-width: 10rem; }
+.tiny-field { width: 6rem; }
+.time-col { flex: none; width: 3.5rem; }
+.form-page {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+.grid-pair-action {
+  display: grid;
+  gap: 0.5rem;
+  @media (width >= 640px) {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+}
+.row-pad { padding-block: 0.5rem; }
+.divided > * + * { border-top: 1px solid var(--line); }
+.legend {
+  padding-inline: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.cell-end { text-align: end; }
+.numbered {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.ok-text { color: var(--ok); }
+.crit-text { color: var(--crit); }
+/* A button that reads as a link (a form's submit inside running text). */
+.link-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  &:not(.crit-text, .cap-muted) { color: var(--accent-text); }
+  &:hover { text-decoration: underline; }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+.logo-thumb {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  object-fit: contain;
+}
+
+/* The program builder's concurrent tracks: one column per track, scrolling
+   sideways on a narrow screen rather than crushing. */
+.track-scroll { overflow-x: auto; }
+.track-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* The abstract book's running order: a dashed, faded row is left out; a
+   draggable row shows the grab cursor. */
+.book-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  font-size: 0.875rem;
+  &[data-excluded] {
+    border-style: dashed;
+    background: var(--sunken);
+    opacity: 0.6;
+  }
+  &[data-draggable] { cursor: grab; }
+}
+
+/* The institution suggestions under their input. */
+.suggest-popup {
+  position: absolute;
+  z-index: 40;
+  inset-inline: 0;
+  margin-top: 0.25rem;
+  max-height: 15rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--raised);
+  box-shadow: var(--shadow-m);
+}
+.date-field { width: auto; }
+/* The rich editor's editable box: room for a title or a body. */
+.rich-input {
+  min-height: 3rem;
+  height: auto;
+  padding-block: 0.5rem;
+  &[data-mode="body"] { min-height: 7rem; }
+}
+
+/* The admin page is a grid: its column must be able to shrink below a wide
+   table, so the table's own region scrolls instead of the page. */
+.cap-admin-page > * {
+  min-width: 0;
 }

@@ -78,12 +78,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-const primaryButton =
-  "rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
-
 export default function AdminAwards({ loaderData }: Route.ComponentProps) {
   const { awards } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -92,50 +86,38 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-text">Awards</h1>
-        <p className="text-text-muted">
-          The branch's named awards. Edit an award to manage its recipients, the
-          every-meeting maintenance path. Public pages read this data.
+    <div className="stack-8">
+      <header className="stack-2">
+        <h1 className="page-title">Awards</h1>
+        <p className="cap-muted">
+          The branch's named awards. Edit an award to manage its recipients, the every-meeting
+          maintenance path. Public pages read this data.
         </p>
       </header>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-accent/40 bg-accent/10 p-3 text-sm text-text"
-        >
+        <p role="alert" className="cap-banner" data-tone="info">
           {error}
         </p>
       ) : null}
 
       {awards.length === 0 ? (
-        <p className="text-text-muted">No awards yet. Add the first below.</p>
+        <p className="cap-muted">No awards yet. Add the first below.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="stack-3">
           {awards.map((award) => (
-            <li
-              key={award.id}
-              className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4"
-            >
-              <div className="min-w-0">
-                <Link
-                  to={`/admin/awards/${award.slug}`}
-                  className="font-medium text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
+            <li key={award.id} className="card spread">
+              <div className="shrink">
+                <Link to={`/admin/awards/${award.slug}`} className="strong">
                   {award.name}
                 </Link>
-                <p className="mt-1 text-sm text-text-muted">
+                <p className="small cap-muted">
                   {award.slug} &middot; {award.recipientCount}{" "}
                   {award.recipientCount === 1 ? "recipient" : "recipients"}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Link
-                  to={`/admin/awards/${award.slug}`}
-                  className="text-sm font-medium text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
+              <div className="cluster">
+                <Link to={`/admin/awards/${award.slug}`} className="small strong">
                   Manage
                 </Link>
                 <Form method="post">
@@ -144,15 +126,11 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                   <button
                     type="submit"
                     onClick={(e) => {
-                      if (
-                        !window.confirm(
-                          `Remove ${award.name} and all its recipients?`,
-                        )
-                      ) {
+                      if (!window.confirm(`Remove ${award.name} and all its recipients?`)) {
                         e.preventDefault();
                       }
                     }}
-                    className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    className="small strong"
                   >
                     Remove
                   </button>
@@ -163,24 +141,21 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section
-        aria-labelledby="add-award-heading"
-        className="space-y-4 rounded-lg border border-border bg-surface-raised p-5"
-      >
-        <h2 id="add-award-heading" className="text-lg font-medium text-text">
+      <section aria-labelledby="add-award-heading" className="card stack-4">
+        <h2 id="add-award-heading" className="subsection-title">
           Add an award
         </h2>
-        <Form method="post" className="space-y-4" noValidate>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <label htmlFor="name" className="block text-sm font-medium text-text">
+          <div className="grid-2">
+            <div className="stack-1">
+              <label htmlFor="name" className="cap-field-label">
                 Name
               </label>
-              <input id="name" name="name" type="text" required className={inputClass} />
+              <input id="name" name="name" type="text" required className="cap-input" />
             </div>
-            <div className="space-y-1">
-              <label htmlFor="slug" className="block text-sm font-medium text-text">
+            <div className="stack-1">
+              <label htmlFor="slug" className="cap-field-label">
                 Slug
               </label>
               <input
@@ -188,49 +163,28 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                 name="slug"
                 type="text"
                 placeholder="s-e-sulkin-award"
-                className={inputClass}
+                className="cap-input"
               />
-              <p className="text-xs text-text-muted">
-                Leave blank to derive from the name.
-              </p>
+              <p className="tiny cap-muted">Leave blank to derive from the name.</p>
             </div>
           </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="namesakeBio"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1">
+            <label htmlFor="namesakeBio" className="cap-field-label">
               Namesake bio
             </label>
-            <textarea
-              id="namesakeBio"
-              name="namesakeBio"
-              rows={2}
-              className={inputClass}
-            />
+            <textarea id="namesakeBio" name="namesakeBio" rows={2} className="cap-input" />
           </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1">
+            <label htmlFor="description" className="cap-field-label">
               Description
             </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={2}
-              className={inputClass}
-            />
-            <p className="text-xs text-text-muted">
+            <textarea id="description" name="description" rows={2} className="cap-input" />
+            <p className="tiny cap-muted">
               Bio and description support italics, superscript, and subscript.
             </p>
           </div>
-          <div className="space-y-1 sm:max-w-40">
-            <label
-              htmlFor="sortOrder"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1 short-field">
+            <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
             <input
@@ -239,10 +193,10 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
               type="number"
               step="1"
               defaultValue={0}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <button type="submit" disabled={submitting} className={primaryButton}>
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add award"}
           </button>
         </Form>

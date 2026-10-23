@@ -72,9 +72,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       facebookUrl: String(form.get("facebookUrl") ?? ""),
       footerLinks: parseFooterLinks(form.get("footerLinks")),
       defaultCurrency: String(form.get("defaultCurrency") ?? ""),
-      defaultAbstractWordLimit: parseWordLimit(
-        form.get("defaultAbstractWordLimit"),
-      ),
+      defaultAbstractWordLimit: parseWordLimit(form.get("defaultAbstractWordLimit")),
     };
     await getDataAccess(env).settings.update(actor, patch);
   } catch (error) {
@@ -86,12 +84,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   return { ok: "Settings saved." };
 }
-
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
-const smallButton =
-  "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function TextField({
   name,
@@ -107,8 +99,8 @@ function TextField({
   placeholder?: string;
 }) {
   return (
-    <div className="space-y-1">
-      <label htmlFor={name} className="block text-sm font-medium">
+    <div className="stack-1">
+      <label htmlFor={name} className="cap-field-label">
         {label}
       </label>
       <input
@@ -117,23 +109,19 @@ function TextField({
         type={type}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className={inputClass}
+        className="cap-input"
       />
     </div>
   );
 }
 
-export default function PlatformSettingsScreen({
-  loaderData,
-}: Route.ComponentProps) {
+export default function PlatformSettingsScreen({ loaderData }: Route.ComponentProps) {
   const { settings } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
 
-  const [footerLinks, setFooterLinks] = useState<FooterLink[]>(
-    () => settings.footerLinks,
-  );
+  const [footerLinks, setFooterLinks] = useState<FooterLink[]>(() => settings.footerLinks);
 
   const statusRef = useRef<HTMLParagraphElement>(null);
   const error = actionData && "error" in actionData ? actionData.error : null;
@@ -143,9 +131,7 @@ export default function PlatformSettingsScreen({
   }, [actionData]);
 
   function updateLink(index: number, patch: Partial<FooterLink>) {
-    setFooterLinks((prev) =>
-      prev.map((link, i) => (i === index ? { ...link, ...patch } : link)),
-    );
+    setFooterLinks((prev) => prev.map((link, i) => (i === index ? { ...link, ...patch } : link)));
   }
   function addLink() {
     setFooterLinks((prev) => [...prev, { label: "", url: "" }]);
@@ -155,12 +141,12 @@ export default function PlatformSettingsScreen({
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Platform settings</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Organization identity and tunable defaults. These drive the site header,
-          footer, and home page.
+    <div className="form-page stack-8">
+      <div className="stack-2">
+        <h1 className="page-title">Platform settings</h1>
+        <p className="cap-muted">
+          Organization identity and tunable defaults. These drive the site header, footer, and home
+          page.
         </p>
       </div>
 
@@ -168,21 +154,16 @@ export default function PlatformSettingsScreen({
         ref={statusRef}
         tabIndex={-1}
         role={error ? "alert" : "status"}
-        className={
-          error
-            ? "rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-            : ok
-              ? "rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
-              : "sr-only"
-        }
+        className={error || ok ? "cap-alert" : "cap-sr-only"}
+        data-tone={error ? "crit" : "ok"}
       >
         {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
       </p>
 
-      <Form method="post" className="space-y-8" noValidate>
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Identity</legend>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <Form method="post" className="stack-8" noValidate>
+        <fieldset className="card stack-4">
+          <legend className="legend">Identity</legend>
+          <div className="grid-2">
             <TextField
               name="shortName"
               label="Wordmark (short name)"
@@ -201,21 +182,13 @@ export default function PlatformSettingsScreen({
             label="Full organization name"
             defaultValue={settings.orgFullName}
           />
-          <TextField
-            name="tagline"
-            label="Tagline"
-            defaultValue={settings.tagline}
-          />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextField name="tagline" label="Tagline" defaultValue={settings.tagline} />
+          <div className="grid-2">
             <TextField
               name="foundingYear"
               label="Founding year"
               type="number"
-              defaultValue={
-                settings.foundingYear === null
-                  ? ""
-                  : String(settings.foundingYear)
-              }
+              defaultValue={settings.foundingYear === null ? "" : String(settings.foundingYear)}
             />
             <TextField
               name="contactEmail"
@@ -233,66 +206,49 @@ export default function PlatformSettingsScreen({
           />
         </fieldset>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Footer links</legend>
+        <fieldset className="card stack-4">
+          <legend className="legend">Footer links</legend>
           {footerLinks.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              No footer links. Add one below.
-            </p>
+            <p className="small cap-muted">No footer links. Add one below.</p>
           ) : (
-            <ol className="space-y-3">
+            <ol className="stack-3">
               {footerLinks.map((link, index) => (
-                <li
-                  key={index}
-                  className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
-                >
-                  <label className="space-y-1">
-                    <span className="block text-sm">Label</span>
+                <li key={index} className="grid-pair-action">
+                  <label className="stack-1">
+                    <span className="cap-field-label">Label</span>
                     <input
                       type="text"
                       value={link.label}
-                      onChange={(e) =>
-                        updateLink(index, { label: e.target.value })
-                      }
-                      className={inputClass}
+                      onChange={(e) => updateLink(index, { label: e.target.value })}
+                      className="cap-input"
                     />
                   </label>
-                  <label className="space-y-1">
-                    <span className="block text-sm">URL or path</span>
+                  <label className="stack-1">
+                    <span className="cap-field-label">URL or path</span>
                     <input
                       type="text"
                       value={link.url}
-                      onChange={(e) =>
-                        updateLink(index, { url: e.target.value })
-                      }
+                      onChange={(e) => updateLink(index, { url: e.target.value })}
                       placeholder="/branch-officers"
-                      className={inputClass}
+                      className="cap-input"
                     />
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => removeLink(index)}
-                    className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                  >
+                  <button type="button" onClick={() => removeLink(index)} className="small strong">
                     Remove
                   </button>
                 </li>
               ))}
             </ol>
           )}
-          <button type="button" onClick={addLink} className={smallButton}>
+          <button type="button" onClick={addLink} className="cap-btn" data-size="sm">
             Add footer link
           </button>
-          <input
-            type="hidden"
-            name="footerLinks"
-            value={JSON.stringify(footerLinks)}
-          />
+          <input type="hidden" name="footerLinks" value={JSON.stringify(footerLinks)} />
         </fieldset>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Defaults</legend>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <fieldset className="card stack-4">
+          <legend className="legend">Defaults</legend>
+          <div className="grid-2">
             <TextField
               name="defaultCurrency"
               label="Default currency"
@@ -308,11 +264,7 @@ export default function PlatformSettingsScreen({
           </div>
         </fieldset>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Saving..." : "Save settings"}
         </button>
       </Form>

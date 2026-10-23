@@ -3,11 +3,7 @@ import type { Route } from "./+types/admin.editions.$editionId.abstract-categori
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  AlreadyExistsError,
-  ValidationError,
-  getDataAccess,
-} from "~/lib/data-access";
+import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Abstract categories") }];
@@ -18,10 +14,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const edition = await da.editions.getById(actor, params.editionId);
-  const categories = await da.abstractCategories.listForEdition(
-    actor,
-    params.editionId,
-  );
+  const categories = await da.abstractCategories.listForEdition(actor, params.editionId);
   return { edition, categories };
 }
 
@@ -73,12 +66,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
-export default function AbstractCategories({
-  loaderData,
-}: Route.ComponentProps) {
+export default function AbstractCategories({ loaderData }: Route.ComponentProps) {
   const { edition, categories } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -86,54 +74,35 @@ export default function AbstractCategories({
   const error = actionData?.error ?? null;
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Abstract categories</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-8">
+      <div className="stack-2">
+        <h1 className="page-title">Abstract categories</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Authors choose one of these when they submit an abstract.
-        </p>
+        <p className="cap-muted">Authors choose one of these when they submit an abstract.</p>
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
       {categories.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No categories yet. Add the first below.
-        </p>
+        <p>No categories yet. Add the first below.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="stack-3">
           {categories.map((category) => (
-            <li
-              key={category.id}
-              className="rounded border border-gray-200 p-3 dark:border-gray-800"
-            >
-              <Form
-                method="post"
-                className="flex flex-wrap items-end gap-3"
-              >
+            <li key={category.id} className="card card-s">
+              <Form method="post" className="cluster cluster-end">
                 <input type="hidden" name="intent" value="update" />
                 <input type="hidden" name="categoryId" value={category.id} />
-                <div className="flex-1 space-y-1">
-                  <label
-                    htmlFor={`name-${category.id}`}
-                    className="block text-sm font-medium"
-                  >
+                <div className="grow stack-1">
+                  <label htmlFor={`name-${category.id}`} className="cap-field-label">
                     Name
                   </label>
                   <input
@@ -142,14 +111,11 @@ export default function AbstractCategories({
                     type="text"
                     defaultValue={category.name}
                     required
-                    className={inputClass}
+                    className="cap-input"
                   />
                 </div>
-                <div className="w-24 space-y-1">
-                  <label
-                    htmlFor={`sort-${category.id}`}
-                    className="block text-sm font-medium"
-                  >
+                <div className="stack-1 tiny-field">
+                  <label htmlFor={`sort-${category.id}`} className="cap-field-label">
                     Sort
                   </label>
                   <input
@@ -158,23 +124,17 @@ export default function AbstractCategories({
                     type="number"
                     step="1"
                     defaultValue={category.sortOrder}
-                    className={inputClass}
+                    className="cap-input"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
+                <button type="submit" className="cap-btn">
                   Save
                 </button>
               </Form>
               <Form method="post" className="mt-2">
                 <input type="hidden" name="intent" value="remove" />
                 <input type="hidden" name="categoryId" value={category.id} />
-                <button
-                  type="submit"
-                  className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
+                <button type="submit" className="link-button small strong">
                   Remove
                 </button>
               </Form>
@@ -183,12 +143,12 @@ export default function AbstractCategories({
         </ul>
       )}
 
-      <section className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Add a category</h2>
-        <Form method="post" className="space-y-4" noValidate>
+      <section className="card stack-4">
+        <h2 className="subsection-title">Add a category</h2>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="space-y-1">
-            <label htmlFor="name" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="name" className="cap-field-label">
               Name
             </label>
             <input
@@ -197,11 +157,11 @@ export default function AbstractCategories({
               type="text"
               required
               placeholder="Environmental Microbiology"
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="sortOrder" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
             <input
@@ -210,14 +170,10 @@ export default function AbstractCategories({
               type="number"
               step="1"
               defaultValue={0}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>

@@ -25,10 +25,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { actor } = await requireAdmin(request);
   const { env } = context.get(cloudflareContext);
-  const edition = await getDataAccess(env).editions.getById(
-    actor,
-    params.editionId,
-  );
+  const edition = await getDataAccess(env).editions.getById(actor, params.editionId);
   return { edition };
 }
 
@@ -76,9 +73,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return redirect("/admin");
 }
 
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
 export default function EditEdition({ loaderData }: Route.ComponentProps) {
   const { edition } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -87,96 +81,61 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">{edition.name}</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="form-page stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">{edition.name}</h1>
+        <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/categories`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/categories`} className="strong">
             Registration categories
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/abstract-categories`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/abstract-categories`} className="strong">
             Abstract categories
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/roles`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/roles`} className="strong">
             Chairs and reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/review`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
             Assign reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/decisions`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/decisions`} className="strong">
             Decisions
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/book`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/book`} className="strong">
             Abstract book
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/program`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
             Program
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/speakers`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/speakers`} className="strong">
             Invited speakers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/sponsors`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}/sponsors`} className="strong">
             Sponsors
           </Link>
         </p>
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
-      <Form method="post" className="space-y-4" noValidate>
-        <div className="space-y-1">
-          <label htmlFor="status" className="block text-sm font-medium">
+      <Form method="post" className="stack-4" noValidate>
+        <div className="stack-1">
+          <label htmlFor="status" className="cap-field-label">
             Status
           </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={edition.status}
-            className={inputClass}
-          >
+          <select id="status" name="status" defaultValue={edition.status} className="cap-select">
             {EDITION_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {EDITION_STATUS_LABELS[status]}
@@ -185,10 +144,10 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Meeting dates and venue</legend>
-          <div className="space-y-1">
-            <label htmlFor="meetingStartsAt" className="block text-sm font-medium">
+        <fieldset className="card stack-4">
+          <legend className="legend">Meeting dates and venue</legend>
+          <div className="stack-1">
+            <label htmlFor="meetingStartsAt" className="cap-field-label">
               Starts
             </label>
             <input
@@ -196,11 +155,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="meetingStartsAt"
               type="datetime-local"
               defaultValue={toDateTimeLocal(edition.meetingStartsAt)}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="meetingEndsAt" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="meetingEndsAt" className="cap-field-label">
               Ends
             </label>
             <input
@@ -208,11 +167,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="meetingEndsAt"
               type="datetime-local"
               defaultValue={toDateTimeLocal(edition.meetingEndsAt)}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="venueName" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="venueName" className="cap-field-label">
               Venue
             </label>
             <input
@@ -221,11 +180,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               type="text"
               defaultValue={edition.venueName ?? ""}
               placeholder="University Conference Center"
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="venueAddress" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="venueAddress" className="cap-field-label">
               Address
             </label>
             <input
@@ -233,11 +192,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="venueAddress"
               type="text"
               defaultValue={edition.venueAddress ?? ""}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="city" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="city" className="cap-field-label">
               City
             </label>
             <input
@@ -245,18 +204,15 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="city"
               type="text"
               defaultValue={edition.city ?? ""}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Registration window</legend>
-          <div className="space-y-1">
-            <label
-              htmlFor="registrationOpensAt"
-              className="block text-sm font-medium"
-            >
+        <fieldset className="card stack-4">
+          <legend className="legend">Registration window</legend>
+          <div className="stack-1">
+            <label htmlFor="registrationOpensAt" className="cap-field-label">
               Opens
             </label>
             <input
@@ -264,14 +220,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="registrationOpensAt"
               type="datetime-local"
               defaultValue={toDateTimeLocal(edition.registrationOpensAt)}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="registrationClosesAt"
-              className="block text-sm font-medium"
-            >
+          <div className="stack-1">
+            <label htmlFor="registrationClosesAt" className="cap-field-label">
               Deadline
             </label>
             <input
@@ -279,18 +232,15 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="registrationClosesAt"
               type="datetime-local"
               defaultValue={toDateTimeLocal(edition.registrationClosesAt)}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <legend className="px-1 text-sm font-medium">Submission window</legend>
-          <div className="space-y-1">
-            <label
-              htmlFor="submissionOpensAt"
-              className="block text-sm font-medium"
-            >
+        <fieldset className="card stack-4">
+          <legend className="legend">Submission window</legend>
+          <div className="stack-1">
+            <label htmlFor="submissionOpensAt" className="cap-field-label">
               Opens
             </label>
             <input
@@ -298,14 +248,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="submissionOpensAt"
               type="datetime-local"
               defaultValue={toDateTimeLocal(edition.submissionOpensAt)}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="submissionDeadline"
-              className="block text-sm font-medium"
-            >
+          <div className="stack-1">
+            <label htmlFor="submissionDeadline" className="cap-field-label">
               Deadline
             </label>
             <input
@@ -313,23 +260,16 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="submissionDeadline"
               type="datetime-local"
               defaultValue={toDateTimeLocal(edition.submissionDeadline)}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
         </fieldset>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+        <div className="cluster">
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>
-          <Link
-            to="/admin"
-            className="text-sm font-medium text-text-muted hover:underline"
-          >
+          <Link to="/admin" className="small strong cap-muted">
             Cancel
           </Link>
         </div>

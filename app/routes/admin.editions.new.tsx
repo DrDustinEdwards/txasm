@@ -3,11 +3,7 @@ import type { Route } from "./+types/admin.editions.new";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  AlreadyExistsError,
-  ValidationError,
-  getDataAccess,
-} from "~/lib/data-access";
+import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
 import {
   EDITION_STATUSES,
   EDITION_STATUS_LABELS,
@@ -73,26 +69,21 @@ export default function NewEdition() {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">New meeting</h1>
-        <p className="text-gray-700 dark:text-gray-300">
-          Each meeting has a season and year, and the two together must be unique.
-        </p>
+    <div className="form-page stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">New meeting</h1>
+        <p>Each meeting has a season and year, and the two together must be unique.</p>
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
-      <Form method="post" className="space-y-4" noValidate>
-        <div className="space-y-1">
-          <label htmlFor="name" className="block text-sm font-medium">
+      <Form method="post" className="stack-4" noValidate>
+        <div className="stack-1">
+          <label htmlFor="name" className="cap-field-label">
             Name
           </label>
           <input
@@ -101,20 +92,15 @@ export default function NewEdition() {
             type="text"
             required
             placeholder="Spring 2027 Meeting"
-            className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
+            className="cap-input"
           />
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="season" className="block text-sm font-medium">
+        <div className="stack-1">
+          <label htmlFor="season" className="cap-field-label">
             Season
           </label>
-          <select
-            id="season"
-            name="season"
-            defaultValue="spring"
-            className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
-          >
+          <select id="season" name="season" defaultValue="spring" className="cap-select">
             {SEASONS.map((season) => (
               <option key={season} value={season}>
                 {SEASON_LABELS[season]}
@@ -123,8 +109,8 @@ export default function NewEdition() {
           </select>
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="year" className="block text-sm font-medium">
+        <div className="stack-1">
+          <label htmlFor="year" className="cap-field-label">
             Year
           </label>
           <input
@@ -136,20 +122,15 @@ export default function NewEdition() {
             max={2100}
             required
             placeholder="2027"
-            className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
+            className="cap-input"
           />
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="status" className="block text-sm font-medium">
+        <div className="stack-1">
+          <label htmlFor="status" className="cap-field-label">
             Status
           </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue="draft"
-            className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
-          >
+          <select id="status" name="status" defaultValue="draft" className="cap-select">
             {EDITION_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {EDITION_STATUS_LABELS[status]}
@@ -158,18 +139,11 @@ export default function NewEdition() {
           </select>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+        <div className="cluster">
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Creating..." : "Create meeting"}
           </button>
-          <Link
-            to="/admin"
-            className="text-sm font-medium text-text-muted hover:underline"
-          >
+          <Link to="/admin" className="small strong cap-muted">
             Cancel
           </Link>
         </div>

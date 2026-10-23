@@ -3,12 +3,7 @@ import type { Route } from "./+types/admin.editions.$editionId.speakers";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
-import {
-  NotFoundError,
-  ValidationError,
-  getDataAccess,
-  type SpeakerRole,
-} from "~/lib/data-access";
+import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichEditor } from "~/components/rich-editor";
 
@@ -21,19 +16,14 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const edition = await da.editions.getById(actor, params.editionId);
-  const speakers = await da.invitedSpeakers.listForEdition(
-    actor,
-    params.editionId,
-  );
+  const speakers = await da.invitedSpeakers.listForEdition(actor, params.editionId);
   return { edition: { id: edition.id, name: edition.name }, speakers };
 }
 
 function parseRole(value: FormDataEntryValue | null): SpeakerRole | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
-  return SPEAKER_ROLES.includes(raw as SpeakerRole)
-    ? (raw as SpeakerRole)
-    : null;
+  return SPEAKER_ROLES.includes(raw as SpeakerRole) ? (raw as SpeakerRole) : null;
 }
 
 function parseSortOrder(value: FormDataEntryValue | null): number {
@@ -93,20 +83,14 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
-const smallButton =
-  "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
 type Speaker = Route.ComponentProps["loaderData"]["speakers"][number];
 
 function SpeakerFields({ speaker }: { speaker?: Speaker }) {
   const idBase = speaker ? speaker.id : "new";
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <div className="space-y-1">
-        <label htmlFor={`name-${idBase}`} className="block text-sm font-medium">
+    <div className="grid-2">
+      <div className="stack-1">
+        <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
         <input
@@ -116,14 +100,11 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           required
           defaultValue={speaker?.name ?? ""}
           placeholder="Dr. Jane Rivera"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`affiliation-${idBase}`}
-          className="block text-sm font-medium"
-        >
+      <div className="stack-1">
+        <label htmlFor={`affiliation-${idBase}`} className="cap-field-label">
           Affiliation
         </label>
         <input
@@ -132,18 +113,18 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           type="text"
           defaultValue={speaker?.affiliation ?? ""}
           placeholder="University of Texas at Austin"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`role-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`role-${idBase}`} className="cap-field-label">
           Role
         </label>
         <select
           id={`role-${idBase}`}
           name="role"
           defaultValue={speaker?.role ?? ""}
-          className={inputClass}
+          className="cap-select"
         >
           <option value="">No role set</option>
           {SPEAKER_ROLES.map((role) => (
@@ -153,8 +134,8 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           ))}
         </select>
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`sort-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`sort-${idBase}`} className="cap-field-label">
           Sort order
         </label>
         <input
@@ -163,14 +144,11 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           type="number"
           step="1"
           defaultValue={speaker?.sortOrder ?? 0}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1 sm:col-span-2">
-        <label
-          htmlFor={`talk-${idBase}`}
-          className="block text-sm font-medium"
-        >
+      <div className="stack-1 span-2">
+        <label htmlFor={`talk-${idBase}`} className="cap-field-label">
           Talk title
         </label>
         <input
@@ -178,16 +156,11 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           name="talkTitle"
           type="text"
           defaultValue={speaker?.talkTitle ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="sm:col-span-2">
-        <RichEditor
-          name="bio"
-          label="Bio"
-          mode="body"
-          initialHTML={speaker?.bio ?? ""}
-        />
+      <div className="span-2">
+        <RichEditor name="bio" label="Bio" mode="body" initialHTML={speaker?.bio ?? ""} />
       </div>
     </div>
   );
@@ -201,25 +174,18 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Invited speakers</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-8">
+      <div className="stack-2">
+        <h1 className="page-title">Invited speakers</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Keynotes and award lectures for the meeting. Attach a speaker to a
-          session on the{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/program`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+        <p className="cap-muted">
+          Keynotes and award lectures for the meeting. Attach a speaker to a session on the{" "}
+          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
             program
           </Link>
           . Headshot upload comes later.
@@ -227,41 +193,26 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
       {speakers.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No invited speakers yet. Add the first below.
-        </p>
+        <p>No invited speakers yet. Add the first below.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="stack-4">
           {speakers.map((speaker) => (
-            <li
-              key={speaker.id}
-              className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
+            <li key={speaker.id} className="card stack-3">
+              <div className="spread">
                 <div>
-                  <p className="font-medium">{speaker.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {[
-                      speaker.role ? speakerRoleLabel(speaker.role) : "",
-                      speaker.affiliation ?? "",
-                    ]
+                  <p className="strong">{speaker.name}</p>
+                  <p className="small cap-muted">
+                    {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
                       .filter((p) => p.length > 0)
                       .join(" . ")}
                   </p>
-                  {speaker.talkTitle ? (
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {speaker.talkTitle}
-                    </p>
-                  ) : null}
+                  {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
                 </div>
                 <Form method="post">
                   <input type="hidden" name="intent" value="remove" />
@@ -273,22 +224,20 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                         e.preventDefault();
                       }
                     }}
-                    className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    className="small strong"
                   >
                     Remove
                   </button>
                 </Form>
               </div>
 
-              <details className="rounded border border-gray-100 p-3 dark:border-gray-900">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Edit speaker
-                </summary>
-                <Form method="post" className="mt-3 space-y-3" noValidate>
+              <details className="card card-s">
+                <summary className="summary">Edit speaker</summary>
+                <Form method="post" className="stack-3 mt-3" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="speakerId" value={speaker.id} />
                   <SpeakerFields speaker={speaker} />
-                  <button type="submit" disabled={submitting} className={smallButton}>
+                  <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
                     Save speaker
                   </button>
                 </Form>
@@ -298,16 +247,12 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Add a speaker</h2>
-        <Form method="post" className="space-y-4" noValidate>
+      <section className="card stack-4">
+        <h2 className="subsection-title">Add a speaker</h2>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SpeakerFields />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add speaker"}
           </button>
         </Form>

@@ -188,30 +188,15 @@ export async function action({ request, context }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-const primaryButton =
-  "rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
-
-const secondaryButton =
-  "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
-
 type Doc = Route.ComponentProps["loaderData"]["documents"][number];
 type Edition = Route.ComponentProps["loaderData"]["editions"][number];
 
-function MetaFields({
-  doc,
-  editions,
-}: {
-  doc?: Doc;
-  editions: Edition[];
-}) {
+function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
   const base = doc ? doc.id : "new";
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <div className="space-y-1">
-        <label htmlFor={`title-${base}`} className="block text-sm font-medium text-text">
+    <div className="grid-2">
+      <div className="stack-1">
+        <label htmlFor={`title-${base}`} className="cap-field-label">
           Title
         </label>
         <input
@@ -220,18 +205,18 @@ function MetaFields({
           type="text"
           required
           defaultValue={doc?.title ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`category-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1">
+        <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
         <select
           id={`category-${base}`}
           name="category"
           defaultValue={doc?.category ?? "newsletter"}
-          className={inputClass}
+          className="cap-select"
         >
           {DOCUMENT_CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -240,8 +225,8 @@ function MetaFields({
           ))}
         </select>
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`year-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1">
+        <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
         <input
@@ -250,18 +235,18 @@ function MetaFields({
           type="number"
           step="1"
           defaultValue={doc?.year ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`season-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1">
+        <label htmlFor={`season-${base}`} className="cap-field-label">
           Season
         </label>
         <select
           id={`season-${base}`}
           name="season"
           defaultValue={doc?.season ?? ""}
-          className={inputClass}
+          className="cap-select"
         >
           <option value="">None</option>
           {SEASONS.map((s) => (
@@ -271,8 +256,8 @@ function MetaFields({
           ))}
         </select>
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`editor-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1">
+        <label htmlFor={`editor-${base}`} className="cap-field-label">
           Editor
         </label>
         <input
@@ -280,18 +265,18 @@ function MetaFields({
           name="editor"
           type="text"
           defaultValue={doc?.editor ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`edition-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1">
+        <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
         <select
           id={`edition-${base}`}
           name="editionId"
           defaultValue={doc?.editionId ?? ""}
-          className={inputClass}
+          className="cap-select"
         >
           <option value="">Not linked to a meeting</option>
           {editions.map((e) => (
@@ -301,8 +286,8 @@ function MetaFields({
           ))}
         </select>
       </div>
-      <div className="space-y-1 sm:col-span-2">
-        <label htmlFor={`slug-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1 span-2">
+        <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug
         </label>
         <input
@@ -311,11 +296,9 @@ function MetaFields({
           type="text"
           defaultValue={doc?.slug ?? ""}
           placeholder="fall-1991-newsletter"
-          className={inputClass}
+          className="cap-input"
         />
-        <p className="text-xs text-text-muted">
-          Leave blank on a new document to derive it from the title.
-        </p>
+        <p className="tiny cap-muted">Leave blank on a new document to derive it from the title.</p>
       </div>
     </div>
   );
@@ -328,40 +311,41 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
   const submitting = navigation.state === "submitting";
   const error = actionData?.error ?? null;
 
-  const filterClass = (active: boolean) =>
-    active
-      ? "rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-      : "rounded-md px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-panel hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-text">Documents</h1>
-        <p className="text-text-muted">
-          Upload and manage the branch's files: newsletters, archived abstract
-          books and programs, and brand images. Published PDFs show on the public
-          archive; brand images stay internal to the admin.
+    <div className="stack-8">
+      <header className="stack-2">
+        <h1 className="page-title">Documents</h1>
+        <p className="cap-muted">
+          Upload and manage the branch's files: newsletters, archived abstract books and programs,
+          and brand images. Published PDFs show on the public archive; brand images stay internal to
+          the admin.
         </p>
       </header>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-accent/40 bg-accent/10 p-3 text-sm text-text"
-        >
+        <p role="alert" className="cap-banner" data-tone="info">
           {error}
         </p>
       ) : null}
 
-      <nav aria-label="Filter by category" className="flex flex-wrap gap-2">
-        <Link to="/admin/documents" className={filterClass(!filter)}>
+      <nav aria-label="Filter by category" className="cluster">
+        <Link
+          to="/admin/documents"
+          className="cap-btn"
+          data-size="sm"
+          data-variant={filter ? "quiet" : "primary"}
+          aria-current={filter ? undefined : "page"}
+        >
           All
         </Link>
         {DOCUMENT_CATEGORIES.map((c) => (
           <Link
             key={c}
             to={`/admin/documents?category=${c}`}
-            className={filterClass(filter === c)}
+            className="cap-btn"
+            data-size="sm"
+            data-variant={filter === c ? "primary" : "quiet"}
+            aria-current={filter === c ? "page" : undefined}
           >
             {DOCUMENT_CATEGORY_LABELS[c]}
           </Link>
@@ -369,26 +353,19 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       </nav>
 
       {documents.length === 0 ? (
-        <p className="text-text-muted">No documents yet. Upload the first below.</p>
+        <p className="cap-muted">No documents yet. Upload the first below.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="stack-3">
           {documents.map((doc) => (
-            <li
-              key={doc.id}
-              className="space-y-3 rounded-lg border border-border bg-surface-raised p-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-3">
+            <li key={doc.id} className="card stack-3">
+              <div className="spread">
+                <div className="cluster cluster-start shrink">
                   {doc.fileKind === "image" && doc.hasFile ? (
-                    <img
-                      src={`/documents/${doc.slug}/inline`}
-                      alt=""
-                      className="h-12 w-12 shrink-0 rounded border border-border bg-surface object-contain p-1"
-                    />
+                    <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
                   ) : null}
-                  <div className="min-w-0">
-                    <p className="font-medium text-text">{doc.title}</p>
-                    <p className="text-sm text-text-muted">
+                  <div className="shrink">
+                    <p className="strong">{doc.title}</p>
+                    <p className="small cap-muted">
                       {[
                         DOCUMENT_CATEGORY_LABELS[doc.category],
                         doc.status === "published" ? "Published" : "Draft",
@@ -400,13 +377,13 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="cluster">
                   {doc.status === "published" ? (
                     <a
                       href={`/documents/${doc.slug}/inline`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sm font-medium text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                      className="small strong"
                     >
                       View
                     </a>
@@ -421,7 +398,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                           e.preventDefault();
                         }
                       }}
-                      className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                      className="small strong"
                     >
                       Remove
                     </button>
@@ -429,24 +406,21 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                 </div>
               </div>
 
-              <details className="rounded-md border border-border p-3">
-                <summary className="cursor-pointer text-sm font-medium text-text">
-                  Edit details
-                </summary>
-                <Form method="post" className="mt-3 space-y-3" noValidate>
+              <details className="card card-s">
+                <summary className="summary">Edit details</summary>
+                <Form method="post" className="stack-3 mt-3" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="documentId" value={doc.id} />
                   <MetaFields doc={doc} editions={editions} />
-                  <label className="flex items-center gap-2 text-sm text-text">
+                  <label className="cap-check">
                     <input
                       type="checkbox"
                       name="publish"
                       defaultChecked={doc.status === "published"}
-                      className="h-4 w-4"
                     />
                     Published
                   </label>
-                  <button type="submit" disabled={submitting} className={secondaryButton}>
+                  <button type="submit" disabled={submitting} className="cap-btn">
                     Save details
                   </button>
                 </Form>
@@ -456,23 +430,15 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section
-        aria-labelledby="upload-heading"
-        className="space-y-4 rounded-lg border border-border bg-surface-raised p-5"
-      >
-        <h2 id="upload-heading" className="text-lg font-medium text-text">
+      <section aria-labelledby="upload-heading" className="card stack-4">
+        <h2 id="upload-heading" className="subsection-title">
           Upload a document
         </h2>
-        <Form
-          method="post"
-          encType="multipart/form-data"
-          className="space-y-4"
-          noValidate
-        >
+        <Form method="post" encType="multipart/form-data" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
-          <div className="space-y-1">
-            <label htmlFor="file" className="block text-sm font-medium text-text">
+          <div className="stack-1">
+            <label htmlFor="file" className="cap-field-label">
               File
             </label>
             <input
@@ -481,23 +447,18 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
               type="file"
               accept={UPLOAD_ACCEPT}
               required
-              className={inputClass}
+              className="cap-input"
             />
-            <p className="text-xs text-text-muted">
-              PDF for newsletters, abstract books, and programs; PNG, JPEG, WebP,
-              GIF, or SVG for brand images. Up to 50 MB for PDFs, 5 MB for images.
+            <p className="tiny cap-muted">
+              PDF for newsletters, abstract books, and programs; PNG, JPEG, WebP, GIF, or SVG for
+              brand images. Up to 50 MB for PDFs, 5 MB for images.
             </p>
           </div>
-          <label className="flex items-center gap-2 text-sm text-text">
-            <input
-              type="checkbox"
-              name="publish"
-              defaultChecked
-              className="h-4 w-4"
-            />
+          <label className="cap-check">
+            <input type="checkbox" name="publish" defaultChecked />
             Publish immediately
           </label>
-          <button type="submit" disabled={submitting} className={primaryButton}>
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Uploading..." : "Upload document"}
           </button>
         </Form>
