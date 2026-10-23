@@ -5,7 +5,7 @@ import {
   getActor,
   getDataAccess,
 } from "./data-access";
-import { extensionForMime } from "./vocab";
+import { extensionForMime, PDF_MIME_TYPE } from "./vocab";
 
 // Stream a document's stored file from R2 for the inline viewer or a download.
 // Gating lives in the data-access layer (published is public, draft/generated is
@@ -46,13 +46,44 @@ export async function serveDocument(
     throw new Response("The document file is missing.", { status: 404 });
   }
 
-  const contentType = doc.mimeType || "application/pdf";
-
-  // Keep the Content-Disposition filename ASCII-safe, with an extension that
-  // matches the stored type.
+  const contentType = doc.mimeType || PDF_MIME_TYPE;
+  // The fallback filename's extension matches the stored type.
   const fallbackName = `${slug}.${extensionForMime(contentType)}`;
+  const response = fileResponse(
+    object,
+    doc.fileName,
+    fallbackName,
+    disposition,
+    contentType,
+  );
+
+  // Harden image responses. An uploaded SVG can carry script that would run if
+  // the file is opened as a top-level document; nosniff plus a locked-down CSP
+  // (no scripts via sandbox, no external fetches) neutralizes that while still
+  // letting the image render inline. PDFs are left untouched so the browser's
+  // native viewer keeps working.
+  if (doc.fileKind === "image") {
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set(
+      "Content-Security-Policy",
+      "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    );
+  }
+
+  return response;
+}
+
+// Stream a stored R2 object as a file (a PDF download unless told otherwise),
+// with an ASCII-safe Content-Disposition filename that falls back to fallbackName.
+export function fileResponse(
+  object: R2ObjectBody,
+  fileName: string | null,
+  fallbackName: string,
+  disposition: "inline" | "attachment" = "attachment",
+  contentType: string = PDF_MIME_TYPE,
+): Response {
   const safeName =
-    (doc.fileName ?? fallbackName).replace(/[^\w .()-]/g, "_").trim() ||
+    (fileName ?? fallbackName).replace(/[^\w .()-]/g, "_").trim() ||
     fallbackName;
 
   const headers = new Headers();
@@ -62,19 +93,6 @@ export async function serveDocument(
     headers.set("Content-Length", String(object.size));
   }
   if (object.httpEtag) headers.set("ETag", object.httpEtag);
-
-  // Harden image responses. An uploaded SVG can carry script that would run if
-  // the file is opened as a top-level document; nosniff plus a locked-down CSP
-  // (no scripts via sandbox, no external fetches) neutralizes that while still
-  // letting the image render inline. PDFs are left untouched so the browser's
-  // native viewer keeps working.
-  if (doc.fileKind === "image") {
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set(
-      "Content-Security-Policy",
-      "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-    );
-  }
 
   return new Response(object.body, { headers });
 }

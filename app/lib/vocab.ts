@@ -187,6 +187,9 @@ export const DECISION_OUTCOME_LABELS: Record<DecisionOutcome, string> = {
 // Program items and invited speakers.
 // ---------------------------------------------------------------------------
 
+// The program day key for sessions with no date; the others are yyyy-mm-dd.
+export const NO_DATE_KEY = "no-date";
+
 export const PROGRAM_ITEM_KINDS = [
   "talk",
   "poster",
@@ -330,7 +333,7 @@ export function fileKindForMime(mime: string): DocumentFileKind {
 // File extension for the R2 object key and the download filename, by MIME, so the
 // stored key and Content-Disposition name stay honest about the real format.
 const MIME_EXTENSIONS: Record<string, string> = {
-  "application/pdf": "pdf",
+  [PDF_MIME_TYPE]: "pdf",
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",

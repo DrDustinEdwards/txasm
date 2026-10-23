@@ -3,6 +3,7 @@ import * as schema from "../../db/schema";
 import { extractPlainText } from "../richtext";
 import {
   type EditionStatus,
+  NO_DATE_KEY,
   PROGRAM_ITEM_KINDS,
   type ProgramItemKind,
 } from "../vocab";
@@ -95,7 +96,7 @@ interface ProgramTrackGroup {
 }
 
 export interface ProgramDay {
-  key: string; // yyyy-mm-dd, or "no-date" for sessions with no date
+  key: string; // yyyy-mm-dd, or NO_DATE_KEY for sessions with no date
   date: Date | null;
   groups: ProgramTrackGroup[];
 }
@@ -149,15 +150,15 @@ export function groupSessionsIntoDays(
   >();
   for (const s of sessions) {
     const d = s.sessionDate ?? s.startsAt ?? null;
-    const key = d ? d.toISOString().slice(0, 10) : "no-date";
+    const key = d ? d.toISOString().slice(0, 10) : NO_DATE_KEY;
     const bucket = byDay.get(key) ?? { date: d, sessions: [] };
     bucket.sessions.push(s);
     byDay.set(key, bucket);
   }
 
   const keys = [...byDay.keys()].sort((a, b) => {
-    if (a === "no-date") return 1;
-    if (b === "no-date") return -1;
+    if (a === NO_DATE_KEY) return 1;
+    if (b === NO_DATE_KEY) return -1;
     return a < b ? -1 : a > b ? 1 : 0;
   });
 
