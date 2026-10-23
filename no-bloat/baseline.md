@@ -1,6 +1,6 @@
 # No-bloat baseline (phase 0)
 
-Measured 2026-10-09 at commit `c3facc09914c987e9f6007ae6f74f6280e6ec77f` (main), Node 22.22.0 locally (CI uses `.nvmrc`, 24.14.1), Knip 6.41.0, jscpd 4.3.0. Nothing was removed. The machine-readable numbers the CI check compares against are in `baseline.json`.
+Measured 2026-10-09 at commit `c3facc09914c987e9f6007ae6f74f6280e6ec77f` (main), Node 22.22.0 locally (CI uses `.nvmrc`, 24.14.1), Knip 6.41.0, jscpd 4.3.0. Nothing was removed. The numbers the CI check compares against are the `baseline` in `.no-bloat.json` since the 2026-10-23 sweep (devkit-no-bloat); this file is the phase-0 record.
 
 Capsid job job_5ca7d118fba5 asks for this report at `txasm/baseline.md` in Capsid. It lives here in the repo until the seat copies it there.
 

@@ -9,26 +9,15 @@ import {
   runCheckedBackup,
   type BackupHealth,
 } from "@dustinedwards/d1-dump";
-import { EXCLUDED_TABLES, REQUIRED_TABLES, countProblems } from "./backup-checks";
+import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "./backup-checks";
 
 type BackupEnv = Pick<Env, "DB" | "BOOKS">;
-
-async function liveCounts(env: BackupEnv): Promise<Record<string, number>> {
-  const counts: Record<string, number> = {};
-  for (const name of REQUIRED_TABLES) {
-    const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM "${name}"`).first<{
-      n: number;
-    }>();
-    counts[name] = row?.n ?? 0;
-  }
-  return counts;
-}
 
 export async function runNightlyBackup(env: BackupEnv): Promise<void> {
   const { dump, pruned } = await runCheckedBackup(env.DB, env.BOOKS, {
     exclude: [...EXCLUDED_TABLES],
-    required: [...REQUIRED_TABLES],
-    check: async (d) => countProblems(d, await liveCounts(env)),
+    counted: [...REQUIRED_TABLES],
+    check: siteProblems,
   });
   console.log(JSON.stringify({ event: "backup.dumped", run_id: dump.run_id }));
   console.log(JSON.stringify({ event: "backup.pruned", ...pruned }));
