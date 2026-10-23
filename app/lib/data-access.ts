@@ -29,6 +29,7 @@ import { createBranchOfficers } from "./data-access/officers";
 import { createDocuments } from "./data-access/documents";
 import { createSettings } from "./data-access/settings";
 import { createMeetingImporter } from "./data-access/importer";
+import { createCarrelPages, createPages } from "./data-access/pages";
 
 export {
   ForbiddenError,
@@ -126,6 +127,7 @@ export type {
   PlatformSettings,
   PlatformSettingsPatch,
 } from "./data-access/settings";
+export type { Page, PageWrite } from "./data-access/pages";
 export type {
   ImportEditionInput,
   ImportAbstractInput,
@@ -170,6 +172,7 @@ function createDataAccess(db: DB) {
     registrationCategories: createRegistrationCategories(db),
     abstractCategories: createAbstractCategories(db),
     settings: createSettings(db),
+    pages: createPages(db),
   };
 }
 
@@ -192,4 +195,11 @@ export function getActor(env: Env, userId: string): Promise<Actor> {
 // only; the offline import script is the only caller.
 export function getMeetingImporter(env: Env) {
   return createMeetingImporter(getDb(env));
+}
+
+// Carrel's write path, parallel to getMeetingImporter: a machine caller with no
+// acting user, authenticated by the site API's key, and audited by the
+// page_revision row each write appends. Only app/lib/carrel calls it.
+export function getCarrelPages(env: Env) {
+  return createCarrelPages(getDb(env));
 }

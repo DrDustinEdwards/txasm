@@ -2,6 +2,7 @@ import { createRequestHandler, RouterContextProvider } from "react-router";
 import { cloudflareContext } from "../app/load-context";
 import { runNightlyBackup } from "../app/lib/backup.server";
 import { withSecurityHeaders } from "../app/lib/security-headers";
+import { carrelApi } from "../app/lib/carrel/handler.server";
 
 const requestHandler = createRequestHandler(
   () => import("virtual:react-router/server-build"),
@@ -10,6 +11,11 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request, env, ctx) {
+    // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
+    // everything under /api/carrel/v1; nothing else is served by it.
+    const carrel = carrelApi(env);
+    if (carrel.matches(request)) return withSecurityHeaders(await carrel.handle(request));
+
     // Inject the Cloudflare env and execution context so loaders and actions
     // reach bindings through context.get(cloudflareContext), never ambiently.
     const context = new RouterContextProvider();
