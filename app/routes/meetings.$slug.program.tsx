@@ -11,7 +11,8 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
-import { Breadcrumbs } from "~/components/breadcrumbs";
+import { Breadcrumb } from "capsomer/react/breadcrumb";
+import { renderLink } from "~/components/site-chrome";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Program") }];
@@ -289,10 +290,11 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="space-y-8">
-      <Breadcrumbs
-        trail={[
-          { label: "Home", to: "/" },
-          { label: "Meetings", to: "/meetings" },
+      <Breadcrumb
+        renderLink={renderLink}
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Meetings", href: "/meetings" },
           { label: `${edition.name} program` },
         ]}
       />

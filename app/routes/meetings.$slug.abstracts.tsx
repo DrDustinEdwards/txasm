@@ -13,7 +13,8 @@ import {
   SEASON_LABELS,
 } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
-import { Breadcrumbs } from "~/components/breadcrumbs";
+import { Breadcrumb } from "capsomer/react/breadcrumb";
+import { renderLink } from "~/components/site-chrome";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Abstracts") }];
@@ -103,10 +104,11 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="space-y-8">
-      <Breadcrumbs
-        trail={[
-          { label: "Home", to: "/" },
-          { label: "Meetings", to: "/meetings" },
+      <Breadcrumb
+        renderLink={renderLink}
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Meetings", href: "/meetings" },
           { label: `${edition.name} abstracts` },
         ]}
       />

@@ -15,7 +15,7 @@ export function BrandWordmark({ className, title = "TXASM" }: Props) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <title>{title}</title>
-      <g style={{ fill: "var(--brand-blue, var(--link))" }}>
+      <g style={{ fill: "var(--brand-blue, var(--accent-text))" }}>
         <path d="M378,67.562 H588 V99.562 H499 V344.031 H467 V99.562 H378 Z" />
         <path d="M608,67.562 L649,67.562 L843,344.031 L802,344.031 Z M843,67.562 L802,67.562 L608,344.031 L649,344.031 Z" />
       </g>

@@ -8,7 +8,8 @@ import {
   SEASON_LABELS,
 } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
-import { Breadcrumbs } from "~/components/breadcrumbs";
+import { Breadcrumb } from "capsomer/react/breadcrumb";
+import { renderLink } from "~/components/site-chrome";
 
 export function meta({ params, matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, `Abstract ${params.ref}`) }];
@@ -44,13 +45,14 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <Breadcrumbs
-        trail={[
-          { label: "Home", to: "/" },
-          { label: "Meetings", to: "/meetings" },
+      <Breadcrumb
+        renderLink={renderLink}
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Meetings", href: "/meetings" },
           {
             label: `${edition.name} abstracts`,
-            to: `/meetings/${edition.slug}/abstracts`,
+            href: `/meetings/${edition.slug}/abstracts`,
           },
           { label: `Abstract ${codeLabel}` },
         ]}

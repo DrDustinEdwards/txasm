@@ -1,22 +1,17 @@
-import {
-  Form,
-  Link,
-  NavLink,
-  Outlet,
-  useMatches,
-  useParams,
-  useRouteLoaderData,
-} from "react-router";
+import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData, useSubmit } from "react-router";
+import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandMark } from "~/lib/brand";
-import { OffCanvas } from "~/components/off-canvas";
-import { ThemeToggle } from "~/components/theme-toggle";
+import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
 
-// Admin shell. This layout does NOT gate; each wrapped route keeps its own
-// requireAdmin or requireChair. Here we only read the existing user context to
-// decide which nav items to show, and the active meeting name for the top bar.
+// Admin shell, on Capsomer's AdminShell (the user variant: txasm is not one of
+// the family's own apps, so it has no strip). The shell titles the tab
+// "<menu entry> · TXASM admin", the family's one convention. This layout does NOT gate; each
+// wrapped route keeps its own requireAdmin or requireChair. Here we only read
+// the existing user context to decide which menu entries to show, and the
+// active meeting name for the page.
 export async function loader({ request }: Route.LoaderArgs) {
   const { user, isAdmin, isReviewer } = await getUserContext(request);
   return { email: user?.email ?? null, isAdmin, isReviewer };
@@ -27,7 +22,7 @@ interface MatchData {
 }
 
 // The active meeting name comes from whichever matched admin route already loads
-// an edition, so the top bar reflects context without a new query.
+// an edition, so the page reflects context without a new query.
 function useActiveMeetingName(): string | null {
   const matches = useMatches();
   for (const match of matches) {
@@ -37,238 +32,134 @@ function useActiveMeetingName(): string | null {
   return null;
 }
 
-const linkClass = ({ isActive }: { isActive: boolean }) =>
-  [
-    "block rounded-md px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
-    isActive
-      ? "bg-surface-raised font-medium text-text"
-      : "text-text-muted hover:bg-surface-raised hover:text-text",
-  ].join(" ");
+type Entry = AdminEntry & { end?: boolean };
 
-function SidebarSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+// Menu glyphs in the family's form (Capsomer's own site and Carrel draw theirs the same way): one
+// path in a 24 box, stroked by the shell's .cap-admin-icon (1.6, currentColor), so the menu, its
+// collapsed column and the phone's tab bar never fall back to a letter.
+function Icon({ d }: { d: string }) {
   return (
-    <div className="space-y-1">
-      <p className="px-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
-        {title}
-      </p>
-      <ul className="space-y-0.5">{children}</ul>
-    </div>
+    <svg className="cap-admin-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d={d} />
+    </svg>
   );
 }
 
-// The sidebar navigation, shared by the desktop rail and (later) the off-canvas
-// menu. Items are shown by what the user already has: admins see meeting config,
-// a selected meeting shows its chair tools, reviewers see their queue.
-export function AdminNav({
-  isAdmin,
-  isReviewer,
-  editionId,
-}: {
-  isAdmin: boolean;
-  isReviewer: boolean;
-  editionId?: string;
-}) {
-  return (
-    <nav aria-label="Admin" className="space-y-6 p-4">
-      {isAdmin ? (
-        <SidebarSection title="Meetings">
-          <li>
-            <NavLink to="/admin" end className={linkClass}>
-              All meetings
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/admin/editions/new" className={linkClass}>
-              New meeting
-            </NavLink>
-          </li>
-        </SidebarSection>
-      ) : null}
+const ICONS = {
+  meetings: "M4.5 5.5h15v14h-15zM4.5 10h15M8.5 3.5v4M15.5 3.5v4",
+  add: "M12 5v14M5 12h14",
+  award: "M12 3.5a5 5 0 1 0 0 10a5 5 0 1 0 0-10zM8.8 12.4 7.5 20.5l4.5-2.5 4.5 2.5-1.3-8.1",
+  people: "M9 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM2.5 19.5c.8-3.5 3.3-5.5 6.5-5.5s5.7 2 6.5 5.5M15.5 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5c1.8.8 3 2.5 3.5 5",
+  document: "M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6",
+  settings: "M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8",
+  overview: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  ticket: "M3.5 7.5h17v3a1.5 1.5 0 0 0 0 3v3h-17v-3a1.5 1.5 0 0 0 0-3zM14.5 7.5v9",
+  tag: "M3.5 3.5h8l9 9-8 8-9-9zM8 7.5h.01",
+  roles: "M10 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM3.5 19.5c.8-3.5 3.3-5.5 6.5-5.5 1.5 0 2.8.4 3.9 1.2M15 18l2 2 4-4",
+  assign: "M8 4.5h8v3H8zM6 6H4.5v14.5h15V6H18M8.5 12.5h7M8.5 16h4",
+  decide: "M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17zM8 12.2l2.8 2.8L16.2 9.5",
+  program: "M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17zM12 7.5V12l3 2",
+  book: "M4.5 5c2.6-1 5.2-.8 7.5.8 2.3-1.6 4.9-1.8 7.5-.8v13.5c-2.6-1-5.2-.8-7.5.8-2.3-1.6-4.9-1.8-7.5-.8zM12 5.8v13.5",
+  queue: "M3.5 13.5 6 5.5h12l2.5 8v5h-17zM3.5 13.5h5l1 2h5l1-2h5",
+} as const;
 
-      {isAdmin ? (
-        <SidebarSection title="Platform">
-          <li>
-            <NavLink to="/admin/awards" className={linkClass}>
-              Awards
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/admin/officers" className={linkClass}>
-              Branch officers
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/admin/documents" className={linkClass}>
-              Documents
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/admin/settings" className={linkClass}>
-              Settings
-            </NavLink>
-          </li>
-        </SidebarSection>
-      ) : null}
-
-      {editionId ? (
-        <SidebarSection title="This meeting">
-          <li>
-            <NavLink to={`/admin/editions/${editionId}`} end className={linkClass}>
-              Overview
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/categories`}
-              className={linkClass}
-            >
-              Registration categories
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/abstract-categories`}
-              className={linkClass}
-            >
-              Abstract categories
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/roles`}
-              className={linkClass}
-            >
-              Chairs and reviewers
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/review`}
-              className={linkClass}
-            >
-              Assign reviewers
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/decisions`}
-              className={linkClass}
-            >
-              Decisions
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/program`}
-              className={linkClass}
-            >
-              Program
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/admin/editions/${editionId}/book`}
-              className={linkClass}
-            >
-              Abstract book
-            </NavLink>
-          </li>
-        </SidebarSection>
-      ) : null}
-
-      {isReviewer ? (
-        <SidebarSection title="Reviewing">
-          <li>
-            <NavLink to="/review" className={linkClass}>
-              My review queue
-            </NavLink>
-          </li>
-        </SidebarSection>
-      ) : null}
-    </nav>
-  );
+// The phone's bottom bar: at most four of the pages a person reaches first, under one-word
+// labels so none crowds or wraps; every page stays in the header's sheet (Capsomer's admin-shell:
+// "up to five ... and no More, because the menu button opens the full list").
+const TAB_LABELS: Record<string, string> = {
+  "All meetings": "Meetings",
+  "Branch officers": "Officers",
+  "My review queue": "Reviews",
+};
+function phoneTabs(nav: AdminEntry[], editionId?: string): AdminEntry[] {
+  const meeting = `/admin/editions/${editionId}`;
+  const wanted = editionId
+    ? ["/admin", meeting, `${meeting}/decisions`, `${meeting}/program`, "/review"]
+    : ["/admin", "/admin/awards", "/admin/officers", "/admin/documents", "/review"];
+  return wanted
+    .map((href) => nav.find((n) => n.href === href))
+    .filter((n): n is AdminEntry => n !== undefined)
+    .slice(0, 4)
+    .map(({ group: _group, ...n }) => ({ ...n, label: TAB_LABELS[n.label] ?? n.label }));
 }
 
-function AccountMenu({ email }: { email: string | null }) {
-  return (
-    <details className="relative">
-      <summary className="flex cursor-pointer list-none items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
-        Account
-      </summary>
-      <div className="absolute right-0 z-40 mt-1 min-w-56 rounded-lg border border-border bg-surface-raised p-3 shadow-lg">
-        {email ? (
-          <p className="mb-2 truncate px-1 text-sm text-text-muted">{email}</p>
-        ) : null}
-        <Form method="post" action="/signout">
-          <button
-            type="submit"
-            className="w-full rounded-md px-2 py-1.5 text-left text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            Sign out
-          </button>
-        </Form>
-      </div>
-    </details>
-  );
+// The menu, grouped. Entries are shown by what the user already has: admins see
+// meeting config, a selected meeting shows its chair tools, reviewers see their
+// queue.
+function adminNav(isAdmin: boolean, isReviewer: boolean, editionId?: string): Entry[] {
+  const e = (group: string, label: string, href: string, icon: keyof typeof ICONS, end = false): Entry => ({
+    id: href,
+    group,
+    label,
+    href,
+    icon: <Icon d={ICONS[icon]} />,
+    end,
+  });
+  const meeting = `/admin/editions/${editionId}`;
+  return [
+    ...(isAdmin
+      ? [
+          e("Meetings", "All meetings", "/admin", "meetings", true),
+          e("Meetings", "New meeting", "/admin/editions/new", "add"),
+          e("Platform", "Awards", "/admin/awards", "award"),
+          e("Platform", "Branch officers", "/admin/officers", "people"),
+          e("Platform", "Documents", "/admin/documents", "document"),
+          e("Platform", "Settings", "/admin/settings", "settings"),
+        ]
+      : []),
+    ...(editionId
+      ? [
+          e("This meeting", "Overview", meeting, "overview", true),
+          e("This meeting", "Registration categories", `${meeting}/categories`, "ticket"),
+          e("This meeting", "Abstract categories", `${meeting}/abstract-categories`, "tag"),
+          e("This meeting", "Chairs and reviewers", `${meeting}/roles`, "roles"),
+          e("This meeting", "Assign reviewers", `${meeting}/review`, "assign"),
+          e("This meeting", "Decisions", `${meeting}/decisions`, "decide"),
+          e("This meeting", "Program", `${meeting}/program`, "program"),
+          e("This meeting", "Abstract book", `${meeting}/book`, "book"),
+        ]
+      : []),
+    ...(isReviewer ? [e("Reviewing", "My review queue", "/review", "queue")] : []),
+  ];
 }
 
 export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   const { email, isAdmin, isReviewer } = loaderData;
-  const params = useParams();
-  const editionId = params.editionId;
+  const { editionId } = useParams();
+  const { pathname } = useLocation();
+  const submit = useSubmit();
   const meetingName = useActiveMeetingName();
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
-  const wordmark = rootData?.settings?.shortName ?? "";
+  const wordmark = rootData?.settings?.shortName || "TXASM";
+  useThemeCookie(rootData?.theme ?? null);
+  const nav = adminNav(isAdmin, isReviewer, editionId).map(({ end, ...entry }) => ({
+    ...entry,
+    current: pathname === entry.href || (!end && pathname.startsWith(`${entry.href}/`)),
+  }));
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-4 px-4 py-2">
-          <div className="flex items-center gap-3">
-            <div className="md:hidden">
-              <OffCanvas triggerLabel="Open admin menu" title="Admin menu" side="left">
-                <AdminNav
-                  isAdmin={isAdmin}
-                  isReviewer={isReviewer}
-                  editionId={editionId}
-                />
-              </OffCanvas>
-            </div>
-            <Link
-              to="/"
-              className="rounded-md px-2 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            >
-              <BrandMark title={wordmark || "TXASM"} className="h-7 w-auto" />
-            </Link>
-            <span className="text-sm text-text-muted">
-              {meetingName ? meetingName : "Admin"}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <AccountMenu email={email} />
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto flex w-full max-w-7xl flex-1">
-        <aside className="hidden w-60 shrink-0 border-r border-border bg-panel md:block">
-          <AdminNav
-            isAdmin={isAdmin}
-            isReviewer={isReviewer}
-            editionId={editionId}
-          />
-        </aside>
-        <main id="main" className="min-w-0 flex-1 px-4 py-8 sm:px-6">
-          <Outlet />
-        </main>
+    <AdminShell
+      variant="user"
+      title={`${wordmark} admin`}
+      page={nav.find((n) => n.current)?.label}
+      nav={nav}
+      tabs={phoneTabs(nav, editionId)}
+      navLabel="Admin"
+      prefKey="txasm-admin"
+      logo={{ href: "/", label: `${wordmark} admin`, mark: <BrandMark className="txasm-mark" />, wordmark: <span aria-hidden="true">Admin</span> }}
+      status={meetingName ? <span className="txasm-meeting">{meetingName}</span> : undefined}
+      themePrefKey={THEME_PREF_KEY}
+      renderLink={renderLink}
+      viewSite="/"
+      account={
+        email
+          ? { name: email, initials: initials(email), onSignOut: () => void submit(null, { method: "post", action: "/signout" }) }
+          : undefined
+      }
+    >
+      <div className="cap-admin-page">
+        <Outlet />
       </div>
-    </div>
+    </AdminShell>
   );
 }
