@@ -1,4 +1,3 @@
-import { readFileSync, readdirSync } from "node:fs";
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
@@ -11,6 +10,7 @@ import {
 } from "@dustinedwards/d1-dump";
 import { getBackupHealth, runNightlyBackup } from "../app/lib/backup.server";
 import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "../app/lib/backup-checks";
+import { applyMigrations } from "./d1";
 
 // Real D1 and R2 in-process, with the real migrations applied, so the table list
 // is the site's own: a new migration that adds a token table fails the credential
@@ -20,8 +20,6 @@ let db: D1Like;
 let scratchDb: D1Like;
 let bucket: R2Like;
 let env: { DB: D1Like; BOOKS: R2Like };
-
-const migrationsDir = new URL("../drizzle/", import.meta.url);
 
 before(async () => {
   mf = new Miniflare({
@@ -35,15 +33,7 @@ before(async () => {
   bucket = (await mf.getR2Bucket("BOOKS")) as unknown as R2Like;
   env = { DB: db, BOOKS: bucket };
 
-  const files = readdirSync(migrationsDir)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  for (const file of files) {
-    const sql = readFileSync(new URL(file, migrationsDir), "utf8");
-    for (const statement of sql.split("--> statement-breakpoint")) {
-      if (statement.trim()) await db.prepare(statement).run();
-    }
-  }
+  await applyMigrations(db);
 
   await db
     .prepare(

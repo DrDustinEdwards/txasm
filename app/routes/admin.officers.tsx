@@ -5,6 +5,7 @@ import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
 import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
+import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Branch officers") }];
@@ -14,15 +15,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { actor } = await requireAdmin(request);
   const da = getDataAccess(context.get(cloudflareContext).env);
   return { rows: await da.branchOfficers.listAll(actor) };
-}
-
-function parseSortOrder(value: FormDataEntryValue | null): number {
-  const raw = String(value ?? "0").trim() || "0";
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new ValidationError("Sort order must be a whole number.");
-  }
-  return n;
 }
 
 function readInput(form: FormData) {

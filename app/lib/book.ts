@@ -18,36 +18,7 @@ import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { isEmptyRichText } from "./richtext";
-
-// Escape a string for use inside a CSS string literal (the running header).
-function escapeCssString(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\s+/g, " ").trim();
-}
-
-function joinParts(parts: Array<string | null>): string {
-  return parts
-    .map((p) => (p ? p.trim() : ""))
-    .filter((p) => p.length > 0)
-    .join(", ");
-}
-
-const DATE_FMT = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "long",
-  timeZone: "UTC",
-});
-
-function formatMeetingDates(
-  start: Date | null,
-  end: Date | null,
-): string {
-  if (start && end) {
-    if (start.getTime() === end.getTime()) return DATE_FMT.format(start);
-    return `${DATE_FMT.format(start)} to ${DATE_FMT.format(end)}`;
-  }
-  if (start) return DATE_FMT.format(start);
-  if (end) return DATE_FMT.format(end);
-  return "";
-}
+import { escapeCssString, formatMeetingDates, joinParts } from "./format";
 
 function authorLine(authors: BookAuthor[]): string {
   return authors

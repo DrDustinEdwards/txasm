@@ -40,22 +40,16 @@ export {
   AlreadyExistsError,
   isAdmin,
   isChair,
-  isReviewer,
   isReviewerAnywhere,
 } from "./data-access/core";
 export type { Actor } from "./data-access/core";
 export type {
-  AbstractInput,
   AuthorInput,
   AffiliationInput,
 } from "./data-access/abstracts";
 export type {
-  ReviewSubmission,
   GrantableRole,
-  RoleGrantInput,
-  RoleRevokeInput,
 } from "./data-access/reviews";
-export type { DecisionInput } from "./data-access/decisions";
 export type {
   BookAuthor,
   BookAffiliation,
@@ -63,75 +57,39 @@ export type {
   BookView,
   BookArrangementInput,
   BookRenderEntry,
-  BookRenderSection,
-  BookRenderIndexEntry,
   BookRenderData,
 } from "./data-access/book-model";
 export type {
-  ProgramSessionInput,
-  ProgramSessionPatch,
-  ProgramItemPatch,
   ProgramSessionResolved,
   ProgramAbstractOption,
   ProgramDay,
-  PublicProgram,
-  ProgramSchedule,
   ProgramBookData,
 } from "./data-access/program-model";
 export type {
   PublicAbstractSummary,
-  PublicAbstractDetail,
-  PublicEditionSummary,
-  PublicAbstractListing,
-  PublicAbstractPage,
-  PublicMeeting,
-  PublicAbstractSearchFilters,
-  PublicAbstractSearchResult,
 } from "./data-access/public-abstracts";
 export type {
-  EditionInput,
   EditionPatch,
-  RegistrationCategoryInput,
   RegistrationCategoryPatch,
 } from "./data-access/editions";
 export type {
-  InvitedSpeakerInput,
-  InvitedSpeakerPatch,
-  SponsorInput,
-  SponsorPatch,
   SponsorPublic,
   SpeakerPublic,
 } from "./data-access/speakers-sponsors";
 export type {
-  AwardInput,
-  AwardPatch,
-  AwardRecipientInput,
-  AwardRecipientPatch,
-  AwardSearchFilters,
   AwardRecipientView,
-  AwardYearGroup,
-  AwardSearchResult,
 } from "./data-access/awards";
 export type {
-  BranchOfficerInput,
   Officer,
   PastOfficer,
   PastOfficerTab,
 } from "./data-access/officers";
-export type {
-  DocumentUploadInput,
-  DocumentPatch,
-} from "./data-access/documents";
 export type {
   FooterLink,
   PlatformSettings,
   PlatformSettingsPatch,
 } from "./data-access/settings";
 export type { Page, PageWrite } from "./data-access/pages";
-export type {
-  ImportEditionInput,
-  ImportAbstractInput,
-} from "./data-access/importer";
 
 // The controlled-vocabulary types live in ./vocab (client-safe, one source).
 // Re-export the ones callers reach for through the data-access layer so their
@@ -139,12 +97,7 @@ export type {
 export type {
   AbstractFormat,
   AbstractLevel,
-  ConflictReason,
-  DecisionOutcome,
-  EditionStatus,
-  PresentationType,
   ProgramItemKind,
-  RegistrationCategoryKey,
   Season,
   SpeakerRole,
 } from "./vocab";

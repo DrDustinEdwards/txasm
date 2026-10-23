@@ -23,6 +23,7 @@ import {
   type DocumentCategory,
 } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
+import { parseYear } from "~/lib/form.server";
 
 // File picker hint: allow every accepted type so images are selectable for the
 // brand_image category. The real gate is the per-category MIME check in the
@@ -65,16 +66,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const editionRows = await da.editions.list(actor);
   const editions = editionRows.map((e) => ({ id: e.id, name: e.name }));
   return { documents, editions, filter: filter ?? null };
-}
-
-function parseYear(value: FormDataEntryValue | null): number | null {
-  const raw = String(value ?? "").trim();
-  if (!raw) return null;
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new ValidationError("Year must be a whole number.");
-  }
-  return n;
 }
 
 function optionalText(value: FormDataEntryValue | null): string {

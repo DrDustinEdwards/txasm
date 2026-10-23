@@ -21,9 +21,11 @@ import {
 } from "./book-model";
 import {
   type Actor,
-  chunkList,
+  byIdChunks,
+  chunk,
   type DB,
   ForbiddenError,
+  insertChunkSize,
   isChair,
   NotFoundError,
   ValidationError,
@@ -198,10 +200,12 @@ export function createBooks(db: DB) {
           generatedById: actor.userId,
         });
       }
-      if (sectionRows.length) {
-        await db.insert(schema.bookSection).values(sectionRows);
+      // A row binds one parameter per column (timestamps included), so each
+      // batch stays under D1's limit of 100.
+      for (const batch of chunk(sectionRows, insertChunkSize(9))) {
+        await db.insert(schema.bookSection).values(batch);
       }
-      for (const batch of chunkList(entryRows, 40)) {
+      for (const batch of chunk(entryRows, insertChunkSize(9))) {
         await db.insert(schema.bookEntry).values(batch);
       }
       await recomputeBookCodes(db, bookId);
@@ -371,17 +375,10 @@ export function createBooks(db: DB) {
         .orderBy(schema.bookEntry.sortOrder);
       const entries = allEntries.filter((e) => e.included);
 
-      const absRows = entries.length
-        ? await db
-            .select()
-            .from(schema.abstract)
-            .where(
-              inArray(
-                schema.abstract.id,
-                entries.map((e) => e.abstractId),
-              ),
-            )
-        : [];
+      const absRows = await byIdChunks(
+        entries.map((e) => e.abstractId),
+        (part) => db.select().from(schema.abstract).where(inArray(schema.abstract.id, part)),
+      );
       const absById = new Map(absRows.map((a) => [a.id, a]));
       const parts = await assembleBookAbstracts(db, entries.map((e) => e.abstractId));
 

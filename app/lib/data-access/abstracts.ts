@@ -15,6 +15,7 @@ import {
 } from "../vocab";
 import {
   type Actor,
+  byIdChunks,
   chunk,
   type DB,
   DeadlinePassedError,
@@ -450,53 +451,22 @@ export function createAbstracts(db: DB) {
     // reviewers; they see only their own assignments through reviews.listAssigned.
     async listForEdition(actor: Actor, editionId: string) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-
-      const rows = await db
-        .select()
-        .from(schema.abstract)
-        .where(
-          and(
-            eq(schema.abstract.editionId, editionId),
-            ne(schema.abstract.status, "draft"),
-          ),
-        )
-        .orderBy(desc(schema.abstract.submittedAt), desc(schema.abstract.createdAt));
-
+      const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);
       if (rows.length === 0) return [];
-      const ids = rows.map((r) => r.id);
 
-      const authors = await db
-        .select({
-          abstractId: schema.author.abstractId,
-          firstName: schema.author.firstName,
-          lastName: schema.author.lastName,
-        })
-        .from(schema.author)
-        .where(inArray(schema.author.abstractId, ids))
-        .orderBy(schema.author.ordinal);
+      const assignments = await byIdChunks(ids, (part) =>
+        db
+          .select({ abstractId: schema.reviewAssignment.abstractId })
+          .from(schema.reviewAssignment)
+          .where(inArray(schema.reviewAssignment.abstractId, part)),
+      );
+      const submittedReviews = await byIdChunks(ids, (part) =>
+        db
+          .select({ abstractId: schema.review.abstractId })
+          .from(schema.review)
+          .where(and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted"))),
+      );
 
-      const assignments = await db
-        .select({ abstractId: schema.reviewAssignment.abstractId })
-        .from(schema.reviewAssignment)
-        .where(inArray(schema.reviewAssignment.abstractId, ids));
-
-      const submittedReviews = await db
-        .select({ abstractId: schema.review.abstractId })
-        .from(schema.review)
-        .where(
-          and(
-            inArray(schema.review.abstractId, ids),
-            eq(schema.review.status, "submitted"),
-          ),
-        );
-
-      const namesByAbstract = new Map<string, string[]>();
-      for (const a of authors) {
-        const name = `${a.firstName} ${a.lastName}`.trim();
-        const list = namesByAbstract.get(a.abstractId) ?? [];
-        if (name) list.push(name);
-        namesByAbstract.set(a.abstractId, list);
-      }
       const assignmentCount = new Map<string, number>();
       for (const a of assignments) {
         assignmentCount.set(a.abstractId, (assignmentCount.get(a.abstractId) ?? 0) + 1);
@@ -517,4 +487,31 @@ export function createAbstracts(db: DB) {
       }));
     },
   };
+}
+
+// Every abstract of a meeting that is no longer a draft, newest submission
+// first, with its author names in order: the rows the chair's dashboard and the
+// decisions page both start from. Does not gate; callers check isChair.
+export async function submittedAbstracts(db: DB, editionId: string) {
+  const rows = await db
+    .select()
+    .from(schema.abstract)
+    .where(and(eq(schema.abstract.editionId, editionId), ne(schema.abstract.status, "draft")))
+    .orderBy(desc(schema.abstract.submittedAt), desc(schema.abstract.createdAt));
+  const ids = rows.map((r) => r.id);
+  const authors = await byIdChunks(ids, (part) =>
+    db
+      .select({ abstractId: schema.author.abstractId, firstName: schema.author.firstName, lastName: schema.author.lastName })
+      .from(schema.author)
+      .where(inArray(schema.author.abstractId, part))
+      .orderBy(schema.author.ordinal),
+  );
+  const namesByAbstract = new Map<string, string[]>();
+  for (const a of authors) {
+    const name = `${a.firstName} ${a.lastName}`.trim();
+    const list = namesByAbstract.get(a.abstractId) ?? [];
+    if (name) list.push(name);
+    namesByAbstract.set(a.abstractId, list);
+  }
+  return { rows, ids, namesByAbstract };
 }
