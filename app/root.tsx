@@ -45,17 +45,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export function Layout({ children }: { children: React.ReactNode }) {
   // data-theme is set server-side from the cookie so the SSR render matches the
   // chosen theme with no flash. When absent, prefers-color-scheme decides.
+  // Capsomer's navy family and txasm's site layer (Inter) apply to the page.
   const data = useRouteLoaderData<typeof loader>("root");
   const theme = data?.theme ?? undefined;
   return (
-    <html lang="en" data-theme={theme}>
+    <html lang="en" data-theme={theme} data-family="navy" data-cap-site="txasm">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-surface text-text antialiased">
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -64,18 +65,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// The skip link is the site header's (the public and admin shells).
 export default function App() {
-  return (
-    <>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface-raised focus:px-3 focus:py-2 focus:text-text focus:shadow"
-      >
-        Skip to content
-      </a>
-      <Outlet />
-    </>
-  );
+  return <Outlet />;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

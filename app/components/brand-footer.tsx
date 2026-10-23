@@ -16,7 +16,7 @@ type Props = {
  * mark can never get stuck on one theme.
  */
 export function BrandFooter({ className, size = 36, tagline = true }: Props) {
-  const blue = "var(--brand-blue, var(--link))";
+  const blue = "var(--brand-blue, var(--accent-text))";
   const red = "var(--brand-red, var(--accent))";
 
   return (
@@ -37,7 +37,7 @@ export function BrandFooter({ className, size = 36, tagline = true }: Props) {
           viewBox="0 0 200 190"
           role="img"
           aria-label="Texas"
-          style={{ height: size * 1.15, width: "auto", color: "var(--text-muted)" }}
+          style={{ height: size * 1.15, width: "auto", color: "var(--muted)" }}
         >
           <path d={TEXAS_STATE_PATH} fill="currentColor" />
         </svg>
@@ -51,7 +51,7 @@ export function BrandFooter({ className, size = 36, tagline = true }: Props) {
             fontSize: Math.round(size * 0.3),
             fontWeight: 500,
             letterSpacing: "0.22em",
-            color: "var(--text-muted)",
+            color: "var(--muted)",
           }}
         >
           AMERICAN SOCIETY FOR MICROBIOLOGY

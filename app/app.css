@@ -1,30 +1,40 @@
+/* Capsomer's layers sit above Tailwind's base and below its components and
+   utilities: Capsomer's element rules and components win over the preflight,
+   and the Tailwind classes still on the pages win over Capsomer until each
+   screen moves (the txasm-onto-Capsomer plan, 2026-10-23). */
+@layer theme, base, cap, components, utilities;
 @import "tailwindcss" source(".");
+@import "capsomer/tokens.css";
+@import "capsomer/family-navy.css" layer(cap.tokens);
+@import "capsomer/site-txasm.css";
+@import "capsomer/base.css";
+@import "capsomer/site-header.css";
+@import "capsomer/admin-shell.css";
+@import "capsomer/dialog.css";
+@import "capsomer/popover.css";
+@import "capsomer/theme-switch.css";
+@import "capsomer/breadcrumb.css";
 
+/* The Tailwind names the pages still use, on Capsomer's tokens (the navy
+   family, both themes). They go with Tailwind. */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-
-  /* Semantic color tokens map to runtime CSS variables so utilities like
-     bg-surface, text-text, and border-border react to the active theme. The raw
-     values live in the :root and [data-theme] blocks below. */
+  --font-sans: var(--face);
   --color-primary: var(--primary);
-  --color-on-primary: var(--on-primary);
-  --color-accent: var(--accent);
+  --color-on-primary: var(--primary-fg);
+  --color-accent: var(--accent-text);
   --color-text: var(--text);
-  --color-text-muted: var(--text-muted);
-  --color-link: var(--link);
+  --color-text-muted: var(--muted);
+  --color-link: var(--accent-text);
   --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-panel: var(--panel);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-focus: var(--focus);
+  --color-surface-raised: var(--surface);
+  --color-panel: var(--raised);
+  --color-border: var(--line);
+  --color-border-strong: var(--line-strong);
+  --color-focus: var(--ring);
 }
 
-/* Dark applies by system preference and is forced by data-theme on <html>. A
-   manual choice (data-theme) always wins so the toggle is authoritative, while
-   no choice falls back to prefers-color-scheme. The dark: variant follows the
-   same rule so existing dark: utilities stay in step with the tokens. */
+/* Dark applies by system preference and is forced by data-theme on <html>, as
+   Capsomer's tokens do. The dark: variant follows the same rule. */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
     @slot;
@@ -36,97 +46,97 @@
   }
 }
 
-/* Light is the default. Every text-on-surface pair meets WCAG 2.2 AA:
-   text 1A1A1A on white ~17:1, text-muted 595959 on white ~7:1 and on panel
-   F4F6FA ~6.5:1, link 0C447C on white ~9.8:1, white on primary 002868 ~14:1,
-   white on accent A30E28 ~7.9:1. border is a subtle divider (decorative, exempt
-   from 3:1); border-strong 6B7280 on white ~4.8:1 for input outlines; focus
-   1A66C9 on white ~5.5:1 and sits on the surface via outline-offset. */
+/* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
+   navy is the family's accent text (#002868 in light); the red is txasm's own,
+   for the logo only, lighter in dark for contrast. */
 :root {
-  color-scheme: light;
-  --primary: #002868;
-  --on-primary: #ffffff;
-  --accent: #a30e28;
-  --text: #1a1a1a;
-  --text-muted: #595959;
-  --link: #0c447c;
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --panel: #f4f6fa;
-  --border: #d9dbe0;
-  --border-strong: #6b7280;
-  --focus: #1a66c9;
-  /* Brand ink for the inline logo components (BrandWordmark/BrandMark). Light
-     values here; the two dark blocks below shift them lighter for contrast. */
-  --brand-blue: #002868;
+  --brand-blue: var(--accent-text);
   --brand-red: #a30e28;
 }
-
-/* Dark values. text E8EAED on surface 14171C ~14.8:1, text-muted A0A6B0 ~7.3:1
-   on surface and ~6:1 on panel 22272F, link 7FB0E8 ~7.9:1, accent E8617A as text
-   on panel ~4.6:1, white on primary 002868 ~14:1. border-strong 666D78 ~3.4:1 on
-   surface, focus 6AA0E8 well above 3:1. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --accent: #e8617a;
-    --text: #e8eaed;
-    --text-muted: #a0a6b0;
-    --link: #7fb0e8;
-    --surface: #14171c;
-    --surface-raised: #1c2028;
-    --panel: #22272f;
-    --border: #2e333c;
-    --border-strong: #666d78;
-    --focus: #6aa0e8;
-    --brand-blue: #5b8fd1;
     --brand-red: #e8617a;
   }
 }
-
-/* An explicit light choice keeps the light values from :root even when the
-   system prefers dark. */
-[data-theme="light"] {
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-  --accent: #e8617a;
-  --text: #e8eaed;
-  --text-muted: #a0a6b0;
-  --link: #7fb0e8;
-  --surface: #14171c;
-  --surface-raised: #1c2028;
-  --panel: #22272f;
-  --border: #2e333c;
-  --border-strong: #666d78;
-  --focus: #6aa0e8;
-  --brand-blue: #5b8fd1;
+:root[data-theme="dark"] {
   --brand-red: #e8617a;
 }
 
-html,
-body {
-  background-color: var(--surface);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
+/* The public page frame: the site header, a centred column, the footer. Pages
+   read at 16px; the header and controls keep Capsomer's comfortable density. */
+.txasm-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.txasm-frame {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+  @media (width < 768px) {
+    padding-inline: var(--space-5);
+  }
+}
+.txasm-main {
+  --text-size: 1rem;
+  --leading: 1.5;
+  flex: 1;
+  padding-block: 2.5rem;
+  font-size: var(--text-size);
+  line-height: var(--leading);
+  &:focus {
+    outline: none;
+  }
+}
+.txasm-wordmark {
+  height: 1.75rem;
+  width: auto;
+}
+.txasm-mark {
+  height: 1.5rem;
+  width: auto;
+}
+.txasm-meeting {
+  font-weight: 600;
+}
+.txasm-footer {
+  margin-top: var(--space-9);
+  padding-block: 2.5rem;
+  border-top: 1px solid var(--line);
+  background: var(--raised);
+  font-size: 0.875rem;
+  & nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  & a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  & p {
+    margin: var(--space-2) 0 0;
+  }
 }
 
 /* A page's text from Carrel, as Prelum renders it (app/lib/carrel). The same
    type the hand-built pages use: muted body text, h2 and h3 in the text color,
    numbered and bulleted lists indented, links in the link color. */
 .page-prose {
-  color: var(--text-muted);
+  color: var(--muted);
   & > * + * { margin-top: 1.25rem; }
   & h2 { margin-top: 2.5rem; font-size: 1.5rem; line-height: 2rem; font-weight: 600; color: var(--text); }
   & h3 { font-size: 1.125rem; line-height: 1.75rem; font-weight: 600; color: var(--text); }
   & ol { list-style: decimal; padding-left: 1.5rem; }
   & ul { list-style: disc; padding-left: 1.5rem; }
   & li + li { margin-top: 0.5rem; }
-  & a { color: var(--link); overflow-wrap: anywhere; }
+  & a { color: var(--accent-text); overflow-wrap: anywhere; }
   & a:hover { text-decoration: underline; }
-  & a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  & .heading-anchor { margin-left: 0.4em; color: var(--text-muted); opacity: 0; }
+  & a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  & .heading-anchor { margin-left: 0.4em; color: var(--muted); opacity: 0; }
   & :is(h2, h3):hover .heading-anchor, & .heading-anchor:focus-visible { opacity: 1; }
 }
