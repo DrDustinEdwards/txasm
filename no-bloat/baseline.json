@@ -17,12 +17,5 @@
     "clones": 33,
     "duplicatedLines": 421,
     "percentage": 1.97
-  },
-  "weight": {
-    "allJsGzip": 182048,
-    "allCssGzip": 7761,
-    "heaviestRoute": "routes/abstracts.$abstractId.edit",
-    "heaviestRouteGzip": 125007,
-    "lightestRouteGzip": 116250
   }
 }
