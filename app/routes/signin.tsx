@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -84,37 +85,35 @@ export default function SignIn() {
 
   if (sent) {
     return (
-      <div className="mx-auto max-w-md space-y-4">
-        <h1 ref={confirmRef} tabIndex={-1} className="text-2xl font-semibold">
+      <div className="narrow stack-4">
+        <h1 ref={confirmRef} tabIndex={-1} className="page-title">
           Check your inbox
         </h1>
-        <p className="text-gray-700 dark:text-gray-300">
+        <p>
           A sign-in link is on its way. Open it to finish signing in. The link
           expires soon, so use it before it does.
         </p>
         {import.meta.env.DEV ? (
-          <p className="rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+          <Banner tone="neutral">
             Development note: email is not wired yet, so the link is printed to
             the Worker logs instead of sent. Read it from the dev server output or
             wrangler tail.
-          </p>
+          </Banner>
         ) : null}
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Sign in</h1>
-        <p className="text-gray-700 dark:text-gray-300">
-          Enter your email and we will send a sign-in link. No password needed.
-        </p>
+    <div className="narrow stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">Sign in</h1>
+        <p>Enter your email and we will send a sign-in link. No password needed.</p>
       </div>
 
-      <Form method="post" className="space-y-4" noValidate>
-        <div className="space-y-1">
-          <label htmlFor="email" className="block text-sm font-medium">
+      <Form method="post" className="stack-4" noValidate>
+        <div className="cap-field">
+          <label htmlFor="email" className="cap-field-label">
             Email
           </label>
           <input
@@ -126,24 +125,16 @@ export default function SignIn() {
             required
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "email-error" : undefined}
-            className="w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900"
+            className="cap-input"
           />
           {error ? (
-            <p
-              id="email-error"
-              role="alert"
-              className="text-sm text-red-700 dark:text-red-400"
-            >
+            <p id="email-error" role="alert" className="cap-field-error">
               {error}
             </p>
           ) : null}
         </div>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Sending..." : "Send sign-in link"}
         </button>
       </Form>

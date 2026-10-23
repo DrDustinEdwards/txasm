@@ -1,6 +1,7 @@
 import type { Route } from "./+types/newsletters";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
+import { Empty } from "capsomer/react/empty";
 import { DocumentList } from "~/components/document-list";
 import { pageTitle } from "~/lib/site-meta";
 
@@ -32,25 +33,18 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
   const { documents } = loaderData;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          Newsletters
-        </h1>
-        <p className="max-w-2xl text-text-muted">
+    <div className="stack-8">
+      <header className="stack-3">
+        <h1 className="page-title">Newsletters</h1>
+        <p className="lead">
           The branch newsletter shares meeting recaps, award announcements, and
           news from member institutions across Texas. Read past issues below.
         </p>
       </header>
 
       {documents.length === 0 ? (
-        <section
-          aria-label="Newsletter archive"
-          className="rounded-lg border border-border bg-panel p-6"
-        >
-          <p className="text-text-muted">
-            Back issues are being added and will be listed here.
-          </p>
+        <section aria-label="Newsletter archive">
+          <Empty kind="nothing-yet" title="Back issues are being added and will be listed here." />
         </section>
       ) : (
         <section aria-label="Newsletter archive">

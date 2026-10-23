@@ -12,6 +12,8 @@ import {
 import { formatDateTime } from "~/lib/format";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
+import { Empty } from "capsomer/react/empty";
+import { Badge } from "capsomer/react/status";
 import { renderLink } from "~/components/site-chrome";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -83,94 +85,45 @@ function sessionTimeLine(session: ProgramSessionResolved): string {
   return joinParts([time || null, session.location]);
 }
 
-function KindBadge({ kind }: { kind: ProgramSessionResolved["items"][number]["kind"] }) {
+function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][number] }) {
   return (
-    <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-      {programKindLabel(kind)}
-    </span>
-  );
-}
-
-function ProgramItemView({
-  item,
-}: {
-  item: ProgramSessionResolved["items"][number];
-}) {
-  return (
-    <li className="space-y-1">
-      <div className="flex flex-wrap items-baseline gap-2">
-        <KindBadge kind={item.kind} />
+    <li className="stack-1">
+      <div className="cluster program-item">
+        <Badge variant="secondary">{programKindLabel(item.kind)}</Badge>
         {item.abstractId ? (
           <p>
-            {item.abstractCode ? (
-              <span className="font-medium text-gray-600 dark:text-gray-400">
-                {item.abstractCode}{" "}
-              </span>
-            ) : null}
-            <span
-              className="font-medium"
-              dangerouslySetInnerHTML={{ __html: item.abstractTitle ?? "" }}
-            />
-            {item.presentingAuthorName ? (
-              <span className="text-gray-700 dark:text-gray-300">
-                {" "}
-                . {item.presentingAuthorName}
-              </span>
-            ) : null}
+            {item.abstractCode ? <span className="strong cap-muted">{item.abstractCode} </span> : null}
+            <span className="strong" dangerouslySetInnerHTML={{ __html: item.abstractTitle ?? "" }} />
+            {item.presentingAuthorName ? <span className="cap-muted"> . {item.presentingAuthorName}</span> : null}
           </p>
         ) : item.speakerId ? (
           <p>
-            <span className="font-medium">
-              {item.speakerName ?? "Invited speaker"}
-            </span>
-            {item.speakerTalkTitle ? (
-              <span className="text-gray-700 dark:text-gray-300">
-                {" "}
-                . {item.speakerTalkTitle}
-              </span>
-            ) : null}
+            <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
+            {item.speakerTalkTitle ? <span className="cap-muted"> . {item.speakerTalkTitle}</span> : null}
           </p>
         ) : (
-          <p className="font-medium">{item.customTitle}</p>
+          <p className="strong">{item.customTitle}</p>
         )}
       </div>
-      {item.startsAt ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {formatDateTime(item.startsAt)}
-        </p>
-      ) : null}
-      {item.note ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">{item.note}</p>
-      ) : null}
+      {item.startsAt ? <p className="small cap-muted">{formatDateTime(item.startsAt)}</p> : null}
+      {item.note ? <p className="small cap-muted">{item.note}</p> : null}
     </li>
   );
 }
 
-function SessionBlock({
-  session,
-}: {
-  session: ProgramSessionResolved;
-}) {
+function SessionBlock({ session }: { session: ProgramSessionResolved }) {
   const timeLine = sessionTimeLine(session);
   return (
-    <div className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
+    <div className="card stack-3">
       <div>
-        <h3 className="text-lg font-semibold">{session.title}</h3>
-        {timeLine ? (
-          <p className="text-sm text-gray-600 dark:text-gray-400">{timeLine}</p>
-        ) : null}
-        {session.moderator ? (
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Moderated by {session.moderator}
-          </p>
-        ) : null}
+        <h3 className="subsection-title">{session.title}</h3>
+        {timeLine ? <p className="small cap-muted">{timeLine}</p> : null}
+        {session.moderator ? <p className="small cap-muted">Moderated by {session.moderator}</p> : null}
       </div>
       {session.items.length === 0 ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          No items listed.
-        </p>
+        <p className="small cap-muted">No items listed.</p>
       ) : (
-        <ol className="space-y-3">
+        <ol className="stack-3">
           {session.items.map((item) => (
             <ProgramItemView key={item.id} item={item} />
           ))}
@@ -186,19 +139,12 @@ function TrackGroup({ group }: { group: ProgramDay["groups"][number] }) {
   }
   const trackCount = group.sessions.length;
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-        {trackCount} parallel tracks
-      </p>
+    <div className="stack-2">
+      <p className="small strong cap-muted">{trackCount} parallel tracks</p>
       {/* N dynamic columns, one per concurrent track (never a fixed two). minmax
           keeps each track readable and lets the row scroll on narrow screens. */}
-      <div className="overflow-x-auto">
-        <div
-          className="grid gap-4"
-          style={{
-            gridTemplateColumns: `repeat(${trackCount}, minmax(16rem, 1fr))`,
-          }}
-        >
+      <div className="tracks">
+        <div style={{ gridTemplateColumns: `repeat(${trackCount}, minmax(16rem, 1fr))` }}>
           {group.sessions.map((session) => (
             <SessionBlock key={session.id} session={session} />
           ))}
@@ -210,34 +156,17 @@ function TrackGroup({ group }: { group: ProgramDay["groups"][number] }) {
 
 function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
   return (
-    <section className="space-y-3">
-      <h2 className="text-xl font-semibold">Invited speakers</h2>
-      <ul className="space-y-4">
+    <section className="stack-3">
+      <h2 className="section-title">Invited speakers</h2>
+      <ul className="stack-4">
         {speakers.map((speaker) => (
-          <li
-            key={speaker.id}
-            className="rounded border border-gray-200 p-4 dark:border-gray-800"
-          >
-            <p className="font-medium">{speaker.name}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {[
-                speaker.role ? speakerRoleLabel(speaker.role) : "",
-                speaker.affiliation ?? "",
-              ]
-                .filter((part) => part.length > 0)
-                .join(" . ")}
+          <li key={speaker.id} className="card">
+            <p className="strong">{speaker.name}</p>
+            <p className="small cap-muted">
+              {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""].filter((part) => part.length > 0).join(" . ")}
             </p>
-            {speaker.talkTitle ? (
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                {speaker.talkTitle}
-              </p>
-            ) : null}
-            {speaker.bio ? (
-              <div
-                className="mt-2 text-sm text-gray-700 dark:text-gray-300"
-                dangerouslySetInnerHTML={{ __html: speaker.bio }}
-              />
-            ) : null}
+            {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+            {speaker.bio ? <div className="small speaker-bio" dangerouslySetInnerHTML={{ __html: speaker.bio }} /> : null}
           </li>
         ))}
       </ul>
@@ -247,32 +176,19 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
 
 function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
   return (
-    <section className="space-y-3">
-      <h2 className="text-xl font-semibold">Sponsors</h2>
-      <ul className="flex flex-wrap gap-3">
+    <section className="stack-3">
+      <h2 className="section-title">Sponsors</h2>
+      <ul className="cluster">
         {sponsors.map((sponsor) => (
-          <li
-            key={sponsor.id}
-            className="rounded border border-gray-200 px-3 py-2 text-sm dark:border-gray-800"
-          >
+          <li key={sponsor.id} className="card small sponsor">
             {sponsor.url && /^https?:\/\//i.test(sponsor.url) ? (
-              <a
-                href={sponsor.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-              >
+              <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="strong">
                 {sponsor.name}
               </a>
             ) : (
-              <span className="font-medium">{sponsor.name}</span>
+              <span className="strong">{sponsor.name}</span>
             )}
-            {sponsor.tier ? (
-              <span className="text-gray-600 dark:text-gray-400">
-                {" "}
-                . {sponsor.tier}
-              </span>
-            ) : null}
+            {sponsor.tier ? <span className="cap-muted"> . {sponsor.tier}</span> : null}
           </li>
         ))}
       </ul>
@@ -289,7 +205,7 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (
-    <div className="space-y-8">
+    <div className="stack-8">
       <Breadcrumb
         renderLink={renderLink}
         items={[
@@ -298,35 +214,23 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
           { label: `${edition.name} program` },
         ]}
       />
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {edition.name}
-        </h1>
-        <p className="text-lg text-gray-700 dark:text-gray-300">Program</p>
-        {dateLine ? (
-          <p className="text-gray-600 dark:text-gray-400">{dateLine}</p>
-        ) : null}
-        {venueLine ? (
-          <p className="text-gray-600 dark:text-gray-400">{venueLine}</p>
-        ) : null}
+      <div className="stack-2">
+        <h1 className="page-title">{edition.name}</h1>
+        <p className="home-tagline">Program</p>
+        {dateLine ? <p className="cap-muted">{dateLine}</p> : null}
+        {venueLine ? <p className="cap-muted">{venueLine}</p> : null}
       </div>
 
       {program === null ? (
-        <p className="rounded border border-gray-200 bg-gray-50 p-4 text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
-          The program is not published yet. Check back closer to the meeting.
-        </p>
+        <Empty kind="nothing-yet" title="The program is not published yet. Check back closer to the meeting." />
       ) : program.days.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          The program has no sessions listed yet.
-        </p>
+        <p>The program has no sessions listed yet.</p>
       ) : (
-        <div className="space-y-10">
+        <div className="stack-10">
           {program.days.map((day) => (
-            <section key={day.key} className="space-y-4">
-              <h2 className="border-b border-gray-200 pb-2 text-xl font-semibold dark:border-gray-800">
-                {dayLabel(day.date)}
-              </h2>
-              <div className="space-y-6">
+            <section key={day.key} className="stack-4">
+              <h2 className="section-title rule-below">{dayLabel(day.date)}</h2>
+              <div className="stack-6">
                 {day.groups.map((group, index) => (
                   <TrackGroup key={group.sessions[0]?.id ?? index} group={group} />
                 ))}
@@ -336,13 +240,9 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      {program && program.speakers.length > 0 ? (
-        <SpeakerList speakers={program.speakers} />
-      ) : null}
+      {program && program.speakers.length > 0 ? <SpeakerList speakers={program.speakers} /> : null}
 
-      {program && program.sponsors.length > 0 ? (
-        <SponsorList sponsors={program.sponsors} />
-      ) : null}
+      {program && program.sponsors.length > 0 ? <SponsorList sponsors={program.sponsors} /> : null}
 
       {/* Printable Program PDF hooks in here as a follow-up build: assemble this
           same schedule (days, concurrency groups, items, speakers, sponsors) into

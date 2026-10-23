@@ -44,7 +44,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
   ]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="reading stack-6">
       <Breadcrumb
         renderLink={renderLink}
         items={[
@@ -58,17 +58,17 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         ]}
       />
 
-      <header className="space-y-3">
-        <p className="text-sm text-text-muted">
+      <header className="stack-3">
+        <p className="small cap-muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract{" "}
           {codeLabel}
         </p>
         <h1
-          className="text-2xl font-semibold tracking-tight text-text"
+          className="page-title abstract-title"
           dangerouslySetInnerHTML={{ __html: abstract.title }}
         />
         {abstract.authors.length > 0 ? (
-          <p className="text-text">
+          <p>
             {abstract.authors.map((author, i) => (
               <span key={`${author.name}-${i}`}>
                 {author.name}
@@ -76,7 +76,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
                   <sup>{author.affiliationOrdinals.join(",")}</sup>
                 ) : null}
                 {author.isPresenting || author.isCorresponding ? (
-                  <span className="text-text-muted">
+                  <span className="cap-muted">
                     {" "}
                     (
                     {[
@@ -94,10 +94,10 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         {abstract.affiliations.length > 0 ? (
-          <ol className="space-y-1 text-sm text-text-muted">
+          <ol className="stack-1 small cap-muted">
             {abstract.affiliations.map((aff) => (
-              <li key={aff.ordinal} className="flex gap-2">
-                <sup className="font-medium">{aff.ordinal}</sup>
+              <li key={aff.ordinal} className="affiliation">
+                <sup className="strong">{aff.ordinal}</sup>
                 <span>
                   {joinParts([
                     aff.institution,
@@ -111,7 +111,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
           </ol>
         ) : null}
         {metaLabel ? (
-          <p className="text-xs uppercase tracking-wide text-text-muted">
+          <p className="cap-label">
             {metaLabel}
           </p>
         ) : null}
@@ -119,18 +119,15 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
 
       {abstract.bodyText ? (
         <div
-          className="max-w-none space-y-3 text-text [&_sub]:align-sub [&_sup]:align-super"
+          className="stack-3 abstract-body"
           dangerouslySetInnerHTML={{ __html: abstract.bodyText }}
         />
       ) : (
-        <p className="text-text-muted">No abstract body on record.</p>
+        <p className="cap-muted">No abstract body on record.</p>
       )}
 
-      <p className="border-t border-border pt-4 text-sm">
-        <Link
-          to={`/meetings/${edition.slug}/abstracts`}
-          className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        >
+      <p className="small doc-pager">
+        <Link to={`/meetings/${edition.slug}/abstracts`}>
           Back to {edition.name} abstracts
         </Link>
       </p>

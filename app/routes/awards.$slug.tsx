@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import { Empty } from "capsomer/react/empty";
+import { Badge } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
 import { cloudflareContext } from "~/load-context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
@@ -38,86 +40,39 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
   const { award, years } = loaderData;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <p className="text-sm">
-          <Link
-            to="/awardees"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            All awards
-          </Link>
+    <div className="stack-8">
+      <header className="stack-3">
+        <p className="small">
+          <Link to="/awardees">All awards</Link>
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          {award.name}
-        </h1>
-        {award.description ? (
-          <p
-            className="max-w-2xl text-text-muted"
-            dangerouslySetInnerHTML={{ __html: award.description }}
-          />
-        ) : null}
-        {award.namesakeBio ? (
-          <p
-            className="max-w-2xl text-sm text-text-muted"
-            dangerouslySetInnerHTML={{ __html: award.namesakeBio }}
-          />
-        ) : null}
+        <h1 className="page-title">{award.name}</h1>
+        {award.description ? <p className="lead" dangerouslySetInnerHTML={{ __html: award.description }} /> : null}
+        {award.namesakeBio ? <p className="lead small" dangerouslySetInnerHTML={{ __html: award.namesakeBio }} /> : null}
       </header>
 
       {years.length === 0 ? (
-        <section
-          aria-label="Recipients"
-          className="rounded-lg border border-border bg-panel p-6"
-        >
-          <p className="text-text-muted">
-            Recipient records for this award are being compiled and will appear
-            here.
-          </p>
+        <section aria-label="Recipients">
+          <Empty kind="nothing-yet" title="Recipient records for this award are being compiled and will appear here." />
         </section>
       ) : (
-        <div className="space-y-8">
+        <div className="stack-8">
           {years.map((group) => (
-            <section
-              key={group.year}
-              aria-label={`Recipients ${group.year}`}
-              className="space-y-4"
-            >
-              <h2 className="text-xl font-semibold text-text">{group.year}</h2>
+            <section key={group.year} aria-label={`Recipients ${group.year}`} className="stack-4">
+              <h2 className="section-title">{group.year}</h2>
               {group.categories.map((bucket, index) => (
-                <div
-                  key={bucket.category ?? `uncategorized-${index}`}
-                  className="space-y-2"
-                >
-                  {bucket.category ? (
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
-                      {bucket.category}
-                    </h3>
-                  ) : null}
-                  <ul className="divide-y divide-border rounded-lg border border-border bg-surface-raised">
+                <div key={bucket.category ?? `uncategorized-${index}`} className="stack-2">
+                  {bucket.category ? <h3 className="cap-label">{bucket.category}</h3> : null}
+                  <ul className="card-list">
                     {bucket.recipients.map((recipient) => (
-                      <li key={recipient.id} className="px-4 py-3">
-                        <p className="text-text">
-                          {recipient.placement ? (
-                            <span className="mr-2 rounded bg-panel px-1.5 py-0.5 text-xs font-semibold text-text-muted">
-                              {recipient.placement}
-                            </span>
-                          ) : null}
-                          <span className="font-medium">
-                            {recipient.personName}
+                      <li key={recipient.id}>
+                        <p className="cluster recipient">
+                          {recipient.placement ? <Badge variant="secondary">{recipient.placement}</Badge> : null}
+                          <span>
+                            <span className="strong">{recipient.personName}</span>
+                            {recipient.institution ? <span className="cap-muted"> &middot; {recipient.institution}</span> : null}
                           </span>
-                          {recipient.institution ? (
-                            <span className="text-text-muted">
-                              {" "}
-                              &middot; {recipient.institution}
-                            </span>
-                          ) : null}
                         </p>
-                        {recipient.mentor ? (
-                          <p className="mt-0.5 text-sm text-text-muted">
-                            Mentor: {recipient.mentor}
-                          </p>
-                        ) : null}
+                        {recipient.mentor ? <p className="small cap-muted">Mentor: {recipient.mentor}</p> : null}
                       </li>
                     ))}
                   </ul>

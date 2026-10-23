@@ -21,12 +21,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const settings = rootData?.settings;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">
+    <div className="stack-6">
+      <h1 className="page-title">
         {settings?.orgFullName ?? ""}
       </h1>
       {settings?.tagline ? (
-        <p className="max-w-2xl text-lg text-gray-700 dark:text-gray-300">
+        <p className="lead home-tagline">
           {settings.tagline}
         </p>
       ) : null}

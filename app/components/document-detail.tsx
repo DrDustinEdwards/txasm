@@ -21,25 +21,15 @@ export function DocumentDetail({
   const subtitle = documentSubtitle(doc);
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-3">
-        <p className="text-sm">
-          <Link
-            to={basePath}
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            {backTitle}
-          </Link>
+    <div className="stack-6">
+      <header className="stack-3">
+        <p className="small">
+          <Link to={basePath}>{backTitle}</Link>
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-text">
-          {doc.title}
-        </h1>
-        {subtitle ? <p className="text-text-muted">{subtitle}</p> : null}
+        <h1 className="page-title">{doc.title}</h1>
+        {subtitle ? <p className="cap-muted">{subtitle}</p> : null}
         <p>
-          <a
-            href={`/documents/${doc.slug}/download`}
-            className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
+          <a href={`/documents/${doc.slug}/download`} className="cap-btn" data-variant="primary">
             Download PDF
           </a>
         </p>
@@ -47,27 +37,16 @@ export function DocumentDetail({
 
       <PdfViewer url={`/documents/${doc.slug}/inline`} title={doc.title} />
 
-      <nav
-        aria-label={`More in ${backTitle}`}
-        className="flex justify-between gap-3 border-t border-border pt-4"
-      >
+      <nav aria-label={`More in ${backTitle}`} className="spread doc-pager">
         {prevSlug ? (
-          <Link
-            to={`${basePath}/${prevSlug}`}
-            rel="prev"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
+          <Link to={`${basePath}/${prevSlug}`} rel="prev">
             Previous
           </Link>
         ) : (
           <span aria-hidden="true" />
         )}
         {nextSlug ? (
-          <Link
-            to={`${basePath}/${nextSlug}`}
-            rel="next"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
+          <Link to={`${basePath}/${nextSlug}`} rel="next">
             Next
           </Link>
         ) : (
