@@ -1,11 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  Form,
-  Link,
-  useActionData,
-  useNavigation,
-  useSearchParams,
-} from "react-router";
+import { Form, Link, useActionData, useNavigation, useSearchParams } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -33,29 +27,16 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const edition = await da.editions.getById(actor, params.editionId);
-  const schedule = await da.programSessions.getScheduleForEdition(
-    actor,
-    params.editionId,
-  );
-  const unplaced = await da.programItems.listUnplacedAbstracts(
-    actor,
-    params.editionId,
-  );
-  const speakerRows = await da.invitedSpeakers.listForEdition(
-    actor,
-    params.editionId,
-  );
+  const schedule = await da.programSessions.getScheduleForEdition(actor, params.editionId);
+  const unplaced = await da.programItems.listUnplacedAbstracts(actor, params.editionId);
+  const speakerRows = await da.invitedSpeakers.listForEdition(actor, params.editionId);
   const speakers = speakerRows.map((s) => ({
     id: s.id,
     name: s.name,
     role: s.role,
     talkTitle: s.talkTitle,
   }));
-  const document = await da.documents.getGeneratedForEdition(
-    actor,
-    params.editionId,
-    "program",
-  );
+  const document = await da.documents.getGeneratedForEdition(actor, params.editionId, "program");
   return {
     edition: { id: edition.id, name: edition.name },
     schedule,
@@ -182,16 +163,11 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       // display order, then persist through the edition-wide sort order.
       const sessionId = String(form.get("sessionId") ?? "");
       const direction = String(form.get("direction") ?? "");
-      const schedule = await da.programSessions.getScheduleForEdition(
-        actor,
-        editionId,
-      );
+      const schedule = await da.programSessions.getScheduleForEdition(actor, editionId);
       const day = schedule.days.find((d) =>
         d.groups.some((g) => g.sessions.some((s) => s.id === sessionId)),
       );
-      const dayOrder = day
-        ? day.groups.flatMap((g) => g.sessions).map((s) => s.id)
-        : [];
+      const dayOrder = day ? day.groups.flatMap((g) => g.sessions).map((s) => s.id) : [];
       const idx = dayOrder.indexOf(sessionId);
       const swap = direction === "up" ? idx - 1 : idx + 1;
       if (idx !== -1 && swap >= 0 && swap < dayOrder.length) {
@@ -308,12 +284,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
     schedule.meetingEndsAt,
     dayParam,
   );
-  const selectedDay =
-    dayParam && dayKeys.includes(dayParam) ? dayParam : dayKeys[0] ?? null;
+  const selectedDay = dayParam && dayKeys.includes(dayParam) ? dayParam : (dayKeys[0] ?? null);
   const day = schedule.days.find((d) => d.key === selectedDay) ?? null;
-  const flatOrder = day
-    ? day.groups.flatMap((g) => g.sessions).map((s) => s.id)
-    : [];
+  const flatOrder = day ? day.groups.flatMap((g) => g.sessions).map((s) => s.id) : [];
   const flatIndexOf = (id: string) => flatOrder.indexOf(id);
 
   function selectDay(key: string) {
@@ -323,21 +296,18 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Schedule</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">Schedule</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Build the meeting day by day. Sessions that overlap in time on the same
-          day become parallel tracks automatically, one column per session.
+        <p className="cap-muted">
+          Build the meeting day by day. Sessions that overlap in time on the same day become
+          parallel tracks automatically, one column per session.
         </p>
       </div>
 
@@ -345,36 +315,28 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         ref={statusRef}
         tabIndex={-1}
         role={error ? "alert" : "status"}
-        className={
-          error
-            ? "rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-            : ok
-              ? "rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
-              : "sr-only"
-        }
+        className={error || ok ? "cap-alert" : "cap-sr-only"}
+        data-tone={error ? "crit" : "ok"}
       >
         {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
       </p>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <nav aria-label="Meeting days" className="flex flex-wrap gap-2">
+      <div className="cluster">
+        <nav aria-label="Meeting days" className="cluster">
           {dayKeys.map((key) => (
             <button
               key={key}
               type="button"
               onClick={() => selectDay(key)}
               aria-current={key === selectedDay ? "page" : undefined}
-              className={
-                key === selectedDay
-                  ? "rounded-md bg-primary px-3 py-2 text-sm font-medium text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                  : "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              }
+              className="cap-btn"
+              data-variant={key === selectedDay ? "primary" : undefined}
             >
               {dayTabLabel(key)}
             </button>
           ))}
         </nav>
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <label className="cluster small cap-muted">
           <span>Add day</span>
           <input
             type="date"
@@ -383,21 +345,22 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             onChange={(e) => {
               if (e.target.value) selectDay(e.target.value);
             }}
-            className="rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900"
+            className="cap-input date-field"
+            data-size="sm"
           />
         </label>
       </div>
 
       {selectedDay === null ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No days yet. Set the meeting dates on the meeting page, or add a session
-          with a date below.
+        <p>
+          No days yet. Set the meeting dates on the meeting page, or add a session with a date
+          below.
         </p>
       ) : (
-        <div className="space-y-8">
-          <h2 className="text-lg font-semibold">{dayTabLabel(selectedDay)}</h2>
+        <div className="stack-8">
+          <h2 className="subsection-title">{dayTabLabel(selectedDay)}</h2>
           {day && day.groups.length > 0 ? (
-            <div className="space-y-8">
+            <div className="stack-8">
               {day.groups.map((group, gi) => (
                 <Slot
                   key={group.sessions[0]?.id ?? gi}
@@ -411,28 +374,20 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-700 dark:text-gray-300">
-              Nothing scheduled on this day yet.
-            </p>
+            <p>Nothing scheduled on this day yet.</p>
           )}
 
-          <section className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-            <h3 className="text-base font-medium">Add a session to this day</h3>
-            <Form method="post" className="space-y-3" noValidate>
+          <section className="card stack-4">
+            <h3 className="strong">Add a session to this day</h3>
+            <Form method="post" className="stack-3" noValidate>
               <input type="hidden" name="intent" value="session-create" />
               {/* Keyed by day so the date prefill remounts when the tab changes;
                   an unkeyed defaultValue would keep the previous day's date. */}
               <SessionFields
                 key={selectedDay}
-                defaultDate={
-                  selectedDay === NO_DATE_KEY ? "" : selectedDay ?? ""
-                }
+                defaultDate={selectedDay === NO_DATE_KEY ? "" : (selectedDay ?? "")}
               />
-              <button
-                type="submit"
-                disabled={busy}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-              >
+              <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
                 Add session
               </button>
             </Form>
@@ -440,11 +395,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <ProgramDocumentPanel
-        document={document}
-        editionId={edition.id}
-        busy={busy}
-      />
+      <ProgramDocumentPanel document={document} editionId={edition.id} busy={busy} />
     </div>
   );
 }

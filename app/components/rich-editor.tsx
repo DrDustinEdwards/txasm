@@ -1,10 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import {
-  BODY_TAGS,
-  TITLE_TAGS,
-  countWords,
-  sanitizeRichText,
-} from "~/lib/richtext";
+import { BODY_TAGS, TITLE_TAGS, countWords, sanitizeRichText } from "~/lib/richtext";
 
 interface RichEditorProps {
   name: string;
@@ -108,18 +103,16 @@ export function RichEditor({
     sync();
   }
 
-  const toolButton =
-    "rounded-md border border-border px-2 py-1 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
   return (
-    <div className="space-y-1">
-      <span id={labelId} className="block text-sm font-medium">
+    <div className="stack-1">
+      <span id={labelId} className="cap-field-label">
         {label}
       </span>
-      <div className="flex items-center gap-2" role="toolbar" aria-label={`${label} formatting`}>
+      <div className="cluster" role="toolbar" aria-label={`${label} formatting`}>
         <button
           type="button"
-          className={toolButton}
+          className="cap-btn"
+          data-size="sm"
           title="Italic (Ctrl or Cmd + I)"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => wrap("em")}
@@ -130,7 +123,8 @@ export function RichEditor({
           <>
             <button
               type="button"
-              className={toolButton}
+              className="cap-btn"
+              data-size="sm"
               title="Superscript (Ctrl or Cmd + .)"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => wrap("sup")}
@@ -139,7 +133,8 @@ export function RichEditor({
             </button>
             <button
               type="button"
-              className={toolButton}
+              className="cap-btn"
+              data-size="sm"
               title="Subscript (Ctrl or Cmd + ,)"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => wrap("sub")}
@@ -161,14 +156,12 @@ export function RichEditor({
         onInput={sync}
         onKeyDown={onKeyDown}
         onPaste={onPaste}
-        className={
-          "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900 " +
-          (mode === "body" ? "min-h-28" : "min-h-12")
-        }
+        className="cap-input rich-input"
+        data-mode={mode}
       />
       <input type="hidden" name={name} value={value} />
       {showWordCount ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400" aria-live="polite">
+        <p className="small cap-muted" aria-live="polite">
           {countWords(value)} words
         </p>
       ) : null}

@@ -1,60 +1,46 @@
 import { Form } from "react-router";
 import type { DataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
-import { smallButton } from "./shared";
 
 export function ProgramDocumentPanel({
   document,
   editionId,
   busy,
 }: {
-  document: Awaited<
-    ReturnType<DataAccess["documents"]["getGeneratedForEdition"]>
-  >;
+  document: Awaited<ReturnType<DataAccess["documents"]["getGeneratedForEdition"]>>;
   editionId: string;
   busy: boolean;
 }) {
   return (
-    <section className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
-      <h2 className="text-lg font-medium">Program document</h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        Generate the printable program PDF from this schedule. It runs Browser
-        Rendering and can take up to a minute.
+    <section className="card stack-3">
+      <h2 className="subsection-title">Program document</h2>
+      <p className="small cap-muted">
+        Generate the printable program PDF from this schedule. It runs Browser Rendering and can
+        take up to a minute.
       </p>
       {!document ? (
-        <p className="text-sm text-gray-700 dark:text-gray-300">
-          No program PDF generated yet.
-        </p>
+        <p className="small">No program PDF generated yet.</p>
       ) : document.genStatus === "ready" ? (
-        <div className="space-y-1 text-sm">
+        <div className="stack-1 small">
           <p>
-            <span className="font-medium text-green-700 dark:text-green-400">
-              Ready
-            </span>
-            {document.generatedAt
-              ? ` . Generated ${formatDateTime(document.generatedAt)}`
-              : ""}
+            <span className="strong ok-text">Ready</span>
+            {document.generatedAt ? ` . Generated ${formatDateTime(document.generatedAt)}` : ""}
           </p>
           <p>
-            <a
-              href={`/admin/editions/${editionId}/program-document/download`}
-              className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-            >
+            <a href={`/admin/editions/${editionId}/program-document/download`} className="strong">
               Download the PDF
             </a>
           </p>
           <p>
             {document.status === "published" ? (
-              <span className="font-medium text-green-700 dark:text-green-400">
-                Published
-              </span>
+              <span className="strong ok-text">Published</span>
             ) : (
-              <span className="flex items-center gap-2">
-                <span className="text-gray-600 dark:text-gray-400">Draft.</span>
+              <span className="cluster">
+                <span className="cap-muted">Draft.</span>
                 <Form method="post">
                   <input type="hidden" name="intent" value="document-publish" />
                   <input type="hidden" name="documentId" value={document.id} />
-                  <button type="submit" disabled={busy} className={smallButton}>
+                  <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
                     Publish
                   </button>
                 </Form>
@@ -63,24 +49,17 @@ export function ProgramDocumentPanel({
           </p>
         </div>
       ) : document.genStatus === "generating" ? (
-        <p className="text-sm text-gray-700 dark:text-gray-300">
-          A generation is in progress. Refresh this page in a minute to see the
-          result.
+        <p className="small">
+          A generation is in progress. Refresh this page in a minute to see the result.
         </p>
       ) : document.genStatus === "failed" ? (
-        <p className="text-sm text-red-700 dark:text-red-400">
-          The last generation failed. Try again below.
-        </p>
+        <p className="small crit-text">The last generation failed. Try again below.</p>
       ) : (
-        <p className="text-sm text-gray-700 dark:text-gray-300">Pending</p>
+        <p className="small">Pending</p>
       )}
       <Form method="post">
         <input type="hidden" name="intent" value="document-generate" />
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-        >
+        <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
           {document ? "Regenerate program PDF" : "Generate program PDF"}
         </button>
       </Form>

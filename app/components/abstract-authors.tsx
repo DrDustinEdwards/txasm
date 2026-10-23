@@ -37,11 +37,7 @@ export function emptyAffiliation(): AffiliationState {
   return { institution: "", department: "", city: "", region: "", country: "" };
 }
 
-export const inputClass =
-  "w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-const smallButton =
-  "rounded-md border border-border-strong px-2 py-1 text-sm text-text disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
+export const inputClass = "cap-input";
 
 export function AffiliationsFieldset({
   affiliations,
@@ -57,49 +53,41 @@ export function AffiliationsFieldset({
   removeAffiliation: (index: number) => void;
 }) {
   return (
-    <fieldset className="space-y-4 rounded-md border border-border p-4">
-      <legend className="px-1 text-sm font-medium text-text">
-        Affiliations
-      </legend>
-      <p className="text-sm text-text-muted">
-        Number each affiliation once, then attach it to authors below. Start
-        typing to pick a known institution or add a new one.
+    <fieldset className="card stack-4">
+      <legend className="legend">Affiliations</legend>
+      <p className="small cap-muted">
+        Number each affiliation once, then attach it to authors below. Start typing to pick a known
+        institution or add a new one.
       </p>
       {affiliations.length === 0 ? (
-        <p className="text-sm text-text-muted">No affiliations added.</p>
+        <p className="small cap-muted">No affiliations added.</p>
       ) : (
-        <ol className="space-y-4">
+        <ol className="stack-4">
           {affiliations.map((affiliation, index) => (
-            <li key={index} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-text">
-                  Affiliation {index + 1}
-                </span>
+            <li key={index} className="stack-2">
+              <div className="spread">
+                <span className="small strong">Affiliation {index + 1}</span>
                 <button
                   type="button"
                   onClick={() => removeAffiliation(index)}
-                  className="text-sm font-medium text-red-700 hover:underline dark:text-red-400"
+                  className="small strong crit-text"
                 >
                   Remove
                 </button>
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="sm:col-span-2">
+              <div className="grid-2">
+                <div className="span-2">
                   <InstitutionAutocomplete
                     id={`institution-${index}`}
                     label="Institution"
                     value={affiliation.institution}
-                    onChange={(name) =>
-                      updateAffiliation(index, { institution: name })
-                    }
-                    onSelect={(suggestion) =>
-                      selectInstitution(index, suggestion)
-                    }
+                    onChange={(name) => updateAffiliation(index, { institution: name })}
+                    onSelect={(suggestion) => selectInstitution(index, suggestion)}
                     inputClassName={inputClass}
                   />
                 </div>
-                <label className="space-y-1">
-                  <span className="block text-sm">Department</span>
+                <label className="stack-1">
+                  <span className="cap-field-label">Department</span>
                   <input
                     type="text"
                     value={affiliation.department}
@@ -108,40 +96,34 @@ export function AffiliationsFieldset({
                         department: e.target.value,
                       })
                     }
-                    className={inputClass}
+                    className="cap-input"
                   />
                 </label>
-                <label className="space-y-1">
-                  <span className="block text-sm">City</span>
+                <label className="stack-1">
+                  <span className="cap-field-label">City</span>
                   <input
                     type="text"
                     value={affiliation.city}
-                    onChange={(e) =>
-                      updateAffiliation(index, { city: e.target.value })
-                    }
-                    className={inputClass}
+                    onChange={(e) => updateAffiliation(index, { city: e.target.value })}
+                    className="cap-input"
                   />
                 </label>
-                <label className="space-y-1">
-                  <span className="block text-sm">State or province</span>
+                <label className="stack-1">
+                  <span className="cap-field-label">State or province</span>
                   <input
                     type="text"
                     value={affiliation.region}
-                    onChange={(e) =>
-                      updateAffiliation(index, { region: e.target.value })
-                    }
-                    className={inputClass}
+                    onChange={(e) => updateAffiliation(index, { region: e.target.value })}
+                    className="cap-input"
                   />
                 </label>
-                <label className="space-y-1">
-                  <span className="block text-sm">Country</span>
+                <label className="stack-1">
+                  <span className="cap-field-label">Country</span>
                   <input
                     type="text"
                     value={affiliation.country}
-                    onChange={(e) =>
-                      updateAffiliation(index, { country: e.target.value })
-                    }
-                    className={inputClass}
+                    onChange={(e) => updateAffiliation(index, { country: e.target.value })}
+                    className="cap-input"
                   />
                 </label>
               </div>
@@ -149,11 +131,7 @@ export function AffiliationsFieldset({
           ))}
         </ol>
       )}
-      <button
-        type="button"
-        onClick={addAffiliation}
-        className="rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-      >
+      <button type="button" onClick={addAffiliation} className="cap-btn">
         Add affiliation
       </button>
     </fieldset>
@@ -178,25 +156,21 @@ export function AuthorsFieldset({
   toggleAffiliationForAuthor: (index: number, ordinal: number) => void;
 }) {
   return (
-    <fieldset className="space-y-4 rounded-md border border-border p-4">
-      <legend className="px-1 text-sm font-medium text-text">Authors</legend>
-      <ol className="space-y-4">
+    <fieldset className="card stack-4">
+      <legend className="legend">Authors</legend>
+      <ol className="stack-4">
         {authors.map((author, index) => (
-          <li
-            key={index}
-            className="space-y-3 rounded-md border border-border p-3"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-text">
-                Author {index + 1}
-              </span>
-              <div className="flex items-center gap-2">
+          <li key={index} className="card card-s stack-3">
+            <div className="spread">
+              <span className="small strong">Author {index + 1}</span>
+              <div className="cluster">
                 <button
                   type="button"
                   onClick={() => moveAuthor(index, -1)}
                   disabled={index === 0}
                   aria-label={`Move author ${index + 1} up`}
-                  className={smallButton}
+                  className="cap-btn"
+                  data-size="sm"
                 >
                   Up
                 </button>
@@ -205,67 +179,59 @@ export function AuthorsFieldset({
                   onClick={() => moveAuthor(index, 1)}
                   disabled={index === authors.length - 1}
                   aria-label={`Move author ${index + 1} down`}
-                  className={smallButton}
+                  className="cap-btn"
+                  data-size="sm"
                 >
                   Down
                 </button>
                 <button
                   type="button"
                   onClick={() => removeAuthor(index)}
-                  className="text-sm font-medium text-red-700 hover:underline dark:text-red-400"
+                  className="small strong crit-text"
                 >
                   Remove
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <label className="space-y-1">
-                <span className="block text-sm">First name</span>
+            <div className="grid-2">
+              <label className="stack-1">
+                <span className="cap-field-label">First name</span>
                 <input
                   type="text"
                   value={author.firstName}
-                  onChange={(e) =>
-                    updateAuthor(index, { firstName: e.target.value })
-                  }
-                  className={inputClass}
+                  onChange={(e) => updateAuthor(index, { firstName: e.target.value })}
+                  className="cap-input"
                 />
               </label>
-              <label className="space-y-1">
-                <span className="block text-sm">Last name</span>
+              <label className="stack-1">
+                <span className="cap-field-label">Last name</span>
                 <input
                   type="text"
                   value={author.lastName}
-                  onChange={(e) =>
-                    updateAuthor(index, { lastName: e.target.value })
-                  }
-                  className={inputClass}
+                  onChange={(e) => updateAuthor(index, { lastName: e.target.value })}
+                  className="cap-input"
                 />
               </label>
-              <label className="space-y-1 sm:col-span-2">
-                <span className="block text-sm">Email</span>
+              <label className="stack-1 span-2">
+                <span className="cap-field-label">Email</span>
                 <input
                   type="email"
                   value={author.email}
-                  onChange={(e) =>
-                    updateAuthor(index, { email: e.target.value })
-                  }
-                  className={inputClass}
+                  onChange={(e) => updateAuthor(index, { email: e.target.value })}
+                  className="cap-input"
                 />
               </label>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-sm">
+            <div className="cluster">
+              <label className="cap-check">
                 <input
                   type="checkbox"
                   checked={author.isPresenting}
-                  onChange={(e) =>
-                    updateAuthor(index, { isPresenting: e.target.checked })
-                  }
-                  className="h-4 w-4"
+                  onChange={(e) => updateAuthor(index, { isPresenting: e.target.checked })}
                 />
                 Presenting
               </label>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="cap-check">
                 <input
                   type="checkbox"
                   checked={author.isCorresponding}
@@ -274,31 +240,22 @@ export function AuthorsFieldset({
                       isCorresponding: e.target.checked,
                     })
                   }
-                  className="h-4 w-4"
                 />
                 Corresponding
               </label>
             </div>
             {affiliations.length > 0 ? (
-              <fieldset className="space-y-1">
-                <legend className="text-sm">Affiliations</legend>
-                <div className="flex flex-wrap gap-3">
+              <fieldset className="stack-1">
+                <legend className="small">Affiliations</legend>
+                <div className="cluster">
                   {affiliations.map((_, affIndex) => {
                     const ordinal = affIndex + 1;
                     return (
-                      <label
-                        key={affIndex}
-                        className="flex items-center gap-1 text-sm"
-                      >
+                      <label key={affIndex} className="cluster small">
                         <input
                           type="checkbox"
-                          checked={author.affiliationOrdinals.includes(
-                            ordinal,
-                          )}
-                          onChange={() =>
-                            toggleAffiliationForAuthor(index, ordinal)
-                          }
-                          className="h-4 w-4"
+                          checked={author.affiliationOrdinals.includes(ordinal)}
+                          onChange={() => toggleAffiliationForAuthor(index, ordinal)}
                         />
                         {ordinal}
                       </label>
@@ -310,11 +267,7 @@ export function AuthorsFieldset({
           </li>
         ))}
       </ol>
-      <button
-        type="button"
-        onClick={addAuthor}
-        className="rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-      >
+      <button type="button" onClick={addAuthor} className="cap-btn">
         Add author
       </button>
     </fieldset>

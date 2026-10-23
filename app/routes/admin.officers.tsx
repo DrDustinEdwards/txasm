@@ -3,11 +3,7 @@ import type { Route } from "./+types/admin.officers";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
-import {
-  OFFICER_SECTION_LABELS,
-  OFFICER_SECTIONS,
-  type OfficerSection,
-} from "~/lib/vocab";
+import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -61,11 +57,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       return redirect("/admin/officers");
     }
     if (intent === "update") {
-      await da.branchOfficers.update(
-        actor,
-        String(form.get("id") ?? ""),
-        readInput(form),
-      );
+      await da.branchOfficers.update(actor, String(form.get("id") ?? ""), readInput(form));
       return redirect("/admin/officers");
     }
   } catch (error) {
@@ -77,15 +69,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   return { error: "Unknown action." };
 }
-
-const inputClass =
-  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-const primaryButton =
-  "rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
-
-const secondaryButton =
-  "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
 
 type Row = Route.ComponentProps["loaderData"]["rows"][number];
 
@@ -105,8 +88,8 @@ function Field({
   hint?: string;
 }) {
   return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-text">
+    <div className="stack-1">
+      <label htmlFor={id} className="cap-field-label">
         {label}
       </label>
       <input
@@ -115,9 +98,9 @@ function Field({
         type={type}
         step={type === "number" ? "1" : undefined}
         defaultValue={defaultValue ?? ""}
-        className={inputClass}
+        className="cap-input"
       />
-      {hint ? <p className="text-xs text-text-muted">{hint}</p> : null}
+      {hint ? <p className="tiny cap-muted">{hint}</p> : null}
     </div>
   );
 }
@@ -125,16 +108,16 @@ function Field({
 function OfficerFields({ row, section }: { row?: Row; section: OfficerSection }) {
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <div className="space-y-1">
-        <label htmlFor={`${p}-section`} className="block text-sm font-medium text-text">
+    <div className="grid-2">
+      <div className="stack-1">
+        <label htmlFor={`${p}-section`} className="cap-field-label">
           Section
         </label>
         <select
           id={`${p}-section`}
           name="section"
           defaultValue={row?.section ?? section}
-          className={inputClass}
+          className="cap-select"
         >
           {OFFICER_SECTIONS.map((s) => (
             <option key={s} value={s}>
@@ -172,13 +155,7 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
         hint="Current officers only."
       />
       <Field id={`${p}-phone`} name="phone" label="Phone" defaultValue={row?.phone} />
-      <Field
-        id={`${p}-email`}
-        name="email"
-        label="Email"
-        type="email"
-        defaultValue={row?.email}
-      />
+      <Field id={`${p}-email`} name="email" label="Email" type="email" defaultValue={row?.email} />
       <Field
         id={`${p}-sortOrder`}
         name="sortOrder"
@@ -203,15 +180,11 @@ function summary(row: Row): string {
 function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
   const section = row.section;
   return (
-    <li className="space-y-3 rounded-lg border border-border bg-surface-raised p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          {row.role ? (
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-              {row.role}
-            </p>
-          ) : null}
-          <p className="text-sm text-text">{summary(row)}</p>
+    <li className="card stack-3">
+      <div className="spread">
+        <div className="shrink">
+          {row.role ? <p className="cap-label">{row.role}</p> : null}
+          <p className="small">{summary(row)}</p>
         </div>
         <Form method="post">
           <input type="hidden" name="intent" value="remove" />
@@ -223,25 +196,19 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
                 e.preventDefault();
               }
             }}
-            className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="small strong"
           >
             Remove
           </button>
         </Form>
       </div>
-      <details className="rounded-md border border-border p-3">
-        <summary className="cursor-pointer text-sm font-medium text-text">
-          Edit
-        </summary>
-        <Form method="post" className="mt-3 space-y-3" noValidate>
+      <details className="card card-s">
+        <summary className="summary">Edit</summary>
+        <Form method="post" className="stack-3 mt-3" noValidate>
           <input type="hidden" name="intent" value="update" />
           <input type="hidden" name="id" value={row.id} />
           <OfficerFields row={row} section={section} />
-          <button
-            type="submit"
-            disabled={submitting}
-            className={secondaryButton}
-          >
+          <button type="submit" disabled={submitting} className="cap-btn">
             Save
           </button>
         </Form>
@@ -259,13 +226,13 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
     groups.set(office, [...(groups.get(office) ?? []), row]);
   }
   return (
-    <div className="space-y-3">
+    <div className="stack-3">
       {[...groups].map(([office, officeRows]) => (
-        <details key={office} className="rounded-lg border border-border p-3">
-          <summary className="cursor-pointer text-sm font-medium text-text">
+        <details key={office} className="card card-s">
+          <summary className="summary">
             {office} ({officeRows.length})
           </summary>
-          <ul className="mt-3 space-y-3">
+          <ul className="stack-3 mt-3">
             {officeRows.map((row) => (
               <OfficerRow key={row.id} row={row} submitting={submitting} />
             ))}
@@ -284,26 +251,17 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-text">Branch officers</h1>
-        <p className="text-text-muted">
+    <div className="form-page stack-8">
+      <header className="stack-2">
+        <h1 className="page-title">Branch officers</h1>
+        <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
-          <Link
-            to="/branch-officers"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            public page
-          </Link>{" "}
-          reads this list.
+          <Link to="/branch-officers">public page</Link> reads this list.
         </p>
       </header>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-accent/40 bg-accent/10 p-3 text-sm text-text"
-        >
+        <p role="alert" className="cap-banner" data-tone="info">
           {error}
         </p>
       ) : null}
@@ -311,20 +269,16 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
       {OFFICER_SECTIONS.map((section) => {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
-          <section
-            key={section}
-            aria-labelledby={`${section}-heading`}
-            className="space-y-4"
-          >
-            <h2 id={`${section}-heading`} className="text-lg font-medium text-text">
+          <section key={section} aria-labelledby={`${section}-heading`} className="stack-4">
+            <h2 id={`${section}-heading`} className="subsection-title">
               {OFFICER_SECTION_LABELS[section]}
             </h2>
             {sectionRows.length === 0 ? (
-              <p className="text-text-muted">None yet.</p>
+              <p className="cap-muted">None yet.</p>
             ) : section === "past" ? (
               <PastGroups rows={sectionRows} submitting={submitting} />
             ) : (
-              <ul className="space-y-3">
+              <ul className="stack-3">
                 {sectionRows.map((row) => (
                   <OfficerRow key={row.id} row={row} submitting={submitting} />
                 ))}
@@ -334,17 +288,14 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
         );
       })}
 
-      <section
-        aria-labelledby="add-officer-heading"
-        className="space-y-4 rounded-lg border border-border bg-surface-raised p-5"
-      >
-        <h2 id="add-officer-heading" className="text-lg font-medium text-text">
+      <section aria-labelledby="add-officer-heading" className="card stack-4">
+        <h2 id="add-officer-heading" className="subsection-title">
           Add a person
         </h2>
-        <Form method="post" className="space-y-4" noValidate>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
           <OfficerFields section="officer" />
-          <button type="submit" disabled={submitting} className={primaryButton}>
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add"}
           </button>
         </Form>

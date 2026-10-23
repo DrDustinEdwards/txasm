@@ -10,11 +10,7 @@ import { NO_DATE_KEY, PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
 // meeting date range into day tabs.
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
-export const smallButton =
-  "rounded border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700";
+export const inputClass = "cap-input";
 
 const DAY_FMT = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
@@ -72,11 +68,7 @@ export function buildDayKeys(
       meetingStartsAt.getUTCDate(),
     );
     const endDate = meetingEndsAt ?? meetingStartsAt;
-    const end = Date.UTC(
-      endDate.getUTCFullYear(),
-      endDate.getUTCMonth(),
-      endDate.getUTCDate(),
-    );
+    const end = Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate());
     for (let t = start; t <= end; t += MS_PER_DAY) {
       keys.add(new Date(t).toISOString().slice(0, 10));
     }
@@ -102,11 +94,11 @@ export function KindSelect({
   label?: string;
 }) {
   return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium">
+    <div className="stack-1">
+      <label htmlFor={id} className="cap-field-label">
         {label}
       </label>
-      <select id={id} name="kind" defaultValue={defaultValue} className={inputClass}>
+      <select id={id} name="kind" defaultValue={defaultValue} className="cap-select">
         {PROGRAM_ITEM_KINDS.map((kind) => (
           <option key={kind} value={kind}>
             {programKindLabel(kind)}

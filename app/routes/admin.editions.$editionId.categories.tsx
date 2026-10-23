@@ -3,11 +3,7 @@ import type { Route } from "./+types/admin.editions.$editionId.categories";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  AlreadyExistsError,
-  ValidationError,
-  getDataAccess,
-} from "~/lib/data-access";
+import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
 import {
   REGISTRATION_CATEGORY_KEYS,
   REGISTRATION_CATEGORY_KEY_LABELS,
@@ -24,10 +20,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const edition = await da.editions.getById(actor, params.editionId);
-  const categories = await da.registrationCategories.listForEdition(
-    actor,
-    params.editionId,
-  );
+  const categories = await da.registrationCategories.listForEdition(actor, params.editionId);
   return { edition, categories };
 }
 
@@ -50,9 +43,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
     const amountCents = parseDollarsToCents(String(form.get("fee") ?? ""));
 
-    if (
-      !(REGISTRATION_CATEGORY_KEYS as readonly string[]).includes(key)
-    ) {
+    if (!(REGISTRATION_CATEGORY_KEYS as readonly string[]).includes(key)) {
       return { error: "Choose a category type." };
     }
     if (amountCents === null) {
@@ -83,9 +74,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
 export default function EditionCategories({ loaderData }: Route.ComponentProps) {
   const { edition, categories } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -94,109 +82,86 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   const error = actionData?.error ?? null;
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Registration categories</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-8">
+      <div className="stack-2">
+        <h1 className="page-title">Registration categories</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
       {categories.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No categories yet. Add the first below.
-        </p>
+        <p>No categories yet. Add the first below.</p>
       ) : (
-        <table className="w-full border-collapse text-left text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800">
-              <th scope="col" className="py-2 pr-4 font-medium">
-                Label
-              </th>
-              <th scope="col" className="py-2 pr-4 font-medium">
-                Type
-              </th>
-              <th scope="col" className="py-2 pr-4 font-medium">
-                Fee
-              </th>
-              <th scope="col" className="py-2 pr-4 font-medium">
-                Active
-              </th>
-              <th scope="col" className="py-2 text-right font-medium">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((category) => (
-              <tr
-                key={category.id}
-                className="border-b border-gray-100 dark:border-gray-900"
-              >
-                <td className="py-2 pr-4">{category.label}</td>
-                <td className="py-2 pr-4">
-                  {REGISTRATION_CATEGORY_KEY_LABELS[category.key]}
-                </td>
-                <td className="py-2 pr-4">
-                  {formatMoney(category.amountCents, category.currency)}
-                </td>
-                <td className="py-2 pr-4">{category.active ? "Yes" : "No"}</td>
-                <td className="py-2 text-right">
-                  <div className="flex items-center justify-end gap-3">
-                    <Link
-                      to={`/admin/editions/${edition.id}/categories/${category.id}`}
-                      className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-                    >
-                      Edit
-                    </Link>
-                    {category.active ? (
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="deactivate" />
-                        <input
-                          type="hidden"
-                          name="categoryId"
-                          value={category.id}
-                        />
-                        <button
-                          type="submit"
-                          className="font-medium text-text-muted hover:underline"
-                        >
-                          Deactivate
-                        </button>
-                      </Form>
-                    ) : null}
-                  </div>
-                </td>
+        <div
+          className="cap-table-wrap"
+          role="region"
+          aria-label="Registration categories"
+          tabIndex={0}
+        >
+          <table className="cap-table">
+            <thead>
+              <tr>
+                <th scope="col">Label</th>
+                <th scope="col">Type</th>
+                <th scope="col">Fee</th>
+                <th scope="col">Active</th>
+                <th scope="col" className="cell-end">
+                  <span className="cap-sr-only">Actions</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <tr key={category.id}>
+                  <td>{category.label}</td>
+                  <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
+                  <td>{formatMoney(category.amountCents, category.currency)}</td>
+                  <td>{category.active ? "Yes" : "No"}</td>
+                  <td className="cell-end">
+                    <div className="cluster cluster-right">
+                      <Link
+                        to={`/admin/editions/${edition.id}/categories/${category.id}`}
+                        className="strong"
+                      >
+                        Edit
+                      </Link>
+                      {category.active ? (
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="deactivate" />
+                          <input type="hidden" name="categoryId" value={category.id} />
+                          <button type="submit" className="link-button strong cap-muted">
+                            Deactivate
+                          </button>
+                        </Form>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <section className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Add a category</h2>
-        <Form method="post" className="space-y-4" noValidate>
+      <section className="card stack-4">
+        <h2 className="subsection-title">Add a category</h2>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="space-y-1">
-            <label htmlFor="key" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="key" className="cap-field-label">
               Type
             </label>
-            <select id="key" name="key" defaultValue="member" className={inputClass}>
+            <select id="key" name="key" defaultValue="member" className="cap-select">
               {REGISTRATION_CATEGORY_KEYS.map((key) => (
                 <option key={key} value={key}>
                   {REGISTRATION_CATEGORY_KEY_LABELS[key]}
@@ -204,8 +169,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               ))}
             </select>
           </div>
-          <div className="space-y-1">
-            <label htmlFor="label" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="label" className="cap-field-label">
               Label
             </label>
             <input
@@ -214,11 +179,11 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               type="text"
               required
               placeholder="ASM Member"
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="fee" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="fee" className="cap-field-label">
               Fee (dollars)
             </label>
             <input
@@ -230,11 +195,11 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               step="0.01"
               required
               placeholder="45.00"
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="currency" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="currency" className="cap-field-label">
               Currency
             </label>
             <input
@@ -242,11 +207,11 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               name="currency"
               type="text"
               defaultValue="USD"
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label htmlFor="sortOrder" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
             <input
@@ -255,14 +220,10 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               type="number"
               step="1"
               defaultValue={0}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>

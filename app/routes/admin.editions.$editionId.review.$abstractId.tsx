@@ -44,9 +44,9 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
   const { editionId, abstract, reviews } = loaderData;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">
+    <div className="form-page stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">
           Reviews for{" "}
           {abstract.title ? (
             <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
@@ -54,57 +54,43 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
             "an untitled abstract"
           )}
         </h1>
-        <p className="text-gray-700 dark:text-gray-300">
-          <Link
-            to={`/admin/editions/${editionId}/review`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+        <p>
+          <Link to={`/admin/editions/${editionId}/review`} className="strong">
             Back to assignments
           </Link>
         </p>
       </div>
 
       {reviews.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No reviews submitted yet.
-        </p>
+        <p>No reviews submitted yet.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="stack-4">
           {reviews.map((review) => (
-            <li
-              key={review.id}
-              className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-medium">
-                  {review.reviewerName || review.reviewerEmail}
-                </span>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {review.submittedAt
-                    ? formatDateTime(review.submittedAt)
-                    : null}
+            <li key={review.id} className="card stack-3">
+              <div className="spread">
+                <span className="small strong">{review.reviewerName || review.reviewerEmail}</span>
+                <span className="small cap-muted">
+                  {review.submittedAt ? formatDateTime(review.submittedAt) : null}
                 </span>
               </div>
-              <p className="text-sm">
-                <span className="font-medium">Recommendation:</span>{" "}
+              <p className="small">
+                <span className="strong">Recommendation:</span>{" "}
                 {recommendationLabel(review.recommendation)}
               </p>
               {review.overallComment ? (
-                <div className="space-y-1">
-                  <h2 className="text-sm font-medium">Overall comment</h2>
+                <div className="stack-1">
+                  <h2 className="small strong">Overall comment</h2>
                   <div
-                    className="text-sm"
+                    className="small"
                     dangerouslySetInnerHTML={{ __html: review.overallComment }}
                   />
                 </div>
               ) : null}
               {review.confidentialComment ? (
-                <div className="space-y-1 rounded border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950">
-                  <h2 className="text-sm font-medium">
-                    Confidential comment to chairs
-                  </h2>
+                <div className="cap-banner stack-1" data-tone="warn">
+                  <h2 className="small strong">Confidential comment to chairs</h2>
                   <div
-                    className="text-sm"
+                    className="small"
                     dangerouslySetInnerHTML={{
                       __html: review.confidentialComment,
                     }}

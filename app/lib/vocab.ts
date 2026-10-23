@@ -223,27 +223,6 @@ export function programKindLabel(kind: ProgramItemKind): string {
   return PROGRAM_ITEM_KIND_LABELS[kind] ?? "Other";
 }
 
-// Badge classes per kind, so the schedule builder can color-code items from one
-// place instead of a literal map in the component. Keyed by the kind union, so a
-// new kind is a type error here until it is colored.
-const PROGRAM_ITEM_KIND_COLORS: Record<ProgramItemKind, string> = {
-  talk: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  poster: "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200",
-  keynote: "bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-200",
-  award: "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-200",
-  meal: "bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-200",
-  break: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-  business: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-  social: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  panel: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  networking: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
-  career: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-  other: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-export function programKindColor(kind: ProgramItemKind): string {
-  return PROGRAM_ITEM_KIND_COLORS[kind] ?? PROGRAM_ITEM_KIND_COLORS.other;
-}
 
 export const SPEAKER_ROLES = [
   "keynote",

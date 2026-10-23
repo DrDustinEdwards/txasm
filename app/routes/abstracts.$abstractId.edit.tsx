@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Form,
-  Link,
-  redirect,
-  useActionData,
-  useNavigation,
-} from "react-router";
+import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -44,10 +38,7 @@ import {
   emptyAuthor,
   inputClass,
 } from "~/components/abstract-authors";
-import {
-  DecisionPanel,
-  ReadOnlyAbstract,
-} from "~/components/abstract-read-only";
+import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Edit abstract") }];
@@ -72,16 +63,13 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     throw error;
   }
 
-  const categories = await da.abstractCategories.listForSubmission(
-    data.abstract.editionId,
-  );
+  const categories = await da.abstractCategories.listForSubmission(data.abstract.editionId);
   const deadline = data.edition.submissionDeadline;
   const deadlinePassed = !!deadline && Date.now() > deadline.getTime();
   const editable = isChair(actor, data.abstract.editionId) || !deadlinePassed;
 
   const canSeeDecision =
-    isChair(actor, data.abstract.editionId) ||
-    data.abstract.submitterId === actor.userId;
+    isChair(actor, data.abstract.editionId) || data.abstract.submitterId === actor.userId;
   const decision = canSeeDecision
     ? await da.decisions.getForAbstract(actor, params.abstractId)
     : null;
@@ -173,11 +161,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       params.abstractId,
       affiliations as AffiliationInput[],
     );
-    await da.abstracts.setAuthors(
-      actor,
-      params.abstractId,
-      authors as AuthorInput[],
-    );
+    await da.abstracts.setAuthors(actor, params.abstractId, authors as AuthorInput[]);
 
     if (intent === "submit") {
       // Self-grow the institution master list from any new institutions typed.
@@ -240,9 +224,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }, [actionData]);
 
   function updateAuthor(index: number, patch: Partial<AuthorState>) {
-    setAuthors((prev) =>
-      prev.map((a, i) => (i === index ? { ...a, ...patch } : a)),
-    );
+    setAuthors((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
   }
   function addAuthor() {
     setAuthors((prev) => [...prev, emptyAuthor()]);
@@ -275,9 +257,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }
 
   function updateAffiliation(index: number, patch: Partial<AffiliationState>) {
-    setAffiliations((prev) =>
-      prev.map((a, i) => (i === index ? { ...a, ...patch } : a)),
-    );
+    setAffiliations((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
   }
   function selectInstitution(index: number, suggestion: InstitutionSuggestion) {
     updateAffiliation(index, {
@@ -305,8 +285,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
   if (!editable) {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-2xl font-semibold text-text">
+      <div className="form-page stack-6">
+        <h1 className="page-title">
           {abstract.title ? (
             <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
           ) : (
@@ -314,22 +294,15 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           )}
         </h1>
         <DecisionPanel decision={decision} />
-        <p
-          role="status"
-          className="rounded-md border border-border bg-panel p-3 text-text-muted"
-        >
-          The submission deadline has passed. This abstract can no longer be
-          edited.
+        <p role="status" className="card card-s card-sunken cap-muted">
+          The submission deadline has passed. This abstract can no longer be edited.
         </p>
         <ReadOnlyAbstract
           bodyText={abstract.bodyText}
           authors={loaderData.authors}
           affiliations={loaderData.affiliations}
         />
-        <Link
-          to="/my/abstracts"
-          className="font-medium text-link hover:underline"
-        >
+        <Link to="/my/abstracts" className="strong">
           Back to my abstracts
         </Link>
       </div>
@@ -337,10 +310,10 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold text-text">Abstract</h1>
-        <p className="text-sm text-text-muted">
+    <div className="form-page stack-6">
+      <div className="stack-1">
+        <h1 className="page-title">Abstract</h1>
+        <p className="small cap-muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
             ? ` . Deadline: ${formatDateTime(edition.submissionDeadline)}`
@@ -354,26 +327,16 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         ref={statusRef}
         tabIndex={-1}
         role={error ? "alert" : "status"}
-        className={
-          error
-            ? "rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-            : ok
-              ? "rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
-              : "sr-only"
-        }
+        className={error || ok ? "cap-alert" : "cap-sr-only"}
+        data-tone={error ? "crit" : "ok"}
       >
         {error ?? ok ?? ""}
       </p>
 
-      <Form method="post" className="space-y-6">
-        <RichEditor
-          name="title"
-          label="Title"
-          mode="title"
-          initialHTML={abstract.title}
-        />
+      <Form method="post" className="stack-6">
+        <RichEditor name="title" label="Title" mode="title" initialHTML={abstract.title} />
 
-        <div className="space-y-1">
+        <div className="stack-1">
           <RichEditor
             name="bodyText"
             label="Abstract body"
@@ -385,11 +348,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           <p
             id="body-count"
             aria-live="polite"
-            className={
-              overLimit
-                ? "text-sm font-medium text-red-700 dark:text-red-400"
-                : "text-sm text-text-muted"
-            }
+            className={overLimit ? "small strong crit-text" : "small cap-muted"}
           >
             {bodyWords} / {edition.wordLimit} words
             {overLimit
@@ -398,17 +357,12 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label htmlFor="level" className="block text-sm font-medium text-text">
+        <div className="grid-2">
+          <div className="stack-1">
+            <label htmlFor="level" className="cap-field-label">
               Level
             </label>
-            <select
-              id="level"
-              name="level"
-              defaultValue={abstract.level}
-              className={inputClass}
-            >
+            <select id="level" name="level" defaultValue={abstract.level} className="cap-select">
               <option value="">Choose a level</option>
               {ABSTRACT_LEVELS.map((level) => (
                 <option key={level} value={level}>
@@ -418,18 +372,15 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             </select>
           </div>
 
-          <div className="space-y-1">
-            <label
-              htmlFor="categoryId"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1">
+            <label htmlFor="categoryId" className="cap-field-label">
               Topic
             </label>
             <select
               id="categoryId"
               name="categoryId"
               defaultValue={abstract.categoryId}
-              className={inputClass}
+              className="cap-select"
             >
               <option value="">Choose a topic</option>
               {categories.map((category) => (
@@ -441,18 +392,15 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label
-            htmlFor="presentationPreference"
-            className="block text-sm font-medium text-text"
-          >
+        <div className="stack-1">
+          <label htmlFor="presentationPreference" className="cap-field-label">
             Presentation preference
           </label>
           <select
             id="presentationPreference"
             name="presentationPreference"
             defaultValue={abstract.presentationPreference}
-            className={inputClass}
+            className="cap-select"
           >
             {PRESENTATION_PREFERENCES.map((pref) => (
               <option key={pref} value={pref}>
@@ -481,19 +429,15 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         />
 
         <input type="hidden" name="authors" value={JSON.stringify(authors)} />
-        <input
-          type="hidden"
-          name="affiliations"
-          value={JSON.stringify(affiliations)}
-        />
+        <input type="hidden" name="affiliations" value={JSON.stringify(affiliations)} />
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="cluster">
           <button
             type="submit"
             name="intent"
             value="save"
             disabled={submitting}
-            className="rounded-md border border-border-strong px-4 py-2 font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+            className="cap-btn"
           >
             Save draft
           </button>
@@ -502,7 +446,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             name="intent"
             value="submit"
             disabled={submitting || overLimit}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
+            className="cap-btn"
+            data-variant="primary"
           >
             Submit abstract
           </button>
@@ -514,14 +459,11 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             onClick={(e) => {
               if (!window.confirm("Withdraw this abstract?")) e.preventDefault();
             }}
-            className="text-sm font-medium text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-red-400"
+            className="small strong crit-text"
           >
             Withdraw
           </button>
-          <Link
-            to="/my/abstracts"
-            className="text-sm font-medium text-text-muted hover:text-text"
-          >
+          <Link to="/my/abstracts" className="small strong cap-muted">
             Back
           </Link>
         </div>

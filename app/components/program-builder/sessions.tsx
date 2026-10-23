@@ -1,18 +1,8 @@
 import { Form } from "react-router";
-import type {
-  ProgramAbstractOption,
-  ProgramDay,
-  ProgramSessionResolved,
-} from "~/lib/data-access";
+import type { ProgramAbstractOption, ProgramDay, ProgramSessionResolved } from "~/lib/data-access";
 import { toDateTimeLocal } from "~/lib/format";
 import { AddItemForms, ItemRow } from "./items";
-import {
-  inputClass,
-  slotTimeLine,
-  smallButton,
-  type SpeakerOption,
-  toDateInput,
-} from "./shared";
+import { inputClass, slotTimeLine, type SpeakerOption, toDateInput } from "./shared";
 
 export function SessionFields({
   session,
@@ -23,9 +13,9 @@ export function SessionFields({
 }) {
   const idBase = session ? session.id : "new";
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <div className="space-y-1 sm:col-span-2">
-        <label htmlFor={`title-${idBase}`} className="block text-sm font-medium">
+    <div className="grid-2">
+      <div className="stack-1 span-2">
+        <label htmlFor={`title-${idBase}`} className="cap-field-label">
           Title
         </label>
         <input
@@ -35,11 +25,11 @@ export function SessionFields({
           required
           defaultValue={session?.title ?? ""}
           placeholder="Morning oral session"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`date-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`date-${idBase}`} className="cap-field-label">
           Date
         </label>
         <input
@@ -47,11 +37,11 @@ export function SessionFields({
           name="sessionDate"
           type="date"
           defaultValue={toDateInput(session?.sessionDate ?? null) || defaultDate || ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`loc-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`loc-${idBase}`} className="cap-field-label">
           Room
         </label>
         <input
@@ -60,11 +50,11 @@ export function SessionFields({
           type="text"
           defaultValue={session?.location ?? ""}
           placeholder="Room A"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`start-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`start-${idBase}`} className="cap-field-label">
           Starts
         </label>
         <input
@@ -72,11 +62,11 @@ export function SessionFields({
           name="startsAt"
           type="datetime-local"
           defaultValue={toDateTimeLocal(session?.startsAt ?? null)}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`end-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`end-${idBase}`} className="cap-field-label">
           Ends
         </label>
         <input
@@ -84,11 +74,11 @@ export function SessionFields({
           name="endsAt"
           type="datetime-local"
           defaultValue={toDateTimeLocal(session?.endsAt ?? null)}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1 sm:col-span-2">
-        <label htmlFor={`mod-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1 span-2">
+        <label htmlFor={`mod-${idBase}`} className="cap-field-label">
           Moderator (optional)
         </label>
         <input
@@ -97,7 +87,7 @@ export function SessionFields({
           type="text"
           defaultValue={session?.moderator ?? ""}
           placeholder="Dr. Jane Rivera"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
     </div>
@@ -120,20 +110,18 @@ function SessionColumn({
   speakers: SpeakerOption[];
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="card stack-4">
+      <div className="spread">
         <div>
-          <h3 className="text-base font-semibold">{session.title}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <h3 className="strong">{session.title}</h3>
+          <p className="small cap-muted">
             {session.location ? session.location : "No room set"} . {slotTimeLine(session)}
           </p>
           {session.moderator ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Moderated by {session.moderator}
-            </p>
+            <p className="small cap-muted">Moderated by {session.moderator}</p>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="cluster">
           <Form method="post">
             <input type="hidden" name="intent" value="session-move" />
             <input type="hidden" name="sessionId" value={session.id} />
@@ -142,7 +130,8 @@ function SessionColumn({
               type="submit"
               disabled={busy || dayIndex === 0}
               aria-label={`Move ${session.title} earlier`}
-              className={smallButton}
+              className="cap-btn"
+              data-size="sm"
             >
               Up
             </button>
@@ -155,7 +144,8 @@ function SessionColumn({
               type="submit"
               disabled={busy || dayIndex === dayCount - 1}
               aria-label={`Move ${session.title} later`}
-              className={smallButton}
+              className="cap-btn"
+              data-size="sm"
             >
               Down
             </button>
@@ -163,14 +153,12 @@ function SessionColumn({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h4 className="text-sm font-medium">Items</h4>
+      <div className="stack-2">
+        <h4 className="small strong">Items</h4>
         {session.items.length === 0 ? (
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            No items in this session yet.
-          </p>
+          <p className="small cap-muted">No items in this session yet.</p>
         ) : (
-          <ol className="space-y-2">
+          <ol className="stack-2">
             {session.items.map((item, itemIndex) => (
               <ItemRow
                 key={item.id}
@@ -185,28 +173,21 @@ function SessionColumn({
         )}
       </div>
 
-      <details className="rounded border border-gray-100 p-3 dark:border-gray-900">
-        <summary className="cursor-pointer text-sm font-medium">Add an item</summary>
+      <details className="card card-s">
+        <summary className="summary">Add an item</summary>
         <div className="mt-3">
-          <AddItemForms
-            session={session}
-            unplaced={unplaced}
-            speakers={speakers}
-            busy={busy}
-          />
+          <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
         </div>
       </details>
 
-      <details className="rounded border border-gray-100 p-3 dark:border-gray-900">
-        <summary className="cursor-pointer text-sm font-medium">
-          Edit or delete session
-        </summary>
-        <div className="mt-3 space-y-3">
-          <Form method="post" className="space-y-3" noValidate>
+      <details className="card card-s">
+        <summary className="summary">Edit or delete session</summary>
+        <div className="stack-3 mt-3">
+          <Form method="post" className="stack-3" noValidate>
             <input type="hidden" name="intent" value="session-update" />
             <input type="hidden" name="sessionId" value={session.id} />
             <SessionFields session={session} />
-            <button type="submit" disabled={busy} className={smallButton}>
+            <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
               Save session
             </button>
           </Form>
@@ -221,7 +202,7 @@ function SessionColumn({
                   e.preventDefault();
                 }
               }}
-              className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              className="small strong"
             >
               Delete session
             </button>
@@ -250,14 +231,12 @@ export function Slot({
   const trackCount = group.sessions.length;
   const source = group.sessions[0];
   return (
-    <section className="space-y-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+    <section className="stack-3">
+      <div className="spread">
+        <h3 className="small strong">
           {slotTimeLine(source)}
           {trackCount > 1 ? (
-            <span className="ml-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-              {trackCount} parallel tracks
-            </span>
+            <span className="tiny strong cap-muted">{trackCount} parallel tracks</span>
           ) : null}
         </h3>
       </div>
@@ -274,9 +253,9 @@ export function Slot({
       ) : (
         // N dynamic columns, one per concurrent track. minmax keeps each track
         // readable and lets the row scroll on narrow screens rather than crush.
-        <div className="overflow-x-auto">
+        <div className="track-scroll">
           <div
-            className="grid gap-4"
+            className="track-grid"
             style={{
               gridTemplateColumns: `repeat(${trackCount}, minmax(18rem, 1fr))`,
             }}
@@ -296,17 +275,11 @@ export function Slot({
         </div>
       )}
 
-      <Form
-        method="post"
-        className="flex flex-wrap items-end gap-2 rounded border border-dashed border-gray-300 p-3 dark:border-gray-700"
-      >
+      <Form method="post" className="card card-s card-dashed cluster cluster-end">
         <input type="hidden" name="intent" value="session-add-concurrent" />
         <input type="hidden" name="sessionId" value={source.id} />
-        <div className="flex-1 space-y-1">
-          <label
-            htmlFor={`concurrent-title-${source.id}`}
-            className="block text-sm font-medium"
-          >
+        <div className="grow stack-1">
+          <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
             Add a concurrent session (parallel track)
           </label>
           <input
@@ -315,14 +288,11 @@ export function Slot({
             type="text"
             required
             placeholder="Second track title"
-            className={inputClass}
+            className="cap-input"
           />
         </div>
-        <div className="flex-1 space-y-1">
-          <label
-            htmlFor={`concurrent-room-${source.id}`}
-            className="block text-sm font-medium"
-          >
+        <div className="grow stack-1">
+          <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
             Room
           </label>
           <input
@@ -330,10 +300,10 @@ export function Slot({
             name="location"
             type="text"
             placeholder="Room B"
-            className={inputClass}
+            className="cap-input"
           />
         </div>
-        <button type="submit" disabled={busy} className={smallButton}>
+        <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
           Add track
         </button>
       </Form>

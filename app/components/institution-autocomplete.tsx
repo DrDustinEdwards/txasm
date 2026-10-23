@@ -55,8 +55,7 @@ export function InstitutionAutocomplete({
         .then((res) => (res.ok ? res.json() : { results: [] }))
         .then((data) => {
           if (cancelled) return;
-          const list =
-            (data as { results?: InstitutionSuggestion[] }).results ?? [];
+          const list = (data as { results?: InstitutionSuggestion[] }).results ?? [];
           setResults(list);
           setOpen(list.length > 0);
           setActiveIndex(-1);
@@ -116,7 +115,7 @@ export function InstitutionAutocomplete({
 
   return (
     <div ref={boxRef} className="relative">
-      <label htmlFor={id} className="block text-sm">
+      <label htmlFor={id} className="cap-field-label">
         {label}
       </label>
       <input
@@ -139,11 +138,7 @@ export function InstitutionAutocomplete({
         className={inputClassName}
       />
       {open ? (
-        <ul
-          id={listId}
-          role="listbox"
-          className="absolute z-40 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-surface-raised shadow-lg"
-        >
+        <ul id={listId} role="listbox" className="cap-listbox suggest-popup">
           {results.map((suggestion, index) => (
             <li
               key={suggestion.id}
@@ -155,14 +150,12 @@ export function InstitutionAutocomplete({
                 choose(suggestion);
               }}
               onMouseEnter={() => setActiveIndex(index)}
-              className={
-                "cursor-pointer px-3 py-2 text-sm " +
-                (index === activeIndex ? "bg-panel text-text" : "text-text")
-              }
+              className="cap-option"
+              data-active={index === activeIndex ? "" : undefined}
             >
-              <span className="font-medium">{suggestion.name}</span>
+              <span className="strong">{suggestion.name}</span>
               {suggestion.city || suggestion.region ? (
-                <span className="text-text-muted">
+                <span className="cap-muted">
                   {" . "}
                   {[suggestion.city, suggestion.region].filter(Boolean).join(", ")}
                 </span>

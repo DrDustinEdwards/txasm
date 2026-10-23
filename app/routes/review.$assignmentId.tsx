@@ -26,10 +26,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const da = getDataAccess(env);
 
   try {
-    const data = await da.reviews.getAssignmentForReview(
-      actor,
-      params.assignmentId,
-    );
+    const data = await da.reviews.getAssignmentForReview(actor, params.assignmentId);
     return data;
   } catch (error) {
     if (error instanceof ForbiddenError) {
@@ -60,11 +57,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     }
 
     const recommendation = String(form.get("recommendation") ?? "");
-    if (
-      recommendation !== "accept" &&
-      recommendation !== "reject" &&
-      recommendation !== "revise"
-    ) {
+    if (recommendation !== "accept" && recommendation !== "reject" && recommendation !== "revise") {
       return { error: "Choose a recommendation." };
     }
 
@@ -116,26 +109,19 @@ function AbstractSections({
   ];
   const filled = sections.filter(([, html]) => html.trim().length > 0);
   if (filled.length === 0) {
-    return (
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        This abstract has no section content.
-      </p>
-    );
+    return <p className="small cap-muted">This abstract has no section content.</p>;
   }
   return (
-    <div className="space-y-4">
+    <div className="stack-4">
       {filled.map(([label, html]) => (
-        <section key={label} className="space-y-1">
-          <h3 className="text-sm font-medium">{label}</h3>
-          <div className="text-sm" dangerouslySetInnerHTML={{ __html: html }} />
+        <section key={label} className="stack-1">
+          <h3 className="small strong">{label}</h3>
+          <div className="small" dangerouslySetInnerHTML={{ __html: html }} />
         </section>
       ))}
     </div>
   );
 }
-
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
 
 export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const { assignment, edition, abstract, authors, review } = loaderData;
@@ -156,26 +142,24 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const editable = !edition.deadlinePassed;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">
+    <div className="form-page stack-6">
+      <div className="stack-1">
+        <h1 className="page-title">
           {abstract.title ? (
             <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
           ) : (
             "Untitled abstract"
           )}
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="small cap-muted">
           {edition.name}
           {authorLine ? ` . ${authorLine}` : ""}
-          {assignment.dueAt
-            ? ` . Due: ${formatDateTime(assignment.dueAt)}`
-            : ""}
+          {assignment.dueAt ? ` . Due: ${formatDateTime(assignment.dueAt)}` : ""}
         </p>
       </div>
 
-      <section className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Abstract</h2>
+      <section className="card stack-3">
+        <h2 className="subsection-title">Abstract</h2>
         <AbstractSections abstract={abstract} />
       </section>
 
@@ -183,34 +167,26 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         ref={statusRef}
         tabIndex={-1}
         role={error ? "alert" : "status"}
-        className={
-          error
-            ? "rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-            : "sr-only"
-        }
+        className={error ? "cap-alert" : "cap-sr-only"}
       >
         {error ?? ""}
       </p>
 
       {editable ? (
-        <Form method="post" className="space-y-6">
+        <Form method="post" className="stack-6">
           <input type="hidden" name="intent" value="submit" />
 
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Recommendation</legend>
-            <div className="flex flex-wrap gap-4">
+          <fieldset className="stack-2">
+            <legend className="small strong">Recommendation</legend>
+            <div className="cluster">
               {RECOMMENDATION_OPTIONS.map((option) => (
-                <label
-                  key={option.value}
-                  className="flex items-center gap-2 text-sm"
-                >
+                <label key={option.value} className="cap-check">
                   <input
                     type="radio"
                     name="recommendation"
                     value={option.value}
                     required
                     defaultChecked={review?.recommendation === option.value}
-                    className="h-4 w-4"
                   />
                   {option.label}
                 </label>
@@ -225,7 +201,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             initialHTML={review?.overallComment ?? ""}
             describedById="overall-help"
           />
-          <p id="overall-help" className="text-sm text-gray-600 dark:text-gray-400">
+          <p id="overall-help" className="small cap-muted">
             Shared with the chairs. Optional.
           </p>
 
@@ -236,75 +212,56 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             initialHTML={review?.confidentialComment ?? ""}
             describedById="confidential-help"
           />
-          <p
-            id="confidential-help"
-            className="text-sm text-gray-600 dark:text-gray-400"
-          >
+          <p id="confidential-help" className="small cap-muted">
             Seen only by chairs and admins, never by the authors. Optional.
           </p>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
-            >
-              {review?.status === "submitted"
-                ? "Update review"
-                : "Submit review"}
+          <div className="cluster">
+            <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
+              {review?.status === "submitted" ? "Update review" : "Submit review"}
             </button>
-            <Link
-              to="/review"
-              className="text-sm font-medium text-gray-700 hover:underline dark:text-gray-300"
-            >
+            <Link to="/review" className="small strong">
               Back to review
             </Link>
           </div>
         </Form>
       ) : (
-        <div className="space-y-4">
-          <p
-            role="status"
-            className="rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
-          >
+        <div className="stack-4">
+          <p role="status" className="card card-s card-sunken small">
             The review deadline has passed. This review can no longer be edited.
           </p>
           {review ? (
-            <section className="space-y-2 rounded border border-gray-200 p-4 dark:border-gray-800">
-              <h2 className="text-lg font-medium">Your review</h2>
-              <p className="text-sm">
-                <span className="font-medium">Recommendation:</span>{" "}
-                {review.recommendation ?? "None"}
+            <section className="card stack-2">
+              <h2 className="subsection-title">Your review</h2>
+              <p className="small">
+                <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
               </p>
               {review.overallComment ? (
-                <div className="space-y-1">
-                  <h3 className="text-sm font-medium">Overall comment</h3>
+                <div className="stack-1">
+                  <h3 className="small strong">Overall comment</h3>
                   <div
-                    className="text-sm"
+                    className="small"
                     dangerouslySetInnerHTML={{ __html: review.overallComment }}
                   />
                 </div>
               ) : null}
             </section>
           ) : null}
-          <Link
-            to="/review"
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to="/review" className="strong">
             Back to review
           </Link>
         </div>
       )}
 
-      <section className="space-y-3 rounded border border-amber-200 p-4 dark:border-amber-900">
-        <h2 className="text-lg font-medium">Have a conflict of interest?</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          If you should not review this abstract, declare a conflict. This removes
-          the assignment and the abstract will be reassigned by a chair.
+      <section className="card card-warn stack-3">
+        <h2 className="subsection-title">Have a conflict of interest?</h2>
+        <p className="small cap-muted">
+          If you should not review this abstract, declare a conflict. This removes the assignment
+          and the abstract will be reassigned by a chair.
         </p>
         <Form
           method="post"
-          className="space-y-3"
+          className="stack-3"
           onSubmit={(e) => {
             if (!window.confirm("Declare a conflict and remove this assignment?")) {
               e.preventDefault();
@@ -313,33 +270,24 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         >
           <input type="hidden" name="intent" value="conflict" />
           <input type="hidden" name="abstractId" value={abstract.id} />
-          <div className="space-y-1">
-            <label htmlFor="reason" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="reason" className="cap-field-label">
               Reason
             </label>
-            <select id="reason" name="reason" defaultValue="colleague" className={inputClass}>
+            <select id="reason" name="reason" defaultValue="colleague" className="cap-select">
               <option value="author">I am an author</option>
               <option value="coauthor">I have co-authored with an author</option>
               <option value="colleague">An author is a close colleague</option>
               <option value="other">Other</option>
             </select>
           </div>
-          <div className="space-y-1">
-            <label htmlFor="note" className="block text-sm font-medium">
+          <div className="stack-1">
+            <label htmlFor="note" className="cap-field-label">
               Note (optional)
             </label>
-            <textarea
-              id="note"
-              name="note"
-              rows={2}
-              className={inputClass}
-            />
+            <textarea id="note" name="note" rows={2} className="cap-input" />
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded border border-amber-300 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950"
-          >
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
             I have a conflict
           </button>
         </Form>

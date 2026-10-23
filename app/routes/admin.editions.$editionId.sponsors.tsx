@@ -3,11 +3,7 @@ import type { Route } from "./+types/admin.editions.$editionId.sponsors";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
-import {
-  NotFoundError,
-  ValidationError,
-  getDataAccess,
-} from "~/lib/data-access";
+import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
 import { SPONSOR_TIERS } from "~/lib/vocab";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -76,20 +72,14 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded border border-gray-300 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-gray-700 dark:bg-gray-900";
-
-const smallButton =
-  "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
 type Sponsor = Route.ComponentProps["loaderData"]["sponsors"][number];
 
 function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
   const idBase = sponsor ? sponsor.id : "new";
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <div className="space-y-1 sm:col-span-2">
-        <label htmlFor={`name-${idBase}`} className="block text-sm font-medium">
+    <div className="grid-2">
+      <div className="stack-1 span-2">
+        <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
         <input
@@ -99,11 +89,11 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           required
           defaultValue={sponsor?.name ?? ""}
           placeholder="Acme Biosciences"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`tier-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`tier-${idBase}`} className="cap-field-label">
           Tier
         </label>
         <input
@@ -113,7 +103,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           list={`tiers-${idBase}`}
           defaultValue={sponsor?.tier ?? ""}
           placeholder="Gold"
-          className={inputClass}
+          className="cap-input"
         />
         <datalist id={`tiers-${idBase}`}>
           {SPONSOR_TIERS.map((tier) => (
@@ -121,8 +111,8 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           ))}
         </datalist>
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`sort-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1">
+        <label htmlFor={`sort-${idBase}`} className="cap-field-label">
           Sort order
         </label>
         <input
@@ -131,11 +121,11 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           type="number"
           step="1"
           defaultValue={sponsor?.sortOrder ?? 0}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1 sm:col-span-2">
-        <label htmlFor={`url-${idBase}`} className="block text-sm font-medium">
+      <div className="stack-1 span-2">
+        <label htmlFor={`url-${idBase}`} className="cap-field-label">
           Website
         </label>
         <input
@@ -144,7 +134,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           type="url"
           defaultValue={sponsor?.url ?? ""}
           placeholder="https://example.com"
-          className={inputClass}
+          className="cap-input"
         />
       </div>
     </div>
@@ -159,47 +149,34 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Sponsors</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-8">
+      <div className="stack-2">
+        <h1 className="page-title">Sponsors</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sponsors show on the public program. Logo upload comes later.
-        </p>
+        <p className="cap-muted">Sponsors show on the public program. Logo upload comes later.</p>
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-        >
+        <p role="alert" className="cap-alert">
           {error}
         </p>
       ) : null}
 
       {sponsors.length === 0 ? (
-        <p className="text-gray-700 dark:text-gray-300">
-          No sponsors yet. Add the first below.
-        </p>
+        <p>No sponsors yet. Add the first below.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="stack-4">
           {sponsors.map((sponsor) => (
-            <li
-              key={sponsor.id}
-              className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
+            <li key={sponsor.id} className="card stack-3">
+              <div className="spread">
                 <div>
-                  <p className="font-medium">{sponsor.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="strong">{sponsor.name}</p>
+                  <p className="small cap-muted">
                     {[sponsor.tier ?? "", sponsor.url ?? ""]
                       .filter((p) => p.length > 0)
                       .join(" . ")}
@@ -215,22 +192,20 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                         e.preventDefault();
                       }
                     }}
-                    className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    className="small strong"
                   >
                     Remove
                   </button>
                 </Form>
               </div>
 
-              <details className="rounded border border-gray-100 p-3 dark:border-gray-900">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Edit sponsor
-                </summary>
-                <Form method="post" className="mt-3 space-y-3" noValidate>
+              <details className="card card-s">
+                <summary className="summary">Edit sponsor</summary>
+                <Form method="post" className="stack-3 mt-3" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="sponsorId" value={sponsor.id} />
                   <SponsorFields sponsor={sponsor} />
-                  <button type="submit" disabled={submitting} className={smallButton}>
+                  <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
                     Save sponsor
                   </button>
                 </Form>
@@ -240,16 +215,12 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section className="space-y-4 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Add a sponsor</h2>
-        <Form method="post" className="space-y-4" noValidate>
+      <section className="card stack-4">
+        <h2 className="subsection-title">Add a sponsor</h2>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SponsorFields />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add sponsor"}
           </button>
         </Form>

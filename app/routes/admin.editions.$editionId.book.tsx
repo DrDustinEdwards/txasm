@@ -24,11 +24,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const da = getDataAccess(env);
   const edition = await da.editions.getById(actor, params.editionId);
   const book = await da.books.get(actor, params.editionId);
-  const pdf = await da.documents.getGeneratedForEdition(
-    actor,
-    params.editionId,
-    "abstract_book",
-  );
+  const pdf = await da.documents.getGeneratedForEdition(actor, params.editionId, "abstract_book");
   return { edition: { id: edition.id, name: edition.name }, book, pdf };
 }
 
@@ -151,9 +147,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
       : fetcher.data && "ok" in fetcher.data
         ? (fetcher.data as { ok?: string }).ok
         : null;
-  const fetcherError = Boolean(
-    fetcher.data && "error" in fetcher.data && fetcher.data.error,
-  );
+  const fetcherError = Boolean(fetcher.data && "error" in fetcher.data && fetcher.data.error);
   useEffect(() => {
     if (fetcherMsg) statusRef.current?.focus();
   }, [fetcherMsg]);
@@ -174,11 +168,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
     );
   }
 
-  function onDropOnEntry(
-    targetSectionId: string,
-    targetIndex: number,
-    event: DragEvent,
-  ) {
+  function onDropOnEntry(targetSectionId: string, targetIndex: number, event: DragEvent) {
     event.preventDefault();
     if (!book || !dragId || !editable) return;
     submitReorder(moveEntry(book.sections, dragId, targetSectionId, targetIndex));
@@ -194,11 +184,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
     setDragId(null);
   }
 
-  function nudge(
-    section: BookSectionView,
-    index: number,
-    direction: -1 | 1,
-  ) {
+  function nudge(section: BookSectionView, index: number, direction: -1 | 1) {
     if (!book) return;
     const target = index + direction;
     if (target < 0 || target >= section.entries.length) return;
@@ -216,26 +202,25 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   }
 
   function toggleIncluded(entryId: string, included: boolean) {
-    void fetcher.submit({ intent: "setIncluded", entryId, included: String(included) }, { method: "post" });
+    void fetcher.submit(
+      { intent: "setIncluded", entryId, included: String(included) },
+      { method: "post" },
+    );
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Abstract book builder</h1>
-        <p className="text-gray-700 dark:text-gray-300">
+    <div className="stack-6">
+      <div className="stack-2">
+        <h1 className="page-title">Abstract book builder</h1>
+        <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}`}
-            className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-          >
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
-          Generate a draft from the accepted abstracts, drag abstracts within and
-          between sections to arrange them, then publish. Codes reflow live and
-          freeze on publish.
+        <p className="cap-muted">
+          Generate a draft from the accepted abstracts, drag abstracts within and between sections
+          to arrange them, then publish. Codes reflow live and freeze on publish.
         </p>
       </div>
 
@@ -243,69 +228,45 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         ref={statusRef}
         tabIndex={-1}
         role={fetcherError ? "alert" : "status"}
-        className={
-          fetcherError
-            ? "rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-            : fetcherMsg
-              ? "rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
-              : "sr-only"
-        }
+        className={fetcherError || fetcherMsg ? "cap-alert" : "cap-sr-only"}
+        data-tone={fetcherError ? "crit" : "ok"}
       >
         {fetcherMsg ?? ""}
       </p>
 
       {!book ? (
-        <section className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
-          <p className="text-gray-700 dark:text-gray-300">
-            No book yet. Generate one from the accepted abstracts to start
-            arranging.
-          </p>
+        <section className="card stack-3">
+          <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
           <fetcher.Form method="post">
             <input type="hidden" name="intent" value="generate" />
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-            >
+            <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
               {busy ? "Generating..." : "Generate draft book"}
             </button>
           </fetcher.Form>
         </section>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-3 rounded border border-gray-200 p-3 dark:border-gray-800">
-            <span
-              className={
-                published
-                  ? "rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200"
-                  : "rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900 dark:bg-amber-900 dark:text-amber-200"
-              }
-            >
+          <div className="card card-s cluster">
+            <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
               {published ? "Published" : "Draft"}
             </span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="small cap-muted">
               {book.includedCount} included
-              {book.publishedAt
-                ? ` . published ${formatDateTime(book.publishedAt)}`
-                : ""}
+              {book.publishedAt ? ` . published ${formatDateTime(book.publishedAt)}` : ""}
             </span>
-            <span className="ml-auto flex flex-wrap items-center gap-3">
+            <span className="cluster push-end">
               <a
                 href={`/admin/editions/${edition.id}/book/preview`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                className="small strong"
               >
                 Open preview
               </a>
               {published ? (
                 <fetcher.Form method="post">
                   <input type="hidden" name="intent" value="reopen" />
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
-                  >
+                  <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
                     Reopen to edit
                   </button>
                 </fetcher.Form>
@@ -315,7 +276,9 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                   <button
                     type="submit"
                     disabled={busy}
-                    className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
+                    className="cap-btn"
+                    data-variant="primary"
+                    data-size="sm"
                   >
                     Publish
                   </button>
@@ -337,10 +300,9 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                 <button
                   type="submit"
                   disabled={busy || published}
-                  title={
-                    published ? "Reopen the book before regenerating." : undefined
-                  }
-                  className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
+                  title={published ? "Reopen the book before regenerating." : undefined}
+                  className="cap-btn"
+                  data-size="sm"
                 >
                   Regenerate
                 </button>
@@ -349,18 +311,14 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           </div>
 
           {published ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              This book is published and its codes are frozen. Reopen it to edit
-              the arrangement.
+            <p className="small cap-muted">
+              This book is published and its codes are frozen. Reopen it to edit the arrangement.
             </p>
           ) : null}
 
-          <div className="space-y-5">
+          <div className="stack-4">
             {book.sections.length === 0 ? (
-              <p className="text-gray-700 dark:text-gray-300">
-                No sections. There may be no accepted abstracts for this meeting
-                yet.
-              </p>
+              <p>No sections. There may be no accepted abstracts for this meeting yet.</p>
             ) : (
               book.sections.map((section) => (
                 <section
@@ -369,10 +327,10 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                     if (editable) e.preventDefault();
                   }}
                   onDrop={(e) => onDropOnSection(section.sectionId, e)}
-                  className="rounded border border-gray-200 p-3 dark:border-gray-800"
+                  className="card card-s"
                 >
-                  <h2 className="mb-2 text-lg font-medium">{section.title}</h2>
-                  <ul className="space-y-2">
+                  <h2 className="subsection-title">{section.title}</h2>
+                  <ul className="stack-2">
                     {section.entries.map((entry, index) => (
                       <li
                         key={entry.entryId}
@@ -383,35 +341,32 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                           if (editable) e.preventDefault();
                         }}
                         onDrop={(e) => onDropOnEntry(section.sectionId, index, e)}
-                        className={`flex flex-wrap items-center gap-2 rounded border p-2 text-sm ${
-                          entry.included
-                            ? "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
-                            : "border-dashed border-gray-300 bg-gray-50 opacity-60 dark:border-gray-700 dark:bg-gray-950"
-                        } ${editable ? "cursor-grab" : ""}`}
+                        className="book-entry"
+                        data-excluded={entry.included ? undefined : ""}
+                        data-draggable={editable ? "" : undefined}
                       >
-                        <span className="w-14 shrink-0 font-mono text-xs tabular-nums text-gray-600 dark:text-gray-400">
-                          {entry.code ?? "-"}
-                        </span>
-                        <span className="min-w-0 flex-1">
+                        <span className="tiny cap-muted cap-num time-col">{entry.code ?? "-"}</span>
+                        <span className="grow">
                           <span
-                            className="font-medium"
+                            className="strong"
                             // Title is stored sanitized (em/sup/sub only).
                             dangerouslySetInnerHTML={{ __html: entry.title }}
                           />
-                          <span className="block text-xs text-gray-500 dark:text-gray-400">
+                          <span className="tiny cap-muted block">
                             {entry.presentingAuthorName ?? "No presenter"}
                             {entry.levelLabel ? ` . ${entry.levelLabel}` : ""}
                             {entry.formatLabel ? ` . ${entry.formatLabel}` : ""}
                           </span>
                         </span>
                         {editable ? (
-                          <span className="flex shrink-0 items-center gap-1">
+                          <span className="cluster cluster-tight">
                             <button
                               type="button"
                               aria-label="Move up"
                               disabled={busy || index === 0}
                               onClick={() => nudge(section, index, -1)}
-                              className="rounded border border-border px-1.5 py-0.5 text-xs hover:bg-panel disabled:opacity-30"
+                              className="cap-btn"
+                              data-size="sm"
                             >
                               {"↑"}
                             </button>
@@ -420,21 +375,21 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                               aria-label="Move down"
                               disabled={busy || index === section.entries.length - 1}
                               onClick={() => nudge(section, index, 1)}
-                              className="rounded border border-border px-1.5 py-0.5 text-xs hover:bg-panel disabled:opacity-30"
+                              className="cap-btn"
+                              data-size="sm"
                             >
                               {"↓"}
                             </button>
-                            <label className="sr-only" htmlFor={`move-${entry.entryId}`}>
+                            <label className="cap-sr-only" htmlFor={`move-${entry.entryId}`}>
                               Move to section
                             </label>
                             <select
                               id={`move-${entry.entryId}`}
                               value={section.sectionId}
                               disabled={busy}
-                              onChange={(e) =>
-                                moveToSection(entry.entryId, e.target.value)
-                              }
-                              className="max-w-[10rem] rounded border border-border bg-transparent px-1 py-0.5 text-xs"
+                              onChange={(e) => moveToSection(entry.entryId, e.target.value)}
+                              className="cap-select"
+                              data-size="sm"
                             >
                               {book.sections.map((s) => (
                                 <option key={s.sectionId} value={s.sectionId}>
@@ -442,27 +397,23 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                                 </option>
                               ))}
                             </select>
-                            <label className="flex items-center gap-1 text-xs">
+                            <label className="cluster cluster-tight tiny">
                               <input
                                 type="checkbox"
                                 checked={entry.included}
                                 disabled={busy}
-                                onChange={(e) =>
-                                  toggleIncluded(entry.entryId, e.target.checked)
-                                }
+                                onChange={(e) => toggleIncluded(entry.entryId, e.target.checked)}
                               />
                               In
                             </label>
                           </span>
                         ) : (
-                          <span className="shrink-0 text-xs text-gray-500">
-                            {entry.included ? "" : "Excluded"}
-                          </span>
+                          <span className="tiny cap-muted">{entry.included ? "" : "Excluded"}</span>
                         )}
                       </li>
                     ))}
                     {section.entries.length === 0 ? (
-                      <li className="rounded border border-dashed border-gray-300 p-2 text-xs text-gray-500 dark:border-gray-700">
+                      <li className="card card-s card-dashed tiny cap-muted">
                         Empty. Drag an abstract here.
                       </li>
                     ) : null}
@@ -476,48 +427,34 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
 
       {/* The published book's PDF, produced on publish via Browser Rendering and
           delivered through the document/R2 path. Publish it to the public archive. */}
-      <section className="space-y-3 rounded border border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="text-lg font-medium">Book PDF</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          The PDF is produced from the arranged book when you publish, via Browser
-          Rendering. Publish it to the archive to make it public.
+      <section className="card stack-3">
+        <h2 className="subsection-title">Book PDF</h2>
+        <p className="small cap-muted">
+          The PDF is produced from the arranged book when you publish, via Browser Rendering.
+          Publish it to the archive to make it public.
         </p>
         {!pdf ? (
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            No PDF yet. Publish the book to produce it.
-          </p>
+          <p className="small">No PDF yet. Publish the book to produce it.</p>
         ) : pdf.genStatus === "ready" ? (
-          <div className="space-y-1 text-sm">
+          <div className="stack-1 small">
             <p>
-              <span className="font-medium text-green-700 dark:text-green-400">
-                Ready
-              </span>
+              <span className="strong ok-text">Ready</span>
               {pdf.generatedAt ? ` . ${formatDateTime(pdf.generatedAt)}` : ""}
-              {typeof pdf.abstractCount === "number"
-                ? ` . ${pdf.abstractCount} abstracts`
-                : ""}
+              {typeof pdf.abstractCount === "number" ? ` . ${pdf.abstractCount} abstracts` : ""}
             </p>
             <p>
-              <a
-                href={`/admin/editions/${edition.id}/book/download`}
-                className="font-medium text-blue-700 hover:underline dark:text-blue-400"
-              >
+              <a href={`/admin/editions/${edition.id}/book/download`} className="strong">
                 Download the PDF
               </a>
             </p>
             <p>
               {pdf.status === "published" ? (
-                <span className="font-medium text-green-700 dark:text-green-400">
-                  Published to the archive
-                </span>
+                <span className="strong ok-text">Published to the archive</span>
               ) : (
                 <Form method="post" className="inline">
                   <input type="hidden" name="intent" value="pdf-publish" />
                   <input type="hidden" name="documentId" value={pdf.id} />
-                  <button
-                    type="submit"
-                    className="rounded-md border border-border px-2 py-1 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                  >
+                  <button type="submit" className="cap-btn" data-size="sm">
                     Publish to archive
                   </button>
                 </Form>
@@ -525,13 +462,11 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
             </p>
           </div>
         ) : pdf.genStatus === "generating" ? (
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            The PDF is rendering. Refresh in a minute.
-          </p>
+          <p className="small">The PDF is rendering. Refresh in a minute.</p>
         ) : (
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            The PDF is pending Browser Rendering (Workers plan). The book is
-            published and its HTML preview is available above.
+          <p className="small">
+            The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML
+            preview is available above.
           </p>
         )}
       </section>

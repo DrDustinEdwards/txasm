@@ -93,20 +93,16 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     }
 
     if (intent === "recipient-update") {
-      await da.awardRecipients.update(
-        actor,
-        String(form.get("recipientId") ?? ""),
-        {
-          editionId: optionalId(form.get("editionId")),
-          year: String(form.get("year") ?? ""),
-          category: String(form.get("category") ?? ""),
-          placement: String(form.get("placement") ?? ""),
-          personName: String(form.get("personName") ?? ""),
-          institution: String(form.get("institution") ?? ""),
-          mentor: String(form.get("mentor") ?? ""),
-          sortOrder: parseSortOrder(form.get("sortOrder")),
-        },
-      );
+      await da.awardRecipients.update(actor, String(form.get("recipientId") ?? ""), {
+        editionId: optionalId(form.get("editionId")),
+        year: String(form.get("year") ?? ""),
+        category: String(form.get("category") ?? ""),
+        placement: String(form.get("placement") ?? ""),
+        personName: String(form.get("personName") ?? ""),
+        institution: String(form.get("institution") ?? ""),
+        mentor: String(form.get("mentor") ?? ""),
+        sortOrder: parseSortOrder(form.get("sortOrder")),
+      });
       return redirect(back);
     }
   } catch (error) {
@@ -123,15 +119,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-const inputClass =
-  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
-
-const primaryButton =
-  "rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
-
-const secondaryButton =
-  "rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60";
-
 type Edition = Route.ComponentProps["loaderData"]["editions"][number];
 
 function RecipientFields({
@@ -143,9 +130,9 @@ function RecipientFields({
 }) {
   const base = recipient ? recipient.id : "new";
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <div className="space-y-1">
-        <label htmlFor={`person-${base}`} className="block text-sm font-medium text-text">
+    <div className="grid-2">
+      <div className="stack-1">
+        <label htmlFor={`person-${base}`} className="cap-field-label">
           Recipient name
         </label>
         <input
@@ -154,11 +141,11 @@ function RecipientFields({
           type="text"
           required
           defaultValue={recipient?.personName ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label htmlFor={`year-${base}`} className="block text-sm font-medium text-text">
+      <div className="stack-1">
+        <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
         <input
@@ -168,14 +155,11 @@ function RecipientFields({
           required
           placeholder="2025-26"
           defaultValue={recipient?.year ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`institution-${base}`}
-          className="block text-sm font-medium text-text"
-        >
+      <div className="stack-1">
+        <label htmlFor={`institution-${base}`} className="cap-field-label">
           Institution
         </label>
         <input
@@ -183,14 +167,11 @@ function RecipientFields({
           name="institution"
           type="text"
           defaultValue={recipient?.institution ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`mentor-${base}`}
-          className="block text-sm font-medium text-text"
-        >
+      <div className="stack-1">
+        <label htmlFor={`mentor-${base}`} className="cap-field-label">
           Mentor
         </label>
         <input
@@ -198,14 +179,11 @@ function RecipientFields({
           name="mentor"
           type="text"
           defaultValue={recipient?.mentor ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`category-${base}`}
-          className="block text-sm font-medium text-text"
-        >
+      <div className="stack-1">
+        <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
         <input
@@ -214,14 +192,11 @@ function RecipientFields({
           type="text"
           placeholder="Molecular and Environmental"
           defaultValue={recipient?.category ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`placement-${base}`}
-          className="block text-sm font-medium text-text"
-        >
+      <div className="stack-1">
+        <label htmlFor={`placement-${base}`} className="cap-field-label">
           Placement
         </label>
         <input
@@ -230,21 +205,18 @@ function RecipientFields({
           type="text"
           placeholder="1st"
           defaultValue={recipient?.placement ?? ""}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`edition-${base}`}
-          className="block text-sm font-medium text-text"
-        >
+      <div className="stack-1">
+        <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
         <select
           id={`edition-${base}`}
           name="editionId"
           defaultValue={recipient?.editionId ?? ""}
-          className={inputClass}
+          className="cap-select"
         >
           <option value="">Not linked to a meeting</option>
           {editions.map((edition) => (
@@ -254,11 +226,8 @@ function RecipientFields({
           ))}
         </select>
       </div>
-      <div className="space-y-1">
-        <label
-          htmlFor={`sort-${base}`}
-          className="block text-sm font-medium text-text"
-        >
+      <div className="stack-1">
+        <label htmlFor={`sort-${base}`} className="cap-field-label">
           Sort order
         </label>
         <input
@@ -267,7 +236,7 @@ function RecipientFields({
           type="number"
           step="1"
           defaultValue={recipient ? undefined : 0}
-          className={inputClass}
+          className="cap-input"
         />
       </div>
     </div>
@@ -282,49 +251,32 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <header className="space-y-2">
-        <p className="text-sm">
-          <Link
-            to="/admin/awards"
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            All awards
-          </Link>
+    <div className="form-page stack-8">
+      <header className="stack-2">
+        <p className="small">
+          <Link to="/admin/awards">All awards</Link>
         </p>
-        <h1 className="text-2xl font-semibold text-text">{award.name}</h1>
-        <p className="text-text-muted">
-          Public page:{" "}
-          <Link
-            to={`/awards/${award.slug}`}
-            className="text-link hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            /awards/{award.slug}
-          </Link>
+        <h1 className="page-title">{award.name}</h1>
+        <p className="cap-muted">
+          Public page: <Link to={`/awards/${award.slug}`}>/awards/{award.slug}</Link>
         </p>
       </header>
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-accent/40 bg-accent/10 p-3 text-sm text-text"
-        >
+        <p role="alert" className="cap-banner" data-tone="info">
           {error}
         </p>
       ) : null}
 
-      <section
-        aria-labelledby="definition-heading"
-        className="space-y-4 rounded-lg border border-border bg-surface-raised p-5"
-      >
-        <h2 id="definition-heading" className="text-lg font-medium text-text">
+      <section aria-labelledby="definition-heading" className="card stack-4">
+        <h2 id="definition-heading" className="subsection-title">
           Award definition
         </h2>
-        <Form method="post" className="space-y-4" noValidate>
+        <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="award-update" />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <label htmlFor="name" className="block text-sm font-medium text-text">
+          <div className="grid-2">
+            <div className="stack-1">
+              <label htmlFor="name" className="cap-field-label">
                 Name
               </label>
               <input
@@ -333,11 +285,11 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 type="text"
                 required
                 defaultValue={award.name}
-                className={inputClass}
+                className="cap-input"
               />
             </div>
-            <div className="space-y-1">
-              <label htmlFor="slug" className="block text-sm font-medium text-text">
+            <div className="stack-1">
+              <label htmlFor="slug" className="cap-field-label">
                 Slug
               </label>
               <input
@@ -345,15 +297,12 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 name="slug"
                 type="text"
                 defaultValue={award.slug}
-                className={inputClass}
+                className="cap-input"
               />
             </div>
           </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="namesakeBio"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1">
+            <label htmlFor="namesakeBio" className="cap-field-label">
               Namesake bio
             </label>
             <textarea
@@ -361,14 +310,11 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               name="namesakeBio"
               rows={3}
               defaultValue={award.namesakeBio ?? ""}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1">
+            <label htmlFor="description" className="cap-field-label">
               Description
             </label>
             <textarea
@@ -376,17 +322,14 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               name="description"
               rows={2}
               defaultValue={award.description ?? ""}
-              className={inputClass}
+              className="cap-input"
             />
-            <p className="text-xs text-text-muted">
+            <p className="tiny cap-muted">
               Bio and description support italics, superscript, and subscript.
             </p>
           </div>
-          <div className="space-y-1 sm:max-w-40">
-            <label
-              htmlFor="sortOrder"
-              className="block text-sm font-medium text-text"
-            >
+          <div className="stack-1 short-field">
+            <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
             <input
@@ -395,34 +338,31 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               type="number"
               step="1"
               defaultValue={award.sortOrder}
-              className={inputClass}
+              className="cap-input"
             />
           </div>
-          <button type="submit" disabled={submitting} className={primaryButton}>
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             Save definition
           </button>
         </Form>
       </section>
 
-      <section aria-labelledby="recipients-heading" className="space-y-4">
-        <h2 id="recipients-heading" className="text-lg font-medium text-text">
+      <section aria-labelledby="recipients-heading" className="stack-4">
+        <h2 id="recipients-heading" className="subsection-title">
           Recipients
         </h2>
         {recipients.length === 0 ? (
-          <p className="text-text-muted">No recipients yet. Add the first below.</p>
+          <p className="cap-muted">No recipients yet. Add the first below.</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="stack-3">
             {recipients.map((recipient) => (
-              <li
-                key={recipient.id}
-                className="space-y-3 rounded-lg border border-border bg-surface-raised p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-medium text-text">
+              <li key={recipient.id} className="card stack-3">
+                <div className="spread">
+                  <div className="shrink">
+                    <p className="strong">
                       {recipient.year} &middot; {recipient.personName}
                     </p>
-                    <p className="text-sm text-text-muted">
+                    <p className="small cap-muted">
                       {[
                         recipient.category ?? "",
                         recipient.placement ?? "",
@@ -439,35 +379,23 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                     <button
                       type="submit"
                       onClick={(e) => {
-                        if (
-                          !window.confirm(`Remove ${recipient.personName}?`)
-                        ) {
+                        if (!window.confirm(`Remove ${recipient.personName}?`)) {
                           e.preventDefault();
                         }
                       }}
-                      className="text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                      className="small strong"
                     >
                       Remove
                     </button>
                   </Form>
                 </div>
-                <details className="rounded-md border border-border p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-text">
-                    Edit recipient
-                  </summary>
-                  <Form method="post" className="mt-3 space-y-3" noValidate>
+                <details className="card card-s">
+                  <summary className="summary">Edit recipient</summary>
+                  <Form method="post" className="stack-3 mt-3" noValidate>
                     <input type="hidden" name="intent" value="recipient-update" />
-                    <input
-                      type="hidden"
-                      name="recipientId"
-                      value={recipient.id}
-                    />
+                    <input type="hidden" name="recipientId" value={recipient.id} />
                     <RecipientFields recipient={recipient} editions={editions} />
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className={secondaryButton}
-                    >
+                    <button type="submit" disabled={submitting} className="cap-btn">
                       Save recipient
                     </button>
                   </Form>
@@ -477,20 +405,14 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
           </ul>
         )}
 
-        <section
-          aria-labelledby="add-recipient-heading"
-          className="space-y-4 rounded-lg border border-border bg-surface-raised p-5"
-        >
-          <h3
-            id="add-recipient-heading"
-            className="text-base font-medium text-text"
-          >
+        <section aria-labelledby="add-recipient-heading" className="card stack-4">
+          <h3 id="add-recipient-heading" className="strong">
             Add a recipient
           </h3>
-          <Form method="post" className="space-y-4" noValidate>
+          <Form method="post" className="stack-4" noValidate>
             <input type="hidden" name="intent" value="recipient-create" />
             <RecipientFields editions={editions} />
-            <button type="submit" disabled={submitting} className={primaryButton}>
+            <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
               {submitting ? "Adding..." : "Add recipient"}
             </button>
           </Form>
