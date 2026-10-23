@@ -78,6 +78,18 @@
     padding-inline: var(--space-5);
   }
 }
+/* The public header lines up with the page column. Capsomer's header has no
+   content-width setting (site-header.md: full width, 24px sides), so on a
+   desktop its own --header-side is set to the column's edge; on a phone it
+   keeps Capsomer's 16px. Its section links read in the band's full text colour
+   (--header-fg-muted is one of the band tokens a site owns), as they did
+   before Capsomer, rather than muted. */
+.txasm-page .cap-site-header {
+  --header-fg-muted: var(--text);
+  @media (width >= 768px) {
+    --header-side: max(var(--space-6), calc((100% - 72rem) / 2 + var(--space-6)));
+  }
+}
 .txasm-main {
   --text-size: 1rem;
   --leading: 1.5;
