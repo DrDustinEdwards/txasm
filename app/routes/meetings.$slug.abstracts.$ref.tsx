@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
+import { joinParts } from "~/lib/format";
 import {
   ABSTRACT_FORMAT_LABELS,
   ABSTRACT_LEVEL_LABELS,
@@ -23,13 +24,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw new Response("Abstract not found.", { status: 404 });
   }
   return { edition: page.edition, abstract: page.abstract };
-}
-
-function joinParts(parts: Array<string | null>): string {
-  return parts
-    .map((p) => (p ? p.trim() : ""))
-    .filter((p) => p.length > 0)
-    .join(", ");
 }
 
 export default function AbstractPage({ loaderData }: Route.ComponentProps) {

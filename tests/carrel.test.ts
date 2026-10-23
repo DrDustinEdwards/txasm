@@ -1,10 +1,10 @@
-import { readFileSync, readdirSync } from "node:fs";
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
 import { createSiteApi } from "@dustinedwards/site-api";
 import { runConformance } from "@dustinedwards/site-api/conformance";
 import { createCarrelAdapter } from "../app/lib/carrel/adapter.server";
+import { applyMigrations } from "./d1";
 
 // Carrel's site API against real D1 with the real migrations, so the pages it
 // edits are the seeded ones: site-api's own conformance suite, and the one rule
@@ -32,13 +32,7 @@ before(async () => {
     d1Databases: ["DB"],
   });
   db = await mf.getD1Database("DB");
-  const migrationsDir = new URL("../drizzle/", import.meta.url);
-  for (const file of readdirSync(migrationsDir).filter((f) => f.endsWith(".sql")).sort()) {
-    const sql = readFileSync(new URL(file, migrationsDir), "utf8");
-    for (const statement of sql.split("--> statement-breakpoint")) {
-      if (statement.trim()) await db.prepare(statement).run();
-    }
-  }
+  await applyMigrations(db);
   const env = { DB: db, BETTER_AUTH_URL: BASE } as unknown as Env;
   api = createSiteApi({
     adapter: createCarrelAdapter(env),

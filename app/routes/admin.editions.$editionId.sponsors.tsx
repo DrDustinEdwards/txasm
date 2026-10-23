@@ -5,6 +5,7 @@ import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
 import { SPONSOR_TIERS } from "~/lib/vocab";
+import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Sponsors") }];
@@ -17,15 +18,6 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const edition = await da.editions.getById(actor, params.editionId);
   const sponsors = await da.sponsors.listForEdition(actor, params.editionId);
   return { edition: { id: edition.id, name: edition.name }, sponsors };
-}
-
-function parseSortOrder(value: FormDataEntryValue | null): number {
-  const raw = String(value ?? "0").trim() || "0";
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new ValidationError("Sort order must be a whole number.");
-  }
-  return n;
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {

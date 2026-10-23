@@ -10,6 +10,7 @@ import {
   type AwardRecipientView,
 } from "~/lib/data-access";
 import { pageTitle } from "~/lib/site-meta";
+import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Manage award") }];
@@ -34,15 +35,6 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     recipients,
     editions,
   };
-}
-
-function parseSortOrder(value: FormDataEntryValue | null): number {
-  const raw = String(value ?? "0").trim() || "0";
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new ValidationError("Sort order must be a whole number.");
-  }
-  return n;
 }
 
 function optionalId(value: FormDataEntryValue | null): string | null {

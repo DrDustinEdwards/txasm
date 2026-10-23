@@ -132,10 +132,10 @@ export function chunk<T>(items: T[], size: number): T[][] {
   return out;
 }
 
-// Split an array into fixed-size chunks, to keep bulk inserts under SQLite's
-// bound-parameter ceiling.
-export function chunkList<T>(items: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-  return out;
+// The rows `query` returns for each run of at most ID_CHUNK_SIZE ids, in order.
+// Every `inArray` over abstract ids goes through this: a meeting has more
+// abstracts than D1 binds in one query. Rows for one id all come from one run,
+// so an order the query sets (author ordinal, say) holds within each id.
+export async function byIdChunks<T>(ids: string[], query: (part: string[]) => Promise<T[]>): Promise<T[]> {
+  return (await Promise.all(chunk(ids, ID_CHUNK_SIZE).map(query))).flat();
 }

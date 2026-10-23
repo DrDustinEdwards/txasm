@@ -1,6 +1,5 @@
 import { and, eq, inArray, like, or } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { extractPlainText } from "../richtext";
 import {
   ABSTRACT_FORMATS,
   ABSTRACT_LEVELS,
@@ -10,7 +9,8 @@ import {
   type EditionStatus,
   type Season,
 } from "../vocab";
-import { chunk, type DB, ID_CHUNK_SIZE } from "./core";
+import { assembleBookAbstracts, inBookOrder } from "./book-model";
+import type { DB } from "./core";
 import { PROGRAM_PUBLIC_STATUSES } from "./program-model";
 
 // ---------------------------------------------------------------------------
@@ -117,118 +117,14 @@ async function buildNumberedAbstracts(
     );
   if (absRows.length === 0) return [];
 
-  const ids = absRows.map((a) => a.id);
-  const idChunks = chunk(ids, ID_CHUNK_SIZE);
-
-  // Each id-scoped query runs in chunks of <= 90 abstract ids to stay under
-  // D1's 100 bound-parameter limit, then the batches are concatenated. An
-  // abstract's authors and affiliations all fall in one chunk, so their order
-  // is preserved. The links are filtered by abstract id (via a join on author)
-  // rather than the larger author-id set for the same reason.
-  const authorRows = (
-    await Promise.all(
-      idChunks.map((part) =>
-        db
-          .select()
-          .from(schema.author)
-          .where(inArray(schema.author.abstractId, part))
-          .orderBy(schema.author.ordinal),
-      ),
-    )
-  ).flat();
-  const affiliationRows = (
-    await Promise.all(
-      idChunks.map((part) =>
-        db
-          .select()
-          .from(schema.affiliation)
-          .where(inArray(schema.affiliation.abstractId, part))
-          .orderBy(schema.affiliation.ordinal),
-      ),
-    )
-  ).flat();
-  const links = (
-    await Promise.all(
-      idChunks.map((part) =>
-        db
-          .select({
-            authorId: schema.authorAffiliation.authorId,
-            affiliationId: schema.authorAffiliation.affiliationId,
-          })
-          .from(schema.authorAffiliation)
-          .innerJoin(
-            schema.author,
-            eq(schema.authorAffiliation.authorId, schema.author.id),
-          )
-          .where(inArray(schema.author.abstractId, part)),
-      ),
-    )
-  ).flat();
+  const parts = await assembleBookAbstracts(db, absRows.map((a) => a.id));
   const categoryRows = await db
     .select()
     .from(schema.abstractCategory)
     .where(eq(schema.abstractCategory.editionId, editionId))
     .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
   const categoryNameById = new Map(categoryRows.map((c) => [c.id, c.name]));
-
-  const affOrdinalById = new Map(affiliationRows.map((a) => [a.id, a.ordinal]));
-  const ordinalsByAuthor = new Map<string, number[]>();
-  for (const link of links) {
-    const ord = affOrdinalById.get(link.affiliationId);
-    if (ord === undefined) continue;
-    const list = ordinalsByAuthor.get(link.authorId) ?? [];
-    list.push(ord);
-    ordinalsByAuthor.set(link.authorId, list);
-  }
-
-  const affiliationsByAbstract = new Map<string, PublicAbstractAffiliation[]>();
-  for (const a of affiliationRows) {
-    const list = affiliationsByAbstract.get(a.abstractId) ?? [];
-    list.push({
-      ordinal: a.ordinal,
-      institution: a.institution,
-      department: a.department,
-      city: a.city,
-      country: a.country,
-    });
-    affiliationsByAbstract.set(a.abstractId, list);
-  }
-
-  const authorsByAbstract = new Map<string, PublicAbstractAuthor[]>();
-  for (const a of authorRows) {
-    const list = authorsByAbstract.get(a.abstractId) ?? [];
-    list.push({
-      name: `${a.firstName} ${a.lastName}`.trim(),
-      affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort(
-        (x, y) => x - y,
-      ),
-      isPresenting: a.isPresenting,
-      isCorresponding: a.isCorresponding,
-    });
-    authorsByAbstract.set(a.abstractId, list);
-  }
-
-  const rowsByCategory = new Map<string | null, typeof absRows>();
-  for (const row of absRows) {
-    const key = row.categoryId ?? null;
-    const list = rowsByCategory.get(key) ?? [];
-    list.push(row);
-    rowsByCategory.set(key, list);
-  }
-  const byTitle = (a: (typeof absRows)[number], b: (typeof absRows)[number]) =>
-    extractPlainText(a.title).localeCompare(extractPlainText(b.title), "en", {
-      sensitivity: "base",
-    });
-
-  const ordered: typeof absRows = [];
-  for (const cat of categoryRows) {
-    const rows = rowsByCategory.get(cat.id);
-    if (rows && rows.length > 0) ordered.push(...[...rows].sort(byTitle));
-  }
-  const uncategorized = rowsByCategory.get(null);
-  if (uncategorized && uncategorized.length > 0) {
-    ordered.push(...[...uncategorized].sort(byTitle));
-  }
+  const ordered = inBookOrder(absRows, categoryRows);
 
   return ordered.map((row, i) => ({
     id: row.id,
@@ -242,8 +138,13 @@ async function buildNumberedAbstracts(
       topic: row.categoryId
         ? categoryNameById.get(row.categoryId) ?? null
         : null,
-      authors: authorsByAbstract.get(row.id) ?? [],
-      affiliations: affiliationsByAbstract.get(row.id) ?? [],
+      authors: (parts.get(row.id)?.authors ?? []).map((a) => ({
+        name: `${a.firstName} ${a.lastName}`.trim(),
+        affiliationOrdinals: a.affiliationOrdinals,
+        isPresenting: a.isPresenting,
+        isCorresponding: a.isCorresponding,
+      })),
+      affiliations: parts.get(row.id)?.affiliations ?? [],
       bodyText: row.bodyText,
     },
   }));

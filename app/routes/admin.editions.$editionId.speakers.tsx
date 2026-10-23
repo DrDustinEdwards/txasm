@@ -6,6 +6,7 @@ import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichEditor } from "~/components/rich-editor";
+import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Invited speakers") }];
@@ -24,15 +25,6 @@ function parseRole(value: FormDataEntryValue | null): SpeakerRole | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
   return SPEAKER_ROLES.includes(raw as SpeakerRole) ? (raw as SpeakerRole) : null;
-}
-
-function parseSortOrder(value: FormDataEntryValue | null): number {
-  const raw = String(value ?? "0").trim() || "0";
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new ValidationError("Sort order must be a whole number.");
-  }
-  return n;
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {

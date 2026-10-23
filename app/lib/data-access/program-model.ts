@@ -1,13 +1,13 @@
 import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { extractPlainText } from "../richtext";
 import {
   type EditionStatus,
   NO_DATE_KEY,
   PROGRAM_ITEM_KINDS,
   type ProgramItemKind,
 } from "../vocab";
-import { type DB, ValidationError } from "./core";
+import { inBookOrder, presentingAuthorNames } from "./book-model";
+import { byIdChunks, type DB, ValidationError } from "./core";
 import type { SpeakerPublic, SponsorPublic } from "./speakers-sponsors";
 
 // ---------------------------------------------------------------------------
@@ -274,73 +274,18 @@ export async function acceptedAbstractsInBookOrder(
     );
   if (absRows.length === 0) return [];
 
-  const ids = absRows.map((a) => a.id);
-  const authorRows = await db
-    .select({
-      abstractId: schema.author.abstractId,
-      firstName: schema.author.firstName,
-      lastName: schema.author.lastName,
-      isPresenting: schema.author.isPresenting,
-    })
-    .from(schema.author)
-    .where(inArray(schema.author.abstractId, ids))
-    .orderBy(schema.author.ordinal);
-
   const categoryRows = await db
     .select()
     .from(schema.abstractCategory)
     .where(eq(schema.abstractCategory.editionId, editionId))
     .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
-
-  const authorsByAbstract = new Map<
-    string,
-    Array<{ firstName: string; lastName: string; isPresenting: boolean }>
-  >();
-  for (const a of authorRows) {
-    const list = authorsByAbstract.get(a.abstractId) ?? [];
-    list.push({
-      firstName: a.firstName,
-      lastName: a.lastName,
-      isPresenting: a.isPresenting,
-    });
-    authorsByAbstract.set(a.abstractId, list);
-  }
-  function presentingName(abstractId: string): string | null {
-    const authors = authorsByAbstract.get(abstractId) ?? [];
-    if (authors.length === 0) return null;
-    const presenting = authors.find((x) => x.isPresenting) ?? authors[0];
-    return `${presenting.firstName} ${presenting.lastName}`.trim() || null;
-  }
-
-  const rowsByCategory = new Map<string | null, typeof absRows>();
-  for (const row of absRows) {
-    const key = row.categoryId ?? null;
-    const list = rowsByCategory.get(key) ?? [];
-    list.push(row);
-    rowsByCategory.set(key, list);
-  }
-  const byTitle = (
-    a: (typeof absRows)[number],
-    b: (typeof absRows)[number],
-  ) =>
-    extractPlainText(a.title).localeCompare(extractPlainText(b.title), "en", {
-      sensitivity: "base",
-    });
-
-  const ordered: typeof absRows = [];
-  for (const cat of categoryRows) {
-    const rows = rowsByCategory.get(cat.id);
-    if (rows && rows.length > 0) ordered.push(...[...rows].sort(byTitle));
-  }
-  const uncategorized = rowsByCategory.get(null);
-  if (uncategorized && uncategorized.length > 0) {
-    ordered.push(...[...uncategorized].sort(byTitle));
-  }
+  const presenting = await presentingAuthorNames(db, absRows.map((a) => a.id));
+  const ordered = inBookOrder(absRows, categoryRows);
 
   return ordered.map((row) => ({
     abstractId: row.id,
     title: row.title,
-    presentingAuthorName: presentingName(row.id),
+    presentingAuthorName: presenting.get(row.id) ?? null,
   }));
 }
 
@@ -389,47 +334,14 @@ async function resolveProgram(
         .filter((x): x is string => x !== null),
     ),
   ];
-  const titleById = new Map<string, string>();
-  const presentingById = new Map<string, string | null>();
-  if (refIds.length > 0) {
-    const absRows = await db
+  const absRows = await byIdChunks(refIds, (part) =>
+    db
       .select({ id: schema.abstract.id, title: schema.abstract.title })
       .from(schema.abstract)
-      .where(inArray(schema.abstract.id, refIds));
-    for (const a of absRows) titleById.set(a.id, a.title);
-
-    const authorRows = await db
-      .select({
-        abstractId: schema.author.abstractId,
-        firstName: schema.author.firstName,
-        lastName: schema.author.lastName,
-        isPresenting: schema.author.isPresenting,
-      })
-      .from(schema.author)
-      .where(inArray(schema.author.abstractId, refIds))
-      .orderBy(schema.author.ordinal);
-    const authorsByAbstract = new Map<
-      string,
-      Array<{ firstName: string; lastName: string; isPresenting: boolean }>
-    >();
-    for (const a of authorRows) {
-      const list = authorsByAbstract.get(a.abstractId) ?? [];
-      list.push({
-        firstName: a.firstName,
-        lastName: a.lastName,
-        isPresenting: a.isPresenting,
-      });
-      authorsByAbstract.set(a.abstractId, list);
-    }
-    for (const id of refIds) {
-      const authors = authorsByAbstract.get(id) ?? [];
-      const p = authors.find((x) => x.isPresenting) ?? authors[0];
-      presentingById.set(
-        id,
-        p ? `${p.firstName} ${p.lastName}`.trim() || null : null,
-      );
-    }
-  }
+      .where(inArray(schema.abstract.id, part)),
+  );
+  const titleById = new Map(absRows.map((a) => [a.id, a.title]));
+  const presentingById = await presentingAuthorNames(db, refIds);
 
   const itemsBySession = new Map<string, typeof items>();
   for (const item of items) {

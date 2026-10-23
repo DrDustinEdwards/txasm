@@ -10,6 +10,7 @@ import {
   type FooterLink,
   type PlatformSettingsPatch,
 } from "~/lib/data-access";
+import { parseYear } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Platform settings") }];
@@ -20,16 +21,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const settings = await getDataAccess(env).settings.get();
   return { settings };
-}
-
-function parseYear(value: FormDataEntryValue | null): number | null {
-  const raw = String(value ?? "").trim();
-  if (!raw) return null;
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new ValidationError("Founding year must be a whole number.");
-  }
-  return n;
 }
 
 function parseWordLimit(value: FormDataEntryValue | null): number {
@@ -67,7 +58,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       shortName: String(form.get("shortName") ?? ""),
       orgFullName: String(form.get("orgFullName") ?? ""),
       tagline: String(form.get("tagline") ?? ""),
-      foundingYear: parseYear(form.get("foundingYear")),
+      foundingYear: parseYear(form.get("foundingYear"), "Founding year"),
       contactEmail: String(form.get("contactEmail") ?? ""),
       facebookUrl: String(form.get("facebookUrl") ?? ""),
       footerLinks: parseFooterLinks(form.get("footerLinks")),

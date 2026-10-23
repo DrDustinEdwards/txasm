@@ -6,8 +6,10 @@ import {
   type DecisionOutcome,
   type PresentationType,
 } from "../vocab";
+import { submittedAbstracts } from "./abstracts";
 import {
   type Actor,
+  byIdChunks,
   type DB,
   ForbiddenError,
   isChair,
@@ -111,56 +113,18 @@ export function createDecisions(db: DB) {
     // compact tally of review recommendations so the chair can decide at a glance.
     async listForEdition(actor: Actor, editionId: string) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-
-      const rows = await db
-        .select()
-        .from(schema.abstract)
-        .where(
-          and(
-            eq(schema.abstract.editionId, editionId),
-            ne(schema.abstract.status, "draft"),
-          ),
-        )
-        .orderBy(desc(schema.abstract.submittedAt), desc(schema.abstract.createdAt));
-
+      const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);
       if (rows.length === 0) return [];
-      const ids = rows.map((r) => r.id);
 
-      const authors = await db
-        .select({
-          abstractId: schema.author.abstractId,
-          firstName: schema.author.firstName,
-          lastName: schema.author.lastName,
-        })
-        .from(schema.author)
-        .where(inArray(schema.author.abstractId, ids))
-        .orderBy(schema.author.ordinal);
-
-      const submittedReviews = await db
-        .select({
-          abstractId: schema.review.abstractId,
-          recommendation: schema.review.recommendation,
-        })
-        .from(schema.review)
-        .where(
-          and(
-            inArray(schema.review.abstractId, ids),
-            eq(schema.review.status, "submitted"),
-          ),
-        );
-
-      const decisionRows = await db
-        .select()
-        .from(schema.decision)
-        .where(inArray(schema.decision.abstractId, ids));
-
-      const namesByAbstract = new Map<string, string[]>();
-      for (const a of authors) {
-        const name = `${a.firstName} ${a.lastName}`.trim();
-        const list = namesByAbstract.get(a.abstractId) ?? [];
-        if (name) list.push(name);
-        namesByAbstract.set(a.abstractId, list);
-      }
+      const submittedReviews = await byIdChunks(ids, (part) =>
+        db
+          .select({ abstractId: schema.review.abstractId, recommendation: schema.review.recommendation })
+          .from(schema.review)
+          .where(and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted"))),
+      );
+      const decisionRows = await byIdChunks(ids, (part) =>
+        db.select().from(schema.decision).where(inArray(schema.decision.abstractId, part)),
+      );
 
       const summaryByAbstract = new Map<
         string,

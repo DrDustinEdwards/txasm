@@ -9,7 +9,7 @@ import {
   type SpeakerPublic,
   type SponsorPublic,
 } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { formatDateTime, formatMeetingDates, joinParts } from "~/lib/format";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { Empty } from "capsomer/react/empty";
@@ -47,32 +47,10 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   };
 }
 
-const DATE_FMT = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "long",
-  timeZone: "UTC",
-});
-
 const DAY_FMT = new Intl.DateTimeFormat("en-US", {
   dateStyle: "full",
   timeZone: "UTC",
 });
-
-function meetingDateLine(start: Date | null, end: Date | null): string {
-  if (start && end) {
-    if (start.getTime() === end.getTime()) return DATE_FMT.format(start);
-    return `${DATE_FMT.format(start)} to ${DATE_FMT.format(end)}`;
-  }
-  if (start) return DATE_FMT.format(start);
-  if (end) return DATE_FMT.format(end);
-  return "";
-}
-
-function joinParts(parts: Array<string | null>): string {
-  return parts
-    .map((p) => (p ? p.trim() : ""))
-    .filter((p) => p.length > 0)
-    .join(", ");
-}
 
 function dayLabel(date: Date | null): string {
   return date ? `${DAY_FMT.format(date)} UTC` : "To be scheduled";
@@ -198,7 +176,7 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
 
 export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const { edition, program } = loaderData;
-  const dateLine = meetingDateLine(
+  const dateLine = formatMeetingDates(
     edition.meetingStartsAt,
     edition.meetingEndsAt,
   );
