@@ -12,6 +12,7 @@
 // RENDER. Prelum's markdown pipeline (assertSafe on), run on publish and preview only; the routes
 // show the stored html. Pages take no images: the site has no media group for them.
 import {
+  contentVersion,
   RefusedError,
   VersionConflictError,
   type ContentSummary,
@@ -24,13 +25,7 @@ import { parseSource, type PageSource } from "./source";
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 
-async function sha256Hex(text: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-const versionOf = async (p: Pick<Page, "source" | "html">): Promise<string> =>
-  (await sha256Hex(JSON.stringify([p.source, p.html]))).slice(0, 32);
+const versionOf = (p: Pick<Page, "source" | "html">): Promise<string> => contentVersion([p.source, p.html]);
 
 // A page's path is its slug, and the home page is the site root.
 const pathOf = (slug: string) => (slug === "home" ? "/" : `/${slug}`);
