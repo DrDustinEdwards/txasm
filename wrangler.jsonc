@@ -42,7 +42,9 @@
 	// Rate limit for Carrel's site API (app/lib/carrel). namespace_id must be unique to this site:
 	// sites in one account that share one share counters (germomics 7301, foxing 1104).
 	"ratelimits": [
-		{ "name": "CARREL_RATE_LIMIT", "namespace_id": "7401", "simple": { "limit": 120, "period": 60 } }
+		{ "name": "CARREL_RATE_LIMIT", "namespace_id": "7401", "simple": { "limit": 120, "period": 60 } },
+		// CSP violation reports (/csp-report), per address. Loose, because a page tripping ten rules sends ten.
+		{ "name": "CSP_REPORT_RATE_LIMIT", "namespace_id": "7402", "simple": { "limit": 60, "period": 60 } }
 	],
 	// Browser Rendering for the abstract book PDF. Generate in a batch job, not a
 	// user request, to stay inside the quota. May want the paid Workers plan for headroom.

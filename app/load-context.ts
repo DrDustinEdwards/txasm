@@ -14,3 +14,7 @@ export interface CloudflareContext {
 }
 
 export const cloudflareContext = createContext<CloudflareContext>();
+
+// This request's Content-Security-Policy nonce (app/lib/security-headers.ts), set in
+// workers/app.ts and put by app/entry.server.tsx on every inline script the render emits.
+export const cspNonceContext = createContext<string | undefined>(undefined);
