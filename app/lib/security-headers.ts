@@ -3,7 +3,7 @@
 // part that matters most here: a framed admin page could otherwise submit a role
 // grant or a book publish with the chair's cookie (Grok audit 2026-10-21, TX-1).
 import { applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
-import { buildContentSecurityPolicy, generateNonce } from "@dustinedwards/site-runtime/csp";
+import { buildContentSecurityPolicy, generateNonce, reportingEndpoints } from "@dustinedwards/site-runtime/csp";
 
 export const SECURITY_HEADERS = buildSecurityHeaders();
 
@@ -48,8 +48,7 @@ export function withSecurityHeaders(response: Response, request: Request, nonce?
     const csp = contentSecurityPolicy(nonce);
     headers.set(csp.name, csp.value);
   }
-  // Absolute: a browser ignores a relative Reporting-Endpoints entry.
-  headers.set("Reporting-Endpoints", `${CSP_ENDPOINT}="${new URL(request.url).origin}${CSP_REPORT_PATH}"`);
+  headers.set("Reporting-Endpoints", reportingEndpoints(CSP_ENDPOINT, new URL(CSP_REPORT_PATH, request.url)));
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

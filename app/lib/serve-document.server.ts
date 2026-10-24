@@ -1,3 +1,4 @@
+import { buildPolicy } from "@dustinedwards/site-runtime/csp";
 import { getSessionUser } from "./auth.server";
 import {
   ForbiddenError,
@@ -66,7 +67,7 @@ export async function serveDocument(
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set(
       "Content-Security-Policy",
-      "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      buildPolicy(["default-src 'none'", "style-src 'unsafe-inline'", "sandbox"]),
     );
   }
 
