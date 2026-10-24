@@ -43,6 +43,7 @@ function PublicHeader({ email, isAdmin, isReviewer, wordmark }: { email: string 
     { label: "My abstracts", href: "/my/abstracts" },
     ...(isReviewer ? [{ label: "Review", href: "/review" }] : []),
     ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
+    { label: "Passkeys", href: "/account" },
   ].map((r) => ({ ...r, current: pathname.startsWith(r.href) }));
   return (
     <SiteHeader

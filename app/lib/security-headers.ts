@@ -1,12 +1,13 @@
 // The security headers every response from this Worker carries: the family standard
-// from @dustinedwards/site-runtime, with no overrides. X-Frame-Options: deny is the
+// from @dustinedwards/site-runtime, with one override, the passkey sign-in's
+// Permissions-Policy (PASSKEY_OVERRIDES). X-Frame-Options: deny is the
 // part that matters most here: a framed admin page could otherwise submit a role
 // grant or a book publish with the chair's cookie (Grok audit 2026-10-21, TX-1).
-import { applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
+import { PASSKEY_OVERRIDES, applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
 import { buildContentSecurityPolicy, generateNonce, reportingEndpoints } from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
 
-export const SECURITY_HEADERS = buildSecurityHeaders();
+export const SECURITY_HEADERS = buildSecurityHeaders({ overrides: PASSKEY_OVERRIDES });
 
 /** Where browsers send violation reports (report-uri), and the Reporting API name for it (report-to). */
 export const CSP_REPORT_PATH = "/csp-report";

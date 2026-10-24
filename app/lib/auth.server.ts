@@ -1,8 +1,8 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { captcha, magicLink } from "better-auth/plugins";
 import { redirect } from "react-router";
 import { env } from "cloudflare:workers";
+import { signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
@@ -14,24 +14,30 @@ import {
 } from "./data-access";
 import { magicLinkEmail, sendEmail } from "./email.server";
 
-// Better Auth on D1/Drizzle. Sign-in is magic-link only (no Google): academics
-// use many providers, so a link to their inbox is the lowest-friction path.
-// Sessions live in KV via secondaryStorage, so there is no session table in D1.
+// Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
+// ./sign-in): a passkey first, an emailed link before one exists, Turnstile on
+// the link once its keys are set, no passwords. No Google or Apple: academics use
+// many providers, so the inbox is the way in. Sessions and the sign-in rate
+// limit are in D1 (app/db/schema.ts).
 //
-// The instance is built per environment and cached, since the worker env is
-// stable within an isolate. The adapter needs the schema and the Drizzle client,
-// which is why this file sits inside the data/auth boundary alongside
-// the data-access layer and app/db/index.server.ts.
-// Turnstile's site key, when the bot check on the sign-in link is on: both the key
-// and its secret are set. Null while either is missing, and the form shows no widget.
-export function turnstileSiteKey(env: Env): string | null {
-  return env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY ? env.TURNSTILE_SITE_KEY : null;
-}
-
-function buildAuth(env: Env) {
+// The instance is built once per environment and the promise kept, since the
+// worker env is stable within an isolate. The adapter needs the schema and the
+// Drizzle client, which is why this file sits inside the data/auth boundary
+// alongside the data-access layer and app/db/index.server.ts.
+async function buildAuth(env: Env) {
   const db = getDb(env);
+  const signIn = await signInOptions(env, {
+    siteName: "TXASM",
+    // Goes through the email helper, which is dormant until cutover. While
+    // dormant it logs the message (including the link), so dev sign-in is
+    // unchanged; at cutover the same call sends a real email.
+    sendMagicLink: async ({ email, url }) => {
+      await sendEmail(env, { to: email, ...magicLinkEmail(url) });
+    },
+  });
 
   return betterAuth({
+    ...signIn,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, {
@@ -40,54 +46,11 @@ function buildAuth(env: Env) {
         user: schema.user,
         account: schema.account,
         verification: schema.verification,
+        session: schema.session,
+        rateLimit: schema.rateLimit,
+        passkey: schema.passkey,
       },
     }),
-    // Sessions in KV, not D1. Better Auth keeps no session table when a
-    // secondary store is provided.
-    secondaryStorage: {
-      get: (key) => env.APP_KV.get(key),
-      set: async (key, value, ttl) => {
-        await env.APP_KV.put(
-          key,
-          value,
-          ttl ? { expirationTtl: ttl } : undefined,
-        );
-      },
-      delete: async (key) => {
-        await env.APP_KV.delete(key);
-      },
-    },
-    emailAndPassword: { enabled: false },
-    // The limiter counts in KV (secondaryStorage), so it holds across isolates. It
-    // is on in every environment rather than only when NODE_ENV says production,
-    // and it keys on Cloudflare's client address. The magic-link plugin adds its
-    // own rule of 5 requests a minute on /sign-in/magic-link (Grok audit
-    // 2026-10-21, TX-4).
-    rateLimit: { enabled: true },
-    advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
-    plugins: [
-      magicLink({
-        sendMagicLink: async ({ email, url }) => {
-          // Goes through the email helper, which is dormant until cutover. While
-          // dormant it logs the message (including the link), so dev sign-in is
-          // unchanged; at cutover the same call sends a real email.
-          await sendEmail(env, { to: email, ...magicLinkEmail(url) });
-        },
-      }),
-      // The sign-in link is the one public form that emails a stranger, so it is the
-      // one a bot would use to send mail from txasm.org. The plugin checks the token
-      // (x-captcha-response) with Cloudflare before the link is made, on the form and
-      // on a direct POST to /api/auth alike, and refuses when it is missing or fails.
-      ...(env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY
-        ? [
-            captcha({
-              provider: "cloudflare-turnstile",
-              secretKey: env.TURNSTILE_SECRET_KEY,
-              endpoints: ["/sign-in/magic-link"],
-            }),
-          ]
-        : []),
-    ],
     // Seed platform admins. ADMIN_EMAILS is a comma-separated allowlist; when a
     // user whose email is on it is created (first sign-in), grant them a
     // platform-wide admin role (null edition_id). Falls back to the single
@@ -118,11 +81,11 @@ function buildAuth(env: Env) {
   });
 }
 
-type AuthInstance = ReturnType<typeof buildAuth>;
+type AuthInstance = Awaited<ReturnType<typeof buildAuth>>;
 
-const cache = new WeakMap<Env, AuthInstance>();
+const cache = new WeakMap<Env, Promise<AuthInstance>>();
 
-export function getAuth(env: Env): AuthInstance {
+export function getAuth(env: Env): Promise<AuthInstance> {
   const existing = cache.get(env);
   if (existing) return existing;
   const auth = buildAuth(env);
@@ -167,7 +130,7 @@ export async function getSessionUser(
 ): Promise<SessionUser | null> {
   if (!env.BETTER_AUTH_SECRET) return null;
   try {
-    const session = await getAuth(env).api.getSession({
+    const session = await (await getAuth(env)).api.getSession({
       headers: request.headers,
     });
     if (!session?.user) return null;
