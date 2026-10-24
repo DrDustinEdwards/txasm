@@ -21,12 +21,13 @@
     "postinstall": "devkit-bootstrap"
   },
   "dependencies": {
+    "@better-auth/passkey": "1.7.12",
     "@cloudflare/puppeteer": "^1.1.0",
     "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.6.0",
     "@dustinedwards/d1-dump": "github:DrDustinEdwards/d1-dump#v0.6.0",
     "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.8.1",
-    "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#v0.13.0",
-    "better-auth": "^1.6.22",
+    "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#89e9d588f28a58ece83ffb509609fff356e2b889",
+    "better-auth": "1.7.12",
     "capsomer": "github:DrDustinEdwards/capsomer#v0.16.0",
     "drizzle-orm": "0.45.2",
     "hast-util-to-string": "3.0.1",

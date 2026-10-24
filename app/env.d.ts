@@ -12,6 +12,10 @@ interface Env {
   ADMIN_EMAILS?: string;
   // Carrel's site API key (app/lib/carrel/handler.server.ts). Unset: the API refuses every call.
   CARREL_SITE_KEY?: string;
+  // Cloudflare Turnstile on the sign-in link (app/lib/auth.server.ts). The check is on only
+  // when both are set, so a key without its secret never locks everyone out.
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 declare namespace Cloudflare {
@@ -21,5 +25,7 @@ declare namespace Cloudflare {
     ADMIN_EMAIL: string;
     ADMIN_EMAILS?: string;
     CARREL_SITE_KEY?: string;
+    TURNSTILE_SITE_KEY?: string;
+    TURNSTILE_SECRET_KEY?: string;
   }
 }

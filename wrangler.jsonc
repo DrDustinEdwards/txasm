@@ -36,9 +36,6 @@
 		{ "binding": "UPLOADS", "bucket_name": "txasm-uploads" },
 		{ "binding": "BOOKS", "bucket_name": "txasm-books" }
 	],
-	"kv_namespaces": [
-		{ "binding": "APP_KV", "id": "b58a10950cf54fb6a54ca8808123d211" }
-	],
 	// Rate limit for Carrel's site API (app/lib/carrel). namespace_id must be unique to this site:
 	// sites in one account that share one share counters (germomics 7301, foxing 1104).
 	"ratelimits": [

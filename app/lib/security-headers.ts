@@ -1,11 +1,13 @@
 // The security headers every response from this Worker carries: the family standard
-// from @dustinedwards/site-runtime, with no overrides. X-Frame-Options: deny is the
+// from @dustinedwards/site-runtime, with one override, the passkey sign-in's
+// Permissions-Policy (PASSKEY_OVERRIDES). X-Frame-Options: deny is the
 // part that matters most here: a framed admin page could otherwise submit a role
 // grant or a book publish with the chair's cookie (Grok audit 2026-10-21, TX-1).
-import { applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
+import { PASSKEY_OVERRIDES, applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
 import { buildContentSecurityPolicy, generateNonce, reportingEndpoints } from "@dustinedwards/site-runtime/csp";
+import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
 
-export const SECURITY_HEADERS = buildSecurityHeaders();
+export const SECURITY_HEADERS = buildSecurityHeaders({ overrides: PASSKEY_OVERRIDES });
 
 /** Where browsers send violation reports (report-uri), and the Reporting API name for it (report-to). */
 export const CSP_REPORT_PATH = "/csp-report";
@@ -20,6 +22,7 @@ export const newCspNonce = generateNonce;
 // - img: only 'self' (the favicon, /documents/<slug>/inline).
 // - script: 'self' plus this request's nonce, which React Router puts on its inline hydration and
 //   streaming scripts (app/entry.server.tsx).
+// - script, frame: Cloudflare Turnstile on the sign-in form (app/routes/signin.tsx).
 // - style attributes: React style={{...}} props (brand marks, the program grid), which a nonce
 //   cannot cover.
 // Not listed, so reported: the book preview's Paged.js (unpkg) and its inline styles and config
@@ -28,7 +31,12 @@ export const newCspNonce = generateNonce;
 // Report-Only until the reports show nothing the pages need is missing.
 function contentSecurityPolicy(nonce: string | undefined) {
   return buildContentSecurityPolicy({
-    sources: { style: ["https://fonts.googleapis.com"], font: ["https://fonts.gstatic.com"] },
+    sources: {
+      style: ["https://fonts.googleapis.com"],
+      font: ["https://fonts.gstatic.com"],
+      script: [TURNSTILE_ORIGIN],
+      frame: [TURNSTILE_ORIGIN],
+    },
     nonce,
     styleAttributesInline: true,
     reportUri: CSP_REPORT_PATH,

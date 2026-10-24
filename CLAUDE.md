@@ -13,8 +13,8 @@ Decisions go to `txasm/decisions.md`.
 ## Stack (repo-specific additions to the house stack)
 
 - React Router v8 + React 19 + TypeScript, Vite with @cloudflare/vite-plugin. Dev server runs in workerd, so local dev mirrors production.
-- D1 via Drizzle, R2 for uploads (figures, camera-ready files, generated books), KV for sessions and cache, Cron Triggers for deadline jobs and reminders, Browser Rendering for the book PDF.
-- Better Auth on D1/Drizzle, magic-link sign-in, no Google requirement. Sessions in KV via Better Auth secondary storage. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
+- D1 via Drizzle, R2 for uploads (figures, camera-ready files, generated books), Cron Triggers for deadline jobs and reminders, Browser Rendering for the book PDF.
+- Better Auth on D1/Drizzle with the family sign-in from site-runtime `./sign-in`: a passkey first, an email link before one exists (Turnstile on it once its keys are set), no passwords, no Google or Apple. Sessions and the sign-in rate limit are in D1. Platform admins are seeded on first sign-in from ADMIN_EMAILS (comma-separated allowlist); ADMIN_EMAIL is the older single-value form, honored when ADMIN_EMAILS is unset.
 - PayPal for registration payments: not built yet (only the schema columns exist); checkout and a signature-verified webhook come with it. Cloudflare Email Service via the native send_email binding; email goes live at cutover once txasm.org is on Cloudflare DNS.
 - Capsomer (the family design system, `capsomer` pinned to a release tag) with the navy family and the txasm site layer; plain CSS in `app/app.css`, no Tailwind.
 - Carrel edits the site pages (`page` in D1: home, award-nominations) through `@dustinedwards/site-api` at /api/carrel/v1 (`app/lib/carrel`, its key the CARREL_SITE_KEY secret), rendering markdown with Prelum.

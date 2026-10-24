@@ -28,9 +28,10 @@ function tsMs(name: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Auth (Better Auth owns these). Sessions live in KV via Better Auth secondary
-// storage, so there is no session table in D1. Keep these column shapes in sync
-// with what the Better Auth Drizzle adapter expects, and pass this schema to it.
+// Auth (Better Auth owns these). Sessions and the sign-in rate limit live here in
+// D1, which is consistent everywhere at once, so a sign-out holds at once and the
+// limiter counts in one atomic step (KV is neither). Keep these column shapes in
+// sync with what the Better Auth Drizzle adapter expects, and pass this schema to it.
 // ---------------------------------------------------------------------------
 
 export const user = sqliteTable("user", {
@@ -57,12 +58,39 @@ export const account = sqliteTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
+    accessTokenExpiresAt: tsMs("access_token_expires_at"),
+    refreshTokenExpiresAt: tsMs("refresh_token_expires_at"),
+    scope: text("scope"),
     password: text("password"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [index("ix_account_user").on(t.userId)],
 );
+
+export const session = sqliteTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: tsMs("expires_at").notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_session_user").on(t.userId)],
+);
+
+export const rateLimit = sqliteTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: integer("last_request").notNull(),
+});
 
 export const verification = sqliteTable(
   "verification",
@@ -75,6 +103,27 @@ export const verification = sqliteTable(
     updatedAt: updatedAt(),
   },
   (t) => [index("ix_verification_identifier").on(t.identifier)],
+);
+
+// A person's passkeys (site-runtime ./sign-in, Better Auth's passkey plugin).
+export const passkey = sqliteTable(
+  "passkey",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: integer("backed_up", { mode: "boolean" }).notNull(),
+    transports: text("transports"),
+    createdAt: tsMs("created_at"),
+    aaguid: text("aaguid"),
+  },
+  (t) => [index("ix_passkey_user").on(t.userId), index("ix_passkey_credential").on(t.credentialID)],
 );
 
 // ---------------------------------------------------------------------------

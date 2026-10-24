@@ -4,13 +4,16 @@
 import type { DumpResult } from "@dustinedwards/d1-dump";
 
 // Never back up live credentials or one-time tokens: a backup is one more place a
-// session could leak from, and restoring one would revive old sign-ins. Sessions are
-// not in D1 at all (Better Auth keeps them in KV).
+// session could leak from, and restoring one would revive old sign-ins.
 export const EXCLUDED_TABLES = [
+  // Better Auth sessions: live sign-in tokens.
+  "session",
+  // Better Auth's sign-in rate-limit counts, which mean nothing after a minute.
+  "rate_limit",
   // Better Auth magic-link tokens and other one-time verification values.
   "verification",
   // Better Auth account rows carry access, refresh and id tokens and a password
-  // hash column. Sign-in is magic-link only, so the table holds no data the
+  // hash column. Sign-in is a passkey or an email link, so the table holds no data the
   // site needs back; a user signs in again and the row is recreated.
   "account",
   // Reviewer and chair invitations carry a live one-time accept token.

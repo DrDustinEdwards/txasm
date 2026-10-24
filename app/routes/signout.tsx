@@ -12,7 +12,7 @@ export async function loader() {
 // The cookie-clearing headers from Better Auth are forwarded onto the redirect.
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
-  const response = await getAuth(env).api.signOut({
+  const response = await (await getAuth(env)).api.signOut({
     headers: request.headers,
     asResponse: true,
   });

@@ -1,19 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
+import { signInMethods } from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
+import { authClient } from "~/lib/auth-client";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Sign in") }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getSessionUser(request);
   if (user) throw redirect("/");
-  return null;
+  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey };
 }
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -38,11 +41,16 @@ export async function action({
       const value = request.headers.get(name);
       if (value) headers.set(name, value);
     }
-    const response = await getAuth(env).handler(
+    // The Turnstile widget's token, for the captcha plugin (app/lib/auth.server.ts).
+    const captchaToken = String(formData.get("cf-turnstile-response") ?? "");
+    if (captchaToken) headers.set("x-captcha-response", captchaToken);
+    const response = await (await getAuth(env)).handler(
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
         headers,
-        body: JSON.stringify({ email, callbackURL: "/" }),
+        // The link lands on /account, which offers a passkey to someone who has none
+        // and sends everyone else on home.
+        body: JSON.stringify({ email, callbackURL: "/account?welcome=1" }),
       }),
     );
     if (response.status === 429) {
@@ -50,6 +58,13 @@ export async function action({
         ok: false,
         error: "Too many sign-in requests. Wait a minute and try again.",
       };
+    }
+    // The captcha plugin's refusals: no token, or one Cloudflare would not pass.
+    if (response.status === 400 || response.status === 403) {
+      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      if (code === "MISSING_RESPONSE" || code === "VERIFICATION_FAILED") {
+        return { ok: false, error: "Complete the check, then send the link again." };
+      }
     }
     if (!response.ok) {
       throw new Error(`magic link request returned ${response.status}`);
@@ -64,16 +79,39 @@ export async function action({
   }
 }
 
-export default function SignIn() {
+export default function SignIn({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
 
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLHeadingElement>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const siteKey = loaderData.turnstileSiteKey;
 
   const sent = actionData?.ok === true;
   const error = actionData && !actionData.ok ? actionData.error : null;
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
+  // A passkey sign-in sets the session cookie, so a full load reads it.
+  async function signInWithPasskey(autoFill: boolean) {
+    const result = await authClient.signIn.passkey({ autoFill });
+    if (!result?.error) {
+      window.location.assign("/");
+    } else if (!autoFill) {
+      setPasskeyError("That passkey did not sign you in. Try again, or get a link by email.");
+    }
+  }
+
+  // Where the browser can, it offers saved passkeys in the email field's
+  // suggestions (autocomplete "webauthn"), so a returning person taps one.
+  useEffect(() => {
+    void (async () => {
+      if (await window.PublicKeyCredential?.isConditionalMediationAvailable?.()) {
+        await signInWithPasskey(true);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (sent) {
@@ -82,6 +120,13 @@ export default function SignIn() {
       inputRef.current?.focus();
     }
   }, [actionData, sent]);
+
+  // A token is good for one check, so after a refused send the widget is drawn
+  // again for a fresh one.
+  useEffect(() => {
+    if (!siteKey || sent || !turnstileRef.current) return;
+    return mountTurnstile(turnstileRef.current, siteKey);
+  }, [siteKey, sent, actionData]);
 
   if (sent) {
     return (
@@ -108,8 +153,21 @@ export default function SignIn() {
     <div className="narrow stack-6">
       <div className="stack-2">
         <h1 className="page-title">Sign in</h1>
-        <p>Enter your email and we will send a sign-in link. No password needed.</p>
+        <p>Use your passkey, or get a sign-in link by email. No password needed.</p>
       </div>
+
+      <div className="stack-2">
+        <button type="button" className="cap-btn" data-variant="primary" onClick={() => void signInWithPasskey(false)}>
+          Sign in with a passkey
+        </button>
+        {passkeyError ? (
+          <p role="alert" className="cap-field-error">
+            {passkeyError}
+          </p>
+        ) : null}
+      </div>
+
+      <p className="cap-muted">Or get a link by email</p>
 
       <Form method="post" className="stack-4" noValidate>
         <div className="cap-field">
@@ -121,7 +179,7 @@ export default function SignIn() {
             id="email"
             name="email"
             type="email"
-            autoComplete="email"
+            autoComplete="email webauthn"
             required
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "email-error" : undefined}
@@ -134,7 +192,9 @@ export default function SignIn() {
           ) : null}
         </div>
 
-        <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
+        {siteKey ? <div ref={turnstileRef} /> : null}
+
+        <button type="submit" disabled={submitting} className="cap-btn" data-variant="secondary">
           {submitting ? "Sending..." : "Send sign-in link"}
         </button>
       </Form>

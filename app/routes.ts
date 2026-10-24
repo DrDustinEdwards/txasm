@@ -17,6 +17,7 @@ export default [
     route("contact", "routes/contact.tsx"),
     route("signin", "routes/signin.tsx"),
     route("signout", "routes/signout.tsx"),
+    route("account", "routes/account.tsx"),
     route("my/abstracts", "routes/my.abstracts.tsx"),
     route("submit/:slug", "routes/submit.$slug.tsx"),
     route("abstracts/:abstractId/edit", "routes/abstracts.$abstractId.edit.tsx"),

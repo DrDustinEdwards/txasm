@@ -6,10 +6,10 @@ import { getAuth } from "~/lib/auth.server";
 // link verify) and writes (sign-in, sign-out) hand off to its handler.
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
-  return getAuth(env).handler(request);
+  return (await getAuth(env)).handler(request);
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
-  return getAuth(env).handler(request);
+  return (await getAuth(env)).handler(request);
 }
