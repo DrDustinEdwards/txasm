@@ -28,7 +28,7 @@
     "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.8.1",
     "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#89e9d588f28a58ece83ffb509609fff356e2b889",
     "better-auth": "1.7.12",
-    "capsomer": "github:DrDustinEdwards/capsomer#v0.16.0",
+    "capsomer": "github:DrDustinEdwards/capsomer#v0.17.0",
     "drizzle-orm": "0.45.2",
     "hast-util-to-string": "3.0.1",
     "isbot": "5.1.44",
