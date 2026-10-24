@@ -10,4 +10,9 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  // Minify the Worker: startup has to finish inside 1 s and grows with the bundle
+  // (.worker-size.json). Source maps are uploaded, so stack traces stay readable.
+  environments: {
+    ssr: { build: { minify: true } },
+  },
 });
