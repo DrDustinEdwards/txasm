@@ -23,3 +23,7 @@ ADMIN_EMAIL=
 # 1x0000000000000000000000000000000AA.
 TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
+
+# Platform admins sign in through Cloudflare Access in production (app/lib/access.server.ts);
+# "1" lets localhost in.
+ACCESS_DEV_BYPASS="1"
