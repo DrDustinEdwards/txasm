@@ -1,19 +1,20 @@
 import { useEffect, useRef } from "react";
+import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
-import { getAuth, getSessionUser } from "~/lib/auth.server";
+import { getAuth, getSessionUser, turnstileSiteKey } from "~/lib/auth.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return [{ title: pageTitle(matches, "Sign in") }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getSessionUser(request);
   if (user) throw redirect("/");
-  return null;
+  return { turnstileSiteKey: turnstileSiteKey(context.get(cloudflareContext).env) };
 }
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -38,6 +39,9 @@ export async function action({
       const value = request.headers.get(name);
       if (value) headers.set(name, value);
     }
+    // The Turnstile widget's token, for the captcha plugin (app/lib/auth.server.ts).
+    const captchaToken = String(formData.get("cf-turnstile-response") ?? "");
+    if (captchaToken) headers.set("x-captcha-response", captchaToken);
     const response = await getAuth(env).handler(
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
@@ -50,6 +54,13 @@ export async function action({
         ok: false,
         error: "Too many sign-in requests. Wait a minute and try again.",
       };
+    }
+    // The captcha plugin's refusals: no token, or one Cloudflare would not pass.
+    if (response.status === 400 || response.status === 403) {
+      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      if (code === "MISSING_RESPONSE" || code === "VERIFICATION_FAILED") {
+        return { ok: false, error: "Complete the check, then send the link again." };
+      }
     }
     if (!response.ok) {
       throw new Error(`magic link request returned ${response.status}`);
@@ -64,13 +75,15 @@ export async function action({
   }
 }
 
-export default function SignIn() {
+export default function SignIn({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
 
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLHeadingElement>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const siteKey = loaderData.turnstileSiteKey;
 
   const sent = actionData?.ok === true;
   const error = actionData && !actionData.ok ? actionData.error : null;
@@ -82,6 +95,13 @@ export default function SignIn() {
       inputRef.current?.focus();
     }
   }, [actionData, sent]);
+
+  // A token is good for one check, so after a refused send the widget is drawn
+  // again for a fresh one.
+  useEffect(() => {
+    if (!siteKey || sent || !turnstileRef.current) return;
+    return mountTurnstile(turnstileRef.current, siteKey);
+  }, [siteKey, sent, actionData]);
 
   if (sent) {
     return (
@@ -133,6 +153,8 @@ export default function SignIn() {
             </p>
           ) : null}
         </div>
+
+        {siteKey ? <div ref={turnstileRef} /> : null}
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Sending..." : "Send sign-in link"}

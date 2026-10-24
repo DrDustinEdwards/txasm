@@ -4,6 +4,7 @@
 // grant or a book publish with the chair's cookie (Grok audit 2026-10-21, TX-1).
 import { applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
 import { buildContentSecurityPolicy, generateNonce, reportingEndpoints } from "@dustinedwards/site-runtime/csp";
+import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
 
 export const SECURITY_HEADERS = buildSecurityHeaders();
 
@@ -20,6 +21,7 @@ export const newCspNonce = generateNonce;
 // - img: only 'self' (the favicon, /documents/<slug>/inline).
 // - script: 'self' plus this request's nonce, which React Router puts on its inline hydration and
 //   streaming scripts (app/entry.server.tsx).
+// - script, frame: Cloudflare Turnstile on the sign-in form (app/routes/signin.tsx).
 // - style attributes: React style={{...}} props (brand marks, the program grid), which a nonce
 //   cannot cover.
 // Not listed, so reported: the book preview's Paged.js (unpkg) and its inline styles and config
@@ -28,7 +30,12 @@ export const newCspNonce = generateNonce;
 // Report-Only until the reports show nothing the pages need is missing.
 function contentSecurityPolicy(nonce: string | undefined) {
   return buildContentSecurityPolicy({
-    sources: { style: ["https://fonts.googleapis.com"], font: ["https://fonts.gstatic.com"] },
+    sources: {
+      style: ["https://fonts.googleapis.com"],
+      font: ["https://fonts.gstatic.com"],
+      script: [TURNSTILE_ORIGIN],
+      frame: [TURNSTILE_ORIGIN],
+    },
     nonce,
     styleAttributesInline: true,
     reportUri: CSP_REPORT_PATH,

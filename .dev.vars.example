@@ -17,3 +17,9 @@ EMAIL_FROM_NAME=TXASM
 # single-value form, still honored when ADMIN_EMAILS is not set.
 ADMIN_EMAILS=
 ADMIN_EMAIL=
+
+# Cloudflare Turnstile on the sign-in link. The check is on only when both are set.
+# Cloudflare's test pair always passes: 1x00000000000000000000AA and
+# 1x0000000000000000000000000000000AA.
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
