@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { magicLink } from "better-auth/plugins";
+import { captcha, magicLink } from "better-auth/plugins";
 import { redirect } from "react-router";
 import { env } from "cloudflare:workers";
 import * as schema from "../db/schema";
@@ -22,6 +22,12 @@ import { magicLinkEmail, sendEmail } from "./email.server";
 // stable within an isolate. The adapter needs the schema and the Drizzle client,
 // which is why this file sits inside the data/auth boundary alongside
 // the data-access layer and app/db/index.server.ts.
+// Turnstile's site key, when the bot check on the sign-in link is on: both the key
+// and its secret are set. Null while either is missing, and the form shows no widget.
+export function turnstileSiteKey(env: Env): string | null {
+  return env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY ? env.TURNSTILE_SITE_KEY : null;
+}
+
 function buildAuth(env: Env) {
   const db = getDb(env);
 
@@ -68,6 +74,19 @@ function buildAuth(env: Env) {
           await sendEmail(env, { to: email, ...magicLinkEmail(url) });
         },
       }),
+      // The sign-in link is the one public form that emails a stranger, so it is the
+      // one a bot would use to send mail from txasm.org. The plugin checks the token
+      // (x-captcha-response) with Cloudflare before the link is made, on the form and
+      // on a direct POST to /api/auth alike, and refuses when it is missing or fails.
+      ...(env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY
+        ? [
+            captcha({
+              provider: "cloudflare-turnstile",
+              secretKey: env.TURNSTILE_SECRET_KEY,
+              endpoints: ["/sign-in/magic-link"],
+            }),
+          ]
+        : []),
     ],
     // Seed platform admins. ADMIN_EMAILS is a comma-separated allowlist; when a
     // user whose email is on it is created (first sign-in), grant them a
