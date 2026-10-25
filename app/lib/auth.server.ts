@@ -13,6 +13,7 @@ import {
   type Actor,
 } from "./data-access";
 import { magicLinkEmail, sendEmail } from "./email.server";
+import { accessSignInUrl, adminAccessOk } from "./access.server";
 
 // Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
 // ./sign-in): a passkey first, an emailed link before one exists, Turnstile on
@@ -150,14 +151,20 @@ export async function requireUser(request: Request): Promise<SessionUser> {
 }
 
 // Require a platform-wide admin role_grant. Signed-out users go to sign-in;
-// signed-in non-admins get a 403.
+// signed-in non-admins get a 403; an admin without Cloudflare Access's cookie
+// goes through Access first (access.server.ts).
 export async function requireAdmin(request: Request): Promise<AdminContext> {
   const user = await requireUser(request);
   const actor = await getActor(env, user.id);
   if (!isAdmin(actor)) {
     throw new Response("Forbidden", { status: 403 });
   }
+  await requireAdminAccess(request, user);
   return { user, actor };
+}
+
+async function requireAdminAccess(request: Request, user: SessionUser) {
+  if (!(await adminAccessOk(env, request, user.email))) throw redirect(accessSignInUrl(request));
 }
 
 // Require a chair (or admin) of a specific meeting. Signed-out users go to
@@ -172,6 +179,9 @@ export async function requireChair(
   if (!isChair(actor, editionId)) {
     throw new Response("Forbidden", { status: 403 });
   }
+  // A platform admin is a chair of every meeting, and an admin always comes
+  // through Access.
+  if (isAdmin(actor)) await requireAdminAccess(request, user);
   return { user, actor };
 }
 

@@ -85,6 +85,8 @@ export default [
       "routes/admin.editions.$editionId.sponsors.tsx",
     ),
   ]),
+  // Where Cloudflare Access sends a platform admin back from (app/lib/access.server.ts).
+  route("admin/access", "routes/admin.access.tsx"),
   // Resource routes: full-document HTML / streamed PDF, no shell chrome.
   route(
     "admin/editions/:editionId/book/preview",

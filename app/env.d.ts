@@ -16,6 +16,11 @@ interface Env {
   // when both are set, so a key without its secret never locks everyone out.
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;
+  // Cloudflare Access for platform admins (app/lib/access.server.ts): the team domain and the
+  // application's AUD tag. Unset, no admin page opens. ACCESS_DEV_BYPASS="1" lets localhost in.
+  ACCESS_TEAM_DOMAIN?: string;
+  ACCESS_AUD?: string;
+  ACCESS_DEV_BYPASS?: string;
 }
 
 declare namespace Cloudflare {
@@ -27,5 +32,8 @@ declare namespace Cloudflare {
     CARREL_SITE_KEY?: string;
     TURNSTILE_SITE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
+    ACCESS_TEAM_DOMAIN?: string;
+    ACCESS_AUD?: string;
+    ACCESS_DEV_BYPASS?: string;
   }
 }
