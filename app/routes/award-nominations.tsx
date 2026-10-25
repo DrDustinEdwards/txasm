@@ -1,6 +1,6 @@
 import type { Route } from "./+types/award-nominations";
 import { getDataAccess } from "~/lib/data-access";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 
 // The page's text is edited in Carrel (app/lib/carrel) and stored in D1.
@@ -11,10 +11,11 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export function meta({ matches, loaderData }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, loaderData?.title ?? "Award Nominations") },
-    { name: "description", content: loaderData?.description ?? "" },
-  ];
+  return pageHead(matches, {
+    path: "/award-nominations",
+    name: loaderData?.title ?? "Award Nominations",
+    description: loaderData?.description || "How to nominate a member for a Texas Branch ASM award.",
+  });
 }
 
 export default function AwardNominations({ loaderData }: Route.ComponentProps) {

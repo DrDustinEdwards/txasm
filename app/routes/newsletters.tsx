@@ -3,17 +3,15 @@ import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
 import { Empty } from "capsomer/react/empty";
 import { DocumentList } from "~/components/document-list";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Newsletters") },
-    {
-      name: "description",
-      content:
-        "Newsletters from the Texas Branch of the American Society for Microbiology.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/newsletters",
+    name: "Newsletters",
+    description:
+      "Newsletters from the Texas Branch of the American Society for Microbiology.",
+  });
 }
 
 export async function loader({ context }: Route.LoaderArgs) {

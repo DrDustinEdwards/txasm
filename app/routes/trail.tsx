@@ -2,17 +2,15 @@ import { useRouteLoaderData } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/trail";
 import type { loader as rootLoader } from "~/root";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Trail") },
-    {
-      name: "description",
-      content:
-        "Host cities of the Texas Branch ASM meetings, a history going back to the branch's founding.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/trail",
+    name: "Trail",
+    description:
+      "Host cities of the Texas Branch ASM meetings, a history going back to the branch's founding.",
+  });
 }
 
 // Years on record for branch meetings, from the current site's Trail page. The

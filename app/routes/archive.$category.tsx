@@ -4,13 +4,18 @@ import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
 import { DocumentList } from "~/components/document-list";
 import { ARCHIVE_SEGMENTS, CATEGORY_PATHS } from "~/lib/document-nav";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
-export function meta({ matches }: Route.MetaArgs) {
+export function meta({ matches, location }: Route.MetaArgs) {
   const leaf = matches[matches.length - 1] as
     | { data?: { title?: string } }
     | undefined;
-  return [{ title: pageTitle(matches, leaf?.data?.title ?? "Archive") }];
+  const title = leaf?.data?.title ?? "Archive";
+  return pageHead(matches, {
+    path: location.pathname,
+    name: title,
+    description: `${title} from past Texas Branch ASM meetings.`,
+  });
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {

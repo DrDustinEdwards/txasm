@@ -4,16 +4,21 @@ import { Badge } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
 import { cloudflareContext } from "~/load-context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
-export function meta({ matches }: Route.MetaArgs) {
-  // The leaf match carries this route's loader data; read the award name from it
-  // for the title, falling back when it is not yet available.
+export function meta({ matches, location }: Route.MetaArgs) {
+  // The leaf match carries this route's loader data; read the award from it,
+  // falling back when it is not yet available.
   const leaf = matches[matches.length - 1] as
-    | { data?: { award?: { name?: string } } }
+    | { data?: { award?: { name?: string; description?: string | null } } }
     | undefined;
-  const name = leaf?.data?.award?.name ?? "Award";
-  return [{ title: pageTitle(matches, name) }];
+  const award = leaf?.data?.award;
+  const name = award?.name ?? "Award";
+  return pageHead(matches, {
+    path: location.pathname,
+    name,
+    description: award?.description || `The ${name} of the Texas Branch ASM and its recipients.`,
+  });
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {

@@ -8,12 +8,21 @@ import {
   ABSTRACT_LEVEL_LABELS,
   SEASON_LABELS,
 } from "~/lib/vocab";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead, plainText } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 
-export function meta({ params, matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, `Abstract ${params.ref}`) }];
+export function meta({ params, matches, location, loaderData }: Route.MetaArgs) {
+  const abstract = loaderData?.abstract;
+  const title = abstract ? plainText(abstract.title) : `Abstract ${params.ref}`;
+  const authors = abstract?.authors.map((a) => a.name).join(", ");
+  return pageHead(matches, {
+    path: location.pathname,
+    name: title,
+    description: loaderData
+      ? `${authors ? `${authors}. ` : ""}Abstract from the ${loaderData.edition.name} of the Texas Branch ASM.`
+      : "An abstract from a Texas Branch ASM meeting.",
+  });
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {

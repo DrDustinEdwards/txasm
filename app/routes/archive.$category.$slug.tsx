@@ -7,13 +7,18 @@ import {
   CATEGORY_PATHS,
   adjacentSlugs,
 } from "~/lib/document-nav";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
-export function meta({ matches }: Route.MetaArgs) {
+export function meta({ matches, location }: Route.MetaArgs) {
   const leaf = matches[matches.length - 1] as
     | { data?: { doc?: { title?: string } } }
     | undefined;
-  return [{ title: pageTitle(matches, leaf?.data?.doc?.title ?? "Document") }];
+  const title = leaf?.data?.doc?.title ?? "Document";
+  return pageHead(matches, {
+    path: location.pathname,
+    name: title,
+    description: `${title}, from the Texas Branch ASM archive.`,
+  });
 }
 
 // TODO (cutover redirects): match the live per-document paths where reasonable

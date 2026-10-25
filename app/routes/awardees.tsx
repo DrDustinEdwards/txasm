@@ -4,17 +4,15 @@ import { Field } from "capsomer/react/field";
 import type { Route } from "./+types/awardees";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Awardees") },
-    {
-      name: "description",
-      content:
-        "The named awards of the Texas Branch ASM and their recipients. Search by person, institution, mentor, year, or award.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/awardees",
+    name: "Awardees",
+    description:
+      "The named awards of the Texas Branch ASM and their recipients. Search by person, institution, mentor, year, or award.",
+  });
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

@@ -3,13 +3,18 @@ import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
 import { DocumentDetail } from "~/components/document-detail";
 import { adjacentSlugs } from "~/lib/document-nav";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
-export function meta({ matches }: Route.MetaArgs) {
+export function meta({ matches, location }: Route.MetaArgs) {
   const leaf = matches[matches.length - 1] as
     | { data?: { doc?: { title?: string } } }
     | undefined;
-  return [{ title: pageTitle(matches, leaf?.data?.doc?.title ?? "Newsletter") }];
+  const title = leaf?.data?.doc?.title ?? "Newsletter";
+  return pageHead(matches, {
+    path: location.pathname,
+    name: title,
+    description: `${title}, a newsletter of the Texas Branch of the American Society for Microbiology.`,
+  });
 }
 
 // TODO (cutover redirects): confirm each newsletter slug matches the live path

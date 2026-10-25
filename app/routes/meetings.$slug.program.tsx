@@ -1,5 +1,6 @@
 import type { Route } from "./+types/meetings.$slug.program";
-import { pageTitle } from "~/lib/site-meta";
+import { jsonLd } from "@drdustinedwards/site-helpers/schema";
+import { meetingLd, pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import {
   NotFoundError,
@@ -16,8 +17,19 @@ import { Empty } from "capsomer/react/empty";
 import { Badge } from "capsomer/react/status";
 import { renderLink } from "~/components/site-chrome";
 
-export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Program") }];
+export function meta({ matches, location, loaderData }: Route.MetaArgs) {
+  const edition = loaderData?.edition;
+  const name = edition ? `${edition.name} program` : "Program";
+  return [
+    ...pageHead(matches, {
+      path: location.pathname,
+      name,
+      description: edition
+        ? `The program of the ${edition.name} of the Texas Branch ASM${edition.city ? `, ${edition.city}` : ""}.`
+        : "A Texas Branch ASM meeting program.",
+    }),
+    ...(edition ? [jsonLd(meetingLd(edition, location.pathname))] : []),
+  ];
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
