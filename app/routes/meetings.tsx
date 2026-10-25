@@ -13,17 +13,15 @@ import {
   type AbstractFormat,
   type AbstractLevel,
 } from "~/lib/vocab";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Meetings") },
-    {
-      name: "description",
-      content:
-        "Past meetings of the Texas Branch ASM, their programs, and their abstract archives. Search accepted abstracts by author, title, or topic.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/meetings",
+    name: "Meetings",
+    description:
+      "Past meetings of the Texas Branch ASM, their programs, and their abstract archives. Search accepted abstracts by author, title, or topic.",
+  });
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {

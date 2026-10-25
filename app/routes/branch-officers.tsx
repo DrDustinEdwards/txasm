@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "capsomer/react/tabs";
 import type { Route } from "./+types/branch-officers";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import {
   getDataAccess,
@@ -15,14 +15,12 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Branch officers") },
-    {
-      name: "description",
-      content:
-        "Current officers, advisory board, and past officers of the Texas Branch of the American Society for Microbiology.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/branch-officers",
+    name: "Branch officers",
+    description:
+      "Current officers, advisory board, and past officers of the Texas Branch of the American Society for Microbiology.",
+  });
 }
 
 function OfficerCard({ officer }: { officer: Officer }) {

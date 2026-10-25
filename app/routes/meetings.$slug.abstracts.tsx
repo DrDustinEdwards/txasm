@@ -14,12 +14,19 @@ import {
   ABSTRACT_LEVEL_LABELS,
   SEASON_LABELS,
 } from "~/lib/vocab";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 
-export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Abstracts") }];
+export function meta({ matches, location, loaderData }: Route.MetaArgs) {
+  const edition = loaderData?.edition;
+  return pageHead(matches, {
+    path: location.pathname,
+    name: edition ? `${edition.name} abstracts` : "Abstracts",
+    description: edition
+      ? `Accepted abstracts from the ${edition.name} of the Texas Branch ASM, by topic, level and format.`
+      : "Accepted abstracts from a Texas Branch ASM meeting.",
+  });
 }
 
 // Sentinel for the untopiced (oral) group in the topic filter.

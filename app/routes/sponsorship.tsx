@@ -1,16 +1,14 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/sponsorship";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Sponsorship") },
-    {
-      name: "description",
-      content:
-        "Sponsor the Texas Branch ASM meetings and support student microbiologists across Texas.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/sponsorship",
+    name: "Sponsorship",
+    description:
+      "Sponsor the Texas Branch ASM meetings and support student microbiologists across Texas.",
+  });
 }
 
 // The external Sponsor Registration form hosted on formsmarts.

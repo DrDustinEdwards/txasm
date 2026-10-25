@@ -2,17 +2,15 @@ import { useRouteLoaderData } from "react-router";
 import { Empty } from "capsomer/react/empty";
 import type { Route } from "./+types/contact";
 import type { loader as rootLoader } from "~/root";
-import { pageTitle } from "~/lib/site-meta";
+import { pageHead } from "~/lib/site-meta";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: pageTitle(matches, "Contact") },
-    {
-      name: "description",
-      content:
-        "How to reach the Texas Branch of the American Society for Microbiology.",
-    },
-  ];
+  return pageHead(matches, {
+    path: "/contact",
+    name: "Contact",
+    description:
+      "How to reach the Texas Branch of the American Society for Microbiology.",
+  });
 }
 
 export default function Contact() {
