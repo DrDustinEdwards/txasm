@@ -21,6 +21,13 @@ export function pageTitle(
 
 /** The production origin: canonicals, the sitemap and robots.txt name it, never the request's. */
 export const SITE_ORIGIN = "https://txasm.org";
+
+/** The site's IndexNow key, public by the protocol's design: served as /<key>.txt and sent with each changed page. */
+export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
+
+/** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
+export const SECURITY_CONTACT = "security@dustinedwards.info";
+export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
 export const SITE_NAME = "Texas Branch ASM";
 const SITE_CARD = {
   url: "/og-card.png",

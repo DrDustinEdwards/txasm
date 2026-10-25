@@ -2,13 +2,14 @@ import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
 import {
+  backupHealth,
   dumpDatabase,
   runRestoreDrill,
   standardProblems,
   type D1Like,
   type R2Like,
 } from "@dustinedwards/d1-dump";
-import { getBackupHealth, runNightlyBackup } from "../app/lib/backup.server";
+import { runNightlyBackup } from "../app/lib/backup.server";
 import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "../app/lib/backup-checks";
 import { applyMigrations } from "./d1";
 
@@ -131,7 +132,7 @@ test("an empty bucket reports a warning, not an age", async () => {
   });
   try {
     const bare = (await emptyMf.getR2Bucket("EMPTY")) as unknown as R2Like;
-    const health = await getBackupHealth({ BOOKS: bare } as never);
+    const health = await backupHealth(bare as never);
     assert.ok(health.warning, "no dump must warn");
     assert.notEqual(health.age_hours, 0);
   } finally {
@@ -154,7 +155,7 @@ test("a dump older than 26 hours warns", async () => {
     await dumpDatabase(oldDb, oldBucket, {
       now: new Date(Date.now() - 30 * 3600 * 1000),
     });
-    const health = await getBackupHealth({ BOOKS: oldBucket } as never);
+    const health = await backupHealth(oldBucket as never);
     assert.ok(health.warning, "a 30 hour old dump must warn");
     assert.ok((health.age_hours ?? 0) >= 29);
   } finally {
@@ -189,7 +190,7 @@ test("a missing required table is refused and named", () => {
 });
 
 test("an emptied database never gets the complete marker", async () => {
-  const before = await getBackupHealth(env);
+  const before = await backupHealth(env.BOOKS);
   await db.prepare("DELETE FROM platform_settings").run();
   try {
     await assert.rejects(runNightlyBackup(env), /left incomplete.*platform_settings dumped empty/);
@@ -198,6 +199,6 @@ test("an emptied database never gets the complete marker", async () => {
       .prepare("INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)")
       .run();
   }
-  const after = await getBackupHealth(env);
+  const after = await backupHealth(env.BOOKS);
   assert.equal(after.last_ok, before.last_ok, "the failed run must not become the latest");
 });

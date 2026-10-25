@@ -1,4 +1,5 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
+import { INDEXNOW_KEY } from "./lib/site-meta";
 
 export default [
   route("robots.txt", "routes/robots.ts"),
@@ -111,4 +112,6 @@ export default [
   route("api/abstracts-search", "routes/api.abstracts-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
   route("health", "routes/health.ts"),
+  route(".well-known/security.txt", "routes/security-txt.ts"),
+  route(`${INDEXNOW_KEY}.txt`, "routes/indexnow-key.ts"),
 ] satisfies RouteConfig;

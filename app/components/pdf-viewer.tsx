@@ -59,7 +59,7 @@ export function PdfViewer({
   // Load the document once per URL (browser only).
   useEffect(() => {
     if (!mounted) return;
-    let cancelled = false;
+    let canceled = false;
     setStatus("loading");
     setNumPages(0);
     setPage(1);
@@ -80,7 +80,7 @@ export function PdfViewer({
         });
         loadingTaskRef.current = loadingTask;
         const doc = await loadingTask.promise;
-        if (cancelled) {
+        if (canceled) {
           void loadingTask.destroy();
           return;
         }
@@ -88,12 +88,12 @@ export function PdfViewer({
         setNumPages(doc.numPages);
         setStatus("ready");
       } catch {
-        if (!cancelled) setStatus("error");
+        if (!canceled) setStatus("error");
       }
     })();
 
     return () => {
-      cancelled = true;
+      canceled = true;
       renderTaskRef.current?.cancel();
       docRef.current = null;
       const loadingTask = loadingTaskRef.current;
@@ -107,12 +107,12 @@ export function PdfViewer({
     const doc = docRef.current;
     const canvas = canvasRef.current;
     if (status !== "ready" || !doc || !canvas) return;
-    let cancelled = false;
+    let canceled = false;
 
     void (async () => {
       try {
         const pdfPage = await doc.getPage(page);
-        if (cancelled) return;
+        if (canceled) return;
         const viewport = pdfPage.getViewport({ scale });
         const context = canvas.getContext("2d");
         if (!context) return;
@@ -123,12 +123,12 @@ export function PdfViewer({
         renderTaskRef.current = task;
         await task.promise;
       } catch {
-        // A cancelled render rejects; ignore it. A real failure shows via status.
+        // A canceled render rejects; ignore it. A real failure shows via status.
       }
     })();
 
     return () => {
-      cancelled = true;
+      canceled = true;
     };
   }, [status, page, scale, numPages]);
 

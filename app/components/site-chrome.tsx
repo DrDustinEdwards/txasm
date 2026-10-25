@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { LinkProps } from "capsomer/react/site-header";
-import { THEME_COOKIE, THEME_MAX_AGE, type Theme } from "~/lib/theme";
+import { themeCookie } from "capsomer/theme-server";
+import { THEME_COOKIE, type Theme } from "~/lib/theme";
 
 // What the public and admin shells share around Capsomer's site header and
 // AdminShell: router links, the avatar's letters, and the theme's memory.
@@ -51,7 +52,7 @@ export function useThemeCookie(serverTheme: Theme | null): void {
     const onTheme = (e: Event) => {
       const choice = (e as CustomEvent<{ choice?: string }>).detail?.choice;
       if (choice !== "light" && choice !== "dark") return;
-      document.cookie = `${THEME_COOKIE}=${choice}; path=/; max-age=${THEME_MAX_AGE}; samesite=lax`;
+      document.cookie = themeCookie(choice, { name: THEME_COOKIE, secure: location.protocol === "https:" });
     };
     document.addEventListener("cap-theme", onTheme);
     return () => document.removeEventListener("cap-theme", onTheme);

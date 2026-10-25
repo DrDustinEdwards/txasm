@@ -47,14 +47,14 @@ export function InstitutionAutocomplete({
       setOpen(false);
       return;
     }
-    let cancelled = false;
+    let canceled = false;
     const timer = setTimeout(() => {
       fetch(`/api/institutions?q=${encodeURIComponent(query)}`, {
         headers: { Accept: "application/json" },
       })
         .then((res) => (res.ok ? res.json() : { results: [] }))
         .then((data) => {
-          if (cancelled) return;
+          if (canceled) return;
           const list = (data as { results?: InstitutionSuggestion[] }).results ?? [];
           setResults(list);
           setOpen(list.length > 0);
@@ -65,7 +65,7 @@ export function InstitutionAutocomplete({
         });
     }, 250);
     return () => {
-      cancelled = true;
+      canceled = true;
       clearTimeout(timer);
     };
   }, [value]);

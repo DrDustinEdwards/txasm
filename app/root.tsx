@@ -12,7 +12,8 @@ import type { Route } from "./+types/root";
 import { cloudflareContext } from "~/load-context";
 import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
-import { parseThemeCookie } from "~/lib/theme";
+import { readThemeCookie } from "capsomer/theme-server";
+import { THEME_COOKIE } from "~/lib/theme";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -35,7 +36,7 @@ export const links: Route.LinksFunction = () => [
 // render (org identity, footer links). The public and admin shells (their own
 // layout routes) read these from the root loader data.
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const theme = parseThemeCookie(request.headers.get("Cookie"));
+  const theme = readThemeCookie(request, THEME_COOKIE);
   const settings = await getDataAccess(
     context.get(cloudflareContext).env,
   ).settings.get();
