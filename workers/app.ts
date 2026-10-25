@@ -30,7 +30,7 @@ export default {
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it.
     const carrel = carrelApi(env);
-    if (carrel.matches(request)) return withSecurityHeaders(await carrel.handle(request), request);
+    if (carrel.matches(request)) return withSecurityHeaders(await carrel.handle(request, ctx), request);
 
     // Inject the Cloudflare env and execution context so loaders and actions
     // reach bindings through context.get(cloudflareContext), never ambiently.

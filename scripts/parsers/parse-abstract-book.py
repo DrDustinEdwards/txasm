@@ -311,7 +311,7 @@ def parse_affiliations(raw_lines):
 
 def spans_to_html_sized(spans):
     """Like spans_to_html, but small spans are the ref markers to strip, and
-    italics may be signalled by the font name rather than the flag bit."""
+    italics may be signaled by the font name rather than the flag bit."""
     parts = []
     i = 0
     while i < len(spans):

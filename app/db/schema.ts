@@ -264,7 +264,7 @@ export const registration = sqliteTable(
       .notNull()
       .references(() => registrationCategory.id),
     status: text("status", {
-      enum: ["pending", "paid", "refunded", "cancelled"],
+      enum: ["pending", "paid", "refunded", "cancelled"], // codespell:ignore (a stored value)
     })
       .notNull()
       .default("pending"),

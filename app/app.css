@@ -37,7 +37,7 @@
   --brand-red: #e8617a;
 }
 
-/* The public page frame: the site header, a centred column, the footer. Pages
+/* The public page frame: the site header, a centered column, the footer. Pages
    read at 16px, controls included; the header keeps Capsomer's sizes. */
 .txasm-page {
   display: flex;
@@ -56,7 +56,7 @@
 /* The public header lines up with the page column. Capsomer's header has no
    content-width setting (site-header.md: full width, 24px sides), so on a
    desktop its own --header-side is set to the column's edge; on a phone it
-   keeps Capsomer's 16px. Its section links read in the band's full text colour
+   keeps Capsomer's 16px. Its section links read in the band's full text color
    (--header-fg-muted is one of the band tokens a site owns), as they did
    before Capsomer, rather than muted. */
 .txasm-page .cap-site-header {

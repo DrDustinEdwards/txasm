@@ -1,0 +1,5 @@
+{
+  "spelling": {
+    "skip": ["public/pdfjs/**", "scripts/seed-data/**"]
+  }
+}

@@ -1,6 +1,6 @@
 # CLAUDE.md - txasm
 
-Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo.
+Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo. Before writing anything another site might have, read what the family shares: https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md (CI's family check fails on a copy).
 
 ## What this is
 
@@ -8,7 +8,7 @@ txasm.org: a conference and abstract-management platform for the Texas Branch of
 
 Decisions go to `txasm/decisions.md`.
 
-- Tests: keep the minimal set (a few browser tests for flows that must never break, one integration test per real behaviour, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
+- Tests: keep the minimal set (a few browser tests for flows that must never break, one integration test per real behavior, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
 
 ## Stack (repo-specific additions to the house stack)
 

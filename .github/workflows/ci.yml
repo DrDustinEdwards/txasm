@@ -1,6 +1,6 @@
 # Typecheck, lint, tests and build on every pull request and on main, then a deploy from main. One job and an
 # npm cache keep the Actions minutes low; the steps run in order and the first red one stops the run. A run on
-# main is never cancelled, so a deploy cannot stop halfway.
+# main is never canceled, so a deploy cannot stop halfway.
 
 name: CI
 
