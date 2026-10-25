@@ -78,15 +78,18 @@ function FooterLink({ label, url }: { label: string; url: string }) {
 function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) {
   const orgFullName = settings?.orgFullName ?? "";
   const copyrightName = settings?.orgName || orgFullName;
+  const footerLinks = settings?.footerLinks ?? [];
+  // Contact is always offered; an admin's own /contact link stands in for it.
+  const hasContact = footerLinks.some((link) => link.url === "/contact");
 
   return (
     <footer className="txasm-footer">
       <div className="txasm-frame">
         <nav aria-label="Footer">
-          {(settings?.footerLinks ?? []).map((link) => (
+          {footerLinks.map((link) => (
             <FooterLink key={`${link.label}-${link.url}`} label={link.label} url={link.url} />
           ))}
-          <FooterLink label="Contact" url="/contact" />
+          {hasContact ? null : <FooterLink label="Contact" url="/contact" />}
           {settings?.facebookUrl ? <FooterLink label="Facebook group" url={settings.facebookUrl} /> : null}
         </nav>
         {/* Decorative footer wordmark; the copyright line below names the org, so
