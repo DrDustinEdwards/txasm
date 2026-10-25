@@ -21,13 +21,26 @@ export function pageTitle(
 
 /** The production origin: canonicals, the sitemap and robots.txt name it, never the request's. */
 export const SITE_ORIGIN = "https://txasm.org";
-const SITE_NAME = "Texas Branch ASM";
+export const SITE_NAME = "Texas Branch ASM";
 const SITE_CARD = {
   url: "/og-card.png",
   width: 1200,
   height: 630,
   alt: "Texas Branch of the American Society for Microbiology",
 };
+
+/** Signed-in, admin and API paths, kept out of /robots.txt and /ai.txt alike. */
+export const ROBOTS_DISALLOW = [
+  "/admin",
+  "/api/",
+  "/account",
+  "/my/",
+  "/review",
+  "/submit/",
+  "/abstracts/",
+  "/signin",
+  "/signout",
+];
 
 /** Text of a sanitized HTML fragment (an abstract title), for a meta tag. */
 export function plainText(html: string): string {

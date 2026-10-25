@@ -3,23 +3,14 @@
 // them, and the denied bots get Disallow: /. Signed-in, admin and API paths stay out. Until the
 // txasm.org cutover the workers.dev copy is told Disallow: / for everyone.
 import { robotsDocument } from "@drdustinedwards/site-helpers/robots";
-import { SITE_ORIGIN } from "~/lib/site-meta";
+import { ROBOTS_DISALLOW, SITE_ORIGIN } from "~/lib/site-meta";
 import type { Route } from "./+types/robots";
 
 export function loader({ request }: Route.LoaderArgs) {
   const body = robotsDocument({
     origin: SITE_ORIGIN,
-    disallow: [
-      "/admin",
-      "/api/",
-      "/account",
-      "/my/",
-      "/review",
-      "/submit/",
-      "/abstracts/",
-      "/signin",
-      "/signout",
-    ],
+    disallow: ROBOTS_DISALLOW,
+    notes: [`AI usage policy: ${SITE_ORIGIN}/ai.txt`, `LLM guide: ${SITE_ORIGIN}/llms.txt`],
     preview: new URL(request.url).origin !== SITE_ORIGIN,
   });
   return new Response(body, {
