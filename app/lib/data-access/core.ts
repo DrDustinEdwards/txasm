@@ -112,7 +112,7 @@ export function isReviewerAnywhere(actor: Actor): boolean {
 // A single-column `IN (...)` list must stay under D1's bound-parameter cap, so
 // id lists longer than this are queried in batches (see chunk() below, defined
 // alongside D1_MAX_BOUND_PARAMS).
-export const ID_CHUNK_SIZE = 90;
+const ID_CHUNK_SIZE = 90;
 
 // D1 rejects a query with more than 100 bound parameters ("too many SQL
 // variables"), so a batched insert of many rows must be split. A row binds one

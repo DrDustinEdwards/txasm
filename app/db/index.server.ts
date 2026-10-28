@@ -7,5 +7,3 @@ import * as schema from "./schema";
 export function getDb(env: Env) {
   return drizzle(env.DB, { schema });
 }
-
-export type AppDb = ReturnType<typeof getDb>;

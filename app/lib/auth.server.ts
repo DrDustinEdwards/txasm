@@ -94,8 +94,6 @@ export function getAuth(env: Env): Promise<AuthInstance> {
   return auth;
 }
 
-export type Auth = AuthInstance;
-
 // ---------------------------------------------------------------------------
 // Request helpers. These read env from the Cloudflare-native module so callers
 // pass only the request. They stay inside the data/auth boundary: admin status
