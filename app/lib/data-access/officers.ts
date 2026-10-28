@@ -22,7 +22,7 @@ export interface Officer {
   email?: string;
 }
 
-export interface BoardMember {
+interface BoardMember {
   name: string;
   institution: string;
 }

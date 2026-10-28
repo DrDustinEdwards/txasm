@@ -8,7 +8,7 @@ import { verifyAccessRequest } from "@dustinedwards/site-runtime/access";
 // request. With ACCESS_TEAM_DOMAIN or ACCESS_AUD unset nobody passes (fails
 // closed); ACCESS_DEV_BYPASS="1" lets localhost in.
 
-export const ACCESS_PATH = "/admin/access";
+const ACCESS_PATH = "/admin/access";
 
 /** Whether Access signed this request for the signed-in admin's own email. */
 export async function adminAccessOk(env: Env, request: Request, email: string): Promise<boolean> {

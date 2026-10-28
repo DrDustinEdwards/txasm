@@ -28,7 +28,7 @@ export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
 /** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
 export const SECURITY_CONTACT = "security@dustinedwards.info";
 export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
-export const SITE_NAME = "Texas Branch ASM";
+const SITE_NAME = "Texas Branch ASM";
 const SITE_CARD = {
   url: "/og-card.png",
   width: 1200,
