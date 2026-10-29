@@ -49,11 +49,11 @@ export async function serveDocument(
 
   const contentType = doc.mimeType || PDF_MIME_TYPE;
   // The fallback filename's extension matches the stored type.
-  const fallbackName = `${slug}.${extensionForMime(contentType)}`;
+  const defaultFileName = `${slug}.${extensionForMime(contentType)}`;
   const response = fileResponse(
     object,
     doc.fileName,
-    fallbackName,
+    defaultFileName,
     disposition,
     contentType,
   );
@@ -75,17 +75,17 @@ export async function serveDocument(
 }
 
 // Stream a stored R2 object as a file (a PDF download unless told otherwise),
-// with an ASCII-safe Content-Disposition filename that falls back to fallbackName.
+// with an ASCII-safe Content-Disposition filename that falls back to defaultFileName.
 export function fileResponse(
   object: R2ObjectBody,
   fileName: string | null,
-  fallbackName: string,
+  defaultFileName: string,
   disposition: "inline" | "attachment" = "attachment",
   contentType: string = PDF_MIME_TYPE,
 ): Response {
   const safeName =
-    (fileName ?? fallbackName).replace(/[^\w .()-]/g, "_").trim() ||
-    fallbackName;
+    (fileName ?? defaultFileName).replace(/[^\w .()-]/g, "_").trim() ||
+    defaultFileName;
 
   const headers = new Headers();
   headers.set("Content-Type", contentType);
