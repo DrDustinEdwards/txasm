@@ -6,8 +6,6 @@ Current state is `txasm/core.md` in Capsid. This file holds only what is true of
 
 txasm.org: a conference and abstract-management platform for the Texas Branch of the American Society for Microbiology, replacing the paid Oxford Abstracts service and the old WordPress site. It runs the full lifecycle of a meeting twice a year: registration and payment, abstract submission and editing, reviewer invitation and rubric scoring, accept/reject decisions, the program schedule, and an auto-generated abstract book PDF. Solo-maintained. Each meeting is an edition; the same code runs every meeting forever.
 
-Decisions go to `txasm/decisions.md`.
-
 - Tests: keep the minimal set (a few browser tests for flows that must never break, one integration test per real behavior, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
 
 ## Stack (repo-specific additions to the house stack)
@@ -32,7 +30,11 @@ Reach D1, R2, KV, the send_email binding, and Browser Rendering through the inje
 
 ## Hard rules
 
-1. The data-access layer is the security boundary. D1 has no row-level security, so authorization lives in application code. Every read and write goes through `getDataAccess(env)` in `app/lib/data-access.ts`. Nothing imports the Drizzle client or `app/db/schema.ts` anywhere else. Enforced by an eslint no-restricted-imports rule; forbid bypass in review. Roles are admin, chair, reviewer (explicit grants); author and attendee are derived from ownership and a paid registration. Conflict of interest is enforced at assignment time.
-2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive.
+A rule stays here only if it stops a real, costly mistake that nothing else catches. Earlier rulings are in the version history of Capsid `txasm/decisions.md` (retired 2026-10-29).
+
+1. D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`; eslint refuses other imports of the Drizzle client). Roles are admin, chair, reviewer (explicit grants); author and attendee come from ownership and a paid registration. Conflict of interest is checked at assignment time. Chairs stay out of admin-only config (categories, fees, windows), and the confidential comment is for chairs and admins only, never authors or other reviewers.
+2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive. The rubric is data (rubric_criterion and review_score per edition), not columns, so it changes each meeting with no migration.
 3. Migrations are generated with drizzle-kit, applied with wrangler, and additive only once data exists.
 4. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.
+5. Abstracts are structured text sections with inline formatting limited to `<em>`, `<sup>` and `<sub>`, re-sanitized on every save; no uploads. Image responses keep the sandboxed CSP and nosniff, so an uploaded SVG cannot run script. The category value `brand_image` never changes (only its label), and brand images stay out of the public archive.
+6. Visible copy says "Meeting"; tables, functions, types, route files and URLs stay "edition". A UI redesign is mocked for Dustin before code.
