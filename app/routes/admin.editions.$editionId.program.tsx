@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Form, Link, useActionData, useNavigation, useSearchParams } from "react-router";
+import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";

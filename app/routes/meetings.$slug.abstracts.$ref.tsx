@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";

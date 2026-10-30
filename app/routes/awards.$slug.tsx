@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Badge } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";

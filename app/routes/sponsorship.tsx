@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/sponsorship";
 import { pageHead } from "~/lib/site-meta";
 

@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review.$abstractId";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";

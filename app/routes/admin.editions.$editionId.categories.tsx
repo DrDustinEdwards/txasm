@@ -1,4 +1,5 @@
-import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
 import { pageTitle } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
