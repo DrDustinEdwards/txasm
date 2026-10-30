@@ -31,8 +31,9 @@ export const newCspNonce = generateNonce;
 // - style attributes: React style={{...}} props (brand marks, the program grid), which a nonce
 //   cannot cover.
 // Not listed, so reported: the book preview's Paged.js (unpkg) and its inline styles and config
-// script (app/lib/paged.ts), and any external image in D1 content. No Cloudflare Web Analytics
-// beacon: the site is on workers.dev, where the edge injects none.
+// script (app/lib/paged.ts), and any external image in D1 content.
+// - The Cloudflare Web Analytics beacon, allowed like every family site. On workers.dev the edge injects
+//   none; once txasm.org is on the zone, it does.
 // Report-Only until the reports show nothing the pages need is missing.
 function contentSecurityPolicy(nonce: string | undefined) {
   return buildContentSecurityPolicy({
@@ -42,6 +43,7 @@ function contentSecurityPolicy(nonce: string | undefined) {
     },
     nonce,
     styleAttributesInline: true,
+    cloudflareWebAnalytics: true,
     reportUri: CSP_REPORT_PATH,
     reportTo: CSP_ENDPOINT,
     reportOnly: true,
