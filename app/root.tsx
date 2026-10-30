@@ -14,6 +14,11 @@ import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
+// Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
+// from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file carries
+// Inter's optical sizes, as the Google request asked for.
+import "@fontsource-variable/inter/opsz.css";
+import "@fontsource-variable/inter/opsz-italic.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [

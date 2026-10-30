@@ -1,11 +1,6 @@
 /* Capsomer's layers, with txasm's own reset under them. txasm's page classes
    below are unlayered, so they win over Capsomer's where they meet. */
 @layer reset, cap;
-/* Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
-   from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file
-   carries Inter's optical sizes, as the Google request asked for. */
-@import "@fontsource-variable/inter/opsz.css";
-@import "@fontsource-variable/inter/opsz-italic.css";
 @import "capsomer/tokens.css";
 @import "capsomer/family-navy.css" layer(cap.tokens);
 @import "capsomer/site-txasm.css";
