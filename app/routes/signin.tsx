@@ -263,7 +263,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
             id="email"
             name="email"
             type="email"
-            autoComplete="email webauthn"
+            autoComplete="username webauthn"
             required
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "email-error" : undefined}
