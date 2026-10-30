@@ -22,8 +22,8 @@ const CSP_ENDPOINT = "csp-endpoint";
 export const newCspNonce = generateNonce;
 
 // What the pages load beyond 'self', read from the code (2026-10-24):
-// - style, font: Google Fonts, the Inter stylesheet in app/root.tsx and the files it names.
-//   The serif faces and PDF.js (its module, worker, wasm, fonts, cmaps) are self-hosted in public/.
+// - style, font: nothing. Inter is bundled (app/app.css); the serif faces and PDF.js (its module, worker, wasm,
+//   fonts, cmaps) are self-hosted in public/.
 // - img: only 'self' (the favicon, /documents/<slug>/inline).
 // - script: 'self' plus this request's nonce, which React Router puts on its inline hydration and
 //   streaming scripts (app/entry.server.tsx).
@@ -37,8 +37,6 @@ export const newCspNonce = generateNonce;
 function contentSecurityPolicy(nonce: string | undefined) {
   return buildContentSecurityPolicy({
     sources: {
-      style: ["https://fonts.googleapis.com"],
-      font: ["https://fonts.gstatic.com"],
       script: [TURNSTILE_ORIGIN],
       frame: [TURNSTILE_ORIGIN],
     },

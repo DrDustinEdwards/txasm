@@ -20,16 +20,6 @@ export const links: Route.LinksFunction = () => [
   // The starburst mark is the favicon; it stays legible at tab size where the
   // full wordmark would not. favicon.ico remains in public/ as a legacy fallback.
   { rel: "icon", type: "image/svg+xml", href: BRAND.favicon },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
 ];
 
 // Root provides the document, the theme, and the platform settings the shells
