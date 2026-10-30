@@ -10,13 +10,8 @@ import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
-export function meta({ matches, location }: Route.MetaArgs) {
-  // The leaf match carries this route's loader data; read the award from it,
-  // falling back when it is not yet available.
-  const leaf = matches[matches.length - 1] as
-    | { data?: { award?: { name?: string; description?: string | null } } }
-    | undefined;
-  const award = leaf?.data?.award;
+export function meta({ matches, location, loaderData }: Route.MetaArgs) {
+  const award = loaderData?.award;
   const name = award?.name ?? "Award";
   return pageHead(matches, {
     path: location.pathname,

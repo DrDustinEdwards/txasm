@@ -2,11 +2,11 @@ import { articleDates, defineHead } from "@drdustinedwards/site-helpers/head";
 import { thing } from "@drdustinedwards/site-helpers/schema";
 import type { PlatformSettings } from "./data-access";
 
-// Route meta runs without the page's own loader data on these static content
-// pages, but the root loader (settings) is always in the matches chain. Pull the
-// org short name from there so page titles track the settings value instead of
-// hardcoding the branch name in every route. Type-only import, erased at build.
-type RootMatch = { id: string; data?: { settings?: PlatformSettings } };
+// The root loader (settings) is always in the matches chain. Pull the org short
+// name from there so page titles track the settings value instead of hardcoding
+// the branch name in every route. React Router 8 names a match's data
+// `loaderData`; the older `data` is gone. Type-only import, erased at build.
+type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings } };
 
 export function pageTitle(
   matches: ReadonlyArray<{ id: string } | undefined>,
@@ -15,7 +15,7 @@ export function pageTitle(
   const root = (matches as ReadonlyArray<RootMatch | undefined>).find(
     (match) => match?.id === "root",
   );
-  const shortName = root?.data?.settings?.shortName ?? "";
+  const shortName = root?.loaderData?.settings?.shortName ?? "";
   return shortName ? `${pageName} | ${shortName}` : pageName;
 }
 
