@@ -358,6 +358,12 @@
     max-width: 100%;
     margin-inline: auto;
   }
+  /* Until its first page is drawn, the canvas holds a US Letter page at the viewer's scale (1.2), the size most
+     documents draw at, so the page below does not jump when it arrives (Lighthouse CLS). */
+  & canvas:not([data-sized]) {
+    width: 734px;
+    aspect-ratio: 612 / 792;
+  }
 }
 .pdf-viewer-error {
   padding: 1.5rem;
