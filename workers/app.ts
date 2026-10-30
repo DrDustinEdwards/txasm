@@ -1,4 +1,4 @@
-import { WorkerEntrypoint, cache } from "cloudflare:workers";
+import { WorkerEntrypoint } from "cloudflare:workers";
 import { createRequestHandler, RouterContextProvider, type ServerBuild } from "react-router";
 import { receiveCspReport } from "@dustinedwards/site-runtime/csp-report";
 import {
@@ -76,6 +76,14 @@ export class Renderer extends WorkerEntrypoint<Env> {
     if (request.headers.has("Cookie") || page.headers.has("Set-Cookie")) page.headers.set("Cache-Control", UNCACHED);
     return settleCacheHeaders(page);
   }
+
+  /**
+   * Drops every stored page. A purge reaches only the cache of the entrypoint that calls it, so it runs here, called
+   * over RPC from the gateway (which stores nothing); RPC methods bypass the cache.
+   */
+  async purgePages(why: string): Promise<void> {
+    await purgeTags(this.ctx.cache, ["pages"], why);
+  }
 }
 
 // What may go to the Renderer: a read of a page path (or its React Router .data twin) with no cookie. A cookie means
@@ -95,7 +103,7 @@ function cacheable(request: Request, url: URL): boolean {
 // action (settings, officers, awards, documents, editions, decisions, the program). Never throws; a refused purge is
 // logged and the page is stale until it expires (a day).
 function purgePagesAfter(request: Request, response: Response, ctx: ExecutionContext, why: string) {
-  if (isWrite(request) && response.status < 400) ctx.waitUntil(purgeTags(cache, ["pages"], why));
+  if (isWrite(request) && response.status < 400) ctx.waitUntil(ctx.exports.Renderer.purgePages(why));
 }
 
 /**
