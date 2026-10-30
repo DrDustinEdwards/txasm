@@ -6,6 +6,7 @@ import { getUserContext } from "~/lib/auth.server";
 import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
 import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
+import { FEED_PATH } from "~/lib/site-meta";
 
 // Public shell: Capsomer's site header and txasm's footer around every public
 // page. Auth state is read the same way as before; only the presentation
@@ -14,6 +15,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   const { user, isAdmin, isReviewer } = await getUserContext(request);
   return { email: user?.email ?? null, isAdmin, isReviewer };
 }
+
+// The site's RSS feed (app/routes/rss.ts), on every public page so a reader finds it from any.
+export const links: Route.LinksFunction = () => [
+  { rel: "alternate", type: "application/rss+xml", title: "Texas Branch ASM", href: FEED_PATH },
+];
 
 const link = (label: string, href: string) => ({ id: `${href}-${label}`, label, href });
 

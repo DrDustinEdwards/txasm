@@ -1,12 +1,12 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/admin";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Admin") }];
+  return privateMeta(matches, "Admin");
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

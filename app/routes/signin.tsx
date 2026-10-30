@@ -3,14 +3,14 @@ import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { signInMethods } from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Sign in") }];
+  return privateMeta(matches, "Sign in");
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

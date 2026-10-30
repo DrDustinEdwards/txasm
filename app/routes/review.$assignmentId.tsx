@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/review.$assignmentId";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
@@ -16,7 +16,7 @@ import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Review abstract") }];
+  return privateMeta(matches, "Review abstract");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

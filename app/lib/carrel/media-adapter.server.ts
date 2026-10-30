@@ -20,6 +20,7 @@
 //
 // COVERS. The abstract book and program covers are inline SVG (app/lib/cover.ts), not files, and
 // nothing here reads or writes them.
+import { slugify } from "@drdustinedwards/site-helpers/slug";
 import {
   MediaInUseError,
   NotFoundError,
@@ -134,17 +135,9 @@ function answer(write: MediaWrite): { version: string } {
   throw new VersionConflictError(versionOf(write.rev ?? 0), "The file changed since it was loaded.");
 }
 
-/** A short, safe name for a key: the upload's own name in lower case, letters and digits joined by hyphens. */
+/** A short, safe name for a key: the upload's own name through Prelum's slug rule, at most 60 characters. */
 function slugOf(filename: string): string {
-  const stem = filename.replace(/\.[A-Za-z0-9]{1,5}$/, "");
-  const slug = stem
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60)
-    .replace(/-+$/, "");
-  return slug || "file";
+  return slugify(filename.replace(/\.[A-Za-z0-9]{1,5}$/, ""), { max: 60 }) || "file";
 }
 
 /** A new key: media/<year>/<random>-<name>.<ext>. Random, so a later upload never lands on an earlier file's key. */

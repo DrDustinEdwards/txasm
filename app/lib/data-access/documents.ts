@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import {
   DOCUMENT_CATEGORIES,
@@ -139,6 +139,21 @@ export function createDocuments(db: DB) {
           desc(schema.document.year),
           schema.document.title,
         );
+    },
+
+    // The newest published documents across categories, newest added first, for the RSS feed.
+    async listRecent(categories: readonly DocumentCategory[], limit: number) {
+      return db
+        .select()
+        .from(schema.document)
+        .where(
+          and(
+            inArray(schema.document.category, [...categories]),
+            eq(schema.document.status, "published"),
+          ),
+        )
+        .orderBy(desc(schema.document.createdAt))
+        .limit(limit);
     },
 
     // One published document by its unique slug, or null. Viewing writes nothing.

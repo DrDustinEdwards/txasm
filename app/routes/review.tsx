@@ -1,13 +1,13 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/review";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Review") }];
+  return privateMeta(matches, "Review");
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

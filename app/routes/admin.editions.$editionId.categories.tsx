@@ -1,6 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -12,7 +12,7 @@ import {
 import { formatMoney, parseDollarsToCents } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Registration categories") }];
+  return privateMeta(matches, "Registration categories");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

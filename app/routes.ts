@@ -1,11 +1,12 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
-import { INDEXNOW_KEY } from "./lib/site-meta";
+import { FEED_PATH, INDEXNOW_KEY } from "./lib/site-meta";
 
 export default [
   route("robots.txt", "routes/robots.ts"),
   route("sitemap.xml", "routes/sitemap.ts"),
   route("ai.txt", "routes/ai-txt.ts"),
   route("llms.txt", "routes/llms.ts"),
+  route(FEED_PATH.slice(1), "routes/rss.ts"),
   layout("routes/public.layout.tsx", [
     index("routes/home.tsx"),
     route("branch-officers", "routes/branch-officers.tsx"),

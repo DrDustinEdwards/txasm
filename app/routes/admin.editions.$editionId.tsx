@@ -1,6 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -19,7 +19,7 @@ import {
 import { toDateTimeLocal } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Edit meeting") }];
+  return privateMeta(matches, "Edit meeting");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

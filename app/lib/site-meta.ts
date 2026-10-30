@@ -19,11 +19,19 @@ export function pageTitle(
   return shortName ? `${pageName} | ${shortName}` : pageName;
 }
 
+/** A signed-in or admin page's meta: its title and noindex (the Worker also sends X-Robots-Tag on these paths). */
+export function privateMeta(matches: ReadonlyArray<{ id: string } | undefined>, pageName: string) {
+  return [{ title: pageTitle(matches, pageName) }, { name: "robots", content: "noindex" }];
+}
+
 /** The production origin: canonicals, the sitemap and robots.txt name it, never the request's. */
 export const SITE_ORIGIN = "https://txasm.org";
 
 /** The site's IndexNow key, public by the protocol's design: served as /<key>.txt and sent with each changed page. */
 export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
+
+/** The site's RSS feed: new newsletters, abstract books and programs (app/routes/rss.ts). */
+export const FEED_PATH = "/rss.xml";
 
 /** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
 export const SECURITY_CONTACT = "security@dustinedwards.info";
@@ -49,6 +57,13 @@ export const ROBOTS_DISALLOW = [
   "/signout",
 ];
 
+/** True for a path under ROBOTS_DISALLOW: those responses carry X-Robots-Tag: noindex. */
+export function isPrivatePath(pathname: string): boolean {
+  return ROBOTS_DISALLOW.some((prefix) =>
+    prefix.endsWith("/") ? pathname.startsWith(prefix) : pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 /** Text of a sanitized HTML fragment (an abstract title), for a meta tag. */
 export function plainText(html: string): string {
   return html
@@ -66,6 +81,7 @@ export function plainText(html: string): string {
 /**
  * A public page's head from Prelum's headTags: the title (with the settings short name, as
  * pageTitle), description, canonical on SITE_ORIGIN, Open Graph and Twitter with the site card.
+ * A trailing slash is dropped (except on "/"), so /x/ names /x as its canonical.
  */
 export function pageHead(
   matches: ReadonlyArray<{ id: string } | undefined>,
@@ -73,7 +89,7 @@ export function pageHead(
 ) {
   return headTags({
     origin: SITE_ORIGIN,
-    path: page.path,
+    path: page.path.replace(/(.)\/+$/, "$1"),
     title: page.fullTitle ? page.name : pageTitle(matches, page.name),
     description: page.description,
     image: SITE_CARD,
