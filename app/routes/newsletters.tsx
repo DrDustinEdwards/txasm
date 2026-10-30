@@ -4,6 +4,10 @@ import { getDataAccess } from "~/lib/data-access";
 import { Empty } from "capsomer/react/empty";
 import { DocumentList } from "~/components/document-list";
 import { pageHead } from "~/lib/site-meta";
+import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+export const headers = () => publicPageHeaders();
 
 export function meta({ matches }: Route.MetaArgs) {
   return pageHead(matches, {
