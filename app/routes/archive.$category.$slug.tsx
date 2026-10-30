@@ -8,6 +8,10 @@ import {
   adjacentSlugs,
 } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
+import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location }: Route.MetaArgs) {
   const leaf = matches[matches.length - 1] as

@@ -3,6 +3,10 @@ import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/trail";
 import type { loader as rootLoader } from "~/root";
 import { pageHead } from "~/lib/site-meta";
+import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+export const headers = () => publicPageHeaders();
 
 export function meta({ matches }: Route.MetaArgs) {
   return pageHead(matches, {

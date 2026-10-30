@@ -18,6 +18,10 @@ import {
 import { pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
+import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   const edition = loaderData?.edition;

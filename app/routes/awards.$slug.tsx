@@ -5,6 +5,10 @@ import type { Route } from "./+types/awards.$slug";
 import { cloudflareContext } from "~/load-context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
+import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location }: Route.MetaArgs) {
   // The leaf match carries this route's loader data; read the award from it,

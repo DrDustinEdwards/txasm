@@ -8,6 +8,10 @@ import {
   type PastOfficer,
   type PastOfficerTab,
 } from "~/lib/data-access";
+import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+export const headers = () => publicPageHeaders();
 
 // The page reads the officers table; admins edit it at /admin/officers.
 export async function loader({ context }: Route.LoaderArgs) {
