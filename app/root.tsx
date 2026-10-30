@@ -15,22 +15,17 @@ import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
+// Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
+// from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file carries
+// Inter's optical sizes, as the Google request asked for.
+import "@fontsource-variable/inter/opsz.css";
+import "@fontsource-variable/inter/opsz-italic.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
   // The starburst mark is the favicon; it stays legible at tab size where the
   // full wordmark would not. favicon.ico remains in public/ as a legacy fallback.
   { rel: "icon", type: "image/svg+xml", href: BRAND.favicon },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
 ];
 
 // Root provides the document, the theme, and the platform settings the shells

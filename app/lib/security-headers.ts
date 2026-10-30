@@ -22,8 +22,8 @@ const CSP_ENDPOINT = "csp-endpoint";
 export const newCspNonce = generateNonce;
 
 // What the pages load beyond 'self', read from the code (2026-10-24):
-// - style, font: Google Fonts, the Inter stylesheet in app/root.tsx and the files it names.
-//   The serif faces and PDF.js (its module, worker, wasm, fonts, cmaps) are self-hosted in public/.
+// - style, font: nothing. Inter is bundled (app/app.css); the serif faces and PDF.js (its module, worker, wasm,
+//   fonts, cmaps) are self-hosted in public/.
 // - img: only 'self' (the favicon, /documents/<slug>/inline).
 // - script: 'self' plus this request's nonce, which React Router puts on its inline hydration and
 //   streaming scripts (app/entry.server.tsx).
@@ -31,19 +31,19 @@ export const newCspNonce = generateNonce;
 // - style attributes: React style={{...}} props (brand marks, the program grid), which a nonce
 //   cannot cover.
 // Not listed, so reported: the book preview's Paged.js (unpkg) and its inline styles and config
-// script (app/lib/paged.ts), and any external image in D1 content. No Cloudflare Web Analytics
-// beacon: the site is on workers.dev, where the edge injects none.
+// script (app/lib/paged.ts), and any external image in D1 content.
+// - The Cloudflare Web Analytics beacon, allowed like every family site. On workers.dev the edge injects
+//   none; once txasm.org is on the zone, it does.
 // Report-Only until the reports show nothing the pages need is missing.
 function contentSecurityPolicy(nonce: string | undefined) {
   return buildContentSecurityPolicy({
     sources: {
-      style: ["https://fonts.googleapis.com"],
-      font: ["https://fonts.gstatic.com"],
       script: [TURNSTILE_ORIGIN],
       frame: [TURNSTILE_ORIGIN],
     },
     nonce,
     styleAttributesInline: true,
+    cloudflareWebAnalytics: true,
     reportUri: CSP_REPORT_PATH,
     reportTo: CSP_ENDPOINT,
     reportOnly: true,
