@@ -1,4 +1,4 @@
-import { articleDates, headTags } from "@drdustinedwards/site-helpers/head";
+import { articleDates, defineHead } from "@drdustinedwards/site-helpers/head";
 import { thing } from "@drdustinedwards/site-helpers/schema";
 import type { PlatformSettings } from "./data-access";
 
@@ -36,7 +36,8 @@ export const FEED_PATH = "/rss.xml";
 /** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
 export const SECURITY_CONTACT = "security@dustinedwards.info";
 export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
-const SITE_NAME = "Texas Branch ASM";
+/** The site's short name: og:site_name, and the error page's title when the settings are out of reach. */
+export const SITE_NAME = "Texas Branch ASM";
 const SITE_CARD = {
   url: "/og-card.png",
   width: 1200,
@@ -78,22 +79,22 @@ export function plainText(html: string): string {
     .trim();
 }
 
+const head = defineHead({ origin: SITE_ORIGIN, siteName: SITE_NAME, image: SITE_CARD });
+
 /**
- * A public page's head from Prelum's headTags: the title (with the settings short name, as
- * pageTitle), description, canonical on SITE_ORIGIN, Open Graph and Twitter with the site card.
- * A trailing slash is dropped (except on "/"), so /x/ names /x as its canonical.
+ * A public page's head from Prelum's defineHead: the title (with the settings short name, as pageTitle, so it is passed
+ * whole), description (cut at a word for search, whole on the share card), canonical on SITE_ORIGIN (a trailing slash
+ * dropped, except on "/"), Open Graph and Twitter with the site card.
  */
 export function pageHead(
   matches: ReadonlyArray<{ id: string } | undefined>,
   page: { path: string; name: string; description: string; fullTitle?: boolean },
 ) {
-  return headTags({
-    origin: SITE_ORIGIN,
-    path: page.path.replace(/(.)\/+$/, "$1"),
+  return head({
+    path: page.path,
     title: page.fullTitle ? page.name : pageTitle(matches, page.name),
+    fullTitle: true,
     description: page.description,
-    image: SITE_CARD,
-    siteName: SITE_NAME,
   });
 }
 

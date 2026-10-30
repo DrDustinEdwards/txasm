@@ -1,5 +1,4 @@
 import {
-  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
@@ -10,11 +9,13 @@ import {
 
 import type { Route } from "./+types/root";
 import { LinkPrefetch } from "capsomer/react/link";
+import { ErrorPage, errorTitle } from "capsomer/react/error-page";
 import { cloudflareContext } from "~/load-context";
 import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
+import { SITE_NAME } from "~/lib/site-meta";
 // Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
 // from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file carries
 // Inter's optical sizes, as the Google request asked for.
@@ -27,6 +28,11 @@ export const links: Route.LinksFunction = () => [
   // full wordmark would not. favicon.ico remains in public/ as a legacy fallback.
   { rel: "icon", type: "image/svg+xml", href: BRAND.favicon },
 ];
+
+// An unmatched address matches only the root, so the error path's title comes from here (WCAG 2.4.2).
+export function meta({ error, loaderData }: Route.MetaArgs) {
+  return error ? [{ title: errorTitle(error, loaderData?.settings?.shortName || SITE_NAME) }] : [];
+}
 
 // Root provides the document, the theme, and the platform settings the shells
 // render (org identity, footer links). The public and admin shells (their own
@@ -72,29 +78,8 @@ export default function App() {
   return <Outlet />;
 }
 
+// Capsomer's error page (404, 410, 500 in plain words, noindex, the stack only in development). The public header and
+// footer read loader data the error path does not have, so they are left out, as before.
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let heading = "Something went wrong";
-  let detail = "An unexpected error occurred. Try again, or head back home.";
-
-  if (isRouteErrorResponse(error)) {
-    if (error.status === 404) {
-      heading = "Page not found";
-      detail = "That page does not exist. Check the address or head back home.";
-    } else {
-      heading = `Error ${error.status}`;
-      detail = error.statusText || detail;
-    }
-  }
-
-  return (
-    <main id="main" className="txasm-frame txasm-main reading stack-3">
-      <h1 className="page-title">{heading}</h1>
-      <p className="cap-muted">{detail}</p>
-      {import.meta.env.DEV && error instanceof Error && error.stack ? (
-        <pre className="card small error-stack">
-          <code>{error.stack}</code>
-        </pre>
-      ) : null}
-    </main>
-  );
+  return <ErrorPage error={error} home="/" dev={import.meta.env.DEV} />;
 }

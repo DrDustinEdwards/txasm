@@ -18,6 +18,7 @@
 @import "capsomer/banner.css";
 @import "capsomer/status.css";
 @import "capsomer/empty.css";
+@import "capsomer/error-page.css";
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 
@@ -360,11 +361,6 @@
 }
 .pdf-viewer-error {
   padding: 1.5rem;
-}
-
-.error-stack {
-  overflow-x: auto;
-  background: var(--raised);
 }
 
 /* A card, and a list of rows in one card. */
