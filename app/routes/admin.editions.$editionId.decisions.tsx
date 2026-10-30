@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -18,7 +18,7 @@ import { RichEditor } from "~/components/rich-editor";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Decisions") }];
+  return privateMeta(matches, "Decisions");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

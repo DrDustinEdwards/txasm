@@ -1,13 +1,13 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.categories.$categoryId";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
 import { centsToDollarsInput, parseDollarsToCents } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Edit category") }];
+  return privateMeta(matches, "Edit category");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

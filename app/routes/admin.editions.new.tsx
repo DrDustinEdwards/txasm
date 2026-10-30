@@ -1,6 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.new";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -14,7 +14,7 @@ import {
 } from "~/lib/vocab";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "New meeting") }];
+  return privateMeta(matches, "New meeting");
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

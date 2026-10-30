@@ -1,6 +1,6 @@
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.editions.$editionId.sponsors";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -8,7 +8,7 @@ import { SPONSOR_TIERS } from "~/lib/vocab";
 import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Sponsors") }];
+  return privateMeta(matches, "Sponsors");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

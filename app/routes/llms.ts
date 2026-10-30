@@ -2,7 +2,7 @@
 // for answer engines. Signed-in and admin pages are left out, as robots.txt leaves them out.
 import { llmsDocument } from "@drdustinedwards/site-helpers/llms";
 import { getDataAccess } from "~/lib/data-access";
-import { SITE_ORIGIN } from "~/lib/site-meta";
+import { FEED_PATH, SITE_ORIGIN } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import type { Route } from "./+types/llms";
 
@@ -15,6 +15,7 @@ const HUBS = [
   { path: "/trail", title: "Meeting trail", description: "Host cities of the branch meetings since its founding." },
   { path: "/sponsorship", title: "Sponsorship", description: "Sponsoring the meetings and student microbiologists." },
   { path: "/contact", title: "Contact", description: "How to reach the branch." },
+  { path: FEED_PATH, title: "RSS feed", description: "New newsletters, abstract books and programs." },
 ];
 
 export async function loader({ context }: Route.LoaderArgs) {

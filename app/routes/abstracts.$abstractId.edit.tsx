@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
@@ -41,7 +41,7 @@ import {
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Edit abstract") }];
+  return privateMeta(matches, "Edit abstract");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
