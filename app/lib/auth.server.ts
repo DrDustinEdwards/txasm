@@ -30,11 +30,12 @@ async function buildAuth(env: Env) {
   const db = getDb(env);
   const signIn = await signInOptions(env, {
     siteName: "TXASM",
-    // Goes through the email helper, which is dormant until cutover. While
-    // dormant it logs the message (including the link), so dev sign-in is
-    // unchanged; at cutover the same call sends a real email.
-    sendMagicLink: async ({ email, url }) => {
-      await sendEmail(env, { to: email, ...magicLinkEmail(url) });
+    // The link and its code in one mail (magicLinkEmail). Goes through the email
+    // helper, which is dormant until cutover: while dormant it logs the message
+    // (link and code included), so dev sign-in is unchanged; at cutover the same
+    // call sends a real email, and a send error has the link and code cut out.
+    sendMagicLink: async ({ email, url, token, code }) => {
+      await sendEmail(env, { to: email, ...magicLinkEmail(url, code) }, { secrets: [url, token, code] });
     },
   });
 

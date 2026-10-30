@@ -5,7 +5,11 @@ import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
-import { signInMethods } from "@dustinedwards/site-runtime/sign-in";
+import {
+  SIGN_IN_CODE_PATH,
+  SIGN_IN_EXPIRES_IN_WORDS,
+  signInMethods,
+} from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
 
@@ -19,7 +23,56 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey };
 }
 
-type ActionResult = { ok: true } | { ok: false; error: string };
+type ActionResult =
+  | { ok: true; email: string; codeError?: string }
+  | { ok: false; error: string };
+
+// The headers Better Auth's handler is handed: the origin it checks, the
+// address its limiter counts and the user agent.
+function forwardedHeaders(request: Request): Headers {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  for (const name of ["origin", "cf-connecting-ip", "user-agent"]) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+  return headers;
+}
+
+// The six-digit code from the same mail, typed on the "Check your inbox" screen.
+// The link signs in the browser that opens it, often the mail app's, not this
+// tab; the code signs in this one (site-runtime ./sign-in). A wrong code counts,
+// and after three it is spent while the link still works. Through the handler,
+// for Better Auth's limiter, as the link request is.
+async function signInWithCode(env: Env, request: Request, email: string, code: string): Promise<ActionResult> {
+  const answer = (codeError: string): ActionResult => ({ ok: true, email, codeError });
+  try {
+    const response = await (await getAuth(env)).handler(
+      new Request(new URL(`/api/auth${SIGN_IN_CODE_PATH}`, request.url), {
+        method: "POST",
+        headers: forwardedHeaders(request),
+        body: JSON.stringify({ email, otp: code }),
+      }),
+    );
+    if (response.ok) {
+      // Only the session cookies go on to the redirect.
+      const headers = new Headers();
+      for (const cookie of response.headers.getSetCookie()) headers.append("Set-Cookie", cookie);
+      throw redirect("/account?welcome=1", { headers });
+    }
+    if (response.status === 429) return answer("Too many tries. Wait a minute, or use the link in the email.");
+    const { code: reason } = (await response.json().catch(() => ({}))) as { code?: string };
+    if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
+    if (reason === "OTP_EXPIRED" || reason === "TOO_MANY_ATTEMPTS") {
+      return answer("That code has expired or was tried too many times. Use the link in the email, or send a new one.");
+    }
+    // The status only: the body can carry the address.
+    console.error(`[signin] code sign-in returned ${response.status}`);
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error("[signin] code sign-in did not complete");
+  }
+  return answer("That sign-in did not complete. Try again, or use the link in the email.");
+}
 
 export async function action({
   request,
@@ -32,15 +85,16 @@ export async function action({
   }
 
   const { env } = context.get(cloudflareContext);
+  const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
+  if (formData.get("intent") === "code") {
+    if (!/^\d{6}$/.test(code)) return { ok: true, email, codeError: "Enter the six-digit code from the email." };
+    return signInWithCode(env, request, email, code);
+  }
   try {
     // Through Better Auth's HTTP handler, not auth.api: only the handler runs the
     // rate limiter, so a direct api call let the form skip it (Grok audit
     // 2026-10-21, TX-4).
-    const headers = new Headers({ "Content-Type": "application/json" });
-    for (const name of ["origin", "cf-connecting-ip", "user-agent"]) {
-      const value = request.headers.get(name);
-      if (value) headers.set(name, value);
-    }
+    const headers = forwardedHeaders(request);
     // The Turnstile widget's token, for the captcha plugin (app/lib/auth.server.ts).
     const captchaToken = String(formData.get("cf-turnstile-response") ?? "");
     if (captchaToken) headers.set("x-captcha-response", captchaToken);
@@ -69,7 +123,7 @@ export async function action({
     if (!response.ok) {
       throw new Error(`magic link request returned ${response.status}`);
     }
-    return { ok: true };
+    return { ok: true, email };
   } catch (error) {
     console.error("[signin] magic link failed", error);
     return {
@@ -135,13 +189,43 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           Check your inbox
         </h1>
         <p>
-          A sign-in link is on its way. Open it to finish signing in. The link
-          expires soon, so use it before it does.
+          A sign-in link and code are on their way. Open the link, or type the
+          code here. Both expire in {SIGN_IN_EXPIRES_IN_WORDS}.
         </p>
+        <Form method="post" className="stack-4" noValidate>
+          <input type="hidden" name="intent" value="code" />
+          <input type="hidden" name="email" value={actionData.email} />
+          <div className="cap-field">
+            <label htmlFor="code" className="cap-field-label">
+              Code
+            </label>
+            <input
+              id="code"
+              name="code"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]*"
+              maxLength={6}
+              required
+              aria-invalid={actionData.codeError ? true : undefined}
+              aria-describedby={actionData.codeError ? "code-error" : undefined}
+              className="cap-input"
+            />
+            {actionData.codeError ? (
+              <p id="code-error" role="alert" className="cap-field-error">
+                {actionData.codeError}
+              </p>
+            ) : null}
+          </div>
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
+            {submitting ? "Signing in..." : "Sign in with the code"}
+          </button>
+        </Form>
         {import.meta.env.DEV ? (
           <Banner tone="neutral">
-            Development note: email is not wired yet, so the link is printed to
-            the Worker logs instead of sent. Read it from the dev server output or
+            Development note: email is not wired yet, so the link and code are printed to
+            the Worker logs instead of sent. Read them from the dev server output or
             wrangler tail.
           </Banner>
         ) : null}
