@@ -26,7 +26,7 @@ interface MatchData {
 function useActiveMeetingName(): string | null {
   const matches = useMatches();
   for (const match of matches) {
-    const data = (match as { data?: MatchData }).data;
+    const data = match.loaderData as MatchData | undefined;
     if (data?.edition?.name) return data.edition.name;
   }
   return null;
