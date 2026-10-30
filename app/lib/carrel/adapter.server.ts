@@ -10,7 +10,10 @@
 // the published html, so a save and a publish each give a new one.
 //
 // RENDER. Prelum's markdown pipeline (assertSafe on), run on publish and preview only; the routes
-// show the stored html. Pages take no images: the site has no media group for them.
+// show the stored html. A page's pictures come from the media library (media-adapter.server.ts),
+// at their /media/ paths: each is sized from the library's index and gets its responsive sizes
+// (site-runtime ./image) in the html stored at publish. Any other image is refused, so a page never
+// hotlinks or shows a picture the library cannot account for.
 import {
   contentVersion,
   RefusedError,
@@ -20,7 +23,9 @@ import {
   type WriteResult,
 } from "@dustinedwards/site-api";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
-import { getCarrelPages, type Page, type PageWrite } from "../data-access";
+import { getCarrelMedia, getCarrelPages, type Page, type PageWrite } from "../data-access";
+import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
+import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { parseSource, type PageSource } from "./source";
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
@@ -51,16 +56,46 @@ function parse(source: string): PageSource {
   }
 }
 
+/**
+ * The library pictures a page body names, sized for the reading column: Prelum's image resolver (the width and
+ * height the img carries) and its media options (the srcset and the AVIF and WebP sources). A src that is not a
+ * library file is refused, which refuses the render.
+ */
+async function libraryImages(env: Env, body: string) {
+  const rows = new Map((await getCarrelMedia(env).many([...mediaKeysIn(body)])).map((row) => [row.key, row]));
+  const attributesOf = (src: string) => {
+    const key = mediaKeyOf(src);
+    const row = key ? rows.get(key) : undefined;
+    return row ? images.attributes({ src: mediaPath(row.key), width: row.width, height: row.height, focus: row.focus }, "content") : null;
+  };
+  return {
+    async resolveImage(src: string) {
+      const attrs = attributesOf(src);
+      if (!attrs) throw new Error(`${src} is not in the media library. Pages show library pictures only: upload it in Carrel first.`);
+      return attrs.width && attrs.height ? { width: attrs.width, height: attrs.height } : null;
+    },
+    media: {
+      keyOf: mediaKeyOf,
+      imageProps(src: string) {
+        const attrs = attributesOf(src);
+        if (!attrs?.srcset) return null;
+        return {
+          srcSet: attrs.srcset,
+          sizes: attrs.sizes,
+          href: mediaPath(mediaKeyOf(src)!),
+          sources: attrs.sources.map((s) => ({ type: s.type, srcSet: s.srcset })),
+        };
+      },
+    },
+  };
+}
+
 /** Prelum's render without math (`$` is text, so no KaTeX in the upload), loaded on first use so the public routes never parse it. */
-async function renderBody(body: string): Promise<{ html: string; renderVersion: string }> {
+async function renderBody(env: Env, body: string): Promise<{ html: string; renderVersion: string }> {
   const { render } = await import("@drdustinedwards/site-helpers/render/nomath");
   try {
-    const out = await render({
-      file: "page.md",
-      body,
-      resolveImage: () => Promise.reject(new Error("Pages take no images.")),
-      options: { assertSafe: true },
-    });
+    const { resolveImage, media } = await libraryImages(env, body);
+    const out = await render({ file: "page.md", body, resolveImage, options: { assertSafe: true, media } });
     return { html: String(out.html), renderVersion: out.renderVersion };
   } catch (err) {
     throw new RefusedError(err instanceof Error ? err.message : "The page could not be rendered.");
@@ -95,7 +130,7 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
       source,
       title: parsed.title,
       description: parsed.description,
-      ...(await renderBody(parsed.body)),
+      ...(await renderBody(env, parsed.body)),
       publishedAt: new Date(),
     };
   }
@@ -174,10 +209,12 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
     preview: {
       async render({ source }) {
         const parsed = parse(source);
-        const { html } = await renderBody(parsed.body);
+        const { html } = await renderBody(env, parsed.body);
         const title = escapeHtml(parsed.title);
         return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head><body><main><h1>${title}</h1><div class="page-prose">${html}</div></main></body></html>`;
       },
     },
+
+    media: createCarrelMediaAdapter(env),
   };
 }

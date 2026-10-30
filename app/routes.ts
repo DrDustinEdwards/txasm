@@ -105,6 +105,8 @@ export default [
     "admin/editions/:editionId/program-document/download",
     "routes/admin.editions.$editionId.program-document.download.tsx",
   ),
+  // The media library's pictures, at their keys, with responsive sizes (app/lib/media/images.ts).
+  route("media/*", "routes/media.$.ts"),
   route("documents/:slug/inline", "routes/documents.$slug.inline.ts"),
   route("documents/:slug/download", "routes/documents.$slug.download.ts"),
   route("api/institutions", "routes/api.institutions.ts"),

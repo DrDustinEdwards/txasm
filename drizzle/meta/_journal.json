@@ -148,6 +148,20 @@
       "when": 1792864211787,
       "tag": "0020_sign_in",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1793318403945,
+      "tag": "0021_media_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1793318404893,
+      "tag": "0022_media_changes",
+      "breakpoints": true
     }
   ]
 }

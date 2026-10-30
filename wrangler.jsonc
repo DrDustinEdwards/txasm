@@ -46,6 +46,15 @@
 	// Browser Rendering for the abstract book PDF. Generate in a batch job, not a
 	// user request, to stay inside the quota. May want the paid Workers plan for headroom.
 	"browser": { "binding": "BROWSER" },
+	// The media library (app/lib/carrel/media-adapter.server.ts), whose files are in UPLOADS under media/.
+	// Images serves each page picture's sizes from its one original (/media/<key>?w=, site-runtime ./image)
+	// and makes the edits an editor asks for (a turn, a mirror, the shrink at upload). Without it the route
+	// serves the original and says so in x-image. Account-scoped, no id.
+	"images": { "binding": "IMAGES" },
+	// Workers AI, for the library's suggested tags and alt text: one call when an editor asks in Carrel,
+	// never on a visitor's request, never applied unasked. Through AI Gateway when the dashboard variable
+	// AI_GATEWAY_BASE_URL names one (kept by keep_vars, so the account id stays out of this public file).
+	"ai": { "binding": "AI" },
 	// Cloudflare Email Service (Email Sending). Enabled at cutover once txasm.org
 	// is on Cloudflare DNS and the domain is onboarded for Email Sending (SPF,
 	// DKIM, bounce records). Kept commented so deploys keep working now without it;

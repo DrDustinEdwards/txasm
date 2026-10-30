@@ -30,6 +30,7 @@ import { createDocuments } from "./data-access/documents";
 import { createSettings } from "./data-access/settings";
 import { createMeetingImporter } from "./data-access/importer";
 import { createCarrelPages, createPages } from "./data-access/pages";
+import { createCarrelMedia } from "./data-access/media";
 
 export {
   ForbiddenError,
@@ -90,6 +91,7 @@ export type {
   PlatformSettingsPatch,
 } from "./data-access/settings";
 export type { Page, PageWrite } from "./data-access/pages";
+export type { MediaFields, MediaRevisionRow, MediaRow, MediaWrite } from "./data-access/media";
 
 // The controlled-vocabulary types live in ./vocab (client-safe, one source).
 // Re-export the ones callers reach for through the data-access layer so their
@@ -155,4 +157,10 @@ export function getMeetingImporter(env: Env) {
 // page_revision row each write appends. Only app/lib/carrel calls it.
 export function getCarrelPages(env: Env) {
   return createCarrelPages(getDb(env));
+}
+
+// The media library's index, on Carrel's path like the pages: the same machine caller, reached
+// only from app/lib/carrel. Its files are in UPLOADS under media/.
+export function getCarrelMedia(env: Env) {
+  return createCarrelMedia(getDb(env));
 }
