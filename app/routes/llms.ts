@@ -1,6 +1,6 @@
-// /llms.txt from Prelum's llmsDocument: the branch's public hubs and each public meeting's program and abstracts,
+// /llms.txt from Prelum's llmsResponse: the branch's public hubs and each public meeting's program and abstracts,
 // for answer engines. Signed-in and admin pages are left out, as robots.txt leaves them out.
-import { llmsDocument } from "@drdustinedwards/site-helpers/llms";
+import { llmsResponse } from "@drdustinedwards/site-helpers/llms";
 import { getDataAccess } from "~/lib/data-access";
 import { FEED_PATH, SITE_ORIGIN } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -18,10 +18,12 @@ const HUBS = [
   { path: FEED_PATH, title: "RSS feed", description: "New newsletters, abstract books and programs." },
 ];
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
   const da = getDataAccess(context.get(cloudflareContext).env);
   const [settings, meetings] = await Promise.all([da.settings.get(), da.editions.listPublic()]);
-  const body = llmsDocument({
+  return llmsResponse({
+    origin: SITE_ORIGIN,
+    request,
     title: settings.orgName || "Texas Branch of the American Society for Microbiology",
     summary:
       "The Texas Branch of the American Society for Microbiology: annual meetings, abstracts, awards and newsletters for microbiologists across Texas.",
@@ -38,8 +40,5 @@ export async function loader({ context }: Route.LoaderArgs) {
         ]),
       },
     ],
-  });
-  return new Response(body, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" },
   });
 }
