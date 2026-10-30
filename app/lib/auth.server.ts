@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { redirect } from "react-router";
 import { env } from "cloudflare:workers";
+import { accessSignInUrl, adminEmails } from "@dustinedwards/site-runtime/access";
 import { signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
@@ -13,7 +14,7 @@ import {
   type Actor,
 } from "./data-access";
 import { magicLinkEmail, sendEmail } from "./email.server";
-import { accessSignInUrl, adminAccessOk } from "./access.server";
+import { adminAccessOk } from "./access.server";
 
 // Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
 // ./sign-in): a passkey first, an emailed link before one exists, Turnstile on
@@ -60,13 +61,7 @@ async function buildAuth(env: Env) {
       user: {
         create: {
           after: async (createdUser) => {
-            const source = env.ADMIN_EMAILS ?? env.ADMIN_EMAIL ?? "";
-            const adminEmails = source
-              .split(",")
-              .map((email) => email.trim().toLowerCase())
-              .filter((email) => email.length > 0);
-            if (adminEmails.length === 0) return;
-            if (!adminEmails.includes(createdUser.email.toLowerCase())) return;
+            if (!adminEmails(env).includes(createdUser.email.toLowerCase())) return;
             await db
               .insert(schema.roleGrant)
               .values({
