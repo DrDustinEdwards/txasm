@@ -1042,6 +1042,69 @@ export const pageRevision = sqliteTable(
   (t) => [index("ix_page_revision_page").on(t.pageSlug, t.createdAt)],
 );
 
+// The media library: the pictures Carrel uploads for the pages above, served at /media/<key>
+// (app/routes/media.$.ts) from the UPLOADS bucket under media/. key is the R2 key and the
+// site-api media id. rev is the version every editable write checks and bumps in one statement,
+// so a stale write is refused rather than lost (datetime resolution would let two writes in one
+// second share a version). sha256 is the current bytes', for duplicates. tags is a JSON array.
+// Abstract book and program covers are not here: they are inline SVG drawn by app/lib/cover.ts.
+export const media = sqliteTable(
+  "media",
+  {
+    key: text("key").primaryKey(),
+    filename: text("filename"),
+    contentType: text("content_type").notNull(),
+    bytes: integer("bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    sha256: text("sha256").notNull(),
+    alt: text("alt").notNull().default(""),
+    caption: text("caption").notNull().default(""),
+    tags: text("tags").notNull().default("[]"),
+    focus: text("focus"),
+    credit: text("credit").notNull().default(""),
+    license: text("license").notNull().default(""),
+    sourceUrl: text("source_url"),
+    licenseExpires: text("license_expires"),
+    takenAt: text("taken_at"),
+    trashedAt: tsMs("trashed_at"),
+    rev: integer("rev").notNull().default(0),
+    uploadedAt: tsMs("uploaded_at").notNull(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ix_media_sha256").on(t.sha256)],
+);
+
+// Every set of bytes a library file has had, newest last. The newest row is the object in
+// UPLOADS; each earlier one names its kept copy (backup_key, under media-history/), so a
+// replace, a turn or a shrink at upload can be taken back. Deleted with the file.
+export const mediaRevision = sqliteTable(
+  "media_revision",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    mediaKey: text("media_key")
+      .notNull()
+      .references(() => media.key, { onDelete: "cascade" }),
+    at: tsMs("at").notNull(),
+    bytes: integer("bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    reason: text("reason", {
+      enum: ["upload", "import", "replace", "transform", "resize", "revert"],
+    }).notNull(),
+    sha256: text("sha256"),
+    backupKey: text("backup_key"),
+  },
+  (t) => [index("ix_media_revision_key").on(t.mediaKey, t.id)],
+);
+
+// The change log a library screen polls (site-api changedSince): one row per insert, update or
+// delete of a media row, written by triggers (migration 0022) so no writer can forget it.
+export const mediaChange = sqliteTable("media_change", {
+  seq: integer("seq").primaryKey({ autoIncrement: true }),
+  mediaKey: text("media_key").notNull(),
+});
+
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter. Add once the core above is agreed.

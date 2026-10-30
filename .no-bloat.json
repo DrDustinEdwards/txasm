@@ -4,14 +4,14 @@
     "jscpd": "jscpd@4.3.0"
   },
   "baseline": {
-    "measured_at": "b5cc86d",
+    "measured_at": "6f9d6df",
     "knip": {
       "Unused exports": 1,
-      "Unused exported types": 6
+      "Unused exported types": 1
     },
     "jscpd": {
-      "clones": 54,
-      "percentage": 2.08
+      "clones": 44,
+      "percentage": 1.74
     }
   }
 }
