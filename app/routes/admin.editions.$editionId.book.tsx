@@ -1,5 +1,6 @@
 import { type DragEvent, useEffect, useRef, useState } from "react";
-import { Form, Link, useFetcher } from "react-router";
+import { Form, useFetcher } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.book";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";

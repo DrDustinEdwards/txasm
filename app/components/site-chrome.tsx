@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { LinkProps } from "capsomer/react/site-header";
 import { themeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE, type Theme } from "~/lib/theme";

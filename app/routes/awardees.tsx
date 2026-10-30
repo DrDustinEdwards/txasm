@@ -1,4 +1,5 @@
-import { Form, Link } from "react-router";
+import { Form } from "react-router";
+import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
 import type { Route } from "./+types/awardees";

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getAuthenticatorName } from "@better-auth/passkey";
-import { Link, redirect, useRevalidator } from "react-router";
+import { redirect, useRevalidator } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";

@@ -9,6 +9,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { LinkPrefetch } from "capsomer/react/link";
 import { cloudflareContext } from "~/load-context";
 import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
@@ -38,6 +39,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return { theme, settings };
 }
 
+// Paths a hovered link must not prefetch (a prefetch runs the loader), beyond the family's
+// NEVER_PREFETCH that capsomer/react/link already skips: sign-out here is /signout, and
+// /admin/access is the one path the Cloudflare Access application covers.
+const NO_PREFETCH = ["/signout", "/admin/access"];
+
 export function Layout({ children }: { children: React.ReactNode }) {
   // data-theme is set server-side from the cookie so the SSR render matches the
   // chosen theme with no flash. When absent, prefers-color-scheme decides.
@@ -53,7 +59,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <LinkPrefetch exclude={NO_PREFETCH}>{children}</LinkPrefetch>
         <ScrollRestoration />
         <Scripts />
       </body>

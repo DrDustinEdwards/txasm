@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "capsomer/react/link";
 import { PdfViewer } from "./pdf-viewer";
 import { documentSubtitle, type ArchiveDoc } from "~/lib/document-nav";
 

@@ -1,4 +1,5 @@
-import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.officers";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";

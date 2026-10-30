@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
