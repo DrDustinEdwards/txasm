@@ -7,6 +7,7 @@ import { TDM_RESERVATION_HEADERS } from "@drdustinedwards/site-helpers/robots";
 import { PASSKEY_OVERRIDES, applyHeaderSet, buildSecurityHeaders } from "@dustinedwards/site-runtime/headers";
 import { buildContentSecurityPolicy, generateNonce, reportingEndpoints } from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
+import { isPrivatePath } from "./site-meta";
 
 // The house set plus Prelum's TDMRep header, which reserves training rights as /ai.txt says.
 export const SECURITY_HEADERS = {
@@ -54,6 +55,8 @@ function contentSecurityPolicy(nonce: string | undefined) {
 // applied without overwriting, and the page policy is added only when the route
 // declared none. Headers can be immutable on some responses, so the response is
 // rebuilt around a fresh copy. `nonce` is the one the page was rendered with.
+// Signed-in, admin and API paths (robots.txt's Disallow list) also get X-Robots-Tag: noindex,
+// which covers their resource routes and redirects, where no meta tag can go.
 export function withSecurityHeaders(response: Response, request: Request, nonce?: string): Response {
   const headers = new Headers(response.headers);
   applyHeaderSet(headers, SECURITY_HEADERS, { overwrite: false });
@@ -62,6 +65,7 @@ export function withSecurityHeaders(response: Response, request: Request, nonce?
     headers.set(csp.name, csp.value);
   }
   headers.set("Reporting-Endpoints", reportingEndpoints(CSP_ENDPOINT, new URL(CSP_REPORT_PATH, request.url)));
+  if (isPrivatePath(new URL(request.url).pathname)) headers.set("X-Robots-Tag", "noindex");
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

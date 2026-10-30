@@ -2,7 +2,7 @@ import { type DragEvent, useEffect, useRef, useState } from "react";
 import { Form, useFetcher } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.book";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -16,7 +16,7 @@ import { publishArrangedBook } from "~/lib/book-pdf.server";
 import { formatDateTime } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Abstract book builder") }];
+  return privateMeta(matches, "Abstract book builder");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

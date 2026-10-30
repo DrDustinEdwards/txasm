@@ -10,6 +10,7 @@
 // EMAIL_ENABLED), not a code change.
 
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { SIGN_IN_EXPIRES_IN_WORDS } from "@dustinedwards/site-runtime/sign-in";
 import { extractPlainText } from "./richtext";
 
 // The send_email binding shape we use, per the Cloudflare Email Sending API. It
@@ -68,15 +69,24 @@ function isEmailConfigured(env: Env): boolean {
   );
 }
 
+// Each secret (a sign-in link, its token, its code) cut out of a logged error.
+function redact(line: string, secrets: readonly string[]): string {
+  return secrets.reduce((out, secret) => (secret ? out.split(secret).join("[redacted]") : out), line);
+}
+
 export async function sendEmail(
   env: Env,
   message: { to: string; subject: string; text: string; html?: string },
+  options: { secrets?: readonly string[] } = {},
 ): Promise<SendResult> {
   const e = emailEnv(env);
+  const secrets = options.secrets ?? [];
 
   if (!isEmailConfigured(env)) {
-    // Dormant: log what would have gone out (mirrors the pre-cutover magic-link
-    // behavior) and report not sent, without throwing.
+    // Dormant: log what would have gone out and report not sent, without
+    // throwing. Until cutover this log is how a sign-in link and code are read
+    // (dev server output, wrangler tail), so it keeps them; the dormant site
+    // has no members yet. Once mail is live they are never logged.
     console.log(`[email:dormant] would send to ${message.to}: ${message.subject}`);
     console.log(message.text);
     return { sent: false, reason: "disabled" };
@@ -100,7 +110,7 @@ export async function sendEmail(
         : undefined;
     return { sent: true, id };
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "send failed";
+    const reason = redact(error instanceof Error ? error.message : "send failed", secrets);
     console.error(`[email] send to ${message.to} failed: ${reason}`);
     return { sent: false, reason };
   }
@@ -119,17 +129,18 @@ function htmlParagraphs(lines: string[]): string {
     .join("");
 }
 
-export function magicLinkEmail(url: string): EmailContent {
+// The sign-in mail (site-runtime ./sign-in): Better Auth's link untouched and the
+// six-digit code as text, for the tab that asked when the link opens in another
+// browser (the mail app's, a phone), with how long both last. Both sign in, so
+// sendEmail is given them to cut out of a logged send error.
+export function magicLinkEmail(url: string, code: string): EmailContent {
   const subject = "Your TXASM sign-in link";
-  const lines = [
-    "Use the link below to sign in to TXASM. It expires in a few minutes.",
+  const lead = `Use the link below to sign in to TXASM, or type this code on the page where you asked for it: ${code}. Both work once and expire in ${SIGN_IN_EXPIRES_IN_WORDS}.`;
+  const ignore = "If you did not request this, you can ignore this email.";
+  const text = [lead, url, ignore].join("\n\n");
+  const html = `${htmlParagraphs([lead])}<p><a href="${escapeHtml(
     url,
-    "If you did not request this, you can ignore this email.",
-  ];
-  const text = lines.join("\n\n");
-  const html = `${htmlParagraphs([lines[0]])}<p><a href="${escapeHtml(
-    url,
-  )}">${escapeHtml(url)}</a></p>${htmlParagraphs([lines[2]])}`;
+  )}">${escapeHtml(url)}</a></p>${htmlParagraphs([ignore])}`;
   return { subject, text, html };
 }
 

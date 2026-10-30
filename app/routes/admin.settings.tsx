@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.settings";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -13,7 +13,7 @@ import {
 import { parseYear } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Platform settings") }];
+  return privateMeta(matches, "Platform settings");
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

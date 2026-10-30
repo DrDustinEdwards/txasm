@@ -3,14 +3,14 @@ import { getAuthenticatorName } from "@better-auth/passkey";
 import { redirect, useRevalidator } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/account";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { getAuth, requireUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
 import { formatDateTime } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Passkeys") }];
+  return privateMeta(matches, "Passkeys");
 }
 
 // A person's passkeys. The email link lands here with ?welcome=1: someone with no

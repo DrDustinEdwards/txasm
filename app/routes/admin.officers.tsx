@@ -5,11 +5,11 @@ import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
 import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Branch officers") }];
+  return privateMeta(matches, "Branch officers");
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

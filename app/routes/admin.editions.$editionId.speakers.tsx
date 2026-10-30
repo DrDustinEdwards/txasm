@@ -1,7 +1,7 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.speakers";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
@@ -10,7 +10,7 @@ import { RichEditor } from "~/components/rich-editor";
 import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Invited speakers") }];
+  return privateMeta(matches, "Invited speakers");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

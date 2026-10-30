@@ -1,7 +1,7 @@
 import { Form, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -12,7 +12,7 @@ import {
 } from "~/lib/data-access";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Assign reviewers") }];
+  return privateMeta(matches, "Assign reviewers");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

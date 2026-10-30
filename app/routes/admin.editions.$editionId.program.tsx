@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -20,7 +20,7 @@ import { buildDayKeys, dayTabLabel } from "~/components/program-builder/shared";
 import { NO_DATE_KEY, PDF_MIME_TYPE } from "~/lib/vocab";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Program") }];
+  return privateMeta(matches, "Program");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

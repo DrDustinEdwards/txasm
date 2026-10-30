@@ -23,7 +23,7 @@ import {
   maxUploadBytesForKind,
   type DocumentCategory,
 } from "~/lib/vocab";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { parseYear } from "~/lib/form.server";
 
 // File picker hint: allow every accepted type so images are selectable for the
@@ -32,7 +32,7 @@ import { parseYear } from "~/lib/form.server";
 const UPLOAD_ACCEPT = [PDF_MIME_TYPE, ...IMAGE_MIME_TYPES].join(",");
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Documents") }];
+  return privateMeta(matches, "Documents");
 }
 
 function toCategory(value: string | null): DocumentCategory | undefined {

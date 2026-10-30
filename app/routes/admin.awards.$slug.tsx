@@ -10,11 +10,11 @@ import {
   getDataAccess,
   type AwardRecipientView,
 } from "~/lib/data-access";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { parseSortOrder } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Manage award") }];
+  return privateMeta(matches, "Manage award");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

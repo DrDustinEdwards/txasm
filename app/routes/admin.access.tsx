@@ -1,7 +1,8 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/admin.access";
 import { requireUser } from "~/lib/auth.server";
-import { adminAccessOk, safeAdminNext } from "~/lib/access.server";
+import { safeAdminNext } from "@dustinedwards/site-runtime/access";
+import { adminAccessOk } from "~/lib/access.server";
 import { cloudflareContext } from "~/load-context";
 
 // The one path the Cloudflare Access application covers (access.server.ts).

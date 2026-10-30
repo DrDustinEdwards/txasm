@@ -1,10 +1,10 @@
 // Secrets and vars are set with `wrangler secret`, not in wrangler.jsonc, so they
 // are not generated into worker-configuration.d.ts. Declare them on both the
 // global Env (what loaders, actions, and the data/auth functions take) and
-// Cloudflare.Env (what `cloudflare:workers` exports as `env`), so the ambient env
+// Cloudflare.Env (what `cloudflare:workers` exports as `env`), both from one list, so the ambient env
 // the auth helpers read stays assignable to the Env those functions expect.
 // Resend and Cloudflare Email Service vars are deferred and intentionally absent.
-interface Env {
+interface TxasmSecrets {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   ADMIN_EMAIL: string;
@@ -23,17 +23,8 @@ interface Env {
   ACCESS_DEV_BYPASS?: string;
 }
 
+interface Env extends TxasmSecrets {}
+
 declare namespace Cloudflare {
-  interface Env {
-    BETTER_AUTH_SECRET: string;
-    BETTER_AUTH_URL: string;
-    ADMIN_EMAIL: string;
-    ADMIN_EMAILS?: string;
-    CARREL_SITE_KEY?: string;
-    TURNSTILE_SITE_KEY?: string;
-    TURNSTILE_SECRET_KEY?: string;
-    ACCESS_TEAM_DOMAIN?: string;
-    ACCESS_AUD?: string;
-    ACCESS_DEV_BYPASS?: string;
-  }
+  interface Env extends TxasmSecrets {}
 }

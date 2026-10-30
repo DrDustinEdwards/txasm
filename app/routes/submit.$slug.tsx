@@ -1,7 +1,7 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/submit.$slug";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireUser } from "~/lib/auth.server";
 import {
@@ -15,7 +15,7 @@ import { formatDateTime } from "~/lib/format";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Submit an abstract") }];
+  return privateMeta(matches, "Submit an abstract");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

@@ -1,7 +1,7 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.roles";
-import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -12,7 +12,7 @@ import {
 } from "~/lib/data-access";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: pageTitle(matches, "Chairs and reviewers") }];
+  return privateMeta(matches, "Chairs and reviewers");
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
