@@ -6,6 +6,7 @@ import {
   unique,
   index,
   primaryKey,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 // Column factories. crypto.randomUUID is available in the Workers runtime.
@@ -1104,6 +1105,20 @@ export const mediaChange = sqliteTable("media_change", {
   seq: integer("seq").primaryKey({ autoIncrement: true }),
   mediaKey: text("media_key").notNull(),
 });
+
+// A count of the 404s the site serves, per path per UTC day (site-runtime ./not-found, written
+// by countNotFound in workers/app.ts). The shape is site-runtime's NOT_FOUND_SQL exactly: the
+// pathname only, never the query, which can carry a sign-in token.
+export const page404Daily = sqliteTable(
+  "page_404_daily",
+  {
+    id: text("id").primaryKey(),
+    day: tsMs("day").notNull(),
+    path: text("path").notNull(),
+    hitCount: integer("hit_count").notNull().default(0),
+  },
+  (t) => [uniqueIndex("page_404_daily_day_path_uq").on(t.day, t.path)],
+);
 
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of

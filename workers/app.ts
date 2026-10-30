@@ -1,5 +1,8 @@
 import { createRequestHandler, RouterContextProvider } from "react-router";
 import { receiveCspReport } from "@dustinedwards/site-runtime/csp-report";
+import { countNotFound } from "@dustinedwards/site-runtime/not-found";
+import { refuseCrossOrigin } from "@dustinedwards/site-runtime/origin";
+import { slashRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
 import { runNightlyBackup } from "../app/lib/backup.server";
 import {
@@ -32,6 +35,20 @@ export default {
     const carrel = carrelApi(env);
     if (carrel.matches(request)) return withSecurityHeaders(await carrel.handle(request, ctx), request);
 
+    // One address per page: /x/ answers 301 to /x (308 for a form post).
+    const slash = slashRedirect(request);
+    if (slash) return withSecurityHeaders(slash, request);
+
+    // A cross-origin browser POST (or other write) is refused before routing. React
+    // Router checks the Origin of a page's own action, but resource routes (admin
+    // downloads and JSON, the search APIs) never reach that check. An absent Origin
+    // passes, so non-browser clients are unaffected. Better Auth checks its own
+    // origins under /api/auth, so it is left to that.
+    if (!new URL(request.url).pathname.startsWith("/api/auth/")) {
+      const refused = refuseCrossOrigin(request);
+      if (refused) return withSecurityHeaders(refused, request);
+    }
+
     // Inject the Cloudflare env and execution context so loaders and actions
     // reach bindings through context.get(cloudflareContext), never ambiently.
     // The page's CSP nonce goes to the render and to its header.
@@ -39,7 +56,11 @@ export default {
     const context = new RouterContextProvider();
     context.set(cloudflareContext, { env, ctx });
     context.set(cspNonceContext, nonce);
-    return withSecurityHeaders(await requestHandler(request, context), request, nonce);
+    const response = await requestHandler(request, context);
+    // Each 404 to a GET counts against its path for the day (page_404_daily), in
+    // waitUntil, so it never holds or fails the page. The path only, never the query.
+    countNotFound(env.DB, request, response, ctx);
+    return withSecurityHeaders(response, request, nonce);
   },
 
   // The cron fires daily (see wrangler.jsonc). It takes the nightly D1 backup;
