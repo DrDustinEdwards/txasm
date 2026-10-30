@@ -1,7 +1,8 @@
-import { createRequestHandler, RouterContextProvider } from "react-router";
+import { createRequestHandler, RouterContextProvider, type ServerBuild } from "react-router";
 import { receiveCspReport } from "@dustinedwards/site-runtime/csp-report";
 import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { refuseCrossOrigin } from "@dustinedwards/site-runtime/origin";
+import { preloads } from "@dustinedwards/site-runtime/preload";
 import { slashRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
 import { runNightlyBackup } from "../app/lib/backup.server";
@@ -13,10 +14,8 @@ import {
 } from "../app/lib/security-headers";
 import { carrelApi } from "../app/lib/carrel/handler.server";
 
-const requestHandler = createRequestHandler(
-  () => import("virtual:react-router/server-build"),
-  import.meta.env.MODE,
-);
+const serverBuild = () => import("virtual:react-router/server-build") as Promise<ServerBuild>;
+const requestHandler = createRequestHandler(serverBuild, import.meta.env.MODE);
 
 export default {
   async fetch(request, env, ctx) {
@@ -60,7 +59,15 @@ export default {
     // Each 404 to a GET counts against its path for the day (page_404_daily), in
     // waitUntil, so it never holds or fails the page. The path only, never the query.
     countNotFound(env.DB, request, response, ctx);
-    return withSecurityHeaders(response, request, nonce);
+    const page = withSecurityHeaders(response, request, nonce);
+    // Early Hints: on a zone with Early Hints on, a page carrying a preload Link header is answered with a 103 first,
+    // so the browser starts the render-blocking stylesheet while the Worker still renders (site-runtime ./preload).
+    if (page.headers.get("Content-Type")?.startsWith("text/html")) {
+      const stylesheets = (await serverBuild()).assets.routes.root?.css ?? [];
+      const { header } = preloads(stylesheets.map((href) => ({ href, as: "style" as const })));
+      if (header) page.headers.append("Link", header);
+    }
+    return page;
   },
 
   // The cron fires daily (see wrangler.jsonc). It takes the nightly D1 backup;
