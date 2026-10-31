@@ -1,4 +1,5 @@
 import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
+import { originalKey } from "@dustinedwards/site-runtime/image";
 import type { Route } from "./+types/media.$";
 import { MEDIA_PREFIX, images, mediaKeyOf } from "~/lib/media/images";
 import { cloudflareContext } from "~/load-context";
@@ -10,7 +11,7 @@ import { cloudflareContext } from "~/load-context";
 // Hard rule 5: image responses carry nosniff and the sandboxed CSP, so no file runs script.
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
-  const key = mediaKeyOf(`/${MEDIA_PREFIX}${params["*"] ?? ""}`);
+  const key = mediaKeyOf(`/${MEDIA_PREFIX}${originalKey(params["*"] ?? "", request)}`);
   if (!key) throw new Response("Not found", { status: 404 });
   const response = await images.respond(request, {
     object: await env.UPLOADS.get(key),
