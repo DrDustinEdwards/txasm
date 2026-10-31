@@ -8,10 +8,10 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { iconLinks } from "@drdustinedwards/site-helpers/icons";
 import { LinkPrefetch } from "capsomer/react/link";
 import { ErrorPage, errorTitle } from "capsomer/react/error-page";
 import { cloudflareContext } from "~/load-context";
-import { BRAND } from "~/lib/brand";
 import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
@@ -24,9 +24,8 @@ import "@fontsource-variable/inter/opsz-italic.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
-  // The starburst mark is the favicon; it stays legible at tab size where the
-  // full wordmark would not. favicon.ico remains in public/ as a legacy fallback.
-  { rel: "icon", type: "image/svg+xml", href: BRAND.favicon },
+  // The starburst mark, squared: legible at tab size where the full wordmark would not.
+  ...iconLinks(),
 ];
 
 // An unmatched address matches only the root, so the error path's title comes from here (WCAG 2.4.2).
