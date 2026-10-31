@@ -182,3 +182,6 @@ export default {
     await runNightlyBackup(env);
   },
 } satisfies ExportedHandler<Env>;
+
+// The sign-in's per-address limits (RATE_LIMITER, app/lib/auth.server.ts).
+export { RateLimiter } from "@dustinedwards/site-runtime/rate-limit/durable-object";

@@ -42,6 +42,12 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     setBusy(true);
     setError(null);
     const result = await authClient.passkey.addPasskey();
+    // A sign-in older than 10 minutes cannot add a passkey (site-runtime ./sign-in, FRESH_SECONDS):
+    // sign in again, then come back here.
+    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
+      window.location.assign("/signin?next=/account");
+      return;
+    }
     setBusy(false);
     if (result?.error) {
       setError("The passkey was not saved. Try again.");

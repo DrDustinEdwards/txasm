@@ -14,6 +14,7 @@ import {
   type Actor,
 } from "./data-access";
 import { magicLinkEmail, sendEmail } from "./email.server";
+import { SIGN_IN_CONFIRM_PATH } from "./site-meta";
 import { adminAccessOk } from "./access.server";
 
 // Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
@@ -37,6 +38,10 @@ async function buildAuth(env: Env) {
     sendMagicLink: async ({ email, url, token, code }) => {
       await sendEmail(env, { to: email, ...magicLinkEmail(email, url, code) }, { secrets: [url, token, code] });
     },
+    // The link opens /signin/confirm, under /signin, so it is private and never stored (site-meta.ts).
+    confirmPath: SIGN_IN_CONFIRM_PATH,
+    // Five sign-in mails an hour and ten typed codes a day per address.
+    emailLimiter: env.RATE_LIMITER,
   });
 
   return betterAuth({
