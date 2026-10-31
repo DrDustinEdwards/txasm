@@ -22,6 +22,7 @@ import {
   type SiteAdapter,
   type WriteResult,
 } from "@dustinedwards/site-api";
+import { readKey, splitSource } from "@dustinedwards/site-api/frontmatter";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { notFoundReport } from "@dustinedwards/site-runtime/not-found";
 import { getCarrelMedia, getCarrelPages, type Page, type PageWrite } from "../data-access";
@@ -208,11 +209,12 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
 
     // The body as the route shows it, in a plain page: an unsaved source has no row to load.
     preview: {
+      // A source with no title still previews (site-api 0.17.0's conformance asks it to); a save still refuses it.
       async render({ source }) {
-        const parsed = parse(source);
-        const { html } = await renderBody(env, parsed.body);
-        const title = escapeHtml(parsed.title);
-        return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head><body><main><h1>${title}</h1><div class="page-prose">${html}</div></main></body></html>`;
+        const { front, body } = splitSource(source);
+        const { html } = await renderBody(env, body);
+        const title = escapeHtml(readKey(front, "title").trim());
+        return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${title || "Preview"}</title></head><body><main>${title ? `<h1>${title}</h1>` : ""}<div class="page-prose">${html}</div></main></body></html>`;
       },
     },
 
