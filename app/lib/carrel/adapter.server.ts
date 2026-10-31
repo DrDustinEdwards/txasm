@@ -23,6 +23,7 @@ import {
   type WriteResult,
 } from "@dustinedwards/site-api";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { notFoundReport } from "@dustinedwards/site-runtime/not-found";
 import { getCarrelMedia, getCarrelPages, type Page, type PageWrite } from "../data-access";
 import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
@@ -216,5 +217,7 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
     },
 
     media: createCarrelMediaAdapter(env),
+    // The 404s workers/app.ts counts, for Carrel's report.
+    insight: { notFound: (options) => notFoundReport(env.DB, options) },
   };
 }
