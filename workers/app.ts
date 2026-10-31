@@ -13,6 +13,7 @@ import {
   withPurgePages,
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
+import { pruneAuthEvents } from "@dustinedwards/site-runtime/sign-in";
 import { countNotFound, pruneNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
 import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
@@ -171,9 +172,10 @@ const site = {
 
   // The crons (see wrangler.jsonc), each job recorded in cron_runs by site-runtime's runJobs, so /health notices one
   // that failed or stopped. Every minute: the updates Carrel scheduled go live (handler.server.ts). Daily: the nightly
-  // D1 backup, the uploads copy beside it and the 404 count's pruning. The deadline jobs and reminders (submission and
-  // review deadline reminders, status transitions) join the daily list when they are wired per edition. A failed job
-  // does not stop the next; runJobs throws after the last, so the invocation shows as failed in Workers Logs.
+  // D1 backup, the uploads copy beside it, and the pruning of the 404 counts and the auth event rows. The deadline
+  // jobs and reminders (submission and review deadline reminders, status transitions) join the daily list when they
+  // are wired per edition. A failed job does not stop the next; runJobs throws after the last, so the invocation
+  // shows as failed in Workers Logs.
   async scheduled(controller, env, _ctx) {
     if (controller.cron === SCHEDULES_CRON) {
       await runJobs(env.DB, [
@@ -185,6 +187,8 @@ const site = {
       { name: "backup", everyMinutes: 1440, run: () => runNightlyBackup(env) },
       { name: "backup-uploads", everyMinutes: 1440, run: () => backupUploads(env) },
       { name: "prune-404", everyMinutes: 1440, run: () => pruneNotFound(env.DB) },
+      // The auth event rows: a year, or 30 days for one with no user (site-runtime ./sign-in).
+      { name: "prune-auth-events", everyMinutes: 1440, run: () => pruneAuthEvents(env.DB) },
     ]);
   },
 } satisfies ExportedHandler<Env>;

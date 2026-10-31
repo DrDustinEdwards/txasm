@@ -80,7 +80,7 @@ export default function EmailChangeConfirm({ actionData }: Route.ComponentProps)
           <h1 className="page-title">{done === "changed" ? "Your email address changed" : "Change approved"}</h1>
           <p>
             {done === "changed"
-              ? "Sign-in links now go to the new address. A notice went to both addresses."
+              ? "Sign-in links now go to the new address, and your other devices were signed out. A notice went to both addresses."
               : "Now open the email we sent to the new address and confirm it there. The change is made when you do."}
           </p>
         </div>

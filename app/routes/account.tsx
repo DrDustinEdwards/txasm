@@ -2,7 +2,13 @@ import { useState } from "react";
 import { isAPIError } from "better-auth/api";
 import { Form, redirect, useActionData, useFetcher, useNavigation, useRevalidator } from "react-router";
 import { Link } from "capsomer/react/link";
-import { FRESH_SECONDS, accountSessions, passkeyLabel, revokeSessionById } from "@dustinedwards/site-runtime/sign-in";
+import {
+  FRESH_SECONDS,
+  accountSessions,
+  passkeyLabel,
+  revokeSessionById,
+  securityHistory,
+} from "@dustinedwards/site-runtime/sign-in";
 import { signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
@@ -25,7 +31,22 @@ const RECORD_WORDS: Record<AccountRecordKind, string> = {
   work: "work done for a Meeting",
 };
 
-// A person's email address, passkeys, signed-in devices and the account itself. The email link lands here with ?welcome=1:
+// A security history row's kind (site-runtime securityHistory), in words; a sign-in says how.
+const HISTORY_WORDS: Record<string, string> = {
+  "passkey-added": "Passkey added",
+  "passkey-removed": "Passkey removed",
+  "sign-in-linked": "Sign-in method added",
+  "sign-in-unlinked": "Sign-in method removed",
+  "email-changed": "Email address changed",
+  recovery: "Signed in by email with no passkey left",
+};
+const SIGN_IN_VIA: Record<string, string> = { link: "Signed in with an email link", code: "Signed in with an email code", passkey: "Signed in with a passkey" };
+function historyWords(kind: string, via: string | null): string {
+  if (kind === "sign-in") return (via && SIGN_IN_VIA[via]) || "Signed in";
+  return HISTORY_WORDS[kind] ?? "Account change";
+}
+
+// A person's email address, passkeys, signed-in devices, recent security activity and the account itself. The email link lands here with ?welcome=1:
 // someone with no passkey is offered one, everyone else goes on home.
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
@@ -39,7 +60,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return {
     welcome,
     email: current.user.email,
-    // Deleting the account needs a sign-in in the last FRESH_SECONDS (Better Auth's /delete-user).
+    // Changing the email and deleting the account need a sign-in in the last FRESH_SECONDS (site-runtime ./sign-in).
     fresh: Date.now() - new Date(current.session.createdAt).getTime() < FRESH_SECONDS * 1000,
     deletionBlockers: welcome ? [] : await getDataAccess(env).account.deletionBlockers(current.user.id),
     // The relying party the passkeys belong to, for telling the password manager one is gone.
@@ -53,6 +74,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     })),
     // Null when the sign-in is too old to list them (site-runtime ./sign-in, FRESH_SECONDS).
     sessions: welcome ? [] : await accountSessions(auth, request),
+    // The last ten sign-ins and changes to how the person signs in (auth_events, site-runtime ./sign-in).
+    history: welcome ? [] : await securityHistory(env.DB, current.user.id, 10),
   };
 }
 
@@ -97,7 +120,7 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
 }
 
 export default function Account({ loaderData }: Route.ComponentProps) {
-  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, sessions } = loaderData;
+  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, sessions, history } = loaderData;
   const revalidator = useRevalidator();
   const signOut = useFetcher<typeof action>();
   const deleted = useActionData<typeof action>();
@@ -117,6 +140,11 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       return;
     }
     const result = await authClient.changeEmail({ newEmail });
+    // The sign-in got older than FRESH_SECONDS while the page was open: sign in again, then come back.
+    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
+      window.location.assign("/signin?next=/account");
+      return;
+    }
     if (result?.error) {
       setEmailNote({ ok: false, text: "The change was not started. Check the address and try again." });
       return;
@@ -149,6 +177,11 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   async function removePasskey(id: string, credentialId: string) {
     const result = await authClient.passkey.deletePasskey({ id });
+    // Removing a passkey needs a sign-in in the last FRESH_SECONDS, as adding one does.
+    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
+      window.location.assign("/signin?next=/account");
+      return;
+    }
     if (result?.error) {
       setError("The passkey was not removed. Try again.");
       return;
@@ -200,42 +233,48 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         <h2 className="subsection-title">Email address</h2>
         <p>
           Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this address, then
-          confirm it from the new one.
+          confirm it from the new one. Your other devices are then signed out.
         </p>
       </div>
-      <form
-        className="stack-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void changeEmail(event.currentTarget);
-        }}
-      >
-        <div className="cap-field">
-          <label htmlFor="newEmail" className="cap-field-label">
-            New email address
-          </label>
-          <input
-            id="newEmail"
-            name="newEmail"
-            type="email"
-            autoComplete="email"
-            required
-            aria-invalid={emailNote && !emailNote.ok ? true : undefined}
-            aria-describedby={emailNote ? "email-note" : undefined}
-            className="cap-input"
-          />
-          {emailNote ? (
-            <p id="email-note" role={emailNote.ok ? "status" : "alert"} className={emailNote.ok ? undefined : "cap-field-error"}>
-              {emailNote.text}
-            </p>
-          ) : null}
-        </div>
-        <div>
-          <button type="submit" className="cap-btn">
-            Change email
-          </button>
-        </div>
-      </form>
+      {!fresh ? (
+        <p>
+          <Link to="/signin?next=/account">Sign in again to change your email</Link>
+        </p>
+      ) : (
+        <form
+          className="stack-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void changeEmail(event.currentTarget);
+          }}
+        >
+          <div className="cap-field">
+            <label htmlFor="newEmail" className="cap-field-label">
+              New email address
+            </label>
+            <input
+              id="newEmail"
+              name="newEmail"
+              type="email"
+              autoComplete="email"
+              required
+              aria-invalid={emailNote && !emailNote.ok ? true : undefined}
+              aria-describedby={emailNote ? "email-note" : undefined}
+              className="cap-input"
+            />
+            {emailNote ? (
+              <p id="email-note" role={emailNote.ok ? "status" : "alert"} className={emailNote.ok ? undefined : "cap-field-error"}>
+                {emailNote.text}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <button type="submit" className="cap-btn">
+              Change email
+            </button>
+          </div>
+        </form>
+      )}
       <div className="stack-2">
         <h2 className="subsection-title">Passkeys</h2>
         <p>A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in with an email link.</p>
@@ -313,6 +352,26 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           {error ?? "That device was not signed out. Try again."}
         </p>
       ) : null}
+      <div className="stack-2">
+        <h2 className="subsection-title">Recent security activity</h2>
+        <p>Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out of that device.</p>
+      </div>
+      {history.length === 0 ? (
+        <p className="cap-muted">Nothing yet.</p>
+      ) : (
+        <ul className="stack-3" aria-label="Your recent security activity">
+          {history.map((h, i) => (
+            <li key={`${new Date(h.at).getTime()}-${i}`}>
+              {historyWords(h.kind, h.via)}
+              <span className="small cap-muted">
+                {` ${formatDateTime(new Date(h.at))}`}
+                {h.device ? `, ${h.device}` : ""}
+                {h.location ? ` near ${h.location}` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="stack-2">
         <h2 className="subsection-title">Delete your account</h2>
         {deletionBlockers.length > 0 ? (

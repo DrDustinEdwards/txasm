@@ -1140,6 +1140,24 @@ export const page404Daily = sqliteTable(
   (t) => [uniqueIndex("page_404_daily_day_path_referrer_uq").on(t.day, t.path, t.referrerHost)],
 );
 
+// The auth event log as rows (site-runtime ./sign-in, eventsDb): each sign-in event's time, OWASP name, change or
+// scope, way in, user, device and coarse place; never an address, token or code. A person's security history on
+// /account reads it, /health's spike check counts it, and the daily cron prunes it. The shape is its AUTH_EVENTS_SQL.
+export const authEvents = sqliteTable(
+  "auth_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    at: integer("at").notNull(),
+    event: text("event").notNull(),
+    change: text("change"),
+    via: text("via"),
+    userId: text("user_id"),
+    device: text("device"),
+    location: text("location"),
+  },
+  (t) => [index("auth_events_user").on(t.userId, t.at), index("auth_events_at").on(t.at, t.event)],
+);
+
 // Each scheduled job's last start, success and failure, in epoch ms (site-runtime ./cron, written
 // by runJobs in workers/app.ts and read by /health's cron check). The shape is its CRON_SQL.
 export const cronRuns = sqliteTable("cron_runs", {

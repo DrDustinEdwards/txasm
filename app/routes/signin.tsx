@@ -14,6 +14,7 @@ import {
 } from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
+import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
 import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -84,6 +85,10 @@ async function signInWithCode(
     if (response.status === 429) {
       return answer(`Too many tries. ${reason === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute"}, or use the link in the email.`);
     }
+    // The per-address code counter is down, so a typed code is refused; the link in the same mail still works.
+    if (response.status === 503 && reason === "RATE_LIMIT_UNAVAILABLE") {
+      return answer("Codes can't be checked right now. Use the link in the email, or try again in a few minutes.");
+    }
     if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
     if (reason === "OTP_EXPIRED") {
       return answer(`That code has expired: a code works for ${SIGN_IN_EXPIRES_IN_WORDS}. Send yourself a new one.`);
@@ -153,6 +158,13 @@ export async function action({
         return { ok: false, error: "Complete the check, then send the link again." };
       }
     }
+    // Turnstile's keys are missing and the site has not said to go on without them (app/lib/auth.server.ts).
+    if (response.status === 503) {
+      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      if (code === "TURNSTILE_NOT_SET") {
+        return { ok: false, error: "Sign-in links can't be sent right now. Use a passkey, or try again later." };
+      }
+    }
     if (!response.ok) {
       throw new Error(`magic link request returned ${response.status}`);
     }
@@ -182,7 +194,9 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   // A passkey sign-in sets the session cookie, so a full load reads it.
   async function signInWithPasskey(autoFill: boolean) {
-    const result = await authClient.signIn.passkey({ autoFill });
+    // site-runtime's call tells the password manager when the site no longer knows the passkey. Its 0.51.0
+    // typing wants error.code, which Better Auth's client error type lacks (a weak-type mismatch), hence the cast.
+    const result = await passkeySignIn(authClient as unknown as Parameters<typeof passkeySignIn>[0], { autoFill });
     if (!result?.error) {
       window.location.assign(next ?? "/");
     } else if (!autoFill) {
@@ -275,7 +289,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
       <div className="stack-2">
         <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
         <p>
-          {next ? "To change your passkeys or signed-in devices, or to delete your account, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
+          {next ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
           password needed.
         </p>
       </div>

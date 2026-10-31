@@ -45,6 +45,12 @@ async function buildAuth(env: Env) {
     confirmPath: SIGN_IN_CONFIRM_PATH,
     // Five sign-in mails an hour and ten typed codes a day per address.
     emailLimiter: env.RATE_LIMITER,
+    // No Turnstile keys yet: until Dustin creates them, the link request goes through unchecked and each one
+    // logs turnstile_off_until_keys. Without this it would answer 503 TURNSTILE_NOT_SET. Remove it with the keys.
+    turnstile: "off-until-keys",
+    // Each auth event is also a row in auth_events (migration 0030): the person's history on /account,
+    // /health's spike check, pruned daily (workers/app.ts).
+    eventsDb: env.DB,
     // A mail to the account's address for each change to how it signs in: a passkey added or removed,
     // other devices signed out (site-runtime ./sign-in, sendSecurityNotice). Dormant with the rest of the mail.
     sendSecurityNotice: async (_kind, { user, detail }) => {

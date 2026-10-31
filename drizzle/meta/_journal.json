@@ -211,6 +211,13 @@
       "when": 1793442143110,
       "tag": "0029_session_location",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1793444494986,
+      "tag": "0030_auth_events",
+      "breakpoints": true
     }
   ]
 }
