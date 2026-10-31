@@ -3,6 +3,7 @@ import { cloudflareContext } from "~/load-context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { renderArrangedBook } from "~/lib/book";
+import { bookPolicy } from "~/lib/security-headers";
 
 // Print-ready preview of the chair's ARRANGED abstract book, served as a full
 // HTML document so a chair can open it, let Paged.js lay it out, and print to PDF
@@ -14,17 +15,18 @@ import { renderArrangedBook } from "~/lib/book";
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
+  const policy = await bookPolicy();
   try {
     const data = await getDataAccess(env).books.renderData(actor, params.editionId);
     const html = renderArrangedBook(data);
     return new Response(html, {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
+      headers: { "Content-Type": "text/html; charset=utf-8", ...policy },
     });
   } catch (error) {
     if (error instanceof NotFoundError) {
       return new Response(
         "<!doctype html><meta charset=utf-8><title>No book yet</title><body style=\"font-family:system-ui;padding:2rem\"><p>No book has been generated for this meeting yet. Generate it from the book builder, then reopen this preview.</p></body>",
-        { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } },
+        { status: 404, headers: { "Content-Type": "text/html; charset=utf-8", ...policy } },
       );
     }
     throw error;

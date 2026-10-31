@@ -14,6 +14,7 @@ import {
 } from "~/lib/data-access";
 import { publishArrangedBook } from "~/lib/book-pdf.server";
 import { formatDateTime } from "~/lib/format";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Abstract book builder");
@@ -37,7 +38,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const editionId = params.editionId;
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
 
   try {
@@ -59,7 +60,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { book };
     }
     if (intent === "publish") {
-      const outcome = await publishArrangedBook(env, da, actor, editionId);
+      const outcome = await publishArrangedBook(env, da, actor, editionId, new URL(request.url).origin);
       const book = await da.books.get(actor, editionId);
       const note =
         outcome === "ready"

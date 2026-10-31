@@ -18,6 +18,7 @@ import {
   type Season,
 } from "~/lib/vocab";
 import { toDateTimeLocal } from "~/lib/format";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Edit meeting");
@@ -42,7 +43,7 @@ function parseDate(value: FormDataEntryValue | null): Date | null {
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
-  const form = await request.formData();
+  const form = await readForm(request);
   const status = String(form.get("status") ?? "");
 
   if (!EDITION_STATUSES.includes(status as EditionStatus)) {

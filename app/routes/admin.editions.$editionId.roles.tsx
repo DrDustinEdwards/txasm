@@ -10,6 +10,7 @@ import {
   getDataAccess,
   type GrantableRole,
 } from "~/lib/data-access";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Chairs and reviewers");
@@ -27,7 +28,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
   const back = `/admin/editions/${params.editionId}/roles`;
 

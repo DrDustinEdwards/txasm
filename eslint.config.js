@@ -36,6 +36,8 @@ export default tseslint.config(
       ".react-router/",
       "drizzle/",
       "worker-configuration.d.ts",
+      // Vendored Paged.js, byte for byte (app/lib/paged.ts).
+      "public/pagedjs/",
       "node_modules/",
     ],
   },

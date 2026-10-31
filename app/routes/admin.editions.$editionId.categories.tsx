@@ -11,6 +11,7 @@ import {
   type RegistrationCategoryKey,
 } from "~/lib/vocab";
 import { formatMoney, parseDollarsToCents } from "~/lib/format";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Registration categories");
@@ -27,7 +28,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
   const da = getDataAccess(context.get(cloudflareContext).env);
 

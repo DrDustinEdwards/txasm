@@ -17,6 +17,7 @@ import {
 import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Decisions");
@@ -35,7 +36,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
   const abstractId = String(form.get("abstractId") ?? "");
 

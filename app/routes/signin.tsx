@@ -12,6 +12,7 @@ import {
 } from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sign in");
@@ -78,7 +79,7 @@ export async function action({
   request,
   context,
 }: Route.ActionArgs): Promise<ActionResult> {
-  const formData = await request.formData();
+  const formData = await readForm(request);
   const email = String(formData.get("email") ?? "").trim();
   if (!email) {
     return { ok: false, error: "Enter your email address." };

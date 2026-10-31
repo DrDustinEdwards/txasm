@@ -10,7 +10,7 @@ import {
   type FooterLink,
   type PlatformSettingsPatch,
 } from "~/lib/data-access";
-import { parseYear } from "~/lib/form.server";
+import { parseYear, readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Platform settings");
@@ -50,7 +50,7 @@ function parseFooterLinks(value: FormDataEntryValue | null): FooterLink[] {
 export async function action({ request, context }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const { env } = context.get(cloudflareContext);
-  const form = await request.formData();
+  const form = await readForm(request);
 
   try {
     const patch: PlatformSettingsPatch = {
