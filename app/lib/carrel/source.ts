@@ -15,10 +15,10 @@ import { readKey, searchFieldsOf, splitSource, type SearchValues } from "@dustin
 
 export type PageSource = { title: string; description: string | null; search: Omit<SearchValues, "description">; body: string };
 
-/** Throws when the source has no title: every page route shows one. A preview shows a draft without one as untitled. */
-export function parseSource(source: string, { preview = false } = {}): PageSource {
+/** Throws when the source has no title: every page route shows one. */
+export function parseSource(source: string): PageSource {
   const { front, body } = splitSource(source);
-  const title = readKey(front, "title").trim() || (preview ? "Untitled" : "");
+  const title = readKey(front, "title").trim();
   if (!title) throw new Error("A page needs a title in its front matter.");
   const { description, ...search } = searchFieldsOf(front);
   return { title, description: description.trim() || null, search, body };
