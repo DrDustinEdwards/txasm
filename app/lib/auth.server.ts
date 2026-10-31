@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { redirect } from "react-router";
-import { env } from "cloudflare:workers";
+import { env, waitUntil } from "cloudflare:workers";
 import { accessSignInUrl, adminEmails } from "@dustinedwards/site-runtime/access";
 import { signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
@@ -13,7 +13,7 @@ import {
   isReviewerAnywhere,
   type Actor,
 } from "./data-access";
-import { magicLinkEmail, sendEmail } from "./email.server";
+import { magicLinkEmail, securityNoticeEmail, sendEmail } from "./email.server";
 import { SIGN_IN_CONFIRM_PATH } from "./site-meta";
 import { adminAccessOk } from "./access.server";
 
@@ -42,12 +42,20 @@ async function buildAuth(env: Env) {
     confirmPath: SIGN_IN_CONFIRM_PATH,
     // Five sign-in mails an hour and ten typed codes a day per address.
     emailLimiter: env.RATE_LIMITER,
+    // A mail to the account's address for each change to how it signs in: a passkey added or removed,
+    // other devices signed out (site-runtime ./sign-in, sendSecurityNotice). Dormant with the rest of the mail.
+    sendSecurityNotice: async (_kind, { user, detail }) => {
+      await sendEmail(env, { to: user.email, ...securityNoticeEmail(user.email, detail, new URL("/account", env.BETTER_AUTH_URL).href) });
+    },
   });
 
   return betterAuth({
     ...signIn,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
+    // A notice is mailed after the answer, not before it. The instance is kept per isolate, so it
+    // has no request's ctx; cloudflare:workers' waitUntil is the same call for the current request.
+    advanced: { ...signIn.advanced, backgroundTasks: { handler: (promise) => waitUntil(promise) } },
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: {

@@ -12,8 +12,8 @@
 
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { logEvent } from "@dustinedwards/site-runtime/log";
-import { SIGN_IN_EXPIRES_IN_WORDS } from "@dustinedwards/site-runtime/sign-in";
-import { magicLink, renderEmail } from "capsomer/email";
+import { SIGN_IN_EXPIRES_IN_WORDS, type NoticeDetail } from "@dustinedwards/site-runtime/sign-in";
+import { magicLink, renderEmail, securityNotice } from "capsomer/email";
 import { extractPlainText } from "./richtext";
 
 // The send_email binding shape we use, per the Cloudflare Email Sending API. It
@@ -129,6 +129,9 @@ function htmlParagraphs(lines: string[]): string {
     .join("");
 }
 
+// The site's name and colors on Capsomer's mail templates.
+const BRAND = { name: "TXASM", family: "navy" } as const;
+
 // The sign-in mail (site-runtime ./sign-in) on Capsomer's magic-link template:
 // Better Auth's link untouched and the six-digit code as text, for the tab that
 // asked when the link opens in another browser (the mail app's, a phone). Both
@@ -136,13 +139,19 @@ function htmlParagraphs(lines: string[]): string {
 // Capsomer refuses a link that is not https, so it throws on a local http URL.
 export function magicLinkEmail(to: string, url: string, code: string): EmailContent {
   return renderEmail(magicLink, {
-    brand: { name: "TXASM", family: "navy" },
+    brand: BRAND,
     to,
     url,
     code,
     expiresIn: SIGN_IN_EXPIRES_IN_WORDS,
     copy: { subject: "Your TXASM sign-in link" },
   });
+}
+
+// A security notice (site-runtime ./sign-in, sendSecurityNotice) on Capsomer's template: what changed, when,
+// from which device, and a button to the account page. It holds no link that signs in.
+export function securityNoticeEmail(to: string, detail: NoticeDetail, url: string): EmailContent {
+  return renderEmail(securityNotice, { brand: BRAND, to, ...detail, url });
 }
 
 function presentationLabel(value: "oral" | "poster"): string {
