@@ -65,7 +65,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   const addButton = (
     <button type="button" className="cap-btn" data-variant="primary" disabled={busy} onClick={() => void addPasskey()}>
-      {busy ? "Waiting for your device..." : "Add a passkey"}
+      {busy ? "Waiting for your device..." : "Create a passkey"}
     </button>
   );
 
@@ -112,10 +112,10 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                 type="button"
                 className="cap-btn"
                 data-variant="quiet"
-                aria-label={`Remove ${p.name}`}
+                aria-label={`Remove passkey ${p.name}`}
                 onClick={() => void removePasskey(p.id)}
               >
-                Remove
+                Remove passkey
               </button>
             </li>
           ))}

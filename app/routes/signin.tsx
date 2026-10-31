@@ -305,7 +305,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         {siteKey ? <div ref={turnstileRef} /> : null}
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="secondary">
-          {submitting ? "Sending..." : "Send sign-in link"}
+          {submitting ? "Sending..." : "Email me a sign-in link"}
         </button>
       </Form>
     </div>
