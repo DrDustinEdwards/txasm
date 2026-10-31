@@ -13,7 +13,8 @@ import {
   withPurgePages,
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
-import { countNotFound, pruneNotFound } from "@dustinedwards/site-runtime/not-found";
+import { logEvent, withRequestLog } from "@dustinedwards/site-runtime/log";
+import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
 import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
 import { preloads, rootStylesheets, withPreloadHeader } from "@dustinedwards/site-runtime/preload";
@@ -21,15 +22,15 @@ import { SPECULATION_RULES_HEADER, SPECULATION_RULES_PATH, speculationRulesRespo
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
-import { backupUploads, runNightlyBackup } from "../app/lib/backup.server";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
-import { carrelRequestApi, isCarrelRequest, runCarrelSchedules } from "../app/lib/carrel/handler.server";
+import { carrelRequestApi, isCarrelRequest } from "../app/lib/carrel/handler.server";
+import { cronJobs } from "../app/lib/cron.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
 
-// The per-minute cron (wrangler.jsonc triggers.crons): Carrel's scheduled updates. The other is the daily one.
-const SCHEDULES_CRON = "* * * * *";
+// A preview link's token (Carrel's /preview/<token>), cut from a logged path.
+const PREVIEW_TOKEN = /\/(preview)\/[^/?#\s'"]+/g;
 
 const serverBuild = () => import("virtual:react-router/server-build") as Promise<ServerBuild>;
 const requestHandler = createRequestHandler(serverBuild, import.meta.env.MODE);
@@ -191,30 +192,30 @@ const site = {
     return withSpeculationRules(page);
   },
 
-  // The crons (see wrangler.jsonc), each job recorded in cron_runs by site-runtime's runJobs, so /health notices one
-  // that failed or stopped. Every minute: the updates Carrel scheduled go live (handler.server.ts). Daily: the nightly
-  // D1 backup, the uploads copy beside it and the 404 count's pruning. The deadline jobs and reminders (submission and
-  // review deadline reminders, status transitions) join the daily list when they are wired per edition. A failed job
-  // does not stop the next; runJobs throws after the last, so the invocation shows as failed in Workers Logs.
+  // The crons (see wrangler.jsonc), one job list each (app/lib/cron.server.ts), each job timed out and recorded in
+  // cron_runs by site-runtime's runJobs, so /health notices one that failed, stopped or never ran. A failed job does
+  // not stop the next; runJobs throws after the last, so the invocation shows as failed in Workers Logs. A cron with
+  // no list (a trigger added in the dashboard or a misspelt key) runs nothing and says so.
   async scheduled(controller, env, _ctx) {
-    if (controller.cron === SCHEDULES_CRON) {
-      await runJobs(env.DB, [
-        { name: "carrel-schedules", everyMinutes: 1, run: () => runCarrelSchedules(env, new Date(controller.scheduledTime)) },
-      ]);
+    const jobs = cronJobs(env, new Date(controller.scheduledTime))[controller.cron];
+    if (!jobs) {
+      logEvent("cron_unknown", { cron: controller.cron }, { level: "warn" });
       return;
     }
-    await runJobs(env.DB, [
-      { name: "backup", everyMinutes: 1440, run: () => runNightlyBackup(env) },
-      { name: "backup-uploads", everyMinutes: 1440, run: () => backupUploads(env) },
-      { name: "prune-404", everyMinutes: 1440, run: () => pruneNotFound(env.DB) },
-    ]);
+    await runJobs(env.DB, jobs);
   },
 } satisfies ExportedHandler<Env>;
 
-// An admin idle for an hour is signed out of Access (site-runtime ./access).
+// An admin idle for an hour is signed out of Access (site-runtime ./access). Every request writes one `request` line
+// (site-runtime ./log: path, status, ms and the deployed commit), a preview link's token cut from its path.
+type IncomingRequest = Parameters<typeof site.fetch>[0];
 export default {
   ...site,
-  fetch: (request, env, ctx) => withAdminIdle(request, () => site.fetch(request, env, ctx)),
+  fetch: withRequestLog(
+    (request: Request, env: Env, ctx: ExecutionContext) =>
+      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx)),
+    { sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA, tokenPath: PREVIEW_TOKEN },
+  ),
 } satisfies ExportedHandler<Env>;
 
 // The sign-in's per-address limits (RATE_LIMITER, app/lib/auth.server.ts).

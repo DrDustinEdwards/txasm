@@ -4,7 +4,7 @@ import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
-import { requireUser } from "~/lib/auth.server";
+import { forbidden, requireUser } from "~/lib/auth.server";
 import {
   DeadlinePassedError,
   ForbiddenError,
@@ -35,7 +35,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     return data;
   } catch (error) {
     if (error instanceof ForbiddenError) {
-      throw new Response("Forbidden", { status: 403 });
+      throw forbidden(request, "review assignment");
     }
     if (error instanceof NotFoundError) {
       throw new Response("Not found", { status: 404 });
@@ -79,7 +79,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { error: error.message };
     }
     if (error instanceof ForbiddenError) {
-      throw new Response("Forbidden", { status: 403 });
+      throw forbidden(request, "review assignment");
     }
     if (error instanceof NotFoundError) {
       throw new Response("Not found", { status: 404 });

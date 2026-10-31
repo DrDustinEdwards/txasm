@@ -16,6 +16,9 @@
 		"traces": { "enabled": true, "head_sampling_rate": 0.1 }
 	},
 	"upload_source_maps": true,
+	// The deployed version's id and time: /health's cron check holds a job's "never ran" warning until its first window
+	// since the deploy has passed.
+	"version_metadata": { "binding": "CF_VERSION_METADATA" },
 	// The public pages' edge cache (workers/app.ts, site-runtime ./edge-cache). The default export is the GATEWAY,
 	// cache disabled, so it runs on every request: writes, Carrel's API, signed-in and private pages and any request
 	// with a cookie answer there. It calls the Renderer through ctx.exports with the path as the cache key, and the
