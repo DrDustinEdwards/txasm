@@ -21,7 +21,7 @@ jobs:
     uses: DrDustinEdwards/devkit/.github/workflows/restore-drill.yml@d992f82350f7143b026597f89359bad90580ebfc # v0.20.9
     with:
       bucket: txasm-books
-      d1-dump-ref: v0.7.0
+      d1-dump-ref: v0.7.1
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
