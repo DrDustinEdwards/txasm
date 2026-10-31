@@ -13,7 +13,7 @@
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { logEvent } from "@dustinedwards/site-runtime/log";
 import { SIGN_IN_EXPIRES_IN_WORDS, type NoticeDetail } from "@dustinedwards/site-runtime/sign-in";
-import { type Template, magicLink, renderEmail, securityNotice } from "capsomer/email";
+import { emailChange, magicLink, renderEmail, securityNotice } from "capsomer/email";
 import { extractPlainText } from "./richtext";
 
 // The send_email binding shape we use, per the Cloudflare Email Sending API. It
@@ -155,40 +155,16 @@ export function securityNoticeEmail(to: string, detail: NoticeDetail, url: strin
 }
 
 // The two mails of an email change (app/lib/auth.server.ts): first to the current address, to
-// approve the change, then to the new one, to confirm it. Capsomer's blocks in a template of the
-// site's own, since its verification template says a link works once and Better Auth's works until
-// it expires. Each link opens the site's confirm page; sendEmail is given it to cut out of a logged
-// send error.
-const emailChange: Template<{ url: string; step: "current" | "new"; newEmail?: string }> = {
-  name: "email-change",
-  subject: (d) =>
-    d.step === "current" ? "Approve the change to your TXASM email address" : "Confirm your new TXASM email address",
-  blocks: (d) =>
-    d.step === "current"
-      ? [
-          { type: "heading", text: "Approve the email change" },
-          {
-            type: "paragraph",
-            text: `Someone asked to change your TXASM account's email address to ${d.newEmail}. If it was you, approve it here, then confirm from the new address.`,
-          },
-          { type: "button", label: "Approve the change", url: d.url },
-          { type: "fine", text: "The link expires in 1 hour." },
-          {
-            type: "fine",
-            text: "If this was not you, ignore this email and your address stays as it is. Then sign in and check your passkeys and signed-in devices.",
-          },
-        ]
-      : [
-          { type: "heading", text: "Confirm your new email address" },
-          { type: "paragraph", text: "Confirm this address to finish moving your TXASM account to it. Sign-in links will come here." },
-          { type: "button", label: "Confirm this address", url: d.url },
-          { type: "fine", text: "The link expires in 1 hour." },
-          { type: "fine", text: "If you did not ask for this, ignore this email." },
-        ],
-};
-
-export function emailChangeEmail(to: string, url: string, step: "current" | "new", newEmail?: string): EmailContent {
-  return renderEmail(emailChange, { brand: BRAND, to, url, step, newEmail });
+// approve the change, then to the new one, to confirm it. Capsomer's emailChange template; each
+// link opens the site's confirm page, and sendEmail is given it to cut out of a logged send error.
+export function emailChangeEmail(
+  to: string,
+  url: string,
+  step: "current" | "new",
+  newEmail: string | undefined,
+  expiresIn: string,
+): EmailContent {
+  return renderEmail(emailChange, { brand: BRAND, to, url, step, newEmail, expiresIn });
 }
 
 function presentationLabel(value: "oral" | "poster"): string {
