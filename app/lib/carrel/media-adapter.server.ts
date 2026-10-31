@@ -15,10 +15,11 @@
 // square is stored as a new file, and stored pictures are never shrunk in place (no resize pass).
 //
 // UPLOADS. An upload and a replace go through site-api's prepareUpload: HEIC and HEIF to JPEG, the location taken
-// out, the shrink and the embedded fields.
+// out, the shrink, the embedded fields, and the placeholder and main color, stored for Carrel's library (a turn and a
+// revert make them again for their bytes). The pages never use the placeholder: their CSP allows images from 'self'
+// only, so an inline data: one would be blocked.
 //
-// NOT OFFERED: the resize pass (above), and a placeholder or main color, which prepareUpload makes and this site does
-// not store (the page CSP allows images from 'self' only, so an inline data: placeholder would be blocked). SVG and PDF are not accepted:
+// NOT OFFERED: the resize pass (above). SVG and PDF are not accepted:
 // the library is pictures for pages, and the archive keeps the PDFs (admin/documents).
 //
 // COVERS. The abstract book and program covers are inline SVG (app/lib/cover.ts), not files, and
@@ -31,6 +32,7 @@ import {
   VersionConflictError,
   kindOf,
   orientationOf,
+  placeholderAndColor,
   prepareUpload,
   sha256Hex,
   transformFocus,
@@ -128,6 +130,8 @@ function itemOf(row: MediaRow, usedCount?: number): MediaItem {
     sourceUrl: row.sourceUrl,
     licenseExpires: row.licenseExpires,
     takenAt: row.takenAt,
+    placeholder: row.placeholder,
+    color: row.color,
     downloadUrl: url,
   };
 }
@@ -320,7 +324,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
 
     async upload(input): Promise<MediaUploaded> {
       const prepared = await prepareUpload(env.IMAGES, input, { resize: RESIZE });
-      const { bytes, contentType, width, height, sha256, embedded: found, resizedFrom, original } = prepared;
+      const { bytes, contentType, width, height, sha256, embedded: found, resizedFrom, original, placeholder, color } = prepared;
 
       const key = newKey(prepared.filename, contentType);
       const now = new Date();
@@ -335,6 +339,8 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
           width,
           height,
           sha256,
+          placeholder,
+          color,
           alt: input.alt,
           caption: found.caption ?? "",
           credit: found.credit ?? "",
@@ -395,7 +401,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
 
     async replace(id, input) {
       const row = await read(id);
-      const { bytes, width, height } = await prepareUpload(env.IMAGES, { ...input, alt: "" });
+      const { bytes, width, height, placeholder, color } = await prepareUpload(env.IMAGES, { ...input, alt: "" });
       if (row.width && row.height && (width !== row.width || height !== row.height)) {
         throw new RefusedError(
           `The new picture is ${width && height ? `${width}x${height}` : "unmeasured"}, but this file is ${row.width}x${row.height}, ` +
@@ -403,7 +409,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
         );
       }
       await claim(id, input.expectedVersion);
-      await swapBytes(row, { bytes, width: width ?? row.width, height: height ?? row.height, reason: "replace" }, { focus: null });
+      await swapBytes(row, { bytes, width: width ?? row.width, height: height ?? row.height, reason: "replace" }, { focus: null, placeholder, color });
       // The image route keys its cached sizes by the object's etag (site-runtime ./image), so none is stale.
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
     },
@@ -424,6 +430,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
       if (!object) throw new NotFoundError("No such media.");
       const edited = await editImage(env.IMAGES, object.body, { ...TRANSFORMS[input.op], format: row.contentType as Encoded, quality: TRANSFORM_QUALITY });
       const bytes = new Uint8Array(await edited.arrayBuffer());
+      const look = await placeholderAndColor(env.IMAGES, bytes);
       const swapped = turnsSize(input.op);
       const width = swapped ? row.height : row.width;
       const height = swapped ? row.width : row.height;
@@ -438,14 +445,14 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
         const { filename, contentType, alt, caption, tags, credit, license, sourceUrl, licenseExpires, takenAt } = row;
         await store.insert({
           key, filename, contentType, alt, caption, tags, credit, license, sourceUrl, licenseExpires, takenAt, focus,
-          bytes: bytes.byteLength, width, height, sha256: await sha256Hex(bytes), uploadedAt: new Date(),
+          bytes: bytes.byteLength, width, height, sha256: await sha256Hex(bytes), uploadedAt: new Date(), ...look,
         });
         if (focus) await writeFocus(bucket, key, focus);
         return { item: itemOf(await fresh(key)), sizesNeedPurge: false };
       }
 
       await claim(id, input.expectedVersion);
-      await swapBytes(row, { bytes, width, height, reason: "transform" }, { focus });
+      await swapBytes(row, { bytes, width, height, reason: "transform" }, { focus, ...look });
       // replaceObject dropped the old point with the old bytes; the moved one goes back on the object for ./image.
       if (focus) await writeFocus(bucket, id, focus);
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
@@ -476,7 +483,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
       if (!revision || !kept) throw new NotFoundError("This file has no such earlier version, or its copy is gone.");
       const bytes = new Uint8Array(await kept.arrayBuffer());
       await claim(id, input.expectedVersion);
-      await swapBytes(row, { bytes, width: revision.width, height: revision.height, reason: "revert" }, { focus: null });
+      await swapBytes(row, { bytes, width: revision.width, height: revision.height, reason: "revert" }, { focus: null, ...(await placeholderAndColor(env.IMAGES, bytes)) });
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
     },
 
