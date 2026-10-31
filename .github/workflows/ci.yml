@@ -24,6 +24,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
@@ -56,7 +58,7 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@dfdb60397d24f15c80b9468059d7d601b2caa6bf # v0.20.1
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@e99e4651b943f83b6591309b2151e7332786e64a # v0.20.2
     with:
       worker-name: txasm
       health-url: https://txasm.dustin-edwards.workers.dev/health
