@@ -17,6 +17,9 @@ import { authClient } from "~/lib/auth-client";
 import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
 import { readForm } from "~/lib/form.server";
 
+// The sign-in form: passkeys, Turnstile and the email link run in the browser. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sign in");
 }
@@ -194,9 +197,8 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   // A passkey sign-in sets the session cookie, so a full load reads it.
   async function signInWithPasskey(autoFill: boolean) {
-    // site-runtime's call tells the password manager when the site no longer knows the passkey. Its 0.51.0
-    // typing wants error.code, which Better Auth's client error type lacks (a weak-type mismatch), hence the cast.
-    const result = await passkeySignIn(authClient as unknown as Parameters<typeof passkeySignIn>[0], { autoFill });
+    // site-runtime's call tells the password manager when the site no longer knows the passkey.
+    const result = await passkeySignIn(authClient, { autoFill });
     if (!result?.error) {
       window.location.assign(next ?? "/");
     } else if (!autoFill) {
