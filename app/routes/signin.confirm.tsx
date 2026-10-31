@@ -58,7 +58,7 @@ export default function SignInConfirm({ actionData }: Route.ComponentProps) {
         ) : null}
         <div>
           <button type="submit" className="cap-btn" data-variant="primary">
-            Continue
+            Sign in
           </button>
         </div>
       </form>
