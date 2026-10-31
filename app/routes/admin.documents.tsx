@@ -24,7 +24,7 @@ import {
   type DocumentCategory,
 } from "~/lib/vocab";
 import { privateMeta } from "~/lib/site-meta";
-import { parseYear } from "~/lib/form.server";
+import { parseYear, readForm } from "~/lib/form.server";
 
 // File picker hint: allow every accepted type so images are selectable for the
 // brand_image category. The real gate is the per-category MIME check in the
@@ -87,7 +87,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
-  const form = await request.formData();
+  // The largest file (a 50 MB PDF, vocab.ts) plus room for the form around it.
+  const form = await readForm(request, maxUploadBytesForKind("pdf") + 1024 * 1024);
   const intent = String(form.get("intent") ?? "");
 
   try {

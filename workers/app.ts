@@ -13,19 +13,15 @@ import {
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
 import { countNotFound, pruneNotFound } from "@dustinedwards/site-runtime/not-found";
-import { refuseCrossOrigin } from "@dustinedwards/site-runtime/origin";
+import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
+import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
 import { preloads, rootStylesheets, withPreloadHeader } from "@dustinedwards/site-runtime/preload";
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
 import { backupUploads, runNightlyBackup } from "../app/lib/backup.server";
-import {
-  CSP_REPORT_PATH,
-  SECURITY_HEADERS,
-  inlineScriptHashes,
-  newCspNonce,
-  withSecurityHeaders,
-} from "../app/lib/security-headers";
+import { SECURITY_HEADERS } from "../app/lib/header-set";
+import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelApi } from "../app/lib/carrel/handler.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { isPrivatePath } from "../app/lib/site-meta";
@@ -33,7 +29,6 @@ import { isPrivatePath } from "../app/lib/site-meta";
 const serverBuild = () => import("virtual:react-router/server-build") as Promise<ServerBuild>;
 const requestHandler = createRequestHandler(serverBuild, import.meta.env.MODE);
 
-const isHtml = (response: Response) => response.headers.get("Content-Type")?.startsWith("text/html") ?? false;
 const isWrite = (request: Request) => request.method !== "GET" && request.method !== "HEAD";
 
 // Runs the React Router handler with the Cloudflare env and execution context, so loaders and actions reach
@@ -63,14 +58,10 @@ async function withEarlyHints(page: Response): Promise<Response> {
  */
 export class Renderer extends withPurgePages(WorkerEntrypoint<Env>) {
   override async fetch(request: Request): Promise<Response> {
-    let response = await render(request, this.env, this.ctx, undefined);
-    let scriptHashes: string[] = [];
-    if (isHtml(response)) {
-      const html = await response.text();
-      scriptHashes = await inlineScriptHashes(html);
-      response = new Response(html, { status: response.status, statusText: response.statusText, headers: response.headers });
-    }
-    const page = await withEarlyHints(withSecurityHeaders(response, request, { scriptHashes }));
+    // The page is rendered with a nonce on its scripts and in its policy; the gateway gives each reader a fresh one
+    // (renewNonce), so a stored page never hands two readers the same nonce.
+    const nonce = generateNonce();
+    const page = await withEarlyHints(withSecurityHeaders(await render(request, this.env, this.ctx, nonce), request, nonce));
     // With the request, it fails closed if the gateway's rule ever lets a cookie through: a page rendered for a
     // cookie, or one setting a cookie, is never stored.
     return settleCacheHeaders(page, request);
@@ -126,13 +117,13 @@ export default {
       return withSecurityHeaders(response, request);
     }
 
-    // A cross-origin browser POST (or other write) is refused before routing. React
+    // A cross-site browser POST (or other write) is refused before routing. React
     // Router checks the Origin of a page's own action, but resource routes (admin
     // downloads and JSON, the search APIs) never reach that check. An absent Origin
     // passes, so non-browser clients are unaffected. Better Auth checks its own
     // origins under /api/auth, so it is left to that.
     if (!url.pathname.startsWith("/api/auth/")) {
-      const refused = refuseCrossOrigin(request);
+      const refused = refuseCrossSite(request);
       if (refused) return withSecurityHeaders(refused, request);
     }
 
@@ -140,13 +131,16 @@ export default {
     if (cacheable(request, url)) {
       // The key is the path and the query without tracking parameters; a reader who already holds the page gets a 304.
       const stored = await ctx.exports.Renderer.fetch(forRenderer(request), { cf: { cacheKey: cacheKey(url) } });
-      page = forReader(stored, request);
+      const reader = forReader(stored, request);
+      // A 304 leaves out the policy: the reader's copy keeps its own, whose nonce is the one in that copy's scripts.
+      if (reader.status === 304) reader.headers.delete("Content-Security-Policy");
+      page = renewNonce(reader);
     } else {
       // Rendered live with this request's nonce, on the render and in its header; never stored.
-      const nonce = newCspNonce();
+      const nonce = generateNonce();
       const response = await render(request, env, ctx, nonce);
       if (url.pathname.startsWith("/admin")) purgeAfterWrite(request, response, ctx, `admin ${request.method} ${url.pathname}`);
-      page = await withEarlyHints(withSecurityHeaders(response, request, { nonce }));
+      page = await withEarlyHints(withSecurityHeaders(response, request, nonce));
       // A route's public headers mean nothing on this path: it was rendered for one reader. A response with no
       // Cache-Control (a signed-in page, a redirect) is said to be private rather than left to heuristics.
       if (!page.headers.has("Cache-Control") || page.headers.get("Cache-Control") === SHARED_CACHE_CONTROL) {

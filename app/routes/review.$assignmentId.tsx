@@ -15,6 +15,7 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Review abstract");
@@ -45,7 +46,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const actor = await getActor(env, user.id);
   const da = getDataAccess(env);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "submit");
 
   try {

@@ -5,6 +5,7 @@ import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Abstract categories");
@@ -21,7 +22,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
   const da = getDataAccess(context.get(cloudflareContext).env);
   const back = `/admin/editions/${params.editionId}/abstract-categories`;

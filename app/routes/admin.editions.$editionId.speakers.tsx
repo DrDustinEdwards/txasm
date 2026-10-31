@@ -7,7 +7,7 @@ import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichEditor } from "~/components/rich-editor";
-import { parseSortOrder } from "~/lib/form.server";
+import { parseSortOrder, readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Invited speakers");
@@ -31,7 +31,7 @@ function parseRole(value: FormDataEntryValue | null): SpeakerRole | null {
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
   const back = `/admin/editions/${params.editionId}/speakers`;
 

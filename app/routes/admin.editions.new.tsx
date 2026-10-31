@@ -13,6 +13,7 @@ import {
   type EditionStatus,
   type Season,
 } from "~/lib/vocab";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "New meeting");
@@ -26,7 +27,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
 
-  const form = await request.formData();
+  const form = await readForm(request);
   const name = String(form.get("name") ?? "").trim();
   const season = String(form.get("season") ?? "");
   const yearRaw = String(form.get("year") ?? "").trim();

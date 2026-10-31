@@ -5,7 +5,7 @@
 // lives here in a *.server module and not inside the data boundary (books.publish
 // has no env and only freezes codes + stores the HTML).
 //
-// The HTML from renderArrangedBook loads Paged.js from a CDN and sets a
+// The HTML from renderArrangedBook loads the self-hosted Paged.js and sets a
 // completion hook that marks the document with data-pagedjs-done when pagination
 // finishes. We wait on that so page.pdf captures the paginated output, not the raw
 // DOM. A hard timeout wraps the whole render so a stuck job fails cleanly.
@@ -16,20 +16,24 @@ import type { Actor, DataAccess } from "./data-access";
 import { PDF_MIME_TYPE } from "./vocab";
 
 const RENDER_TIMEOUT_MS = 90_000; // overall ceiling for one render
-const LOAD_TIMEOUT_MS = 60_000; // setContent, including the Paged.js CDN fetch
+const LOAD_TIMEOUT_MS = 60_000; // setContent, including the Paged.js fetch
 const PAGEDJS_TIMEOUT_MS = 60_000; // waiting for Paged.js to finish paginating
 
 // launch expects a BrowserWorker ({ fetch }); the generated binding type is
 // BrowserRun, structurally compatible but not identical, so cast at the edge.
 type BrowserBinding = Parameters<typeof puppeteer.launch>[0];
 
+// `origin` is the site's: the book names Paged.js and its fonts by path, and the page the
+// browser opens has no address of its own, so a <base> resolves them against the site.
 export async function renderBookPdf(
   html: string,
   env: Env,
+  origin: string,
 ): Promise<Uint8Array> {
   const browser = await puppeteer.launch(env.BROWSER as unknown as BrowserBinding);
   try {
-    return await withTimeout(renderWithBrowser(browser, html), RENDER_TIMEOUT_MS);
+    const based = html.replace(/<head>/i, `<head>\n<base href="${origin}/" />`);
+    return await withTimeout(renderWithBrowser(browser, based), RENDER_TIMEOUT_MS);
   } finally {
     await browser.close();
   }
@@ -50,7 +54,7 @@ async function renderWithBrowser(
   // paginates against a fallback face.
   await page.evaluate("document.fonts.ready");
 
-  // networkidle0 fires once the CDN script has loaded, but Paged.js keeps
+  // networkidle0 fires once the Paged.js script has loaded, but Paged.js keeps
   // working after that, so wait for the completion hook it sets on the root.
   await page.waitForFunction(
     "document.documentElement.getAttribute('data-pagedjs-done') === 'true'",
@@ -105,6 +109,7 @@ export async function publishArrangedBook(
   da: DataAccess,
   actor: Actor,
   editionId: string,
+  origin: string,
 ): Promise<PublishPdfOutcome> {
   const data = await da.books.renderData(actor, editionId);
   const html = renderArrangedBook(data);
@@ -130,7 +135,7 @@ export async function publishArrangedBook(
   }
 
   try {
-    const bytes = await renderBookPdf(html, env);
+    const bytes = await renderBookPdf(html, env, origin);
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const r2Key = `editions/${editionId}/abstract-book-${stamp}.pdf`;
     const season = data.edition.season;

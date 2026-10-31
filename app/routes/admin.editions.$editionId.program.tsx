@@ -18,6 +18,7 @@ import { ProgramDocumentPanel } from "~/components/program-builder/document-pane
 import { SessionFields, Slot } from "~/components/program-builder/sessions";
 import { buildDayKeys, dayTabLabel } from "~/components/program-builder/shared";
 import { NO_DATE_KEY, PDF_MIME_TYPE } from "~/lib/vocab";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Program");
@@ -64,7 +65,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const editionId = params.editionId;
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
 
   // Publish the generated program document to public.
@@ -95,7 +96,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     try {
       const data = await da.program.getProgramData(actor, editionId);
       const html = renderProgramBook(data);
-      const bytes = await renderBookPdf(html, env);
+      const bytes = await renderBookPdf(html, env, new URL(request.url).origin);
 
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const r2Key = `editions/${editionId}/program-${stamp}.pdf`;

@@ -6,6 +6,7 @@ import { cloudflareContext } from "~/load-context";
 import { requireAdmin } from "~/lib/auth.server";
 import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
 import { centsToDollarsInput, parseDollarsToCents } from "~/lib/format";
+import { readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Edit category");
@@ -23,7 +24,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
-  const form = await request.formData();
+  const form = await readForm(request);
 
   const label = String(form.get("label") ?? "").trim();
   const currency = String(form.get("currency") ?? "usd");

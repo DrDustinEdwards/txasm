@@ -11,7 +11,7 @@ import {
   type AwardRecipientView,
 } from "~/lib/data-access";
 import { privateMeta } from "~/lib/site-meta";
-import { parseSortOrder } from "~/lib/form.server";
+import { parseSortOrder, readForm } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Manage award");
@@ -46,7 +46,7 @@ function optionalId(value: FormDataEntryValue | null): string | null {
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const form = await request.formData();
+  const form = await readForm(request);
   const intent = String(form.get("intent") ?? "");
   const back = `/admin/awards/${params.slug}`;
 
