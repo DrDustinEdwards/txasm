@@ -1,15 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isAPIError } from "better-auth/api";
 import { Form, redirect, useActionData, useFetcher, useNavigation, useRevalidator } from "react-router";
 import { Link } from "capsomer/react/link";
 import {
   FRESH_SECONDS,
   accountSessions,
-  passkeyLabel,
+  dismissPasskeyOffer,
+  needsSecondPasskey,
+  passkeyLastUsed,
+  passkeyRows,
   revokeSessionById,
   securityHistory,
+  shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
-import { signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
+import { canOfferPasskey, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -49,8 +53,9 @@ function historyWords(kind: string, via: string | null): string {
   return HISTORY_WORDS[kind] ?? "Account change";
 }
 
-// A person's email address, passkeys, signed-in devices, recent security activity and the account itself. The email link lands here with ?welcome=1:
-// someone with no passkey is offered one, everyone else goes on home.
+// A person's email address, passkeys, signed-in devices, recent security activity and the account itself. The email link and code land here
+// with ?welcome=1: someone with no passkey who has not said "Not now" in 30 days is offered one, everyone else goes on home
+// (site-runtime shouldOfferPasskey).
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
@@ -59,7 +64,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (!current) throw redirect("/signin");
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");
-  if (welcome && passkeys.length > 0) throw redirect("/");
+  if (welcome && !(await shouldOfferPasskey(env.DB, current.user.id, passkeys))) throw redirect("/");
+  const credentialIds = new Map(passkeys.map((p) => [p.id, p.credentialID]));
   return {
     welcome,
     email: current.user.email,
@@ -68,13 +74,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     deletionBlockers: welcome ? [] : await getDataAccess(env).account.deletionBlockers(current.user.id),
     // The relying party the passkeys belong to, for telling the password manager one is gone.
     rpId: new URL(env.BETTER_AUTH_URL).hostname,
-    // Named by the person, else by the password manager or device that holds it.
-    passkeys: passkeys.map((p) => ({
-      id: p.id,
-      credentialId: p.credentialID,
-      name: passkeyLabel(p),
-      createdAt: p.createdAt,
-    })),
+    // Named by the person, else by the password manager or device that holds it, with when each last signed the
+    // person in (from auth_events, site-runtime passkeyLastUsed).
+    passkeys: welcome
+      ? []
+      : passkeyRows(passkeys, await passkeyLastUsed(env.DB, current.user.id)).map((p) => ({
+          ...p,
+          credentialId: credentialIds.get(p.id) ?? "",
+        })),
     // Null when the sign-in is too old to list them (site-runtime ./sign-in, FRESH_SECONDS).
     sessions: welcome ? [] : await accountSessions(auth, request),
     // The last ten sign-ins and changes to how the person signs in (auth_events, site-runtime ./sign-in).
@@ -83,12 +90,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 // Signs another device out by its session id, so no session token reaches the page (site-runtime ./sign-in),
-// or deletes the account.
+// records a "Not now" on the passkey offer, or deletes the account.
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
   const form = await request.formData();
   if (form.get("intent") === "delete") return deleteAccount(auth, request);
+  if (form.get("intent") === "not-now") {
+    const current = await auth.api.getSession({ headers: request.headers });
+    if (current) await dismissPasskeyOffer(env.DB, current.user.id, { request });
+    throw redirect("/");
+  }
   const id = String(form.get("session") ?? "");
   try {
     return { revoked: await revokeSessionById(auth, request, id) };
@@ -131,6 +143,16 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [emailNote, setEmailNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  // The offer shows only where this device can make a passkey (a platform authenticator); null until the browser says.
+  const [offerable, setOfferable] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!welcome) return;
+    void canOfferPasskey().then((can) => {
+      if (can) setOfferable(true);
+      else window.location.replace("/");
+    });
+  }, [welcome]);
 
   // Better Auth mails the current address to approve, then the new one to confirm
   // (app/lib/auth.server.ts). An address already in use gets the same answer, so the
@@ -194,6 +216,19 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     void revalidator.revalidate();
   }
 
+  // Renaming needs no fresh sign-in (Better Auth's updatePasskey).
+  async function renamePasskey(id: string, form: HTMLFormElement) {
+    const name = String(new FormData(form).get("name") ?? "").trim();
+    if (!name) return;
+    const result = await authClient.passkey.updatePasskey({ id, name });
+    if (result?.error) {
+      setError("The passkey was not renamed. Try again.");
+      return;
+    }
+    setRenaming(null);
+    void revalidator.revalidate();
+  }
+
   async function signOutOtherDevices() {
     const result = await authClient.revokeOtherSessions();
     if (result?.error) setError("The other devices were not signed out. Try again.");
@@ -202,7 +237,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   const addButton = (
     <button type="button" className="cap-btn" data-variant="primary" disabled={busy} onClick={() => void addPasskey()}>
-      {busy ? "Waiting for your device..." : "Create a passkey"}
+      {busy ? "Waiting for your device..." : passkeys.length > 0 ? "Add another passkey" : "Create a passkey"}
     </button>
   );
 
@@ -211,20 +246,26 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       <div className="narrow stack-6">
         <div className="stack-2">
           <h1 className="page-title">You are signed in</h1>
-          <p>
-            Next time, skip the email. A passkey signs you in with your face, fingerprint or device PIN, and only
-            works on this site, so it cannot be phished.
-          </p>
+          {offerable ? (
+            <p>
+              Next time, skip the email. A passkey signs you in with your face, fingerprint or device PIN, and only
+              works on this site, so it cannot be phished.
+            </p>
+          ) : null}
         </div>
         {error ? (
           <p role="alert" className="cap-field-error">
             {error}
           </p>
         ) : null}
-        <div className="cluster">
-          {addButton}
-          <Link to="/">Not now</Link>
-        </div>
+        {offerable ? (
+          <Form method="post" className="cluster">
+            {addButton}
+            <button type="submit" name="intent" value="not-now" className="cap-btn" data-variant="quiet">
+              Not now
+            </button>
+          </Form>
+        ) : null}
       </div>
     );
   }
@@ -286,25 +327,67 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         <p className="cap-muted">No passkeys yet.</p>
       ) : (
         <ul className="stack-3" aria-label="Your passkeys">
-          {passkeys.map((p) => (
-            <li key={p.id} className="cluster">
-              <span>
-                {p.name}
-                {p.createdAt ? <span className="small cap-muted"> added {formatDateTime(new Date(p.createdAt))}</span> : null}
-              </span>
-              <button
-                type="button"
-                className="cap-btn"
-                data-variant="quiet"
-                aria-label={`Remove passkey ${p.name}`}
-                onClick={() => void removePasskey(p.id, p.credentialId)}
-              >
-                Remove passkey
-              </button>
-            </li>
-          ))}
+          {passkeys.map((p) =>
+            renaming === p.id ? (
+              <li key={p.id}>
+                <form
+                  className="cluster"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void renamePasskey(p.id, event.currentTarget);
+                  }}
+                >
+                  <label htmlFor={`name-${p.id}`} className="cap-sr-only">
+                    New name for {p.name}
+                  </label>
+                  <input id={`name-${p.id}`} name="name" defaultValue={p.name} maxLength={60} required className="cap-input" />
+                  <button type="submit" className="cap-btn">
+                    Save
+                  </button>
+                  <button type="button" className="cap-btn" data-variant="quiet" onClick={() => setRenaming(null)}>
+                    Cancel
+                  </button>
+                </form>
+              </li>
+            ) : (
+              <li key={p.id} className="cluster">
+                <span>
+                  {p.name}
+                  <span className="small cap-muted">
+                    {p.provider !== p.name ? ` (${p.provider})` : ""}
+                    {p.createdAt ? `, added ${formatDateTime(new Date(p.createdAt))}` : ""}
+                    {`, ${p.lastUsedAt ? `last used ${formatDateTime(new Date(p.lastUsedAt))}` : "not used to sign in yet"}`}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="cap-btn"
+                  data-variant="quiet"
+                  aria-label={`Rename passkey ${p.name}`}
+                  onClick={() => setRenaming(p.id)}
+                >
+                  Rename
+                </button>
+                <button
+                  type="button"
+                  className="cap-btn"
+                  data-variant="quiet"
+                  aria-label={`Remove passkey ${p.name}`}
+                  onClick={() => void removePasskey(p.id, p.credentialId)}
+                >
+                  Remove passkey
+                </button>
+              </li>
+            ),
+          )}
         </ul>
       )}
+      {needsSecondPasskey(passkeys) ? (
+        <p>
+          You have one passkey. Add another on a second device, such as your phone or a security key, so you can still
+          sign in if you lose this one.
+        </p>
+      ) : null}
       <div>{addButton}</div>
       <div className="stack-2">
         <h2 className="subsection-title">Signed-in devices</h2>
