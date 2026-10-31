@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { isAPIError } from "better-auth/api";
-import { redirect, useRevalidator } from "react-router";
+import { redirect, useFetcher, useRevalidator } from "react-router";
 import { Link } from "capsomer/react/link";
-import { passkeyLabel, sessionRows } from "@dustinedwards/site-runtime/sign-in";
+import { accountSessions, passkeyLabel, revokeSessionById } from "@dustinedwards/site-runtime/sign-in";
 import { signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
@@ -38,15 +38,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       createdAt: p.createdAt,
     })),
     // Null when the sign-in is too old to list them (site-runtime ./sign-in, FRESH_SECONDS).
-    sessions: welcome ? [] : await signedInDevices(auth, headers, current.session.token),
+    sessions: welcome ? [] : await accountSessions(auth, request),
   };
 }
 
-async function signedInDevices(auth: Awaited<ReturnType<typeof getAuth>>, headers: Headers, token: string) {
+// Signs another device out by its session id, so no session token reaches the page (site-runtime ./sign-in).
+export async function action({ request, context }: Route.ActionArgs) {
+  const { env } = context.get(cloudflareContext);
+  const auth = await getAuth(env);
+  const id = String((await request.formData()).get("session") ?? "");
   try {
-    return sessionRows(await auth.api.listSessions({ headers }), token);
+    return { revoked: await revokeSessionById(auth, request, id) };
   } catch (error) {
-    if (isAPIError(error) && error.body?.code === "SESSION_NOT_FRESH") return null;
+    if (isAPIError(error) && error.body?.code === "SESSION_NOT_FRESH") return { revoked: false };
     throw error;
   }
 }
@@ -54,6 +58,7 @@ async function signedInDevices(auth: Awaited<ReturnType<typeof getAuth>>, header
 export default function Account({ loaderData }: Route.ComponentProps) {
   const { welcome, rpId, passkeys, sessions } = loaderData;
   const revalidator = useRevalidator();
+  const signOut = useFetcher<typeof action>();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -85,12 +90,6 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     // So the password manager stops offering it (the WebAuthn Signal API, where the browser has it).
     await signalUnknownCredential({ rpId, credentialId });
     void revalidator.revalidate();
-  }
-
-  async function signOutDevice(token: string) {
-    const result = await authClient.revokeSession({ token });
-    if (result?.error) setError("That device was not signed out. Try again.");
-    else void revalidator.revalidate();
   }
 
   async function signOutOtherDevices() {
@@ -186,7 +185,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                     className="cap-btn"
                     data-variant="quiet"
                     aria-label={`Sign out ${s.device ?? "Unknown device"}, signed in ${formatDateTime(new Date(s.signedInAt))}`}
-                    onClick={() => void signOutDevice(s.token)}
+                    onClick={() => void signOut.submit({ session: s.id }, { method: "post" })}
                   >
                     Sign out
                   </button>
@@ -203,9 +202,9 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           ) : null}
         </>
       )}
-      {error ? (
+      {error || signOut.data?.revoked === false ? (
         <p role="alert" className="cap-field-error">
-          {error}
+          {error ?? "That device was not signed out. Try again."}
         </p>
       ) : null}
     </div>
