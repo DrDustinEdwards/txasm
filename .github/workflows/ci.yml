@@ -59,7 +59,7 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@1664a50ccc3b02a5100d490a650343db0e8b8530 # v0.20.4
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@a0fbcb5c7f65e4183a97989511f9d352950ad90b # v0.20.7
     with:
       worker-name: txasm
       health-url: https://txasm.dustin-edwards.workers.dev/health

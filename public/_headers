@@ -32,6 +32,12 @@
 /*.svg
   Content-Type: image/svg+xml; charset=utf-8
 
+/
+  Content-Type: text/html; charset=utf-8
+
+/*/
+  Content-Type: text/html; charset=utf-8
+
 /assets/*
   ! Cross-Origin-Resource-Policy
   Cache-Control: public, max-age=31536000, immutable
