@@ -1,0 +1,27 @@
+{
+  "ignore": [
+    "**/*.{test,spec}.*",
+    "**/test/**",
+    "**/tests/**",
+    "**/e2e/**",
+    "scripts/**",
+    "bin/**",
+    "**/*.d.{ts,mts,cts}",
+    "**/*.min.*",
+    "**/build/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "public/**"
+  ],
+  "baseline": {
+    "measured_at": "6dc8ba8",
+    "calls": 5,
+    "files": {
+      "app/entry.server.tsx": 1,
+      "app/lib/auth.server.ts": 1,
+      "app/lib/book-pdf.server.ts": 1,
+      "app/lib/email.server.ts": 1,
+      "app/routes/admin.editions.$editionId.program.tsx": 1
+    }
+  }
+}

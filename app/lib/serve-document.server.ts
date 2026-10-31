@@ -1,5 +1,5 @@
 import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
-import { getSessionUser } from "./auth.server";
+import { forbidden, getSessionUser } from "./auth.server";
 import {
   ForbiddenError,
   NotFoundError,
@@ -32,7 +32,7 @@ export async function serveDocument(
       throw new Response("Document not found.", { status: 404 });
     }
     if (error instanceof ForbiddenError) {
-      throw new Response("Forbidden", { status: 403 });
+      throw forbidden(request, "document");
     }
     throw error;
   }

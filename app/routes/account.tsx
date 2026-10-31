@@ -21,6 +21,7 @@ import { getAuth } from "~/lib/auth.server";
 import { type AccountRecordKind, getDataAccess } from "~/lib/data-access";
 import { authClient } from "~/lib/auth-client";
 import { formatDateTime } from "~/lib/format";
+import { readForm } from "~/lib/form.server";
 
 // An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -94,7 +95,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
-  const form = await request.formData();
+  const form = await readForm(request, 4 * 1024);
   if (form.get("intent") === "delete") return deleteAccount(auth, request);
   if (form.get("intent") === "not-now") {
     const current = await auth.api.getSession({ headers: request.headers });

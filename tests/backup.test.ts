@@ -16,8 +16,8 @@ import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "../app/lib/backu
 import { applyMigrations } from "./d1";
 
 // Real D1 and R2 in-process, with the real migrations applied, so the table list
-// is the site's own: a new migration that adds a token table fails the credential
-// scan below until the table is excluded.
+// is the site's own: a new migration that adds a token table fails the nightly
+// dump (d1-dump's credential-column check) until the table is excluded.
 let mf: Miniflare;
 let db: D1Like;
 let scratchDb: D1Like;
@@ -83,29 +83,6 @@ test("the nightly dump keeps user rows and drops every credential table", async 
   }
 });
 
-test("no table outside the excluded list has a credential-looking column", async () => {
-  const tables = (
-    await db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name != 'd1_migrations'",
-      )
-      .all<{ name: string }>()
-  ).results.map((r) => r.name);
-  const offenders: string[] = [];
-  for (const table of tables) {
-    if ((EXCLUDED_TABLES as readonly string[]).includes(table)) continue;
-    const cols = (
-      await db.prepare(`PRAGMA table_info(\`${table}\`)`).all<{ name: string }>()
-    ).results;
-    for (const col of cols) {
-      if (/token|secret|password|passwd|api_?key/i.test(col.name)) {
-        offenders.push(`${table}.${col.name}`);
-      }
-    }
-  }
-  assert.deepEqual(offenders, [], "exclude these tables or rename the columns");
-});
-
 test("the restore drill passes on a dump without the credential tables", async () => {
   const result = await runRestoreDrill(bucket, {
     createScratch: async () => ({
@@ -113,17 +90,9 @@ test("the restore drill passes on a dump without the credential tables", async (
       delete: async () => {},
     }),
   });
-  // txasm has no FTS5 table, and the drill's `search` check fails when no FTS5
-  // table held a word to search for. That is d1-dump's rule, not a restore
-  // problem, so every other check must pass and `search` must fail for that
-  // reason only.
+  // txasm has no FTS5 table, which the drill's `search` check passes since d1-dump 0.7.1.
   const failed = result.checks.filter((c) => !c.ok);
-  assert.deepEqual(
-    failed.map((c) => c.name),
-    ["search"],
-    failed.map((c) => `${c.name}: ${c.detail}`).join("; "),
-  );
-  assert.match(failed[0].detail, /no FTS5 table/);
+  assert.deepEqual(failed.map((c) => `${c.name}: ${c.detail}`), []);
 });
 
 test("an empty bucket reports a warning, not an age", async () => {

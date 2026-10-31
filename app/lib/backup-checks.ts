@@ -23,6 +23,13 @@ export const EXCLUDED_TABLES = [
   "preview_links",
 ] as const;
 
+// Columns named like a credential that the dump keeps, each with why (d1-dump's
+// credential-column check refuses any other).
+export const CREDENTIAL_ALLOW: Record<string, string> = {
+  "passkey.credential_id":
+    "a passkey's public id, sent to every browser that signs in with it; the private key never leaves the device, and a restore must keep it or every passkey stops working",
+};
+
 // The irreplaceable data: people, registrations (payment state lives on
 // registration), abstracts and their authors, reviews and decisions, and the
 // edition and platform settings every page reads. Each must be dumped and match

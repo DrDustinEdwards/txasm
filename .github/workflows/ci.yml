@@ -44,6 +44,16 @@ jobs:
       - name: Test
         run: npm test
 
+      # Raw console.* calls in server code may not rise above .console.json's baseline (devkit-console; the logger is
+      # site-runtime ./log; public/ holds vendored browser scripts), and a migration in drizzle/ is never edited,
+      # renamed or deleted, and a new one only adds unless it says `-- contract: <reason>` (devkit-migrations,
+      # drizzle/manifest.json).
+      - name: Console ratchet
+        run: npm run --silent check:console
+
+      - name: Migrations are expand-only
+        run: npm run --silent check:migrations
+
       - name: Build
         run: npm run build
 
@@ -59,7 +69,7 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@71f342e07f91d3be216f2dfd8e9815a0f9f7299c # v0.20.13
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@65782d2c45431055672a315f0d126b62d0dd3aff # v0.20.14
     with:
       worker-name: txasm
       health-url: https://txasm.dustin-edwards.workers.dev/health
