@@ -91,7 +91,7 @@ export type {
   PlatformSettings,
   PlatformSettingsPatch,
 } from "./data-access/settings";
-export type { Page, PageSearch, PageWrite } from "./data-access/pages";
+export type { Page, PageSearch, PageWrite, PublishedPage } from "./data-access/pages";
 export type { AccountRecordKind } from "./data-access/account";
 export type { MediaFields, MediaRevisionRow, MediaRow, MediaWrite } from "./data-access/media";
 

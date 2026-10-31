@@ -4,7 +4,7 @@ import { pageHead, siteLd } from "~/lib/site-meta";
 import type { Route } from "./+types/home";
 import type { loader as rootLoader } from "~/root";
 import { getDataAccess } from "~/lib/data-access";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext, pagePreviewContext } from "~/load-context";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
@@ -12,6 +12,8 @@ export const headers = () => publicPageHeaders();
 
 // The welcome and the next-meeting note are edited in Carrel (app/lib/carrel) and stored in D1.
 export async function loader({ context }: Route.LoaderArgs) {
+  const preview = context.get(pagePreviewContext);
+  if (preview?.slug === "home") return preview.page;
   return getDataAccess(context.get(cloudflareContext).env).pages.published("home");
 }
 

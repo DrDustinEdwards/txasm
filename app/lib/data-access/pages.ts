@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, getTableColumns } from "drizzle-orm";
 import { d1ScheduledUpdates } from "@dustinedwards/site-api/schedules";
 import type { ScheduledUpdate } from "@dustinedwards/site-api";
 import * as schema from "../../db/schema";
@@ -14,6 +14,8 @@ import type { DB } from "./core";
 
 export type Page = typeof schema.page.$inferSelect;
 export type PageRevision = typeof schema.pageRevision.$inferSelect;
+/** A revision as the list shows it: everything but the source, which revisionSource reads one at a time. */
+export type PageRevisionSummary = Omit<PageRevision, "source">;
 export type PageSearch = schema.PageSearch;
 
 export interface PublishedPage {
@@ -71,13 +73,25 @@ export function createCarrelPages(db: DB, d1: D1Database) {
     get: async (slug: string): Promise<Page | null> =>
       (await db.query.page.findFirst({ where: eq(schema.page.slug, slug) })) ?? null,
 
-    revisions: (slug: string): Promise<PageRevision[]> =>
-      db
-        .select()
+    /** Every revision, newest first. Nothing prunes page_revision: two pages, a few kilobytes a write. */
+    revisions: (slug: string): Promise<PageRevisionSummary[]> => {
+      const { source: _source, ...columns } = getTableColumns(schema.pageRevision);
+      return db
+        .select(columns)
         .from(schema.pageRevision)
         .where(eq(schema.pageRevision.pageSlug, slug))
-        .orderBy(desc(schema.pageRevision.createdAt), desc(schema.pageRevision.id))
-        .limit(50),
+        .orderBy(desc(schema.pageRevision.createdAt), desc(schema.pageRevision.id));
+    },
+
+    /** The source a revision kept, however old, or null when the page has no such version. */
+    revisionSource: async (slug: string, version: string): Promise<string | null> =>
+      (
+        await db.query.pageRevision.findFirst({
+          where: and(eq(schema.pageRevision.pageSlug, slug), eq(schema.pageRevision.version, version)),
+          columns: { source: true },
+          orderBy: desc(schema.pageRevision.id),
+        })
+      )?.source ?? null,
 
     /** The update waiting on a page, or null. */
     scheduled: (slug: string): Promise<ScheduledUpdate | null> => updates.get(slug),

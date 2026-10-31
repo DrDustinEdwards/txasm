@@ -1,4 +1,5 @@
 import { createContext } from "react-router";
+import type { PublishedPage } from "./lib/data-access";
 
 // Cloudflare bindings and execution context, injected per request in
 // workers/app.ts and read in loaders and actions. Hard rule 1: D1, R2, KV, and
@@ -18,3 +19,7 @@ export const cloudflareContext = createContext<CloudflareContext>();
 // This request's Content-Security-Policy nonce (app/lib/security-headers.ts), set in
 // workers/app.ts and put by app/entry.server.tsx on every inline script the render emits.
 export const cspNonceContext = createContext<string | undefined>(undefined);
+
+// Carrel's preview of one site page (app/lib/carrel/adapter.server.ts): set only on the in-process render the preview
+// makes, never on a reader's request, so the page's route shows this in place of the published row.
+export const pagePreviewContext = createContext<{ slug: string; page: PublishedPage } | undefined>(undefined);

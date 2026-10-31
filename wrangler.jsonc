@@ -34,7 +34,10 @@
 	"vars": {
 		"EMAIL_ENABLED": "false",
 		"EMAIL_FROM": "no-reply@txasm.org",
-		"EMAIL_FROM_NAME": "TXASM"
+		"EMAIL_FROM_NAME": "TXASM",
+		// Where the site is served until the cutover: IndexNow, webmentions and Carrel name it (app/lib/site-meta.ts
+		// publicOrigin). At the cutover it becomes https://txasm.org; canonicals already name that.
+		"PUBLIC_ORIGIN": "https://txasm.dustin-edwards.workers.dev"
 	},
 	// Native bindings, reached only via context.cloudflare.env in loaders/actions.
 	"d1_databases": [
