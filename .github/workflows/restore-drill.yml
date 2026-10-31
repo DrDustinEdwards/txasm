@@ -1,0 +1,27 @@
+name: restore-drill
+
+# The weekly restore drill of the nightly D1 dump (app/lib/backup.server.ts), devkit's shared restore-drill.yml pinned
+# by full sha: d1-dump downloads the newest complete run from txasm-books (backups/json/), restores it into a scratch
+# SQLite file and checks it. The token needs R2 read on that bucket only. d1-dump-ref moves with package.json's pin.
+
+on:
+  schedule:
+    - cron: "23 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: restore-drill
+  cancel-in-progress: false
+
+jobs:
+  drill:
+    uses: DrDustinEdwards/devkit/.github/workflows/restore-drill.yml@1664a50ccc3b02a5100d490a650343db0e8b8530 # v0.20.4
+    with:
+      bucket: txasm-books
+      d1-dump-ref: v0.7.0
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

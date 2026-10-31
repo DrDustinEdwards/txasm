@@ -14,6 +14,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   const title = loaderData?.title ?? "Archive";
   return pageHead(matches, {
     path: location.pathname,
+    pageType: "CollectionPage",
     name: title,
     description: `${title} from past Texas Branch ASM meetings.`,
   });

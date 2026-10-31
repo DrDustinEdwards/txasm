@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   no-bloat:
-    uses: DrDustinEdwards/devkit/.github/workflows/no-bloat.yml@039f7af4cd798d9271efa35ad21b6df78161d3da # v0.19.0
+    uses: DrDustinEdwards/devkit/.github/workflows/no-bloat.yml@1664a50ccc3b02a5100d490a650343db0e8b8530 # v0.20.4
     with:
       warn-only: true
 
@@ -31,6 +31,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:

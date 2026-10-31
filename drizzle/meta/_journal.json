@@ -169,6 +169,20 @@
       "when": 1793332996802,
       "tag": "0023_page_404_daily",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1793408960569,
+      "tag": "0024_page_404_referrers",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1793408970164,
+      "tag": "0025_cron_runs",
+      "breakpoints": true
     }
   ]
 }
