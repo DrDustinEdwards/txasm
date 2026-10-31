@@ -1,6 +1,7 @@
 import { articleDates, defineHead } from "@drdustinedwards/site-helpers/head";
-import { thing } from "@drdustinedwards/site-helpers/schema";
+import { graph, thing, website } from "@drdustinedwards/site-helpers/schema";
 import type { PlatformSettings } from "./data-access";
+import { CATEGORY_PATHS } from "./document-nav";
 
 // The root loader (settings) is always in the matches chain. Pull the org short
 // name from there so page titles track the settings value instead of hardcoding
@@ -8,15 +9,19 @@ import type { PlatformSettings } from "./data-access";
 // `loaderData`; the older `data` is gone. Type-only import, erased at build.
 type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings } };
 
-export function pageTitle(
-  matches: ReadonlyArray<{ id: string } | undefined>,
-  pageName: string,
-): string {
+function titleSuffix(matches: ReadonlyArray<{ id: string } | undefined>): string {
   const root = (matches as ReadonlyArray<RootMatch | undefined>).find(
     (match) => match?.id === "root",
   );
   const shortName = root?.loaderData?.settings?.shortName ?? "";
-  return shortName ? `${pageName} | ${shortName}` : pageName;
+  return shortName ? ` | ${shortName}` : "";
+}
+
+export function pageTitle(
+  matches: ReadonlyArray<{ id: string } | undefined>,
+  pageName: string,
+): string {
+  return `${pageName}${titleSuffix(matches)}`;
 }
 
 /** A signed-in or admin page's meta: its title and noindex (the Worker also sends X-Robots-Tag on these paths). */
@@ -79,27 +84,31 @@ export function plainText(html: string): string {
     .trim();
 }
 
-const head = defineHead({ origin: SITE_ORIGIN, siteName: SITE_NAME, image: SITE_CARD });
+/** The section pages a page's breadcrumb trail passes through. */
+const SECTIONS: Record<string, string> = {
+  "/meetings": "Meetings",
+  ...Object.fromEntries(Object.values(CATEGORY_PATHS).map((c) => [c.basePath, c.title])),
+};
 
 /**
- * A public page's head from Prelum's defineHead: the title (with the settings short name, as pageTitle, so it is passed
- * whole), description (cut at a word for search, whole on the share card), canonical on SITE_ORIGIN (a trailing slash
- * dropped, except on "/"), Open Graph and Twitter with the site card.
+ * A public page's head from Prelum's defineHead: the title (the settings short name as its suffix, dropped where both do
+ * not fit), description (cut at a word for search, whole on the share card), canonical on SITE_ORIGIN (a trailing slash
+ * dropped, except on "/"), Open Graph and Twitter with the site card, and the WebPage and BreadcrumbList graph.
  */
 export function pageHead(
   matches: ReadonlyArray<{ id: string } | undefined>,
-  page: { path: string; name: string; description: string; fullTitle?: boolean },
+  { name, ...page }: { path: string; name: string; description: string; fullTitle?: boolean; pageType?: string; breadcrumbs?: Array<{ name: string; path: string }> },
 ) {
-  return head({
-    path: page.path,
-    title: page.fullTitle ? page.name : pageTitle(matches, page.name),
-    fullTitle: true,
-    description: page.description,
-  });
+  const head = defineHead({ origin: SITE_ORIGIN, siteName: SITE_NAME, image: SITE_CARD, suffix: titleSuffix(matches), sections: SECTIONS });
+  return head({ ...page, title: name });
 }
 
-/** The branch as an Organization (home page). */
-export function organizationLd() {
+/** The site, which every page's WebPage names by its @id, and the branch as an Organization (home page). */
+export function siteLd() {
+  return graph([website({ origin: SITE_ORIGIN, name: SITE_NAME }), organizationLd()]);
+}
+
+function organizationLd() {
   return thing("Organization", {
     name: "Texas Branch of the American Society for Microbiology",
     alternateName: SITE_NAME,

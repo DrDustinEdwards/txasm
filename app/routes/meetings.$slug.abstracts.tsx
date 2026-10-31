@@ -27,6 +27,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   const edition = loaderData?.edition;
   return pageHead(matches, {
     path: location.pathname,
+    pageType: "CollectionPage",
     name: edition ? `${edition.name} abstracts` : "Abstracts",
     description: edition
       ? `Accepted abstracts from the ${edition.name} of the Texas Branch ASM, by topic, level and format.`

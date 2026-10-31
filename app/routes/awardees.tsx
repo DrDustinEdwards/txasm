@@ -14,6 +14,7 @@ export const headers = () => publicPageHeaders();
 export function meta({ matches }: Route.MetaArgs) {
   return pageHead(matches, {
     path: "/awardees",
+    pageType: "CollectionPage",
     name: "Awardees",
     description:
       "The named awards of the Texas Branch ASM and their recipients. Search by person, institution, mentor, year, or award.",
