@@ -23,9 +23,12 @@ import { cloudflareContext, cspNonceContext } from "../app/load-context";
 import { backupUploads, runNightlyBackup } from "../app/lib/backup.server";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
-import { carrelApi } from "../app/lib/carrel/handler.server";
+import { carrelRequestApi, isCarrelRequest, runCarrelSchedules } from "../app/lib/carrel/handler.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { isPrivatePath } from "../app/lib/site-meta";
+
+// The per-minute cron (wrangler.jsonc triggers.crons): Carrel's scheduled updates. The other is the daily one.
+const SCHEDULES_CRON = "* * * * *";
 
 const serverBuild = () => import("virtual:react-router/server-build") as Promise<ServerBuild>;
 const requestHandler = createRequestHandler(serverBuild, import.meta.env.MODE);
@@ -108,14 +111,20 @@ const site = {
 
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
-    const carrel = carrelApi(env);
-    if (carrel.matches(request)) {
-      const response = await carrel.handle(request, ctx);
-      // A write that can change a public page drops every stored page: Carrel's (the site pages, media) here, and
-      // any admin action (settings, officers, awards, documents, editions, decisions, the program) below. A refused
-      // purge is logged and the page is stale until it expires (a day).
-      purgeAfterWrite(request, response, ctx, `carrel ${request.method} ${url.pathname}`);
-      return withSecurityHeaders(response, request);
+    if (isCarrelRequest(url)) {
+      const carrel = await carrelRequestApi(env, rootStylesheets(await serverBuild()).map((s) => s.href));
+      // A preview link Carrel made (/preview/<token>, no key): the page's current source in the site's stylesheet,
+      // noindex and never stored. The package's no-referrer stays (the set does not overwrite), so the token, which is
+      // the address, is never sent on.
+      if (carrel.matchesPreviewLink(request)) return withSecurityHeaders(await carrel.servePreviewLink(request), request);
+      if (carrel.matches(request)) {
+        const response = await carrel.handle(request, ctx);
+        // A write that can change a public page drops every stored page: Carrel's (the site pages, media) here, and
+        // any admin action (settings, officers, awards, documents, editions, decisions, the program) below. A refused
+        // purge is logged and the page is stale until it expires (a day).
+        purgeAfterWrite(request, response, ctx, `carrel ${request.method} ${url.pathname}`);
+        return withSecurityHeaders(response, request);
+      }
     }
 
     // A cross-site browser POST (or other write) is refused before routing. React
@@ -155,12 +164,18 @@ const site = {
     return page;
   },
 
-  // The cron fires daily (see wrangler.jsonc): the nightly D1 backup, the uploads copy beside it and the 404 count's
-  // pruning, each recorded in cron_runs by site-runtime's runJobs, so /health notices one that failed or stopped. The
-  // deadline jobs and reminders (submission and review deadline reminders, status transitions) join this list when
-  // they are wired per edition. A failed job does not stop the next; runJobs throws after the last, so the invocation
-  // shows as failed in Workers Logs.
-  async scheduled(_controller, env, _ctx) {
+  // The crons (see wrangler.jsonc), each job recorded in cron_runs by site-runtime's runJobs, so /health notices one
+  // that failed or stopped. Every minute: the updates Carrel scheduled go live (handler.server.ts). Daily: the nightly
+  // D1 backup, the uploads copy beside it and the 404 count's pruning. The deadline jobs and reminders (submission and
+  // review deadline reminders, status transitions) join the daily list when they are wired per edition. A failed job
+  // does not stop the next; runJobs throws after the last, so the invocation shows as failed in Workers Logs.
+  async scheduled(controller, env, _ctx) {
+    if (controller.cron === SCHEDULES_CRON) {
+      await runJobs(env.DB, [
+        { name: "carrel-schedules", everyMinutes: 1, run: () => runCarrelSchedules(env, new Date(controller.scheduledTime)) },
+      ]);
+      return;
+    }
     await runJobs(env.DB, [
       { name: "backup", everyMinutes: 1440, run: () => runNightlyBackup(env) },
       { name: "backup-uploads", everyMinutes: 1440, run: () => backupUploads(env) },

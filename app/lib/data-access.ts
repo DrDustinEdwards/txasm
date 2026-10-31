@@ -156,7 +156,7 @@ export function getMeetingImporter(env: Env) {
 // acting user, authenticated by the site API's key, and audited by the
 // page_revision row each write appends. Only app/lib/carrel calls it.
 export function getCarrelPages(env: Env) {
-  return createCarrelPages(getDb(env));
+  return createCarrelPages(getDb(env), env.DB);
 }
 
 // The media library's index, on Carrel's path like the pages: the same machine caller, reached
