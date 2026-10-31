@@ -48,9 +48,9 @@ function summaryOf(p: Page): ContentSummary {
   };
 }
 
-function parse(source: string): PageSource {
+function parse(source: string, options?: { preview?: boolean }): PageSource {
   try {
-    return parseSource(source);
+    return parseSource(source, options);
   } catch (err) {
     throw new RefusedError(err instanceof Error ? err.message : "The source could not be read.");
   }
@@ -208,7 +208,7 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
     // The body as the route shows it, in a plain page: an unsaved source has no row to load.
     preview: {
       async render({ source }) {
-        const parsed = parse(source);
+        const parsed = parse(source, { preview: true });
         const { html } = await renderBody(env, parsed.body);
         const title = escapeHtml(parsed.title);
         return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head><body><main><h1>${title}</h1><div class="page-prose">${html}</div></main></body></html>`;

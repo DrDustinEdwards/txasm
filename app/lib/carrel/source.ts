@@ -12,10 +12,10 @@ import { readKey, splitSource } from "@dustinedwards/site-api/frontmatter";
 
 export type PageSource = { title: string; description: string | null; body: string };
 
-/** Throws when the source has no title: every page route shows one. */
-export function parseSource(source: string): PageSource {
+/** Throws when the source has no title: every page route shows one. A preview shows a draft without one as untitled. */
+export function parseSource(source: string, { preview = false } = {}): PageSource {
   const { front, body } = splitSource(source);
-  const title = readKey(front, "title").trim();
+  const title = readKey(front, "title").trim() || (preview ? "Untitled" : "");
   if (!title) throw new Error("A page needs a title in its front matter.");
   return { title, description: readKey(front, "description").trim() || null, body };
 }
