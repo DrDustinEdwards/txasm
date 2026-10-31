@@ -5,6 +5,7 @@ import {
   SHARED_CACHE_CONTROL,
   cacheKey,
   forReader,
+  forRenderer,
   privateRender,
   purgeAfterWrite,
   settleCacheHeaders,
@@ -137,7 +138,7 @@ export default {
     let page: Response;
     if (cacheable(request, url)) {
       // The key is the path and the query without tracking parameters; a reader who already holds the page gets a 304.
-      const stored = await ctx.exports.Renderer.fetch(request, { cf: { cacheKey: cacheKey(url) } });
+      const stored = await ctx.exports.Renderer.fetch(forRenderer(request), { cf: { cacheKey: cacheKey(url) } });
       page = forReader(stored, request);
     } else {
       // Rendered live with this request's nonce, on the render and in its header; never stored.
