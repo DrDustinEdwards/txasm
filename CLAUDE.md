@@ -23,7 +23,7 @@ Reach D1, R2, KV, the send_email binding, and Browser Rendering through the inje
 
 - `npm run dev` - Vite dev server in workerd, bindings available locally
 - `npm run build` - production build (client + server)
-- `npm run deploy` - wrangler deploy (do not touch txasm.org DNS until cutover). A merge to main deploys: CI's `deploy` job applies D1 migrations, then deploys, while the repo variable `CF_DEPLOY` is `true`.
+- `npm run deploy` - wrangler deploy (do not touch txasm.org DNS until cutover). A merge to main deploys: CI's `deploy` job applies the pending D1 migrations that only add (a drop, rename or row delete is refused for a hand run), then deploys, while the repo variable `CF_DEPLOY` is `true`.
 - `npm run typecheck` - wrangler types + react-router typegen + tsc -b
 - `npm run lint` and `npm test` - eslint, and the node tests in `tests/` (real D1 and R2 in Miniflare)
 - `npm run db:generate` / `db:migrate` / `db:migrate:prod`
