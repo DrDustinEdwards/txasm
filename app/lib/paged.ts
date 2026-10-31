@@ -5,8 +5,8 @@
 // 2026-10-21. The file is the npm tarball's dist/paged.polyfill.js, byte for byte.
 const PAGED_JS_PATH = "/pagedjs/paged.polyfill-0.4.3.js";
 // Subresource integrity for that exact file. The book preview runs on the app origin
-// with the chair's session, so a changed file must not run there (Grok audit
-// 2026-10-21, TX-1). A new version needs a new hash.
+// with the chair's session, so a changed file must not run there. A new version
+// needs a new hash.
 const PAGED_JS_INTEGRITY = "sha384-JkjBt3FPbcQ3WBc3qp+maUIw8YLoZxNNj8H+tn73mljkC1ba8aEPWlgwfCRPpAxV";
 
 // The closing scripts of a printable book. The config signals when Paged.js has

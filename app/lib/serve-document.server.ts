@@ -1,4 +1,4 @@
-import { buildPolicy } from "@dustinedwards/site-runtime/csp";
+import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
 import { getSessionUser } from "./auth.server";
 import {
   ForbiddenError,
@@ -58,18 +58,10 @@ export async function serveDocument(
     contentType,
   );
 
-  // Harden image responses. An uploaded SVG can carry script that would run if
-  // the file is opened as a top-level document; nosniff plus a locked-down CSP
-  // (no scripts via sandbox, no external fetches) neutralizes that while still
-  // letting the image render inline. PDFs are left untouched so the browser's
-  // native viewer keeps working.
-  if (doc.fileKind === "image") {
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set(
-      "Content-Security-Policy",
-      buildPolicy(["default-src 'none'", "style-src 'unsafe-inline'", "sandbox"]),
-    );
-  }
+  // An uploaded SVG opened on its own would run its script: images get UPLOAD_HEADERS
+  // (nosniff and a sandboxed load-nothing policy, hard rule 5). PDFs are left as they
+  // are, because a sandbox breaks the browser's own viewer.
+  if (doc.fileKind === "image") applyHeaderSet(response.headers, UPLOAD_HEADERS);
 
   return response;
 }

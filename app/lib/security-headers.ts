@@ -1,6 +1,6 @@
 // The security headers every response from this Worker carries: the set (header-set.ts) and the page's
 // Content-Security-Policy. X-Frame-Options: deny is the part that matters most here: a framed admin page could
-// otherwise submit a role grant or a book publish with the chair's cookie (Grok audit 2026-10-21, TX-1).
+// otherwise submit a role grant or a book publish with the chair's cookie.
 import { applyHeaderSet } from "@dustinedwards/site-runtime/headers";
 import { buildContentSecurityPolicy, reportingEndpoints, scriptHash } from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
