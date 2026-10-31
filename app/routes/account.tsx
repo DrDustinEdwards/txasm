@@ -85,6 +85,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         })),
     // Null when the sign-in is too old to list them (site-runtime ./sign-in, FRESH_SECONDS).
     sessions: welcome ? [] : await accountSessions(auth, request),
+    // Decided here, not in the component, so the page's script never loads site-runtime ./sign-in (it carries
+    // Better Auth's server code: 8.9 kB gzip on /account).
+    needsSecond: !welcome && needsSecondPasskey(passkeys),
     // The last ten sign-ins and changes to how the person signs in (auth_events, site-runtime ./sign-in).
     history: welcome ? [] : await securityHistory(env.DB, current.user.id, 10),
   };
@@ -136,7 +139,7 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
 }
 
 export default function Account({ loaderData }: Route.ComponentProps) {
-  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, sessions, history } = loaderData;
+  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, sessions, history, needsSecond } = loaderData;
   const revalidator = useRevalidator();
   const signOut = useFetcher<typeof action>();
   const deleted = useActionData<typeof action>();
@@ -383,7 +386,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           )}
         </ul>
       )}
-      {needsSecondPasskey(passkeys) ? (
+      {needsSecond ? (
         <p>
           You have one passkey. Add another on a second device, such as your phone or a security key, so you can still
           sign in if you lose this one.
