@@ -32,6 +32,7 @@
     "0027_site_api_tables.sql": "bd480497a5131f9897b609140076050977339b69b84b5ef481f4c3428ccb7263",
     "0028_page_search_fields.sql": "c6d539b09e5ce658b1d3174a0d5a6cc14ef88cc39f78fac5001da1f1b46b7612",
     "0029_session_location.sql": "7f4619f4d783d97a692c7fc86ddedc487ec0c376ba673af3f0ab88fb598b51a4",
-    "0030_auth_events.sql": "4b1b00ef21ffaf90c2302b13c1ae7c4f1162eac9e25986709760746cf9ddc44b"
+    "0030_auth_events.sql": "4b1b00ef21ffaf90c2302b13c1ae7c4f1162eac9e25986709760746cf9ddc44b",
+    "0031_award_slug_redirect.sql": "c7c119db1545167acd9e6d3fc3392f882c5a6a05b85c714adfdca6ab1df01bd4"
   }
 }

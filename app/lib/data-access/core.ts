@@ -1,3 +1,4 @@
+import { logEvent, OWASP_EVENTS } from "@dustinedwards/site-runtime/log";
 import { and, eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
@@ -40,10 +41,14 @@ export class NotFoundError extends Error {
   }
 }
 
+// Every refusal of a field that does not parse or is out of bounds is one of these, so each writes one
+// `input_validation_fail` line (OWASP's name, site-runtime ./log) as it is made: the words the user is shown, scrubbed
+// and cut, never more of the request.
 export class ValidationError extends Error {
   constructor(message = "invalid input") {
     super(message);
     this.name = "ValidationError";
+    logEvent(OWASP_EVENTS.inputValidationFailure, { reason: message.slice(0, 120) }, { level: "warn" });
   }
 }
 

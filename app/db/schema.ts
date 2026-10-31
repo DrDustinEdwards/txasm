@@ -958,6 +958,17 @@ export const award = sqliteTable("award", {
   updatedAt: updatedAt(),
 });
 
+// A renamed award's old slug, kept so /awards/<old slug> answers a permanent redirect to the award's slug now
+// (site-runtime renameRedirect, routes/awards.$slug.tsx), and old links and search results survive a rename. Keyed by
+// the old slug and pointing at the award's id, so a second rename needs no rewrite; gone with the award.
+export const awardSlugRedirect = sqliteTable("award_slug_redirect", {
+  fromSlug: text("from_slug").primaryKey(),
+  awardId: text("award_id")
+    .notNull()
+    .references(() => award.id, { onDelete: "cascade" }),
+  createdAt: createdAt(),
+});
+
 // The branch officers page: the current officers, the advisory board and the
 // past officers, one row each. A past officer's role is the office, which
 // groups the page's tabs; tabs and rows follow sort_order. Past rows may lack

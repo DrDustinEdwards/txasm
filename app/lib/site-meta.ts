@@ -181,3 +181,11 @@ export function meetingLd(
     organizer: { "@type": "Organization", name: SITE_NAME, url: `${SITE_ORIGIN}/` },
   });
 }
+
+/**
+ * Pages taken down on purpose: each answers 410 Gone (site-runtime ./url goneResponse; routes/not-found.tsx and the
+ * award route's miss), so a crawler drops it sooner than a 404 and a reader is told it is not a typo. An entry is a
+ * path, a "/prefix*" or a RegExp. None yet: add a path here when a page is removed for good. A renamed award needs
+ * nothing here; award_slug_redirect answers it.
+ */
+export const GONE: readonly (string | RegExp)[] = [];
