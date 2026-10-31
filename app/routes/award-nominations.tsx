@@ -1,7 +1,7 @@
 import type { Route } from "./+types/award-nominations";
 import { getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext, pagePreviewContext } from "~/load-context";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
@@ -9,6 +9,8 @@ export const headers = () => publicPageHeaders();
 
 // The page's text is edited in Carrel (app/lib/carrel) and stored in D1.
 export async function loader({ context }: Route.LoaderArgs) {
+  const preview = context.get(pagePreviewContext);
+  if (preview?.slug === "award-nominations") return preview.page;
   const page = await getDataAccess(context.get(cloudflareContext).env).pages.published("award-nominations");
   if (!page) throw new Response("Not found", { status: 404 });
   return page;

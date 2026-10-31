@@ -12,8 +12,8 @@ import {
 import { d1SiteApiStore } from "@dustinedwards/site-api/store";
 import { schedulePurgeHook } from "@dustinedwards/site-runtime/edge-cache";
 import { OWASP_EVENTS, logEvent } from "@dustinedwards/site-runtime/log";
-import { INDEXNOW_KEY, SITE_ORIGIN } from "~/lib/site-meta";
-import { createCarrelAdapter } from "./adapter.server";
+import { INDEXNOW_KEY, publicOrigin } from "~/lib/site-meta";
+import { createCarrelAdapter, type RenderPage } from "./adapter.server";
 
 /**
  * Only what changes a page a reader sees. A save to a txasm page changes its working copy, never the live route, yet
@@ -41,7 +41,7 @@ function siteApiLog(entry: Record<string, unknown>): void {
   logEvent(`site_api_${String(entry.siteApi ?? "log")}`, entry);
 }
 
-export function carrelApi(env: Env, options: { renderVersion?: string; stylesheets?: string[] } = {}) {
+export function carrelApi(env: Env, options: { renderVersion?: string; stylesheets?: string[]; renderPage?: RenderPage } = {}) {
   // The replay store (safe retries by change id), preview links, failed hooks' retries and the webmentions sent
   // (drizzle/0027_site_api_tables.sql).
   const store = d1SiteApiStore(env.DB);
@@ -52,20 +52,24 @@ export function carrelApi(env: Env, options: { renderVersion?: string; styleshee
     log: siteApiLog,
     store,
     // A changed live page tells IndexNow and the pages it links to, under ctx.waitUntil (workers/app.ts passes ctx);
-    // IndexNow sends nothing for a request from another origin (workers.dev, a preview). A schedule the cron puts live
-    // purges the stored pages, as the gateway does after a Carrel write.
+    // both name the origin the site is served on now (publicOrigin), and IndexNow sends nothing for a request from
+    // another (a dev server, a preview). A schedule the cron puts live purges the stored pages, as the gateway does
+    // after a Carrel write.
     hooks: [
-      liveChanges(indexNowHook({ submit: submitIndexNow, origin: SITE_ORIGIN, key: INDEXNOW_KEY })),
+      liveChanges(indexNowHook({ submit: submitIndexNow, origin: publicOrigin(env), key: INDEXNOW_KEY })),
       schedulePurgeHook(),
       liveChanges(webmentionHook({ store })),
     ],
   });
 }
 
-/** Carrel's API for one of its requests, with the Prelum render its meta names: the renderer loads only here. */
-export async function carrelRequestApi(env: Env, stylesheets: string[]) {
+/**
+ * Carrel's API for one of its requests, with the Prelum render its meta names (the renderer loads only here) and the
+ * site's own page render for its previews.
+ */
+export async function carrelRequestApi(env: Env, stylesheets: string[], renderPage: RenderPage) {
   const { RENDER_VERSION } = await import("@drdustinedwards/site-helpers/render/nomath");
-  return carrelApi(env, { renderVersion: RENDER_VERSION, stylesheets });
+  return carrelApi(env, { renderVersion: RENDER_VERSION, stylesheets, renderPage });
 }
 
 /**
