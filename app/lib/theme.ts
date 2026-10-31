@@ -3,3 +3,6 @@
 export type { ThemeChoice as Theme } from "capsomer/theme-server";
 
 export const THEME_COOKIE = "txasm_theme";
+
+/** Where Capsomer's theme button remembers the choice in this browser. */
+export const THEME_PREF_KEY = "txasm-theme";

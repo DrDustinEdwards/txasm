@@ -12,6 +12,9 @@ import {
   type PresentationType,
 } from "~/lib/vocab";
 
+// A signed-in author's page, the way into submission and editing. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "My abstracts");
 }

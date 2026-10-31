@@ -17,6 +17,9 @@ import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
 import { readForm } from "~/lib/form.server";
 
+// An app: the review form and its rich-text comment. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Review abstract");
 }

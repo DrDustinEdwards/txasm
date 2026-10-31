@@ -6,6 +6,9 @@ import { getUserContext } from "~/lib/auth.server";
 import { BrandMark } from "~/lib/brand";
 import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
 
+// The admin and chair areas are apps: every route under this layout hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 // Admin shell, on Capsomer's AdminShell (the user variant: txasm is not one of
 // the family's own apps, so it has no strip). The shell titles the tab
 // "<menu entry> · TXASM admin", the family's one convention. This layout does NOT gate; each

@@ -16,6 +16,9 @@ import { getAuth, getSessionUser } from "~/lib/auth.server";
 // ?sent=, the time the link was asked for (app/routes/signin.tsx): Better Auth answers
 // INVALID_TOKEN for a used link and an expired one alike, so the time tells them apart.
 
+// Part of sign-in, which hydrates as one flow (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sign in");
 }

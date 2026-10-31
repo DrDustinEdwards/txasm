@@ -18,6 +18,9 @@ import { type AccountRecordKind, getDataAccess } from "~/lib/data-access";
 import { authClient } from "~/lib/auth-client";
 import { formatDateTime } from "~/lib/format";
 
+// An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Account");
 }

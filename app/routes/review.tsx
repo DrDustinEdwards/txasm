@@ -6,6 +6,9 @@ import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 
+// A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Review");
 }
