@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "80b1ccdb-e466-4fdf-8936-885f68b990fd",
-  "prevId": "40d47e68-c29e-478c-875f-a294b9e54c4e",
+  "id": "7bee90c2-e8d1-4182-827e-1cb59ee83bf1",
+  "prevId": "db8c8d88-8fbf-48c0-ba93-f2f66cea7665",
   "tables": {
     "abstract": {
       "name": "abstract",
@@ -2580,6 +2580,20 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "placeholder": {
+          "name": "placeholder",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         }
       },

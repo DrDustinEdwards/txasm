@@ -27,7 +27,7 @@ export const isCarrelRequest = (url: URL) => insidePrefix(url.pathname) || url.p
 
 export function carrelApi(env: Env, options: { renderVersion?: string; stylesheets?: string[] } = {}) {
   // The replay store (safe retries by change id), preview links, failed hooks' retries and the webmentions sent
-  // (drizzle/0027_site_api_store.sql).
+  // (drizzle/0027_site_api_tables.sql).
   const store = d1SiteApiStore(env.DB);
   return createSiteApi({
     adapter: createCarrelAdapter(env, options),

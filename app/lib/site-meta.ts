@@ -7,13 +7,13 @@ import { CATEGORY_PATHS } from "./document-nav";
 // name from there so page titles track the settings value instead of hardcoding
 // the branch name in every route. React Router 8 names a match's data
 // `loaderData`; the older `data` is gone. Type-only import, erased at build.
-type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings } };
+type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings; origin?: string } };
+
+const rootData = (matches: ReadonlyArray<{ id: string } | undefined>) =>
+  (matches as ReadonlyArray<RootMatch | undefined>).find((match) => match?.id === "root")?.loaderData;
 
 function titleSuffix(matches: ReadonlyArray<{ id: string } | undefined>): string {
-  const root = (matches as ReadonlyArray<RootMatch | undefined>).find(
-    (match) => match?.id === "root",
-  );
-  const shortName = root?.loaderData?.settings?.shortName ?? "";
+  const shortName = rootData(matches)?.settings?.shortName ?? "";
   return shortName ? ` | ${shortName}` : "";
 }
 
@@ -96,14 +96,16 @@ const SECTIONS: Record<string, string> = {
 /**
  * A public page's head from Prelum's defineHead: the title (the settings short name as its suffix, dropped where both do
  * not fit), description (cut at a word for search, whole on the share card), canonical on SITE_ORIGIN (a trailing slash
- * dropped, except on "/"), Open Graph and Twitter with the site card, and the WebPage and BreadcrumbList graph.
+ * dropped, except on "/"), Open Graph and Twitter with the site card, and the WebPage and BreadcrumbList graph. The card
+ * is named on the origin the page was served from (the root loader's), not SITE_ORIGIN: until the cutover txasm.org is
+ * the old site, which has no card.
  */
 export function pageHead(
   matches: ReadonlyArray<{ id: string } | undefined>,
   { name, ...page }: { path: string; name: string; description: string; fullTitle?: boolean; pageType?: string; breadcrumbs?: Array<{ name: string; path: string }> },
 ) {
   const head = defineHead({ origin: SITE_ORIGIN, siteName: SITE_NAME, image: SITE_CARD, suffix: titleSuffix(matches), sections: SECTIONS });
-  return head({ ...page, title: name });
+  return head({ ...page, title: name, image: { ...SITE_CARD, url: `${rootData(matches)?.origin ?? SITE_ORIGIN}${SITE_CARD.url}` } });
 }
 
 /** The site, which every page's WebPage names by its @id, and the branch as an Organization (home page). */
