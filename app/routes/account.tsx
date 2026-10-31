@@ -13,7 +13,7 @@ import {
   securityHistory,
   shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
-import { canOfferPasskey, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
+import { canOfferPasskey, signalPasskeys, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -61,7 +61,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
   const { headers } = request;
-  const current = await auth.api.getSession({ headers });
+  // With the request, so this session's last use and place move with it (site-runtime sessionDetails).
+  const current = await auth.api.getSession({ headers, request });
   if (!current) throw redirect("/signin");
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");
@@ -154,6 +155,13 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       else window.location.replace("/");
     });
   }, [welcome]);
+  // Each time the passkey list loads, the password manager hears which passkeys the site still accepts and
+  // the address they belong to (the WebAuthn Signal API, where the browser has it).
+  const credentialKey = passkeys.map((p) => p.credentialId).join(" ");
+  useEffect(() => {
+    if (welcome) return;
+    void signalPasskeys({ rpId, credentialIds: credentialKey ? credentialKey.split(" ") : [], name: email });
+  }, [welcome, rpId, credentialKey, email]);
 
   // Better Auth mails the current address to approve, then the new one to confirm
   // (app/lib/auth.server.ts). An address already in use gets the same answer, so the

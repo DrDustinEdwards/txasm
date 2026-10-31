@@ -27,7 +27,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const user = await requireUser(request);
   const { env } = context.get(cloudflareContext);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   const da = getDataAccess(env);
 
   try {
@@ -47,7 +47,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 export async function action({ request, context, params }: Route.ActionArgs) {
   const user = await requireUser(request);
   const { env } = context.get(cloudflareContext);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   const da = getDataAccess(env);
   const form = await readForm(request);
   const intent = String(form.get("intent") ?? "submit");

@@ -5,7 +5,9 @@ import {
   ConflictOfInterestError,
   ForbiddenError,
   ValidationError,
+  getActor,
   getDataAccess,
+  isAdmin,
   type Actor,
 } from "../app/lib/data-access";
 import { ACCOUNT_REFERENCES } from "../app/lib/data-access/account";
@@ -155,4 +157,16 @@ test("an account is deletable only when it holds no meeting records", async () =
   assert.deepEqual(await dataAccess.account.deletionBlockers("u-leaving"), []);
   await d1.prepare("DELETE FROM user WHERE id = 'u-leaving'").run();
   await assert.rejects(d1.prepare("DELETE FROM user WHERE id = 'u-author'").run(), /FOREIGN KEY/);
+});
+
+test("platform admin is the ADMIN_EMAILS list on every request, never an old admin grant", async () => {
+  await d1.prepare("INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-former', 'former@example.com', 1, 1)").run();
+  // An admin row seeded at sign-up before admin moved to the list.
+  await d1
+    .prepare("INSERT INTO role_grant (id, user_id, role, edition_id, status, created_at) VALUES ('g-former', 'u-former', 'admin', NULL, 'active', 1)")
+    .run();
+  const user = { id: "u-former", email: "Former@example.com" };
+  const env = (list: string) => ({ DB: d1, ADMIN_EMAILS: list }) as unknown as Env;
+  assert.equal(isAdmin(await getActor(env("someone@example.com"), user)), false);
+  assert.equal(isAdmin(await getActor(env("someone@example.com, former@example.com"), user)), true);
 });

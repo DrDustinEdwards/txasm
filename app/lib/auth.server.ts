@@ -1,12 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
-import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { redirect } from "react-router";
 import { env, waitUntil } from "cloudflare:workers";
-import { accessSignInUrl, adminEmails } from "@dustinedwards/site-runtime/access";
+import { accessSignInUrl } from "@dustinedwards/site-runtime/access";
 import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
-import { coarseLocation, signInOptions } from "@dustinedwards/site-runtime/sign-in";
+import { emailConfirmURL, signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
@@ -23,7 +22,7 @@ import { adminAccessOk } from "./access.server";
 
 // Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
 // ./sign-in): a passkey first, an emailed link before one exists, Turnstile on
-// the link once its keys are set, no passwords. No Google or Apple: academics use
+// the link (it fails closed without its keys), no passwords. No Google or Apple: academics use
 // many providers, so the inbox is the way in. Sessions and the sign-in rate
 // limit are in D1 (app/db/schema.ts).
 //
@@ -46,12 +45,12 @@ async function buildAuth(env: Env) {
     confirmPath: SIGN_IN_CONFIRM_PATH,
     // Five sign-in mails an hour and ten typed codes a day per address.
     emailLimiter: env.RATE_LIMITER,
-    // No Turnstile keys yet: until Dustin creates them, the link request goes through unchecked and each one
-    // logs turnstile_off_until_keys. Without this it would answer 503 TURNSTILE_NOT_SET. Remove it with the keys.
-    turnstile: "off-until-keys",
     // Each auth event is also a row in auth_events (migration 0030): the person's history on /account,
     // /health's spike check, pruned daily (workers/app.ts).
     eventsDb: env.DB,
+    // Each session's last use and coarse place, written when it is read (at most every five minutes), and a device
+    // id cookie for the new-device notice (migrations 0029 and 0031; site-runtime ./sign-in, sessionDetails).
+    sessionDetails: true,
     // A mail to the account's address for each change to how it signs in: a passkey added or removed,
     // other devices signed out (site-runtime ./sign-in, sendSecurityNotice). Dormant with the rest of the mail.
     sendSecurityNotice: async (_kind, { user, detail }) => {
@@ -59,13 +58,9 @@ async function buildAuth(env: Env) {
     },
   });
 
-  // Better Auth's /verify-email link signs in on a GET, so a mail scanner would confirm for the
-  // person. The mail carries the site's own page instead (EMAIL_CONFIRM_PATH), whose button posts.
-  const emailConfirmUrl = (url: string) => {
-    const page = new URL(EMAIL_CONFIRM_PATH, env.BETTER_AUTH_URL);
-    page.searchParams.set("token", new URL(url).searchParams.get("token") ?? "");
-    return page.href;
-  };
+  // Better Auth's /verify-email link acts on a GET, so a mail scanner would confirm for the
+  // person. Both mails carry the site's own page instead (EMAIL_CONFIRM_PATH), whose button posts.
+  const emailConfirmUrl = (url: string) => emailConfirmURL(url, EMAIL_CONFIRM_PATH);
 
   return betterAuth({
     ...signIn,
@@ -73,8 +68,6 @@ async function buildAuth(env: Env) {
     secret: env.BETTER_AUTH_SECRET,
     // Only the email change mails a verification link; nothing mails one on request.
     disabledPaths: [...signIn.disabledPaths, "/send-verification-email"],
-    // Where a session was last active, in Cloudflare's coarse words (touchSession below).
-    session: { ...signIn.session, additionalFields: { location: { type: "string", required: false, input: false } } },
     user: {
       // An email change is confirmed from the current address first, then from the new one;
       // the change is made on the second, and site-runtime's notice goes to both addresses.
@@ -120,27 +113,6 @@ async function buildAuth(env: Env) {
         passkey: schema.passkey,
       },
     }),
-    // Seed platform admins. ADMIN_EMAILS is a comma-separated allowlist; when a
-    // user whose email is on it is created (first sign-in), grant them a
-    // platform-wide admin role (null edition_id). Falls back to the single
-    // ADMIN_EMAIL for backward compatibility when ADMIN_EMAILS is not set.
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (createdUser) => {
-            if (!adminEmails(env).includes(createdUser.email.toLowerCase())) return;
-            await db
-              .insert(schema.roleGrant)
-              .values({
-                userId: createdUser.id,
-                role: "admin",
-                editionId: null,
-              })
-              .onConflictDoNothing();
-          },
-        },
-      },
-    },
   });
 }
 
@@ -194,51 +166,18 @@ export async function getSessionUser(
 ): Promise<SessionUser | null> {
   if (!env.BETTER_AUTH_SECRET) return null;
   try {
+    // With the request, so the session's last use and place move with it (sessionDetails above).
     const session = await (await getAuth(env)).api.getSession({
       headers: request.headers,
+      request,
     });
     if (!session?.user) return null;
-    touchSession(request, session.session);
     const { id, email, name } = session.user;
     return { id, email, name: name ?? null };
   } catch (error) {
     console.error("[auth] getSession failed", error);
     return null;
   }
-}
-
-// How often a session's last activity is written: at most once in this many seconds.
-const TOUCH_SECONDS = 5 * 60;
-
-// The sessions list's "last active" and rough place (site-runtime sessionRows reads
-// updatedAt and location). Better Auth's sliding refresh is off (site-runtime ./sign-in),
-// so it never moves updatedAt; the site does, after the answer. Freshness is
-// measured from createdAt, so this never makes a sign-in count as recent.
-function touchSession(request: Request, session: { id: string; updatedAt: Date; location?: string | null }) {
-  const now = Date.now();
-  const stale = new Date(now - TOUCH_SECONDS * 1000);
-  if (session.location && new Date(session.updatedAt) >= stale) return;
-  const db = getDb(env);
-  waitUntil(
-    db
-      .update(schema.session)
-      .set({ updatedAt: new Date(now), location: coarseLocation(request) })
-      .where(
-        and(
-          eq(schema.session.id, session.id),
-          or(lt(schema.session.updatedAt, stale), isNull(schema.session.location)),
-        ),
-      )
-      .then(
-        () => undefined,
-        (error: unknown) =>
-          logEvent(
-            "session_touch_failed",
-            { error: error instanceof Error ? error.message : String(error) },
-            { level: "error" },
-          ),
-      ),
-  );
 }
 
 // The 403 for a signed-in user without the grant a page needs, logged as OWASP `authz_fail` with what was missing
@@ -255,12 +194,13 @@ export async function requireUser(request: Request): Promise<SessionUser> {
   return user;
 }
 
-// Require a platform-wide admin role_grant. Signed-out users go to sign-in;
-// signed-in non-admins get a 403; an admin without Cloudflare Access's cookie
-// goes through Access first (access.server.ts).
+// Require a platform admin: an address on ADMIN_EMAILS, read on every request
+// (getActor), so someone taken off the list stops being admin at once. Signed-out
+// users go to sign-in; signed-in non-admins get a 403; an admin without
+// Cloudflare Access's cookie goes through Access first (access.server.ts).
 export async function requireAdmin(request: Request): Promise<AdminContext> {
   const user = await requireUser(request);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   if (!isAdmin(actor)) {
     throw forbidden(request, "admin");
   }
@@ -280,7 +220,7 @@ export async function requireChair(
   editionId: string,
 ): Promise<ChairContext> {
   const user = await requireUser(request);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   if (!isChair(actor, editionId)) {
     throw forbidden(request, "chair");
   }
@@ -294,7 +234,7 @@ export async function requireChair(
 export async function getUserContext(request: Request): Promise<UserContext> {
   const user = await getSessionUser(request);
   if (!user) return { user: null, isAdmin: false, isReviewer: false };
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   return {
     user,
     isAdmin: isAdmin(actor),

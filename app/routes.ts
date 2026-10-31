@@ -96,6 +96,8 @@ export default [
   ]),
   // Where Cloudflare Access sends a platform admin back from (app/lib/access.server.ts).
   route("admin/access", "routes/admin.access.tsx"),
+  // The hashed admin list the Access drift check reads (site-runtime ADMIN_LIST_PATH, behind Access).
+  route("admin/access-drift", "routes/admin.access-drift.ts"),
   // Resource routes: full-document HTML / streamed PDF, no shell chrome.
   route(
     "admin/editions/:editionId/book/preview",

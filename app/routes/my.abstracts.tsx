@@ -22,7 +22,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await requireUser(request);
   const { env } = context.get(cloudflareContext);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   const da = getDataAccess(env);
   const abstracts = await da.abstracts.listMineAll(actor);
   // Read each decision through getForAbstract so the author-visibility rule is

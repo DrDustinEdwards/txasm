@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
@@ -72,7 +72,10 @@ export interface Actor {
   grants: Grant[];
 }
 
-export async function loadActor(db: DB, userId: string): Promise<Actor> {
+// `admin` comes from the env's admin list (getActor in ../data-access.ts), never
+// from D1: role_grant rows with role "admin", seeded once at sign-up before
+// 2026-10-31, are read past, so taking an address off the list ends its admin.
+export async function loadActor(db: DB, userId: string, { admin }: { admin: boolean }): Promise<Actor> {
   const rows = await db
     .select({ role: schema.roleGrant.role, editionId: schema.roleGrant.editionId })
     .from(schema.roleGrant)
@@ -80,9 +83,11 @@ export async function loadActor(db: DB, userId: string): Promise<Actor> {
       and(
         eq(schema.roleGrant.userId, userId),
         eq(schema.roleGrant.status, "active"),
+        inArray(schema.roleGrant.role, ["chair", "reviewer"]),
       ),
     );
-  return { userId, grants: rows as Grant[] };
+  const grants = rows as Grant[];
+  return { userId, grants: admin ? [{ role: "admin", editionId: null }, ...grants] : grants };
 }
 
 export function isAdmin(actor: Actor): boolean {

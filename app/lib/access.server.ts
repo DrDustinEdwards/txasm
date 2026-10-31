@@ -11,7 +11,7 @@ import { accessAdmin } from "@dustinedwards/site-runtime/access";
 
 /** Whether Access signed this request for the signed-in admin's own email. */
 export async function adminAccessOk(env: Env, request: Request, email: string): Promise<boolean> {
-  // The one admin who may pass is the signed-in user, not the ADMIN_EMAILS list:
-  // admins are granted in D1, and Access must vouch for this account in particular.
+  // The one admin who may pass is the signed-in user, not the whole ADMIN_EMAILS list
+  // (requireAdmin checks the list): Access must vouch for this account in particular.
   return (await accessAdmin(request, env, { admins: email })) !== null;
 }
