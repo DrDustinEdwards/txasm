@@ -17,6 +17,7 @@ import { countNotFound, pruneNotFound } from "@dustinedwards/site-runtime/not-fo
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
 import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
 import { preloads, rootStylesheets, withPreloadHeader } from "@dustinedwards/site-runtime/preload";
+import { SPECULATION_RULES_HEADER, SPECULATION_RULES_PATH, speculationRulesResponse } from "@dustinedwards/site-runtime/prefetch";
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
@@ -25,13 +26,29 @@ import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi, isCarrelRequest, runCarrelSchedules } from "../app/lib/carrel/handler.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
-import { isPrivatePath } from "../app/lib/site-meta";
+import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
 
 // The per-minute cron (wrangler.jsonc triggers.crons): Carrel's scheduled updates. The other is the daily one.
 const SCHEDULES_CRON = "* * * * *";
 
 const serverBuild = () => import("virtual:react-router/server-build") as Promise<ServerBuild>;
 const requestHandler = createRequestHandler(serverBuild, import.meta.env.MODE);
+
+// What the hover prefetch (site-runtime ./prefetch, beyond its NEVER_PREFETCH) never fetches: every private path
+// (robots.txt's Disallow list: sign-in and its emailed confirm link, sign-out, the account, an author's abstracts,
+// submission and editing, review and the admin and chair areas, /admin/access among them), registration and its
+// payment, and the files under /documents and /media, which open as files.
+const PREFETCH_EXCLUDE = [...ROBOTS_DISALLOW, "/register", "/documents", "/media"];
+
+// The Speculation-Rules header on every HTML page, live or stored (a stored page's headers are a copy, so the header
+// is set on a new one): the page's links start loading when the pointer rests on them, with no script, which matters
+// now that the public pages do not hydrate and React Router's own prefetch is gone (root.tsx).
+function withSpeculationRules(page: Response): Response {
+  if (!page.headers.get("Content-Type")?.startsWith("text/html")) return page;
+  const headers = new Headers(page.headers);
+  headers.set(SPECULATION_RULES_HEADER.name, SPECULATION_RULES_HEADER.value);
+  return new Response(page.body, { status: page.status, statusText: page.statusText, headers });
+}
 
 const isWrite = (request: Request) => request.method !== "GET" && request.method !== "HEAD";
 
@@ -109,6 +126,11 @@ const site = {
       return receiveCspReport(request, { allow, headers: SECURITY_HEADERS });
     }
 
+    // The prefetch rules the pages' Speculation-Rules header names.
+    if (url.pathname === SPECULATION_RULES_PATH) {
+      return withSecurityHeaders(speculationRulesResponse({ exclude: PREFETCH_EXCLUDE }, request), request);
+    }
+
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
     if (isCarrelRequest(url)) {
@@ -166,7 +188,7 @@ const site = {
     // Each 404 to a GET counts against its path and referring host for the day (page_404_daily),
     // in waitUntil, so it never holds or fails the page. The path only, never the query.
     countNotFound(env.DB, request, page, ctx);
-    return page;
+    return withSpeculationRules(page);
   },
 
   // The crons (see wrangler.jsonc), each job recorded in cron_runs by site-runtime's runJobs, so /health notices one
