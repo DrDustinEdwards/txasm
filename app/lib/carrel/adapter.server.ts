@@ -87,7 +87,7 @@ const REVISION_MESSAGES: Record<PageWrite["event"], string> = {
   save: "Saved",
   publish: "Published",
   schedule: "Scheduled an update",
-  unschedule: "Cancelled the scheduled update",
+  unschedule: "Canceled the scheduled update",
 };
 
 function parse(source: string): PageSource {
