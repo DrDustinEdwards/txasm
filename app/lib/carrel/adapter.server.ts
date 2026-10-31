@@ -43,6 +43,7 @@ import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { notFoundReport } from "@dustinedwards/site-runtime/not-found";
 import { getCarrelMedia, getCarrelPages, type Page, type PageSearch, type PageWrite } from "../data-access";
+import { linkRenderOptions } from "../link-icons.server";
 import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { parseSource, type PageSource } from "./source";
@@ -137,7 +138,7 @@ async function renderBody(env: Env, body: string): Promise<{ html: string; rende
   const { render } = await import("@drdustinedwards/site-helpers/render/nomath");
   try {
     const { resolveImage, media } = await libraryImages(env, body);
-    const out = await render({ file: "page.md", body, resolveImage, options: { assertSafe: true, media } });
+    const out = await render({ file: "page.md", body, resolveImage, options: { assertSafe: true, media, ...linkRenderOptions(env) } });
     return { html: String(out.html), renderVersion: out.renderVersion };
   } catch (err) {
     throw new RefusedError(err instanceof Error ? err.message : "The page could not be rendered.");
