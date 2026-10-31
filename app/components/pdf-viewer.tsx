@@ -7,8 +7,8 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy } from "pdfjs-dist";
 // reuse it later, not just archive documents.
 //
 // Client-only on purpose: this app server-renders in Cloudflare Workers (workerd),
-// where PDF.js has no DOM. The component renders a static fallback until it has
-// mounted in the browser, and PDF.js itself is loaded with a dynamic import from
+// where PDF.js has no DOM. The server renders the viewer in its loading state, so
+// hydration moves nothing, and PDF.js itself is loaded with a dynamic import from
 // inside an effect, so it never enters the worker bundle.
 
 // PDF.js is self-hosted under /public/pdfjs and loaded from those URLs at runtime
@@ -118,6 +118,8 @@ export function PdfViewer({
         if (!context) return;
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
+        // Drops the page-sized space app.css holds for it until now.
+        canvas.dataset.sized = "";
         renderTaskRef.current?.cancel();
         const task = pdfPage.render({ canvas, canvasContext: context, viewport });
         renderTaskRef.current = task;
@@ -167,9 +169,8 @@ export function PdfViewer({
 
   const label = title ? `PDF viewer, ${title}` : "PDF viewer";
 
-  // Fallback rendered on the server and before hydration, and whenever loading
-  // fails. It always offers the raw PDF so the content is reachable without the
-  // interactive viewer (and for assistive technology).
+  // Rendered always, and in place of the page when loading fails, so the raw PDF
+  // is reachable without the interactive viewer (and for assistive technology).
   const fallback = (
     <p className="small">
       <a href={url} target="_blank" rel="noreferrer">
@@ -177,10 +178,6 @@ export function PdfViewer({
       </a>
     </p>
   );
-
-  if (!mounted) {
-    return <div className="pdf-viewer">{fallback}</div>;
-  }
 
   return (
     <div role="group" aria-label={label} className="pdf-viewer stack-3">
