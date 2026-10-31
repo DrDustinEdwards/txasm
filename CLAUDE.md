@@ -1,6 +1,6 @@
 # CLAUDE.md - txasm
 
-Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo. Before writing anything another site might have, read what the family shares: https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md (CI's family check fails on a copy).
+Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo. Before writing anything another site might have, read what the sites share: https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md (CI's shared-code check fails on a copy).
 
 ## What this is
 
