@@ -74,6 +74,7 @@
 	// DKIM, bounce records). Kept commented so deploys keep working now without it;
 	// uncomment and set EMAIL_ENABLED to true to go live.
 	// "send_email": [{ "name": "SEND_EMAIL" }],
-	// Deadline jobs and reminders. 13:00 UTC daily; tune per edition windows.
-	"triggers": { "crons": ["0 13 * * *"] }
+	// Every minute: the updates Carrel scheduled on the site pages go live (workers/app.ts). 13:00 UTC daily: the
+	// backups, the 404 pruning, and the deadline jobs and reminders as they are wired (tune per edition windows).
+	"triggers": { "crons": ["* * * * *", "0 13 * * *"] }
 }
