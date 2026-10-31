@@ -231,7 +231,12 @@ function touchSession(request: Request, session: { id: string; updatedAt: Date; 
       )
       .then(
         () => undefined,
-        (error: unknown) => console.error("[auth] session touch failed", error),
+        (error: unknown) =>
+          logEvent(
+            "session_touch_failed",
+            { error: error instanceof Error ? error.message : String(error) },
+            { level: "error" },
+          ),
       ),
   );
 }
