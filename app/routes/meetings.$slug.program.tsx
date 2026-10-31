@@ -27,6 +27,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   return [
     ...pageHead(matches, {
       path: location.pathname,
+      pageType: "CollectionPage",
       name,
       description: edition
         ? `The program of the ${edition.name} of the Texas Branch ASM${edition.city ? `, ${edition.city}` : ""}.`

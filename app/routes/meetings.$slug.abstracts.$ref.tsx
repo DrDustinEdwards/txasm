@@ -8,7 +8,7 @@ import {
   ABSTRACT_LEVEL_LABELS,
   SEASON_LABELS,
 } from "~/lib/vocab";
-import { pageHead, plainText } from "~/lib/site-meta";
+import { SITE_NAME, pageHead, plainText } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
@@ -23,6 +23,12 @@ export function meta({ params, matches, location, loaderData }: Route.MetaArgs) 
   return pageHead(matches, {
     path: location.pathname,
     name: title,
+    breadcrumbs: loaderData && [
+      { name: SITE_NAME, path: "/" },
+      { name: "Meetings", path: "/meetings" },
+      { name: `${loaderData.edition.name} abstracts`, path: `/meetings/${params.slug}/abstracts` },
+      { name: title, path: location.pathname },
+    ],
     description: loaderData
       ? `${authors ? `${authors}. ` : ""}Abstract from the ${loaderData.edition.name} of the Texas Branch ASM.`
       : "An abstract from a Texas Branch ASM meeting.",
