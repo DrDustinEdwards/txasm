@@ -4,7 +4,7 @@ import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
-import { requireUser } from "~/lib/auth.server";
+import { forbidden, requireUser } from "~/lib/auth.server";
 import {
   type AffiliationInput,
   type AuthorInput,
@@ -60,7 +60,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     data = await da.abstracts.getForEdit(actor, params.abstractId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
-      throw new Response("Forbidden", { status: 403 });
+      throw forbidden(request, "abstract");
     }
     if (error instanceof NotFoundError) {
       throw new Response("Not found", { status: 404 });
@@ -196,7 +196,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { error: error.message };
     }
     if (error instanceof ForbiddenError) {
-      throw new Response("Forbidden", { status: 403 });
+      throw forbidden(request, "abstract");
     }
     if (error instanceof NotFoundError) {
       throw new Response("Not found", { status: 404 });

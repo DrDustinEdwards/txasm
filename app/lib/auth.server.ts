@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { redirect } from "react-router";
 import { env, waitUntil } from "cloudflare:workers";
 import { accessSignInUrl, adminEmails } from "@dustinedwards/site-runtime/access";
+import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
 import { signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
@@ -150,6 +151,13 @@ export async function getSessionUser(
   }
 }
 
+// The 403 for a signed-in user without the grant a page needs, logged as OWASP `authz_fail` with what was missing
+// (never who asked: the line carries the request's path and id only).
+export function forbidden(request: Request, need: string): Response {
+  logEvent(OWASP_EVENTS.authorizationFailure, { ...requestFields(request, { status: 403 }), need }, { level: "warn" });
+  return new Response("Forbidden", { status: 403 });
+}
+
 // Redirect to sign-in when there is no session.
 export async function requireUser(request: Request): Promise<SessionUser> {
   const user = await getSessionUser(request);
@@ -164,7 +172,7 @@ export async function requireAdmin(request: Request): Promise<AdminContext> {
   const user = await requireUser(request);
   const actor = await getActor(env, user.id);
   if (!isAdmin(actor)) {
-    throw new Response("Forbidden", { status: 403 });
+    throw forbidden(request, "admin");
   }
   await requireAdminAccess(request, user);
   return { user, actor };
@@ -184,7 +192,7 @@ export async function requireChair(
   const user = await requireUser(request);
   const actor = await getActor(env, user.id);
   if (!isChair(actor, editionId)) {
-    throw new Response("Forbidden", { status: 403 });
+    throw forbidden(request, "chair");
   }
   // A platform admin is a chair of every meeting, and an admin always comes
   // through Access.
