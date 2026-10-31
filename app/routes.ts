@@ -3,6 +3,7 @@ import { FEED_PATH, INDEXNOW_KEY, SIGN_IN_CONFIRM_PATH } from "./lib/site-meta";
 
 export default [
   route("robots.txt", "routes/robots.ts"),
+  route("site.webmanifest", "routes/site-webmanifest.ts"),
   route("sitemap.xml", "routes/sitemap.ts"),
   route("ai.txt", "routes/ai-txt.ts"),
   route("llms.txt", "routes/llms.ts"),
