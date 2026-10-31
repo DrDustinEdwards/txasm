@@ -18,4 +18,4 @@ concurrency:
 
 jobs:
   shared:
-    uses: DrDustinEdwards/devkit/.github/workflows/shared.yml@005509b56d9830b785f17ba496f4a3c223fc392c # v0.20.19
+    uses: DrDustinEdwards/devkit/.github/workflows/shared.yml@e7ecda8f69c8bbde738edcd1cf510710e547bcf3 # v0.20.22
