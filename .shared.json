@@ -10,6 +10,6 @@
     "--text": "app/lib/cover.ts styles the PDF cover, a print document that does not load app.css or Capsomer"
   },
   "copies": {
-    "public/_headers": "not by hand: scripts/gen-headers.mjs writes it on every build with site-runtime headersFile from the Worker's own set (app/lib/header-set.ts, buildSecurityHeaders({ site: txasm })); committed so the /assets/* cache rule can be read"
+    "public/_headers": "not by hand: site-runtime-headers writes it on every build from the registry entry the Worker applies (npm run headers); committed so the /assets/* cache rule can be read"
   }
 }

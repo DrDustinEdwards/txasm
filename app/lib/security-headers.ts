@@ -2,7 +2,7 @@
 // Content-Security-Policy. X-Frame-Options: deny is the part that matters most here: a framed admin page could
 // otherwise submit a role grant or a book publish with the chair's cookie.
 import { applyHeaderSet } from "@dustinedwards/site-runtime/headers";
-import { buildContentSecurityPolicy, reportingEndpoints, scriptHash } from "@dustinedwards/site-runtime/csp";
+import { buildContentSecurityPolicy, buildStagedPolicy, reportingEndpoints, scriptHash } from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
 import { PAGED_JS_CONFIG } from "./paged";
 import { SECURITY_HEADERS } from "./header-set";
@@ -26,8 +26,10 @@ const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 //   cannot cover.
 // - The Cloudflare Web Analytics beacon, allowed like every family site. On workers.dev the edge injects
 //   none; once txasm.org is on the zone, it does.
-function contentSecurityPolicy(nonce: string | undefined) {
-  return buildContentSecurityPolicy({
+// Beside it, the same policy with Trusted Types and default-src 'none' as Report-Only (the registry stages both), so the
+// reports name each sink a page hands a string to and each kind it loads that the policy does not name.
+function contentSecurityPolicies(nonce: string | undefined) {
+  const policy = {
     sources: {
       script: [TURNSTILE_ORIGIN],
       frame: [TURNSTILE_ORIGIN],
@@ -36,7 +38,8 @@ function contentSecurityPolicy(nonce: string | undefined) {
     styleAttributesInline: true,
     cloudflareWebAnalytics: true,
     ...SINK,
-  });
+  };
+  return [buildContentSecurityPolicy(policy), buildStagedPolicy(policy, { trustedTypes: true, denyUnlisted: true })];
 }
 
 /**
@@ -62,8 +65,7 @@ export function withSecurityHeaders(response: Response, request: Request, nonce?
   const headers = new Headers(response.headers);
   applyHeaderSet(headers, SECURITY_HEADERS, { overwrite: false });
   if (!headers.has("Content-Security-Policy") && !headers.has("Content-Security-Policy-Report-Only")) {
-    const csp = contentSecurityPolicy(nonce);
-    headers.set(csp.name, csp.value);
+    for (const csp of contentSecurityPolicies(nonce)) headers.set(csp.name, csp.value);
   }
   // reportingEndpoints refuses a plain-http origin off loopback (the http request the https redirect answers), which a
   // browser would ignore anyway, so that answer gets none.
