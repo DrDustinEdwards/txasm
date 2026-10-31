@@ -1,5 +1,5 @@
 // Paged.js, the print polyfill both printable books (abstract book, program) load
-// in the page that Browser Rendering turns into a PDF. Self-hosted (MIT, its licence
+// in the page that Browser Rendering turns into a PDF. Self-hosted (MIT, its license
 // header kept in the file) at a path naming its version, so a new release cannot
 // change pagination under a published book; 0.4.3 is the release pinned on
 // 2026-10-21. The file is the npm tarball's dist/paged.polyfill.js, byte for byte.
