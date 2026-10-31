@@ -14,6 +14,7 @@ import {
 } from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
+import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
 import { readForm } from "~/lib/form.server";
 
 // The sign-in form: passkeys, Turnstile and the email link run in the browser. It hydrates (root.tsx, the `hydrate` handle).
@@ -33,7 +34,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const next = nextPath(new URL(request.url).searchParams.get("next"));
   const user = await getSessionUser(request);
   if (user && !next) throw redirect("/");
-  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey, next };
+  // Set by /account after the person deleted their account.
+  const deleted = new URL(request.url).searchParams.has("deleted");
+  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey, next, deleted };
 }
 
 type ActionResult =
@@ -85,9 +88,16 @@ async function signInWithCode(
     if (response.status === 429) {
       return answer(`Too many tries. ${reason === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute"}, or use the link in the email.`);
     }
+    // The per-address code counter is down, so a typed code is refused; the link in the same mail still works.
+    if (response.status === 503 && reason === "RATE_LIMIT_UNAVAILABLE") {
+      return answer("Codes can't be checked right now. Use the link in the email, or try again in a few minutes.");
+    }
     if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
-    if (reason === "OTP_EXPIRED" || reason === "TOO_MANY_ATTEMPTS") {
-      return answer("That code has expired or was tried too many times. Use the link in the email, or send a new one.");
+    if (reason === "OTP_EXPIRED") {
+      return answer(`That code has expired: a code works for ${SIGN_IN_EXPIRES_IN_WORDS}. Send yourself a new one.`);
+    }
+    if (reason === "TOO_MANY_ATTEMPTS") {
+      return answer("That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.");
     }
   } catch (error) {
     if (error instanceof Response) throw error;
@@ -127,8 +137,13 @@ export async function action({
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
         headers,
-        // A spent or expired link comes back to the confirm page, which says so.
-        body: JSON.stringify({ email, callbackURL: landing, errorCallbackURL: SIGN_IN_CONFIRM_PATH }),
+        // A spent or expired link comes back to the confirm page, which says which. Better Auth answers
+        // INVALID_TOKEN for both, so the page tells them apart by when the link was sent.
+        body: JSON.stringify({
+          email,
+          callbackURL: landing,
+          errorCallbackURL: `${SIGN_IN_CONFIRM_PATH}?sent=${Date.now()}`,
+        }),
       }),
     );
     if (response.status === 429) {
@@ -144,6 +159,13 @@ export async function action({
       const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
       if (code === "MISSING_RESPONSE" || code === "VERIFICATION_FAILED") {
         return { ok: false, error: "Complete the check, then send the link again." };
+      }
+    }
+    // Turnstile's keys are missing and the site has not said to go on without them (app/lib/auth.server.ts).
+    if (response.status === 503) {
+      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      if (code === "TURNSTILE_NOT_SET") {
+        return { ok: false, error: "Sign-in links can't be sent right now. Use a passkey, or try again later." };
       }
     }
     if (!response.ok) {
@@ -167,7 +189,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLHeadingElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
-  const { turnstileSiteKey: siteKey, next } = loaderData;
+  const { turnstileSiteKey: siteKey, next, deleted } = loaderData;
 
   const sent = actionData?.ok === true;
   const error = actionData && !actionData.ok ? actionData.error : null;
@@ -175,7 +197,8 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   // A passkey sign-in sets the session cookie, so a full load reads it.
   async function signInWithPasskey(autoFill: boolean) {
-    const result = await authClient.signIn.passkey({ autoFill });
+    // site-runtime's call tells the password manager when the site no longer knows the passkey.
+    const result = await passkeySignIn(authClient, { autoFill });
     if (!result?.error) {
       window.location.assign(next ?? "/");
     } else if (!autoFill) {
@@ -251,9 +274,9 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         </Form>
         {import.meta.env.DEV ? (
           <Banner tone="neutral">
-            Development note: email is not wired yet, so the link and code are printed to
-            the Worker logs instead of sent. Read them from the dev server output or
-            wrangler tail.
+            Development note: mail is off until cutover (EMAIL_ENABLED and the send_email
+            binding), so the link and code were not sent. The Worker log shows only the
+            subject of the mail that would have gone, never the link or the code.
           </Banner>
         ) : null}
       </div>
@@ -262,10 +285,13 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="narrow stack-6">
+      {deleted ? (
+        <p role="status">Your account was deleted.</p>
+      ) : null}
       <div className="stack-2">
         <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
         <p>
-          {next ? "To change your passkeys or signed-in devices, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
+          {next ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
           password needed.
         </p>
       </div>

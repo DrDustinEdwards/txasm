@@ -8,6 +8,8 @@ import {
   getDataAccess,
   type Actor,
 } from "../app/lib/data-access";
+import { ACCOUNT_REFERENCES } from "../app/lib/data-access/account";
+import { getTableName } from "drizzle-orm";
 import { applyMigrations } from "./d1";
 
 // The data-access layer is the security boundary (CLAUDE.md hard rule 1) and
@@ -16,6 +18,7 @@ import { applyMigrations } from "./d1";
 // D1 binds in one query (100), as real meetings do (spring 2026 had 108), and
 // meeting B has its own, which must never show up in A's lists.
 let mf: Miniflare;
+let d1: D1Database;
 let dataAccess: ReturnType<typeof getDataAccess>;
 
 const IN_A = 120;
@@ -31,6 +34,7 @@ before(async () => {
     d1Databases: ["DB"],
   });
   const db = await mf.getD1Database("DB");
+  d1 = db as unknown as D1Database;
   await applyMigrations(db);
   const run = (sql: string, ...values: unknown[]) => db.prepare(sql).bind(...values).run();
   for (const id of ["u-chair", "u-author", "u-stranger"]) {
@@ -124,4 +128,31 @@ test("a meeting's lists hold all of its abstracts and none of another's", async 
   assert.equal(listing?.abstracts.length, IN_A);
   assert.deepEqual(listing?.abstracts[0].authors[0].affiliationOrdinals, [1]);
   await assert.rejects(dataAccess.abstracts.listForEdition(chairOfA, "ed-b"), ForbiddenError);
+});
+
+// Deleting an account (/account) is refused while it holds meeting records, which D1's foreign
+// keys would refuse anyway, but only after Better Auth had already ended the sessions. The list
+// must name every reference to user.id that does not cascade.
+test("an account is deletable only when it holds no meeting records", async () => {
+  const tables = await d1.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all<{ name: string }>();
+  const blocking = new Set<string>();
+  for (const { name } of tables.results.filter((t) => !/^(_cf_|sqlite_|d1_)/.test(t.name))) {
+    const keys = await d1.prepare(`PRAGMA foreign_key_list("${name}")`).all<{ table: string; from: string; on_delete: string }>();
+    for (const key of keys.results) if (key.table === "user" && key.on_delete !== "CASCADE") blocking.add(`${name}.${key.from}`);
+  }
+  assert.deepEqual(
+    new Set(ACCOUNT_REFERENCES.map(([table, column]) => `${getTableName(table)}.${column.name}`)),
+    blocking,
+  );
+
+  assert.deepEqual(await dataAccess.account.deletionBlockers("u-author"), ["abstract"]);
+  await d1.prepare("INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-leaving', 'leaving@example.com', 1, 1)").run();
+  await d1
+    .prepare("INSERT INTO role_grant (id, user_id, role, edition_id, status, created_at) VALUES ('g-leaving', 'u-leaving', 'reviewer', 'ed-a', 'active', 1)")
+    .run();
+  assert.deepEqual(await dataAccess.account.deletionBlockers("u-leaving"), ["role"]);
+  await d1.prepare("UPDATE role_grant SET status = 'revoked' WHERE id = 'g-leaving'").run();
+  assert.deepEqual(await dataAccess.account.deletionBlockers("u-leaving"), []);
+  await d1.prepare("DELETE FROM user WHERE id = 'u-leaving'").run();
+  await assert.rejects(d1.prepare("DELETE FROM user WHERE id = 'u-author'").run(), /FOREIGN KEY/);
 });

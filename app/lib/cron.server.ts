@@ -4,11 +4,13 @@
 //
 // Every minute: the updates Carrel scheduled go live (handler.server.ts), with 50 seconds, so a hung run never runs
 // into the next minute's. Daily: the nightly D1 backup, the uploads copy beside it (a pass stops itself at three
-// minutes and goes on the next day) and the 404 count's pruning, ten minutes in all, inside a scheduled invocation's
-// 15. The deadline jobs and reminders (submission and review deadline reminders, status transitions) join the daily
-// list when they are wired per edition.
+// minutes and goes on the next day), the 404 count's pruning and the auth event rows' (a year, or 30 days for one
+// with no user; site-runtime ./sign-in), eleven minutes in all, inside a scheduled invocation's 15. The deadline
+// jobs and reminders (submission and review deadline reminders, status transitions) join the daily list when they
+// are wired per edition.
 import type { CronJob } from "@dustinedwards/site-runtime/cron";
 import { pruneNotFound } from "@dustinedwards/site-runtime/not-found";
+import { pruneAuthEvents } from "@dustinedwards/site-runtime/sign-in";
 import { backupUploads, runNightlyBackup } from "~/lib/backup.server";
 import { runCarrelSchedules } from "~/lib/carrel/handler.server";
 
@@ -27,6 +29,7 @@ export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[
       { name: "backup", everyMinutes: DAY, timeoutMs: 5 * MINUTE, run: () => runNightlyBackup(env) },
       { name: "backup-uploads", everyMinutes: DAY, timeoutMs: 4 * MINUTE, run: () => backupUploads(env) },
       { name: "prune-404", everyMinutes: DAY, timeoutMs: MINUTE, run: () => pruneNotFound(env.DB, { days: 90 }) },
+      { name: "prune-auth-events", everyMinutes: DAY, timeoutMs: MINUTE, run: () => pruneAuthEvents(env.DB) },
     ],
   };
 }
