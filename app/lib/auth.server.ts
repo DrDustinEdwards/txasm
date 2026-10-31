@@ -75,7 +75,7 @@ async function buildAuth(env: Env) {
         enabled: true,
         sendChangeEmailConfirmation: async ({ user, newEmail, url, token }) => {
           const link = emailConfirmUrl(url);
-          await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "current", newEmail) }, { secrets: [link, token] });
+          await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "current", newEmail, EMAIL_CHANGE_EXPIRES_IN_WORDS) }, { secrets: [link, token] });
         },
       },
       // Self-service deletion from /account. Better Auth asks for a sign-in in the last
@@ -96,7 +96,7 @@ async function buildAuth(env: Env) {
       // The second step of an email change: the link to the new address (user.email is it here).
       sendVerificationEmail: async ({ user, url, token }) => {
         const link = emailConfirmUrl(url);
-        await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "new") }, { secrets: [link, token] });
+        await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "new", undefined, EMAIL_CHANGE_EXPIRES_IN_WORDS) }, { secrets: [link, token] });
       },
     },
     // A notice is mailed after the answer, not before it. The instance is kept per isolate, so it
@@ -118,6 +118,7 @@ async function buildAuth(env: Env) {
 
 // How long each email-change link works: an hour, Better Auth's default, said in the mail.
 export const EMAIL_CHANGE_EXPIRES_IN_SECONDS = 60 * 60;
+const EMAIL_CHANGE_EXPIRES_IN_WORDS = "1 hour";
 
 type AuthInstance = Awaited<ReturnType<typeof buildAuth>>;
 
