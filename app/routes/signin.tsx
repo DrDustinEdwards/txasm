@@ -30,7 +30,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const next = nextPath(new URL(request.url).searchParams.get("next"));
   const user = await getSessionUser(request);
   if (user && !next) throw redirect("/");
-  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey, next };
+  // Set by /account after the person deleted their account.
+  const deleted = new URL(request.url).searchParams.has("deleted");
+  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey, next, deleted };
 }
 
 type ActionResult =
@@ -83,8 +85,11 @@ async function signInWithCode(
       return answer(`Too many tries. ${reason === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute"}, or use the link in the email.`);
     }
     if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
-    if (reason === "OTP_EXPIRED" || reason === "TOO_MANY_ATTEMPTS") {
-      return answer("That code has expired or was tried too many times. Use the link in the email, or send a new one.");
+    if (reason === "OTP_EXPIRED") {
+      return answer(`That code has expired: a code works for ${SIGN_IN_EXPIRES_IN_WORDS}. Send yourself a new one.`);
+    }
+    if (reason === "TOO_MANY_ATTEMPTS") {
+      return answer("That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.");
     }
   } catch (error) {
     if (error instanceof Response) throw error;
@@ -124,8 +129,13 @@ export async function action({
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
         headers,
-        // A spent or expired link comes back to the confirm page, which says so.
-        body: JSON.stringify({ email, callbackURL: landing, errorCallbackURL: SIGN_IN_CONFIRM_PATH }),
+        // A spent or expired link comes back to the confirm page, which says which. Better Auth answers
+        // INVALID_TOKEN for both, so the page tells them apart by when the link was sent.
+        body: JSON.stringify({
+          email,
+          callbackURL: landing,
+          errorCallbackURL: `${SIGN_IN_CONFIRM_PATH}?sent=${Date.now()}`,
+        }),
       }),
     );
     if (response.status === 429) {
@@ -164,7 +174,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLHeadingElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
-  const { turnstileSiteKey: siteKey, next } = loaderData;
+  const { turnstileSiteKey: siteKey, next, deleted } = loaderData;
 
   const sent = actionData?.ok === true;
   const error = actionData && !actionData.ok ? actionData.error : null;
@@ -248,9 +258,9 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         </Form>
         {import.meta.env.DEV ? (
           <Banner tone="neutral">
-            Development note: email is not wired yet, so the link and code are printed to
-            the Worker logs instead of sent. Read them from the dev server output or
-            wrangler tail.
+            Development note: mail is off until cutover (EMAIL_ENABLED and the send_email
+            binding), so the link and code were not sent. The Worker log shows only the
+            subject of the mail that would have gone, never the link or the code.
           </Banner>
         ) : null}
       </div>
@@ -259,10 +269,13 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="narrow stack-6">
+      {deleted ? (
+        <p role="status">Your account was deleted.</p>
+      ) : null}
       <div className="stack-2">
         <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
         <p>
-          {next ? "To change your passkeys or signed-in devices, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
+          {next ? "To change your passkeys or signed-in devices, or to delete your account, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
           password needed.
         </p>
       </div>

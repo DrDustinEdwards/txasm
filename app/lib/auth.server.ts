@@ -1,20 +1,23 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError } from "better-auth/api";
+import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { redirect } from "react-router";
 import { env, waitUntil } from "cloudflare:workers";
 import { accessSignInUrl, adminEmails } from "@dustinedwards/site-runtime/access";
-import { signInOptions } from "@dustinedwards/site-runtime/sign-in";
+import { coarseLocation, signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
   getActor,
+  getDataAccess,
   isAdmin,
   isChair,
   isReviewerAnywhere,
   type Actor,
 } from "./data-access";
-import { magicLinkEmail, securityNoticeEmail, sendEmail } from "./email.server";
-import { SIGN_IN_CONFIRM_PATH } from "./site-meta";
+import { emailChangeEmail, magicLinkEmail, securityNoticeEmail, sendEmail } from "./email.server";
+import { EMAIL_CONFIRM_PATH, SIGN_IN_CONFIRM_PATH } from "./site-meta";
 import { adminAccessOk } from "./access.server";
 
 // Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
@@ -49,10 +52,53 @@ async function buildAuth(env: Env) {
     },
   });
 
+  // Better Auth's /verify-email link signs in on a GET, so a mail scanner would confirm for the
+  // person. The mail carries the site's own page instead (EMAIL_CONFIRM_PATH), whose button posts.
+  const emailConfirmUrl = (url: string) => {
+    const page = new URL(EMAIL_CONFIRM_PATH, env.BETTER_AUTH_URL);
+    page.searchParams.set("token", new URL(url).searchParams.get("token") ?? "");
+    return page.href;
+  };
+
   return betterAuth({
     ...signIn,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
+    // Only the email change mails a verification link; nothing mails one on request.
+    disabledPaths: [...signIn.disabledPaths, "/send-verification-email"],
+    // Where a session was last active, in Cloudflare's coarse words (touchSession below).
+    session: { ...signIn.session, additionalFields: { location: { type: "string", required: false, input: false } } },
+    user: {
+      // An email change is confirmed from the current address first, then from the new one;
+      // the change is made on the second, and site-runtime's notice goes to both addresses.
+      changeEmail: {
+        enabled: true,
+        sendChangeEmailConfirmation: async ({ user, newEmail, url, token }) => {
+          const link = emailConfirmUrl(url);
+          await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "current", newEmail) }, { secrets: [link, token] });
+        },
+      },
+      // Self-service deletion from /account. Better Auth asks for a sign-in in the last
+      // FRESH_SECONDS and removes the sessions, linked accounts and (by cascade) passkeys.
+      // An account that holds meeting records is refused (data-access/account.ts).
+      deleteUser: {
+        enabled: true,
+        beforeDelete: async (user) => {
+          const blockers = await getDataAccess(env).account.deletionBlockers(user.id);
+          if (blockers.length > 0) {
+            throw new APIError("BAD_REQUEST", { code: "ACCOUNT_HAS_RECORDS", message: "The account holds meeting records." });
+          }
+        },
+      },
+    },
+    emailVerification: {
+      expiresIn: EMAIL_CHANGE_EXPIRES_IN_SECONDS,
+      // The second step of an email change: the link to the new address (user.email is it here).
+      sendVerificationEmail: async ({ user, url, token }) => {
+        const link = emailConfirmUrl(url);
+        await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "new") }, { secrets: [link, token] });
+      },
+    },
     // A notice is mailed after the answer, not before it. The instance is kept per isolate, so it
     // has no request's ctx; cloudflare:workers' waitUntil is the same call for the current request.
     advanced: { ...signIn.advanced, backgroundTasks: { handler: (promise) => waitUntil(promise) } },
@@ -90,6 +136,9 @@ async function buildAuth(env: Env) {
     },
   });
 }
+
+// How long each email-change link works: an hour, Better Auth's default, said in the mail.
+export const EMAIL_CHANGE_EXPIRES_IN_SECONDS = 60 * 60;
 
 type AuthInstance = Awaited<ReturnType<typeof buildAuth>>;
 
@@ -142,12 +191,42 @@ export async function getSessionUser(
       headers: request.headers,
     });
     if (!session?.user) return null;
+    touchSession(request, session.session);
     const { id, email, name } = session.user;
     return { id, email, name: name ?? null };
   } catch (error) {
     console.error("[auth] getSession failed", error);
     return null;
   }
+}
+
+// How often a session's last activity is written: at most once in this many seconds.
+const TOUCH_SECONDS = 5 * 60;
+
+// The sessions list's "last active" and rough place (site-runtime sessionRows reads
+// updatedAt and location). Better Auth's sliding refresh is off (site-runtime ./sign-in),
+// so it never moves updatedAt; the site does, after the answer. Freshness is
+// measured from createdAt, so this never makes a sign-in count as recent.
+function touchSession(request: Request, session: { id: string; updatedAt: Date; location?: string | null }) {
+  const now = Date.now();
+  const stale = new Date(now - TOUCH_SECONDS * 1000);
+  if (session.location && new Date(session.updatedAt) >= stale) return;
+  const db = getDb(env);
+  waitUntil(
+    db
+      .update(schema.session)
+      .set({ updatedAt: new Date(now), location: coarseLocation(request) })
+      .where(
+        and(
+          eq(schema.session.id, session.id),
+          or(lt(schema.session.updatedAt, stale), isNull(schema.session.location)),
+        ),
+      )
+      .then(
+        () => undefined,
+        (error: unknown) => console.error("[auth] session touch failed", error),
+      ),
+  );
 }
 
 // Redirect to sign-in when there is no session.

@@ -80,6 +80,9 @@ export const session = sqliteTable(
     expiresAt: tsMs("expires_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
+    // Where the session was last active, as Cloudflare places the request (city, region,
+    // country); written with updatedAt by touchSession in app/lib/auth.server.ts.
+    location: text("location"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
