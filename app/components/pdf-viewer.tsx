@@ -28,8 +28,8 @@ export function PdfViewer({
   // island repeats it in place of the page when loading fails.
   const fallback = (
     <p className="small">
-      <a href={url} target="_blank" rel="noreferrer">
-        Open the PDF in a new tab
+      <a href={url}>
+        Open the PDF
       </a>
     </p>
   );

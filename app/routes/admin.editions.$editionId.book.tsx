@@ -264,6 +264,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                 className="small strong"
               >
                 Open preview
+                <span className="cap-sr-only"> (opens in a new tab)</span>
               </a>
               {published ? (
                 <fetcher.Form method="post">

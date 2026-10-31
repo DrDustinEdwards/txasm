@@ -99,7 +99,7 @@ export default function Sponsorship() {
           individuals.
         </p>
         <p>
-          <a href={SPONSOR_REGISTRATION_URL} target="_blank" rel="noreferrer" className="cap-btn" data-variant="primary">
+          <a href={SPONSOR_REGISTRATION_URL} className="cap-btn" data-variant="primary">
             Sponsor registration
           </a>
         </p>
@@ -133,7 +133,7 @@ export default function Sponsorship() {
         </h2>
         <p className="lead">
           Complete the{" "}
-          <a href={SPONSOR_REGISTRATION_URL} target="_blank" rel="noreferrer">
+          <a href={SPONSOR_REGISTRATION_URL}>
             sponsor registration form
           </a>{" "}
           to reserve a level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss sponsoring an upcoming meeting.

@@ -70,10 +70,10 @@ function PublicHeader({ email, isAdmin, isReviewer, wordmark }: { email: string 
 }
 
 function FooterLink({ label, url }: { label: string; url: string }) {
-  // External links open in a new tab; mailto and internal paths do not.
+  // An outside address is a plain link; internal paths go through the router.
   if (/^https?:/i.test(url)) {
     return (
-      <a href={url} target="_blank" rel="noreferrer">
+      <a href={url}>
         {label}
       </a>
     );
