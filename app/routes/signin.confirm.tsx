@@ -48,20 +48,17 @@ export default function SignInConfirm({ actionData }: Route.ComponentProps) {
 
   return (
     <div className="narrow stack-6">
-      <div className="stack-2">
-        <h1 className="page-title">Sign in to TXASM</h1>
-        <p>Press the button to finish signing in.</p>
-      </div>
+      <h1 className="page-title">Sign in to TXASM</h1>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
       <form method="post" className="stack-4">
         {actionData?.limited ? (
           <p role="alert" className="cap-field-error">
-            Too many tries. Wait a minute, then press the button again.
+            Too many tries. Wait a minute, then try again.
           </p>
         ) : null}
         <div>
           <button type="submit" className="cap-btn" data-variant="primary">
-            Sign in to TXASM
+            Continue
           </button>
         </div>
       </form>
