@@ -23,11 +23,10 @@ jobs:
       warn-only: true
 
   route-weight:
-    name: Route weight (warn only)
+    name: Route weight
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Nothing in this job may turn a pull request red, including the install.
-    continue-on-error: true
+    # A gate (area 7, D5): a route over .route-weight.json's budget_bytes, or grown past its baseline, fails the job.
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -43,11 +42,5 @@ jobs:
         run: npm ci
 
       - name: Route weight
-        continue-on-error: true
-        run: |
-          # A tool that could not run is a warning on the run, not a silent pass: continue-on-error alone hides it.
-          # devkit-route-weight writes its table to the summary and warns against the baseline in .route-weight.json.
-          if ! (npm run build && npx devkit-route-weight); then
-            echo "::warning::the route weight report could not run; see this step's log"
-            exit 1
-          fi
+        # devkit-route-weight writes its table to the summary and fails against .route-weight.json (enforce: true).
+        run: npm run build && npx devkit-route-weight

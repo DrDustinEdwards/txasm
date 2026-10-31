@@ -1,4 +1,4 @@
-import { buildPolicy } from "@dustinedwards/site-runtime/csp";
+import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
 import type { Route } from "./+types/media.$";
 import { MEDIA_PREFIX, images, mediaKeyOf } from "~/lib/media/images";
 import { cloudflareContext } from "~/load-context";
@@ -20,7 +20,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     reread: () => env.UPLOADS.get(key),
   });
   const headers = new Headers(response.headers);
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Content-Security-Policy", buildPolicy(["default-src 'none'", "style-src 'unsafe-inline'", "sandbox"]));
+  // ./image sends UPLOAD_HEADERS on a file it serves; this covers its refusals too.
+  applyHeaderSet(headers, UPLOAD_HEADERS);
   return new Response(response.body, { status: response.status, headers });
 }
