@@ -43,8 +43,9 @@ import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { notFoundReport } from "@dustinedwards/site-runtime/not-found";
 import { getCarrelMedia, getCarrelPages, type Page, type PageSearch, type PageWrite } from "../data-access";
-import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
+import { mediaKeyOf } from "../media/images";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
+import { renderBody, versionedPath } from "./render.server";
 import { parseSource, type PageSource } from "./source";
 
 const KIND = "page";
@@ -98,52 +99,6 @@ function parse(source: string): PageSource {
   }
 }
 
-/**
- * The library pictures a page body names, sized for the reading column: Prelum's image resolver (the width and
- * height the img carries) and its media options (the srcset and the AVIF and WebP sources). A src that is not a
- * library file is refused, which refuses the render.
- */
-async function libraryImages(env: Env, body: string) {
-  const rows = new Map((await getCarrelMedia(env).many([...mediaKeysIn(body)])).map((row) => [row.key, row]));
-  const attributesOf = (src: string) => {
-    const key = mediaKeyOf(src);
-    const row = key ? rows.get(key) : undefined;
-    return row ? images.attributes({ src: mediaPath(row.key), width: row.width, height: row.height, focus: row.focus }, "content") : null;
-  };
-  return {
-    async resolveImage(src: string) {
-      const attrs = attributesOf(src);
-      if (!attrs) throw new Error(`${src} is not in the media library. Pages show library pictures only: upload it in Carrel first.`);
-      return attrs.width && attrs.height ? { width: attrs.width, height: attrs.height } : null;
-    },
-    media: {
-      keyOf: mediaKeyOf,
-      imageProps(src: string) {
-        const attrs = attributesOf(src);
-        if (!attrs?.srcset) return null;
-        return {
-          srcSet: attrs.srcset,
-          sizes: attrs.sizes,
-          href: mediaPath(mediaKeyOf(src)!),
-          sources: attrs.sources.map((s) => ({ type: s.type, srcSet: s.srcset })),
-        };
-      },
-    },
-  };
-}
-
-/** Prelum's render without math (`$` is text, so no KaTeX in the upload), loaded on first use so the public routes never parse it. */
-async function renderBody(env: Env, body: string): Promise<{ html: string; renderVersion: string }> {
-  const { render } = await import("@drdustinedwards/site-helpers/render/nomath");
-  try {
-    const { resolveImage, media } = await libraryImages(env, body);
-    const out = await render({ file: "page.md", body, resolveImage, options: { assertSafe: true, media } });
-    return { html: String(out.html), renderVersion: out.renderVersion };
-  } catch (err) {
-    throw new RefusedError(err instanceof Error ? err.message : "The page could not be rendered.");
-  }
-}
-
 /** The search fields as the routes read them: a share image must be a library file, sized from the library's index. */
 async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<PageSearch | null> {
   const out: PageSearch = {};
@@ -152,7 +107,7 @@ async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<
     const key = mediaKeyOf(search.image);
     const [row] = key ? await getCarrelMedia(env).many([key]) : [];
     if (!row) throw new RefusedError(`${search.image} is not in the media library. A share image is a library picture: upload it in Carrel first.`);
-    out.image = { url: mediaPath(row.key), width: row.width, height: row.height, ...(search.imageAlt.trim() ? { alt: search.imageAlt.trim() } : {}) };
+    out.image = { url: versionedPath(row), width: row.width, height: row.height, ...(search.imageAlt.trim() ? { alt: search.imageAlt.trim() } : {}) };
   }
   if (search.canonical.trim()) {
     if (!/^https?:\/\//.test(search.canonical.trim())) throw new RefusedError("canonical must be an absolute http(s) address.");

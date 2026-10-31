@@ -16,8 +16,10 @@ const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 // What the pages load beyond 'self', read from the code (2026-10-30):
 // - style, font: nothing. Inter is bundled (app/app.css); the serif faces and PDF.js (its module, worker, wasm,
 //   fonts, cmaps) are self-hosted in public/.
-// - img: only 'self' (the favicon, /documents/<slug>/inline, the media library at /media/). Carrel's pages refuse any
-//   picture outside the library (app/lib/carrel/adapter.server.ts), and every other stored HTML field is sanitized to
+// - img: 'self' (the favicon, /documents/<slug>/inline, the media library at /media/), and data: for the tiny
+//   placeholder a library picture shows while it loads (site-api's, a base64 raster that Prelum and site-runtime check
+//   before they write it; an image runs no script). Carrel's pages refuse any
+//   picture outside the library (app/lib/carrel/render.server.ts), and every other stored HTML field is sanitized to
 //   em/sup/sub (app/lib/richtext.ts).
 // - script: 'self' plus the render's nonce, which React Router puts on its inline hydration and streaming scripts
 //   (app/entry.server.tsx). A stored page keeps it and the gateway gives each reader a fresh one (renewNonce).
@@ -33,6 +35,7 @@ function contentSecurityPolicies(nonce: string | undefined) {
     sources: {
       script: [TURNSTILE_ORIGIN],
       frame: [TURNSTILE_ORIGIN],
+      img: ["data:"],
     },
     nonce,
     styleAttributesInline: true,

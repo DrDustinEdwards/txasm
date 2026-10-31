@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { d1ScheduledUpdates } from "@dustinedwards/site-api/schedules";
 import type { ScheduledUpdate } from "@dustinedwards/site-api";
 import * as schema from "../../db/schema";
@@ -78,6 +78,25 @@ export function createCarrelPages(db: DB, d1: D1Database) {
         .where(eq(schema.pageRevision.pageSlug, slug))
         .orderBy(desc(schema.pageRevision.createdAt), desc(schema.pageRevision.id))
         .limit(50),
+
+    /** The source the page's last publish put live (its newest publish revision), or null. */
+    publishedSource: async (slug: string): Promise<string | null> =>
+      (
+        await db
+          .select({ source: schema.pageRevision.source })
+          .from(schema.pageRevision)
+          .where(and(eq(schema.pageRevision.pageSlug, slug), eq(schema.pageRevision.event, "publish")))
+          .orderBy(desc(schema.pageRevision.createdAt), desc(schema.pageRevision.id))
+          .limit(1)
+      )[0]?.source ?? null,
+
+    /**
+     * The published html and share image rendered again from the live source after a library file the page shows
+     * changed (render.server.ts rerenderUsing). Not a Carrel write: the sources stay, and no revision is recorded.
+     */
+    async rerendered(slug: string, fields: Pick<Page, "html" | "renderVersion" | "searchFields">): Promise<void> {
+      await db.update(schema.page).set(fields).where(eq(schema.page.slug, slug));
+    },
 
     /** The update waiting on a page, or null. */
     scheduled: (slug: string): Promise<ScheduledUpdate | null> => updates.get(slug),
