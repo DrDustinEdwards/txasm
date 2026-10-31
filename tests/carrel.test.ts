@@ -231,7 +231,7 @@ test("a library picture: a page publishes it with its sizes, and while a page us
   });
   assert.equal(published.status, 200);
   const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'home'").first<{ html: string }>())!;
-  assert.match(html, /<picture><source type="image\/avif" srcset="[^"]*\?w=768&#x26;f=avif 768w/);
+  assert.match(html, /<picture><source type="image\/avif" srcset="[^"]*\.avif\?w=768 768w/);
   assert.match(html, /width="768" height="432"/);
 
   const detail = await json(await call(`${PREFIX}/media/${enc(file.id)}`));
