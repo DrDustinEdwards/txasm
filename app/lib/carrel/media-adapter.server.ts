@@ -14,8 +14,11 @@
 // replace keeps the picture's size (replaceKeepsSize), a quarter turn of a picture that is not
 // square is stored as a new file, and stored pictures are never shrunk in place (no resize pass).
 //
-// NOT OFFERED: the resize pass (above), and a placeholder or main color (the page CSP allows images
-// from 'self' only, so an inline data: placeholder would be blocked). SVG and PDF are not accepted:
+// UPLOADS. An upload and a replace go through site-api's prepareUpload: HEIC and HEIF to JPEG, the location taken
+// out, the shrink and the embedded fields.
+//
+// NOT OFFERED: the resize pass (above), and a placeholder or main color, which prepareUpload makes and this site does
+// not store (the page CSP allows images from 'self' only, so an inline data: placeholder would be blocked). SVG and PDF are not accepted:
 // the library is pictures for pages, and the archive keeps the PDFs (admin/documents).
 //
 // COVERS. The abstract book and program covers are inline SVG (app/lib/cover.ts), not files, and
@@ -28,6 +31,7 @@ import {
   VersionConflictError,
   kindOf,
   orientationOf,
+  prepareUpload,
   sha256Hex,
   transformFocus,
   turnsSize,
@@ -46,7 +50,6 @@ import {
 import { replaceObject, writeFocus, type R2BucketLike } from "@dustinedwards/site-api/r2";
 import { editImage } from "@dustinedwards/site-runtime/image";
 import { getCarrelMedia, getCarrelPages, type MediaFields, type MediaRow, type MediaWrite } from "../data-access";
-import { readEmbedded } from "../media/embedded";
 import { MEDIA_PREFIX, mediaKeysIn, mediaPath } from "../media/images";
 import { suggestFor } from "../media/suggest.server";
 
@@ -58,7 +61,8 @@ const TYPES: Record<string, string> = {
   "image/avif": "avif",
   "image/gif": "gif",
 };
-const LIMITS = { maxBytes: 20 * 1024 * 1024, types: Object.keys(TYPES) };
+/** HEIC and HEIF (an iPhone's photos) are taken too, and stored as JPEG. */
+const LIMITS = { maxBytes: 20 * 1024 * 1024, types: [...Object.keys(TYPES), "image/heic", "image/heif"] };
 
 const LENSES: readonly MediaLens[] = ["unattached", "no-alt", "large", "duplicates", "license-expired", "oversized"];
 
@@ -146,13 +150,6 @@ function newKey(filename: string, contentType: string): string {
   return `${MEDIA_PREFIX}${new Date().getUTCFullYear()}/${random}-${slugOf(filename)}.${TYPES[contentType] ?? "bin"}`;
 }
 
-/** A view's bytes as a fresh ArrayBuffer, not `bytes.buffer`, which may be a larger allocation than the view. */
-function bufferOf(bytes: Uint8Array): ArrayBuffer {
-  const buffer = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(buffer).set(bytes);
-  return buffer;
-}
-
 /** "Name" order: the upload's name, or the key for a file without one. */
 const nameOf = (row: MediaRow) => (row.filename ?? row.key).toLowerCase();
 
@@ -189,21 +186,6 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
   async function withUse(rows: MediaRow[]): Promise<MediaItem[]> {
     const uses = await pageUses();
     return rows.map((row) => itemOf(row, uses.get(row.key)?.length ?? 0));
-  }
-
-  /** The picture's width and height, read by the Images binding; null when it is missing or cannot read the file. */
-  async function measure(bytes: Uint8Array): Promise<{ width: number; height: number } | null> {
-    try {
-      const info = await env.IMAGES.info(new Response(bufferOf(bytes)).body!);
-      return "width" in info && info.width > 0 && info.height > 0 ? { width: info.width, height: info.height } : null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function reencode(body: ReadableStream | Uint8Array, edit: { rotate?: 90 | 180 | 270; flip?: "h" | "v"; maxEdge?: number }, format: Encoded, quality: number) {
-    const response = await editImage(env.IMAGES, body, { ...edit, format, quality });
-    return new Uint8Array(await response.arrayBuffer());
   }
 
   async function read(id: string): Promise<MediaRow> {
@@ -337,30 +319,21 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
     },
 
     async upload(input): Promise<MediaUploaded> {
-      // Read before any shrink, which drops the metadata with the pixels.
-      const found = readEmbedded(input.bytes, input.contentType);
-      let bytes = input.bytes;
-      let size = await measure(bytes);
-      let resizedFrom: MediaUploaded["resizedFrom"];
-      if (input.resize && size && REENCODED.has(input.contentType) && Math.max(size.width, size.height) > RESIZE.maxEdge) {
-        resizedFrom = { width: size.width, height: size.height, bytes: input.bytes.byteLength };
-        bytes = await reencode(input.bytes, { maxEdge: RESIZE.maxEdge }, input.contentType as Encoded, RESIZE.quality);
-        size = await measure(bytes);
-      }
+      const prepared = await prepareUpload(env.IMAGES, input, { resize: RESIZE });
+      const { bytes, contentType, width, height, sha256, embedded: found, resizedFrom, original } = prepared;
 
-      const key = newKey(input.filename, input.contentType);
+      const key = newKey(prepared.filename, contentType);
       const now = new Date();
-      const sha256 = resizedFrom ? await sha256Hex(bytes) : (input.sha256 ?? (await sha256Hex(bytes)));
-      await env.UPLOADS.put(key, bufferOf(bytes), { httpMetadata: { contentType: input.contentType } });
+      await env.UPLOADS.put(key, bytes, { httpMetadata: { contentType } });
       const embedded = (["credit", "license", "caption", "takenAt"] as const).filter((field) => found[field]);
       try {
         await store.insert({
           key,
-          filename: input.filename.slice(0, 300),
-          contentType: input.contentType,
+          filename: prepared.filename.slice(0, 300),
+          contentType,
           bytes: bytes.byteLength,
-          width: size?.width ?? null,
-          height: size?.height ?? null,
+          width,
+          height,
           sha256,
           alt: input.alt,
           caption: found.caption ?? "",
@@ -376,13 +349,13 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
         throw error;
       }
 
-      if (resizedFrom) {
+      if (resizedFrom && original) {
         // The original, kept beside the library and named in the file's history as the revision the shrink replaced.
         const backupKey = `${HISTORY_PREFIX}${now.toISOString()}/${key}`;
-        await env.UPLOADS.put(backupKey, bufferOf(input.bytes), { httpMetadata: { contentType: input.contentType } });
+        await env.UPLOADS.put(backupKey, original, { httpMetadata: { contentType } });
         const reason = input.sourceUrl ? ("import" as const) : ("upload" as const);
-        await store.addRevision({ mediaKey: key, at: now, bytes: resizedFrom.bytes, width: resizedFrom.width, height: resizedFrom.height, reason, sha256: input.sha256 ?? (await sha256Hex(input.bytes)), backupKey });
-        await store.addRevision({ mediaKey: key, at: now, bytes: bytes.byteLength, width: size?.width ?? null, height: size?.height ?? null, reason: "resize", sha256 });
+        await store.addRevision({ mediaKey: key, at: now, bytes: original.byteLength, width: resizedFrom.width, height: resizedFrom.height, reason, sha256: await sha256Hex(original), backupKey });
+        await store.addRevision({ mediaKey: key, at: now, bytes: bytes.byteLength, width, height, reason: "resize", sha256 });
       }
 
       return {
@@ -422,15 +395,15 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
 
     async replace(id, input) {
       const row = await read(id);
-      const size = await measure(input.bytes);
-      if (row.width && row.height && (size?.width !== row.width || size?.height !== row.height)) {
+      const { bytes, width, height } = await prepareUpload(env.IMAGES, { ...input, alt: "" });
+      if (row.width && row.height && (width !== row.width || height !== row.height)) {
         throw new RefusedError(
-          `The new picture is ${size ? `${size.width}x${size.height}` : "unmeasured"}, but this file is ${row.width}x${row.height}, ` +
+          `The new picture is ${width && height ? `${width}x${height}` : "unmeasured"}, but this file is ${row.width}x${row.height}, ` +
             "and the pages that use it are sized by that. Upload it as a new file instead.",
         );
       }
       await claim(id, input.expectedVersion);
-      await swapBytes(row, { bytes: input.bytes, width: size?.width ?? row.width, height: size?.height ?? row.height, reason: "replace" }, { focus: null });
+      await swapBytes(row, { bytes, width: width ?? row.width, height: height ?? row.height, reason: "replace" }, { focus: null });
       // The image route keys its cached sizes by the object's etag (site-runtime ./image), so none is stale.
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
     },
@@ -449,7 +422,8 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
       }
       const object = await env.UPLOADS.get(id);
       if (!object) throw new NotFoundError("No such media.");
-      const bytes = await reencode(object.body, TRANSFORMS[input.op], row.contentType as Encoded, TRANSFORM_QUALITY);
+      const edited = await editImage(env.IMAGES, object.body, { ...TRANSFORMS[input.op], format: row.contentType as Encoded, quality: TRANSFORM_QUALITY });
+      const bytes = new Uint8Array(await edited.arrayBuffer());
       const swapped = turnsSize(input.op);
       const width = swapped ? row.height : row.width;
       const height = swapped ? row.width : row.height;
@@ -460,7 +434,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
         // The old file stays exactly as it was, so a stale version is refused here rather than claimed.
         if (row.rev !== revOf(input.expectedVersion)) throw new VersionConflictError(versionOf(row.rev), "The file changed since it was loaded.");
         const key = newKey(row.filename ?? id, row.contentType);
-        await env.UPLOADS.put(key, bufferOf(bytes), { httpMetadata: { contentType: row.contentType } });
+        await env.UPLOADS.put(key, bytes, { httpMetadata: { contentType: row.contentType } });
         const { filename, contentType, alt, caption, tags, credit, license, sourceUrl, licenseExpires, takenAt } = row;
         await store.insert({
           key, filename, contentType, alt, caption, tags, credit, license, sourceUrl, licenseExpires, takenAt, focus,
