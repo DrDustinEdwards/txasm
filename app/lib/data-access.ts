@@ -4,6 +4,7 @@
 // module, so nothing queries Drizzle directly outside this layer. Each module
 // under ./data-access/ builds one area from the shared db handle; this file
 // assembles them and is the only entry point the rest of the app imports.
+import { adminEmails } from "@dustinedwards/site-runtime/access";
 import { getDb } from "../db/index.server";
 import { type Actor, type DB, loadActor } from "./data-access/core";
 import { createAbstracts } from "./data-access/abstracts";
@@ -145,8 +146,10 @@ export function getDataAccess(env: Env) {
 
 // Resolve the acting user's grants through the data-access layer. Used by the
 // auth helpers to decide admin access without touching the Drizzle client.
-export function getActor(env: Env, userId: string): Promise<Actor> {
-  return loadActor(getDb(env), userId);
+// Platform admin is an address on ADMIN_EMAILS (else ADMIN_EMAIL), read on every
+// request as the other sites do; chair and reviewer are grants in D1.
+export function getActor(env: Env, user: { id: string; email: string }): Promise<Actor> {
+  return loadActor(getDb(env), user.id, { admin: adminEmails(env).includes(user.email.trim().toLowerCase()) });
 }
 
 // Build the importer from the environment, parallel to getDataAccess. Server

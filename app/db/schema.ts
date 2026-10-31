@@ -80,9 +80,11 @@ export const session = sqliteTable(
     expiresAt: tsMs("expires_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    // Where the session was last active, as Cloudflare places the request (city, region,
-    // country); written with updatedAt by touchSession in app/lib/auth.server.ts.
+    // Where the session was last used, as Cloudflare places the request (city, region,
+    // country), and its browser's device id (never sent to a browser); site-runtime
+    // ./sign-in writes both with updatedAt (sessionDetails in app/lib/auth.server.ts).
     location: text("location"),
+    deviceId: text("device_id"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -1154,6 +1156,8 @@ export const authEvents = sqliteTable(
     userId: text("user_id"),
     device: text("device"),
     location: text("location"),
+    // The sign-in's device id (AUTH_EVENTS_DEVICE_SQL), for the new-device notice.
+    deviceId: text("device_id"),
   },
   (t) => [index("auth_events_user").on(t.userId, t.at), index("auth_events_at").on(t.at, t.event)],
 );

@@ -5,7 +5,7 @@ import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
-import { SIGN_IN_CONFIRM_PATH, privateMeta } from "~/lib/site-meta";
+import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import {
   SIGN_IN_CODE_PATH,
@@ -13,7 +13,7 @@ import {
   signInMethods,
 } from "@dustinedwards/site-runtime/sign-in";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
-import { authClient } from "~/lib/auth-client";
+import { authClient, signalAfterPasskeySignIn } from "~/lib/auth-client";
 import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
 import { readForm } from "~/lib/form.server";
 
@@ -137,13 +137,9 @@ export async function action({
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
         headers,
-        // A spent or expired link comes back to the confirm page, which says which. Better Auth answers
-        // INVALID_TOKEN for both, so the page tells them apart by when the link was sent.
-        body: JSON.stringify({
-          email,
-          callbackURL: landing,
-          errorCallbackURL: `${SIGN_IN_CONFIRM_PATH}?sent=${Date.now()}`,
-        }),
+        // A spent or expired link comes back to the confirm page, which says which from the time the
+        // mailed link carries (site-runtime confirmLinkURL and signInLinkProblem).
+        body: JSON.stringify({ email, callbackURL: landing }),
       }),
     );
     if (response.status === 429) {
@@ -200,6 +196,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
     // site-runtime's call tells the password manager when the site no longer knows the passkey.
     const result = await passkeySignIn(authClient, { autoFill });
     if (!result?.error) {
+      await signalAfterPasskeySignIn();
       window.location.assign(next ?? "/");
     } else if (!autoFill) {
       setPasskeyError("That passkey did not sign you in. Try again, or get a link by email.");

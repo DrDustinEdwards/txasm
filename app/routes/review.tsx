@@ -16,7 +16,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await requireUser(request);
   const { env } = context.get(cloudflareContext);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   const assignments = await getDataAccess(env).reviews.listAssignedAll(actor);
   return { assignments };
 }

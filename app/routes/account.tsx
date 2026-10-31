@@ -13,7 +13,7 @@ import {
   securityHistory,
   shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
-import { canOfferPasskey, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
+import { canOfferPasskey, signalPasskeys, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -61,12 +61,21 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
   const { headers } = request;
-  const current = await auth.api.getSession({ headers });
+  // With the request, so this session's last use and place move with it (site-runtime sessionDetails).
+  const current = await auth.api.getSession({ headers, request });
   if (!current) throw redirect("/signin");
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");
   if (welcome && !(await shouldOfferPasskey(env.DB, current.user.id, passkeys))) throw redirect("/");
   const credentialIds = new Map(passkeys.map((p) => [p.id, p.credentialID]));
+  // Named by the person, else by the password manager or device that holds it, with when each last signed the
+  // person in (from auth_events, site-runtime passkeyLastUsed).
+  const rows = welcome
+    ? []
+    : passkeyRows(passkeys, await passkeyLastUsed(env.DB, current.user.id)).map((p) => ({
+        ...p,
+        credentialId: credentialIds.get(p.id) ?? "",
+      }));
   return {
     welcome,
     email: current.user.email,
@@ -75,14 +84,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     deletionBlockers: welcome ? [] : await getDataAccess(env).account.deletionBlockers(current.user.id),
     // The relying party the passkeys belong to, for telling the password manager one is gone.
     rpId: new URL(env.BETTER_AUTH_URL).hostname,
-    // Named by the person, else by the password manager or device that holds it, with when each last signed the
-    // person in (from auth_events, site-runtime passkeyLastUsed).
-    passkeys: welcome
-      ? []
-      : passkeyRows(passkeys, await passkeyLastUsed(env.DB, current.user.id)).map((p) => ({
-          ...p,
-          credentialId: credentialIds.get(p.id) ?? "",
-        })),
+    passkeys: rows,
+    // One passkey: the page suggests a second on another device (site-runtime needsSecondPasskey). Decided here,
+    // so the browser never loads site-runtime ./sign-in.
+    secondPasskey: needsSecondPasskey(rows),
     // Null when the sign-in is too old to list them (site-runtime ./sign-in, FRESH_SECONDS).
     sessions: welcome ? [] : await accountSessions(auth, request),
     // The last ten sign-ins and changes to how the person signs in (auth_events, site-runtime ./sign-in).
@@ -136,7 +141,7 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
 }
 
 export default function Account({ loaderData }: Route.ComponentProps) {
-  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, sessions, history } = loaderData;
+  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, secondPasskey, sessions, history } = loaderData;
   const revalidator = useRevalidator();
   const signOut = useFetcher<typeof action>();
   const deleted = useActionData<typeof action>();
@@ -154,6 +159,13 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       else window.location.replace("/");
     });
   }, [welcome]);
+  // Each time the passkey list loads, the password manager hears which passkeys the site still accepts and
+  // the address they belong to (the WebAuthn Signal API, where the browser has it).
+  const credentialKey = passkeys.map((p) => p.credentialId).join(" ");
+  useEffect(() => {
+    if (welcome) return;
+    void signalPasskeys({ rpId, credentialIds: credentialKey ? credentialKey.split(" ") : [], name: email });
+  }, [welcome, rpId, credentialKey, email]);
 
   // Better Auth mails the current address to approve, then the new one to confirm
   // (app/lib/auth.server.ts). An address already in use gets the same answer, so the
@@ -383,7 +395,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           )}
         </ul>
       )}
-      {needsSecondPasskey(passkeys) ? (
+      {secondPasskey ? (
         <p>
           You have one passkey. Add another on a second device, such as your phone or a security key, so you can still
           sign in if you lose this one.

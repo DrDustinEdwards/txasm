@@ -12,9 +12,10 @@ EMAIL_ENABLED=false
 EMAIL_FROM=no-reply@txasm.org
 EMAIL_FROM_NAME=TXASM
 
-# Platform admins. ADMIN_EMAILS is a comma-separated allowlist; every matching
-# email is seeded as a platform admin on first sign-in. ADMIN_EMAIL is the older
-# single-value form, still honored when ADMIN_EMAILS is not set.
+# Platform admins. ADMIN_EMAILS is a comma-separated allowlist, read on every
+# request: an account whose email is on it is a platform admin, and one taken off
+# it is not. ADMIN_EMAIL is the older single-value form, still honored when
+# ADMIN_EMAILS is not set.
 ADMIN_EMAILS=
 ADMIN_EMAIL=
 

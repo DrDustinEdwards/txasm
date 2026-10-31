@@ -8,7 +8,7 @@ import { getActor, getDataAccess } from "~/lib/data-access";
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await requireUser(request);
   const { env } = context.get(cloudflareContext);
-  const actor = await getActor(env, user.id);
+  const actor = await getActor(env, user);
   const query = new URL(request.url).searchParams.get("q") ?? "";
   const results = await getDataAccess(env).institutions.search(actor, query);
   return Response.json({ results });

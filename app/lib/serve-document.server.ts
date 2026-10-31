@@ -22,7 +22,7 @@ export async function serveDocument(
   disposition: "inline" | "attachment",
 ): Promise<Response> {
   const user = await getSessionUser(request);
-  const actor = user ? await getActor(env, user.id) : null;
+  const actor = user ? await getActor(env, user) : null;
 
   let doc;
   try {
