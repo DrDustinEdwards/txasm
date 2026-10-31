@@ -59,7 +59,8 @@ jobs:
 
   # A merge to main deploys once CI is green: migrations first, then the Worker. Dormant until the repo
   # variable CF_DEPLOY is 'true', so CI stays green before the Cloudflare token is added.
-  # devkit's shared deploy (worker-deploy.yml): it applies the D1 migrations and builds, deploys with DEPLOY_SHA set to
+  # devkit's shared deploy (worker-deploy.yml): devkit-migrations --apply applies the pending migrations that only add
+  # (a drop, rename or row delete waits for a hand run), then it builds, deploys with DEPLOY_SHA set to
   # this commit, waits for /health to report it, checks the home page answers, and rolls the deploy back if it does not.
   # A rollback never undoes a migration: with d1-database, the D1 Time Travel bookmark from before the migrations and
   # its restore command go to the run's summary. The address is workers.dev until txasm.org moves to Cloudflare.
@@ -77,7 +78,7 @@ jobs:
         code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://txasm.dustin-edwards.workers.dev/ || true);
         echo "home page answered $code";
         if [ "$code" = 200 ]; then exit 0; elif [ "$code" = 000 ]; then exit 3; else exit 1; fi
-      pre-deploy: npm run db:migrate:prod && npm run build
+      pre-deploy: npx devkit-migrations drizzle --apply txasm && npm run build
       sha-var: DEPLOY_SHA
       d1-database: txasm
     secrets:
