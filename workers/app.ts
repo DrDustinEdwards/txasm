@@ -1,5 +1,6 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { createRequestHandler, RouterContextProvider, type ServerBuild } from "react-router";
+import { withAdminIdle } from "@dustinedwards/site-runtime/access";
 import { receiveCspReport } from "@dustinedwards/site-runtime/csp-report";
 import {
   SHARED_CACHE_CONTROL,
@@ -86,7 +87,7 @@ function cacheable(request: Request, url: URL): boolean {
  * API, redirects, writes and every signed-in or private page answer here and are never stored; a cookieless read of
  * a public page goes to the Renderer, through the Workers cache.
  */
-export default {
+const site = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     // One hop to the canonical address: https and no trailing slash (308 for a form post). First, so a plaintext
@@ -166,6 +167,12 @@ export default {
       { name: "prune-404", everyMinutes: 1440, run: () => pruneNotFound(env.DB) },
     ]);
   },
+} satisfies ExportedHandler<Env>;
+
+// An admin idle for an hour is signed out of Access (site-runtime ./access).
+export default {
+  ...site,
+  fetch: (request, env, ctx) => withAdminIdle(request, () => site.fetch(request, env, ctx)),
 } satisfies ExportedHandler<Env>;
 
 // The sign-in's per-address limits (RATE_LIMITER, app/lib/auth.server.ts).
