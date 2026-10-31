@@ -53,7 +53,7 @@ export default function Contact() {
             <div className="stack-1">
               <dt className="cap-label">Facebook group</dt>
               <dd>
-                <a href={facebookUrl} target="_blank" rel="noreferrer">
+                <a href={facebookUrl}>
                   Join the member group
                 </a>
               </dd>

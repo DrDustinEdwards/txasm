@@ -177,7 +177,7 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
         {sponsors.map((sponsor) => (
           <li key={sponsor.id} className="card small sponsor">
             {sponsor.url && /^https?:\/\//i.test(sponsor.url) ? (
-              <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="strong">
+              <a href={sponsor.url} className="strong">
                 {sponsor.name}
               </a>
             ) : (

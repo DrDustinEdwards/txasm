@@ -379,6 +379,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                       className="small strong"
                     >
                       View
+                      <span className="cap-sr-only"> (opens in a new tab)</span>
                     </a>
                   ) : null}
                   <Form method="post">
