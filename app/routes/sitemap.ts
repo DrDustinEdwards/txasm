@@ -23,7 +23,8 @@ const STATIC_PATHS = [
 
 export async function loader({ context }: Route.LoaderArgs) {
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const [meetings, awards, ...documents] = await Promise.all([
+  const [noindex, meetings, awards, ...documents] = await Promise.all([
+    da.pages.noindexPaths(),
     da.editions.listPublic(),
     da.awards.listAll(),
     ...(["newsletter", "abstract_book", "program"] as const).map(async (category) =>
@@ -33,7 +34,7 @@ export async function loader({ context }: Route.LoaderArgs) {
     ),
   ]);
   const paths = [
-    ...STATIC_PATHS,
+    ...STATIC_PATHS.filter((path) => !noindex.has(path)),
     ...meetings.flatMap((m) => [
       `/meetings/${m.slug}/program`,
       ...(m.abstractCount > 0 ? [`/meetings/${m.slug}/abstracts`] : []),

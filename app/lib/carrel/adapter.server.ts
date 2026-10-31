@@ -38,11 +38,11 @@ import {
   type SiteAdapter,
   type WriteResult,
 } from "@dustinedwards/site-api";
-import { readKey, splitSource } from "@dustinedwards/site-api/frontmatter";
+import { readKey, SEARCH_FIELDS, splitSource } from "@dustinedwards/site-api/frontmatter";
 import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { notFoundReport } from "@dustinedwards/site-runtime/not-found";
-import { getCarrelMedia, getCarrelPages, type Page, type PageWrite } from "../data-access";
+import { getCarrelMedia, getCarrelPages, type Page, type PageSearch, type PageWrite } from "../data-access";
 import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { parseSource, type PageSource } from "./source";
@@ -144,6 +144,24 @@ async function renderBody(env: Env, body: string): Promise<{ html: string; rende
   }
 }
 
+/** The search fields as the routes read them: a share image must be a library file, sized from the library's index. */
+async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<PageSearch | null> {
+  const out: PageSearch = {};
+  if (search.searchTitle.trim()) out.searchTitle = search.searchTitle.trim();
+  if (search.image.trim()) {
+    const key = mediaKeyOf(search.image);
+    const [row] = key ? await getCarrelMedia(env).many([key]) : [];
+    if (!row) throw new RefusedError(`${search.image} is not in the media library. A share image is a library picture: upload it in Carrel first.`);
+    out.image = { url: mediaPath(row.key), width: row.width, height: row.height, ...(search.imageAlt.trim() ? { alt: search.imageAlt.trim() } : {}) };
+  }
+  if (search.canonical.trim()) {
+    if (!/^https?:\/\//.test(search.canonical.trim())) throw new RefusedError("canonical must be an absolute http(s) address.");
+    out.canonical = search.canonical.trim();
+  }
+  if (search.noindex) out.noindex = true;
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 export function createCarrelAdapter(
   env: Env,
   options: { renderVersion?: string; stylesheets?: string[] } = {},
@@ -186,6 +204,7 @@ export function createCarrelAdapter(
       source,
       title: parsed.title,
       description: parsed.description,
+      searchFields: await searchFieldsFor(env, parsed.search),
       ...(await renderBody(env, parsed.body)),
       publishedAt,
     };
@@ -204,6 +223,7 @@ export function createCarrelAdapter(
     // kind is always "page"; published compares publishedAt. A page has no tags and no authors.
     filters: ["kind", "published"],
     publishedAtSettable: true,
+    searchFields: SEARCH_FIELDS,
 
     async list(query) {
       const needle = query.q?.toLowerCase();

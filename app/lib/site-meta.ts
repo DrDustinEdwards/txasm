@@ -1,6 +1,6 @@
 import { articleDates, defineHead } from "@drdustinedwards/site-helpers/head";
 import { graph, thing, website } from "@drdustinedwards/site-helpers/schema";
-import type { PlatformSettings } from "./data-access";
+import type { PageSearch, PlatformSettings } from "./data-access";
 import { CATEGORY_PATHS } from "./document-nav";
 
 // The root loader (settings) is always in the matches chain. Pull the org short
@@ -102,10 +102,34 @@ const SECTIONS: Record<string, string> = {
  */
 export function pageHead(
   matches: ReadonlyArray<{ id: string } | undefined>,
-  { name, ...page }: { path: string; name: string; description: string; fullTitle?: boolean; pageType?: string; breadcrumbs?: Array<{ name: string; path: string }> },
+  {
+    name,
+    search,
+    ...page
+  }: {
+    path: string;
+    name: string;
+    description: string;
+    fullTitle?: boolean;
+    pageType?: string;
+    breadcrumbs?: Array<{ name: string; path: string }>;
+    /** A Carrel page's search fields: searchTitle is the <title> (the share card keeps the name), image the card. */
+    search?: PageSearch | null;
+  },
 ) {
   const head = defineHead({ origin: SITE_ORIGIN, siteName: SITE_NAME, image: SITE_CARD, suffix: titleSuffix(matches), sections: SECTIONS });
-  return head({ ...page, title: name, image: { ...SITE_CARD, url: `${rootData(matches)?.origin ?? SITE_ORIGIN}${SITE_CARD.url}` } });
+  const origin = rootData(matches)?.origin ?? SITE_ORIGIN;
+  const image = search?.image
+    ? { url: `${origin}${search.image.url}`, width: search.image.width ?? undefined, height: search.image.height ?? undefined, alt: search.image.alt }
+    : { ...SITE_CARD, url: `${origin}${SITE_CARD.url}` };
+  return head({
+    ...page,
+    title: search?.searchTitle ?? name,
+    ...(search?.searchTitle ? { socialTitle: name } : {}),
+    canonical: search?.canonical,
+    noindex: search?.noindex,
+    image,
+  });
 }
 
 /** The site, which every page's WebPage names by its @id, and the branch as an Organization (home page). */

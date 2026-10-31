@@ -19,6 +19,7 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
     path: "/award-nominations",
     name: loaderData?.title ?? "Award Nominations",
     description: loaderData?.description || "How to nominate a member for a Texas Branch ASM award.",
+    search: loaderData?.searchFields,
   });
 }
 

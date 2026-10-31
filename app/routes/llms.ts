@@ -20,7 +20,7 @@ const HUBS = [
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const [settings, meetings] = await Promise.all([da.settings.get(), da.editions.listPublic()]);
+  const [settings, meetings, noindex] = await Promise.all([da.settings.get(), da.editions.listPublic(), da.pages.noindexPaths()]);
   return llmsResponse({
     origin: SITE_ORIGIN,
     request,
@@ -29,7 +29,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       "The Texas Branch of the American Society for Microbiology: annual meetings, abstracts, awards and newsletters for microbiologists across Texas.",
     intro: ["Citation is welcome. Please cite the Texas Branch ASM and link the page's URL."],
     sections: [
-      { heading: "Site", links: HUBS.map((hub) => ({ ...hub, url: `${SITE_ORIGIN}${hub.path}` })) },
+      {
+        heading: "Site",
+        links: HUBS.filter((hub) => !noindex.has(hub.path)).map((hub) => ({ ...hub, url: `${SITE_ORIGIN}${hub.path}` })),
+      },
       {
         heading: "Meetings",
         links: meetings.flatMap((meeting) => [

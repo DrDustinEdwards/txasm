@@ -1016,6 +1016,14 @@ export const awardRecipient = sqliteTable(
 // renderVersion. page_revision is the machine path's audit log (hard rule 4's
 // pattern): every Carrel write appends one, in the same batch, naming the change
 // (a schedule and its cancel included, with the page's source as it stands).
+/** A page's published search fields beside its description; image is a library path, sized from the library. */
+export type PageSearch = {
+  searchTitle?: string;
+  image?: { url: string; width: number | null; height: number | null; alt?: string };
+  canonical?: string;
+  noindex?: boolean;
+};
+
 export const page = sqliteTable("page", {
   slug: text("slug").primaryKey(),
   source: text("source").notNull(),
@@ -1023,6 +1031,8 @@ export const page = sqliteTable("page", {
   description: text("description"),
   html: text("html").notNull(),
   renderVersion: text("render_version").notNull(),
+  // site-api's search fields beside description, as published (PageSearch); null when none.
+  searchFields: text("search_fields", { mode: "json" }).$type<PageSearch>(),
   publishedAt: tsMs("published_at"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

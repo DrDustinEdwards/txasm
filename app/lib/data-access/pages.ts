@@ -14,10 +14,12 @@ import type { DB } from "./core";
 
 export type Page = typeof schema.page.$inferSelect;
 export type PageRevision = typeof schema.pageRevision.$inferSelect;
+export type PageSearch = schema.PageSearch;
 
 export interface PublishedPage {
   title: string;
   description: string | null;
+  searchFields: PageSearch | null;
   html: string;
 }
 
@@ -26,9 +28,17 @@ export function createPages(db: DB) {
     async published(slug: string): Promise<PublishedPage | null> {
       const row = await db.query.page.findFirst({
         where: eq(schema.page.slug, slug),
-        columns: { title: true, description: true, html: true, publishedAt: true },
+        columns: { title: true, description: true, searchFields: true, html: true, publishedAt: true },
       });
       return row?.publishedAt ? row : null;
+    },
+
+    /** The paths of the published pages marked noindex (home is "/"), which the sitemap and llms.txt leave out. */
+    async noindexPaths(): Promise<Set<string>> {
+      const rows = await db
+        .select({ slug: schema.page.slug, searchFields: schema.page.searchFields, publishedAt: schema.page.publishedAt })
+        .from(schema.page);
+      return new Set(rows.filter((r) => r.publishedAt && r.searchFields?.noindex).map((r) => (r.slug === "home" ? "/" : `/${r.slug}`)));
     },
   };
 }
@@ -40,7 +50,7 @@ export interface PageWrite {
   /** The page's working source after the write, which its revision keeps. */
   source: string;
   /** The page row's change; none for a write to its schedule alone. */
-  fields?: Partial<Pick<Page, "source" | "title" | "description" | "html" | "renderVersion" | "publishedAt">>;
+  fields?: Partial<Pick<Page, "source" | "title" | "description" | "searchFields" | "html" | "renderVersion" | "publishedAt">>;
   /** Stores an update to go live at publishAt, or drops the one waiting (only that one, when `drop` names it). */
   schedule?:
     | { put: { source: string; publishAt: string; changeId: string } }
