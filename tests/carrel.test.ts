@@ -1,22 +1,26 @@
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
-import { createSiteApi } from "@dustinedwards/site-api";
+import { createSiteApi, type PublishEvent } from "@dustinedwards/site-api";
 import { runConformance } from "@dustinedwards/site-api/conformance";
+import { d1SiteApiStore } from "@dustinedwards/site-api/store";
 import { createCarrelAdapter } from "../app/lib/carrel/adapter.server";
 import { applyMigrations } from "./d1";
 
 // Carrel's site API against real D1 and R2 with the real migrations, so the pages it
 // edits are the seeded ones: site-api's own conformance suite (with its media upload
-// round trip), the one rule that matters for a live route (a draft never reaches the
-// page, a publish does, and each write leaves its audit row), and the media library's
-// behaviors. Images and Workers AI have no local emulation, so both are recorded shapes.
+// round trip and, through site-api's store, its replay checks), the one rule that matters
+// for a live route (a draft never reaches the page, a publish does, and each write leaves
+// its audit row), an update scheduled on a page going live from the cron, and the media
+// library's behaviors. Images and Workers AI have no local emulation, so both are recorded shapes.
 const KEY = "k".repeat(40);
 const BASE = "https://txasm.example.com";
 let mf: Miniflare;
 let db: D1Database;
 let uploads: R2Bucket;
 let api: ReturnType<typeof createSiteApi>;
+/** What the publish hooks heard, as IndexNow, the page purge and the webmentions would. */
+const heard: PublishEvent[] = [];
 
 const call = (path: string, init: RequestInit = {}) =>
   api.handle(
@@ -121,6 +125,8 @@ before(async () => {
     adapter: createCarrelAdapter(env),
     key: KEY,
     limiter: { limit: async () => ({ success: true }) },
+    store: d1SiteApiStore(db),
+    hooks: [{ name: "spy", run: (event) => void heard.push(event) }],
     log: () => {},
   });
 });
@@ -169,6 +175,37 @@ test("a draft stays off the live page, a publish puts it there, and each write i
     body: JSON.stringify({ expectedVersion: (await json(published)).version, changeId: "chg_down" }),
   });
   assert.equal(unpublish.status, 422);
+});
+
+test("an update scheduled on a live page goes live from the cron at its time and no sooner, and the hooks hear it", async () => {
+  const live = () =>
+    db.prepare("SELECT html, published_at FROM page WHERE slug = 'award-nominations'").first<{ html: string; published_at: number }>();
+  const before = (await live())!.html;
+  const doc = await json(await call(`${PREFIX}/content/award-nominations`));
+  const source = `${doc.source}\nA scheduled sample paragraph.\n`;
+  const publishAt = "2030-01-01T15:00:00.000Z";
+
+  const scheduled = await json(await call(`${PREFIX}/content/award-nominations/schedule`, {
+    method: "POST",
+    body: JSON.stringify({ source, publishAt, expectedVersion: doc.version, changeId: "chg_schedule" }),
+  }));
+  // The page stays live and unchanged, with the update beside it.
+  assert.deepEqual([scheduled.status, scheduled.scheduledUpdate], ["published", { publishAt, changeId: "chg_schedule" }]);
+  assert.equal((await json(await call(`${PREFIX}/content/award-nominations/schedule`))).source, source);
+
+  heard.length = 0;
+  assert.equal((await api.runSchedules({ now: new Date("2030-01-01T14:59:00Z") })).applied.length, 0);
+  assert.equal((await live())!.html, before);
+  assert.equal((await api.runSchedules({ now: new Date("2030-01-01T15:00:30Z") })).applied.length, 1);
+  const after = (await live())!;
+  assert.match(after.html, /A scheduled sample paragraph\./);
+  assert.equal(after.published_at, Date.parse(publishAt));
+  assert.equal((await json(await call(`${PREFIX}/content/award-nominations`))).scheduledUpdate, null);
+  assert.deepEqual(heard.map((e) => [e.action, e.trigger, e.url]), [["update", "schedule", `${BASE}/award-nominations`]]);
+  // Recorded under the change that scheduled it, and a second pass finds nothing.
+  const audit = await db.prepare("SELECT event FROM page_revision WHERE change_id = 'chg_schedule' ORDER BY created_at, rowid").all();
+  assert.deepEqual(audit.results.map((r) => r.event), ["schedule", "publish"]);
+  assert.equal((await api.runSchedules({ now: new Date("2030-01-01T15:01:00Z") })).applied.length, 0);
 });
 
 test("a library picture: a page publishes it with its sizes, and while a page uses it the file stays", async () => {

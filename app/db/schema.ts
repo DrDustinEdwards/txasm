@@ -1010,11 +1010,12 @@ export const awardRecipient = sqliteTable(
 
 // Site pages Carrel edits through the site API (app/lib/carrel). Each row backs
 // a route that already exists (home, award-nominations), so the set is fixed by
-// the site: Carrel edits and publishes, never creates or takes one down. source
+// the site: Carrel edits, schedules and publishes, never creates or takes one down. source
 // is Carrel's working copy (front matter and markdown); title, description and
 // html are what the route shows, set only on publish, html rendered by Prelum at
 // renderVersion. page_revision is the machine path's audit log (hard rule 4's
-// pattern): every Carrel write appends one, in the same batch, naming the change.
+// pattern): every Carrel write appends one, in the same batch, naming the change
+// (a schedule and its cancel included, with the page's source as it stands).
 export const page = sqliteTable("page", {
   slug: text("slug").primaryKey(),
   source: text("source").notNull(),
@@ -1034,7 +1035,7 @@ export const pageRevision = sqliteTable(
     pageSlug: text("page_slug")
       .notNull()
       .references(() => page.slug, { onDelete: "cascade" }),
-    event: text("event", { enum: ["save", "publish"] }).notNull(),
+    event: text("event", { enum: ["save", "publish", "schedule", "unschedule"] }).notNull(),
     changeId: text("change_id").notNull(),
     version: text("version").notNull(),
     source: text("source").notNull(),
@@ -1133,6 +1134,73 @@ export const cronRuns = sqliteTable("cron_runs", {
   lastOkAt: integer("last_ok_at"),
   lastFailedAt: integer("last_failed_at"),
   lastError: text("last_error"),
+});
+
+// An update Carrel scheduled on a live page (site-api's schedules, migration 0026): its own source, which replaces
+// the page's at publish_at, when the per-minute cron's runSchedules applies it. One per page at most. The shape is
+// site-api's SCHEDULED_UPDATES_SQL, read and written through its d1ScheduledUpdates in the Carrel pages path
+// (data-access/pages.ts). Times are UTC ISO text, so the due scan is a text comparison.
+export const scheduledUpdates = sqliteTable(
+  "scheduled_updates",
+  {
+    contentId: text("content_id").primaryKey(),
+    source: text("source").notNull(),
+    publishAt: text("publish_at").notNull(),
+    changeId: text("change_id").notNull(),
+    scheduledAt: text("scheduled_at").notNull(),
+  },
+  (t) => [index("scheduled_updates_due").on(t.publishAt)],
+);
+
+// site-api's own store (SITE_API_STORE_SQL, migration 0027), read and written only through its d1SiteApiStore in
+// app/lib/carrel/handler.server.ts: each Carrel write's answer under its change id for 7 days (site_api_writes), so a
+// retry answers the same and runs nothing; the publish hooks that failed, for the cron to run again (hook_retries);
+// only the SHA-256 of each preview link's token (preview_links); and the pages each page last sent webmentions to
+// (webmention_targets). Named here so drizzle-kit's snapshot knows them; no query here reads them.
+export const siteApiWrites = sqliteTable(
+  "site_api_writes",
+  {
+    changeId: text("change_id").primaryKey(),
+    route: text("route").notNull(),
+    requestHash: text("request_hash").notNull(),
+    status: integer("status"),
+    response: text("response"),
+    state: text("state").notNull(),
+    at: text("at").notNull(),
+  },
+  (t) => [index("site_api_writes_at").on(t.at)],
+);
+
+export const hookRetries = sqliteTable(
+  "hook_retries",
+  {
+    id: text("id").primaryKey(),
+    hook: text("hook").notNull(),
+    event: text("event").notNull(),
+    attempts: integer("attempts").notNull(),
+    nextAt: text("next_at").notNull(),
+    lastError: text("last_error").notNull(),
+  },
+  (t) => [index("hook_retries_due").on(t.nextAt)],
+);
+
+export const previewLinks = sqliteTable(
+  "preview_links",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    contentId: text("content_id").notNull(),
+    createdAt: text("created_at").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    revokedAt: text("revoked_at"),
+    changeId: text("change_id").notNull(),
+  },
+  (t) => [index("preview_links_content").on(t.contentId, t.expiresAt)],
+);
+
+export const webmentionTargets = sqliteTable("webmention_targets", {
+  source: text("source").primaryKey(),
+  targets: text("targets").notNull(),
+  sentAt: text("sent_at").notNull(),
 });
 
 // ---------------------------------------------------------------------------

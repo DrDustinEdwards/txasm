@@ -18,6 +18,9 @@ export const EXCLUDED_TABLES = [
   "account",
   // Reviewer and chair invitations carry a live one-time accept token.
   "invitation",
+  // Carrel's preview links (site-api's store): the hash of each link's token. Restoring an older copy would bring
+  // back a link revoked since; a lost link is made again in Carrel.
+  "preview_links",
 ] as const;
 
 // The irreplaceable data: people, registrations (payment state lives on
