@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { prepareUpload, RefusedError } from "@dustinedwards/site-api";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.documents";
 import { cloudflareContext } from "~/load-context";
@@ -128,6 +129,23 @@ export async function action({ request, context }: Route.ActionArgs) {
         const mb = Math.round(maxBytes / (1024 * 1024));
         throw new ValidationError(`The file must be ${mb} MB or smaller.`);
       }
+      // A brand image goes through site-api's upload step, as a library picture does: its bytes must be the type it
+      // declares (no PNG that is really HTML), and its location is taken out. A PDF is stored as sent.
+      let bytes: ArrayBuffer | Uint8Array = await file.arrayBuffer();
+      if (isImageCategory(category)) {
+        try {
+          const prepared = await prepareUpload(
+            env.IMAGES,
+            { bytes: new Uint8Array(bytes), contentType: mime, filename: file.name || "brand", alt: "", changeId: "" },
+            { limits: { maxBytes, types: [...IMAGE_MIME_TYPES] } },
+          );
+          // Only the location goes: no HEIC is accepted here, and no shrink is asked for, so the type is the one declared.
+          bytes = prepared.bytes;
+        } catch (err) {
+          if (err instanceof RefusedError) throw new ValidationError(err.message);
+          throw err;
+        }
+      }
       // Create the metadata row first so slug validation runs before the R2 write,
       // then store the object under a stable key and record it. The stored MIME
       // sets fileKind in the data layer, so the viewer branches on the real type.
@@ -143,7 +161,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         mimeType: mime,
       });
       const r2Key = `documents/${created.id}.${extensionForMime(mime)}`;
-      await env.UPLOADS.put(r2Key, await file.arrayBuffer(), {
+      await env.UPLOADS.put(r2Key, bytes, {
         httpMetadata: { contentType: mime },
       });
       await da.documents.update(actor, created.id, { r2Key });
