@@ -16,6 +16,9 @@ import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
 import { readForm } from "~/lib/form.server";
 
+// The sign-in form: passkeys, Turnstile and the email link run in the browser. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sign in");
 }

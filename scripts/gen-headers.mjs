@@ -12,7 +12,11 @@ writeFileSync(
     // charset=utf-8 on text, and cross-origin CORP on stylesheets, scripts, SVG and fonts (corpFor).
     charset: true,
     // Vite names each built file by its content hash, so a year is safe; files at stable paths (favicon, logo) keep
-    // the default revalidation.
-    paths: { "/assets/*": { "Cache-Control": "public, max-age=31536000, immutable" } },
+    // the default revalidation. The islands /site.js starts (devkit's siteScript) are named by their content too;
+    // /site.js itself keeps one path, so it keeps the default revalidation.
+    paths: {
+      "/assets/*": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "/islands/*": { "Cache-Control": "public, max-age=31536000, immutable" },
+    },
   }),
 );

@@ -42,6 +42,9 @@ import {
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
 import { readForm } from "~/lib/form.server";
 
+// An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Edit abstract");
 }

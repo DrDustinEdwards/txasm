@@ -10,6 +10,9 @@ import { getAuth } from "~/lib/auth.server";
 // this page, so a mail scanner that opens every link spends nothing; the button's POST signs in
 // through confirmSignInLink. A spent or expired link comes back here with ?error=.
 
+// Part of sign-in, which hydrates as one flow (root.tsx, the `hydrate` handle).
+export const handle = { hydrate: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sign in");
 }

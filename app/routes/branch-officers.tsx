@@ -69,10 +69,11 @@ function PastOfficerRow({ entry }: { entry: PastOfficer }) {
 }
 
 // The past-officer role histories, one tab per role (Capsomer's tabs: arrow,
-// Home and End keys, activation follows focus).
+// Home and End keys, activation follows focus). The page does not hydrate, so
+// data-cap="tabs" hands the server's markup to Capsomer's tabs behavior (app/site.ts).
 function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
   return (
-    <Tabs defaultValue={tabs[0]?.id ?? ""}>
+    <Tabs defaultValue={tabs[0]?.id ?? ""} data-cap="tabs">
       <TabsList aria-label="Past branch officers by role">
         {tabs.map((tab) => (
           <TabsTrigger key={tab.id} value={tab.id}>
