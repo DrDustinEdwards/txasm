@@ -49,14 +49,15 @@ jobs:
   # variable CF_DEPLOY is 'true', so CI stays green before the Cloudflare token is added.
   # devkit's shared deploy (worker-deploy.yml): it applies the D1 migrations and builds, deploys with DEPLOY_SHA set to
   # this commit, waits for /health to report it, checks the home page answers, and rolls the deploy back if it does not.
-  # A rollback never undoes a migration. The address is workers.dev until txasm.org moves to Cloudflare.
+  # A rollback never undoes a migration: with d1-database, the D1 Time Travel bookmark from before the migrations and
+  # its restore command go to the run's summary. The address is workers.dev until txasm.org moves to Cloudflare.
   deploy:
     needs: ci
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.CF_DEPLOY == 'true'
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@dfdb60397d24f15c80b9468059d7d601b2caa6bf # v0.20.1
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@e99e4651b943f83b6591309b2151e7332786e64a # v0.20.2
     with:
       worker-name: txasm
       health-url: https://txasm.dustin-edwards.workers.dev/health
@@ -66,6 +67,7 @@ jobs:
         if [ "$code" = 200 ]; then exit 0; elif [ "$code" = 000 ]; then exit 3; else exit 1; fi
       pre-deploy: npm run db:migrate:prod && npm run build
       sha-var: DEPLOY_SHA
+      d1-database: txasm
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

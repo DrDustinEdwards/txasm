@@ -10,6 +10,7 @@
 // EMAIL_ENABLED), not a code change.
 
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { logEvent } from "@dustinedwards/site-runtime/log";
 import { SIGN_IN_EXPIRES_IN_WORDS } from "@dustinedwards/site-runtime/sign-in";
 import { extractPlainText } from "./richtext";
 
@@ -111,7 +112,7 @@ export async function sendEmail(
     return { sent: true, id };
   } catch (error) {
     const reason = redact(error instanceof Error ? error.message : "send failed", secrets);
-    console.error(`[email] send to ${message.to} failed: ${reason}`);
+    logEvent("email_send_failed", { reason }, { level: "error" });
     return { sent: false, reason };
   }
 }

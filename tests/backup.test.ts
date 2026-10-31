@@ -9,6 +9,8 @@ import {
   type D1Like,
   type R2Like,
 } from "@dustinedwards/d1-dump";
+import { cronCheck, runJobs } from "@dustinedwards/site-runtime/cron";
+import { recordNotFound } from "@dustinedwards/site-runtime/not-found";
 import { runNightlyBackup } from "../app/lib/backup.server";
 import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "../app/lib/backup-checks";
 import { applyMigrations } from "./d1";
@@ -201,4 +203,23 @@ test("an emptied database never gets the complete marker", async () => {
   }
   const after = await backupHealth(env.BOOKS);
   assert.equal(after.last_ok, before.last_ok, "the failed run must not become the latest");
+});
+
+// Migrations 0024 and 0025 bring the site's tables to site-runtime's shapes: its 404 upsert needs the
+// (day, path, referrer_host) key, and runJobs and cronCheck read and write cron_runs.
+test("the migrated tables take the 404 count per referrer and the cron record", async () => {
+  const url = new URL("https://example.com/gone?token=secret");
+  await recordNotFound(db, url, undefined, "https://a.example.com/page");
+  await recordNotFound(db, url, undefined, "https://a.example.com/other");
+  await recordNotFound(db, url, undefined, null);
+  const rows = (
+    await db.prepare("SELECT path, referrer_host, hit_count FROM page_404_daily ORDER BY referrer_host").all()
+  ).results;
+  assert.deepEqual(rows, [
+    { path: "/gone", referrer_host: "", hit_count: 1 },
+    { path: "/gone", referrer_host: "a.example.com", hit_count: 2 },
+  ]);
+
+  await runJobs(db, [{ name: "noop", everyMinutes: 1440, run: async () => {} }]);
+  assert.equal(await cronCheck(db).run(), true);
 });

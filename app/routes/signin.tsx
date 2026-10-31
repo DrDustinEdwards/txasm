@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
@@ -61,15 +62,15 @@ async function signInWithCode(env: Env, request: Request, email: string, code: s
     }
     if (response.status === 429) return answer("Too many tries. Wait a minute, or use the link in the email.");
     const { code: reason } = (await response.json().catch(() => ({}))) as { code?: string };
+    // The status and Better Auth's code only: the body can carry the address.
+    logEvent(OWASP_EVENTS.signInFailure, { ...requestFields(request), via: "code", status: response.status, reason }, { level: "warn" });
     if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
     if (reason === "OTP_EXPIRED" || reason === "TOO_MANY_ATTEMPTS") {
       return answer("That code has expired or was tried too many times. Use the link in the email, or send a new one.");
     }
-    // The status only: the body can carry the address.
-    console.error(`[signin] code sign-in returned ${response.status}`);
   } catch (error) {
     if (error instanceof Response) throw error;
-    console.error("[signin] code sign-in did not complete");
+    logEvent("sign_in_code_failed", requestFields(request), { level: "error" });
   }
   return answer("That sign-in did not complete. Try again, or use the link in the email.");
 }
@@ -125,7 +126,7 @@ export async function action({
     }
     return { ok: true, email };
   } catch (error) {
-    console.error("[signin] magic link failed", error);
+    logEvent("sign_in_link_failed", { ...requestFields(request), error }, { level: "error" });
     return {
       ok: false,
       error: "We could not send the link. Check the address and try again.",
