@@ -10,6 +10,7 @@ import { cloudflareContext } from "~/load-context";
 import { getAuth } from "~/lib/auth.server";
 import { authClient } from "~/lib/auth-client";
 import { formatDateTime } from "~/lib/format";
+import { readForm } from "~/lib/form.server";
 
 // An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -49,7 +50,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
-  const id = String((await request.formData()).get("session") ?? "");
+  const id = String((await readForm(request, 4 * 1024)).get("session") ?? "");
   try {
     return { revoked: await revokeSessionById(auth, request, id) };
   } catch (error) {
