@@ -4,6 +4,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useMatches,
   useRouteLoaderData,
 } from "react-router";
 
@@ -56,6 +57,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // Capsomer's navy family and txasm's site layer (Inter) apply to the page.
   const data = useRouteLoaderData<typeof loader>("root");
   const theme = data?.theme ?? undefined;
+  // Hydration is opt-in by route (`handle = { hydrate: true }`): the apps (sign-in, submission and editing, review,
+  // account, the admin and chair areas) hydrate. Every other page is read-only and sends no React: its header, theme
+  // button, tabs and PDF viewer run from /site.js (app/site.ts) and its islands, and its forms are plain GETs and
+  // POSTs that React Router's loaders and actions answer as documents.
+  const hydrates = useMatches().some((m) => (m.handle as { hydrate?: boolean } | undefined)?.hydrate === true);
   return (
     <html lang="en" data-theme={theme} data-family="navy" data-cap-site="txasm">
       <head>
@@ -63,11 +69,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* Same-origin, so script-src 'self' allows it and it needs no nonce. Not on a hydrating page, whose React
+            components wire the same markup themselves. */}
+        {hydrates ? null : <script src="/site.js" defer />}
       </head>
       <body>
         <LinkPrefetch exclude={NO_PREFETCH}>{children}</LinkPrefetch>
-        <ScrollRestoration />
-        <Scripts />
+        {hydrates ? (
+          <>
+            <ScrollRestoration />
+            <Scripts />
+          </>
+        ) : null}
       </body>
     </html>
   );

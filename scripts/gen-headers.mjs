@@ -15,6 +15,9 @@ writeFileSync(
     // fonts are cross-origin).
     paths: {
       "/assets/*": { "Cache-Control": "public, max-age=31536000, immutable", "Cross-Origin-Resource-Policy": corpFor("text/css") },
+      // The islands /site.js starts (devkit's siteScript) are named by their content too. /site.js itself keeps one
+      // path, so it keeps the default revalidation.
+      "/islands/*": { "Cache-Control": "public, max-age=31536000, immutable", "Cross-Origin-Resource-Policy": corpFor("text/javascript") },
       "/fonts/*": { "Cross-Origin-Resource-Policy": corpFor("font/woff2") },
     },
   }),
