@@ -4,6 +4,7 @@
 @import "capsomer/tokens.css";
 @import "capsomer/family-navy.css" layer(cap.tokens);
 @import "capsomer/site-txasm.css";
+@import "capsomer/fallback-fonts.css";
 @import "capsomer/base.css";
 @import "capsomer/site-header.css";
 @import "capsomer/admin-shell.css";
