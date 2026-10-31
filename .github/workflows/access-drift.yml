@@ -1,0 +1,52 @@
+name: access-drift
+
+# The weekly Access drift check (I2): site-runtime-access-drift reads the Access application's policies through the
+# Cloudflare API and compares who they let in with ADMIN_EMAILS, the Worker's platform admins. txasm's admins are
+# ADMIN_EMAILS plus the per-Meeting role grants in D1; only ADMIN_EMAILS is compared, since the grants are not Access
+# users. Set up: the secrets ACCESS_READ_TOKEN (Access: Apps and Policies Read) and ADMIN_EMAILS (kept equal to the
+# Worker's; a secret so it stays out of the public log), and the repository variables CLOUDFLARE_ACCOUNT_ID and
+# ACCESS_APP_NAME. A failed run is the alert; the addresses it names print masked.
+
+on:
+  schedule:
+    - cron: "41 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: access-drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.ACCESS_READ_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+      ACCESS_APP_NAME: ${{ vars.ACCESS_APP_NAME }}
+    steps:
+      - name: Skip until the token is set
+        id: ready
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice title=I2 access drift::ACCESS_READ_TOKEN is not set, so the check was skipped."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.ready.outputs.run == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - if: steps.ready.outputs.run == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+      - if: steps.ready.outputs.run == 'true'
+        run: npm ci --ignore-scripts
+      - if: steps.ready.outputs.run == 'true'
+        run: npx site-runtime-access-drift --account "$CLOUDFLARE_ACCOUNT_ID" --app "$ACCESS_APP_NAME"

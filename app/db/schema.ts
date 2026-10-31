@@ -80,6 +80,9 @@ export const session = sqliteTable(
     expiresAt: tsMs("expires_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
+    // Where the session was last active, as Cloudflare places the request (city, region,
+    // country); written with updatedAt by touchSession in app/lib/auth.server.ts.
+    location: text("location"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -1135,6 +1138,24 @@ export const page404Daily = sqliteTable(
     kind: text("kind").notNull().default("page"),
   },
   (t) => [uniqueIndex("page_404_daily_day_path_referrer_uq").on(t.day, t.path, t.referrerHost)],
+);
+
+// The auth event log as rows (site-runtime ./sign-in, eventsDb): each sign-in event's time, OWASP name, change or
+// scope, way in, user, device and coarse place; never an address, token or code. A person's security history on
+// /account reads it, /health's spike check counts it, and the daily cron prunes it. The shape is its AUTH_EVENTS_SQL.
+export const authEvents = sqliteTable(
+  "auth_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    at: integer("at").notNull(),
+    event: text("event").notNull(),
+    change: text("change"),
+    via: text("via"),
+    userId: text("user_id"),
+    device: text("device"),
+    location: text("location"),
+  },
+  (t) => [index("auth_events_user").on(t.userId, t.at), index("auth_events_at").on(t.at, t.event)],
 );
 
 // Each scheduled job's last start, success and failure, in epoch ms (site-runtime ./cron, written
