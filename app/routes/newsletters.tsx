@@ -12,6 +12,7 @@ export const headers = () => publicPageHeaders();
 export function meta({ matches }: Route.MetaArgs) {
   return pageHead(matches, {
     path: "/newsletters",
+    pageType: "CollectionPage",
     name: "Newsletters",
     description:
       "Newsletters from the Texas Branch of the American Society for Microbiology.",

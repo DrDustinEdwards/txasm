@@ -1,6 +1,6 @@
 import { useRouteLoaderData } from "react-router";
 import { jsonLd } from "@drdustinedwards/site-helpers/schema";
-import { organizationLd, pageHead } from "~/lib/site-meta";
+import { pageHead, siteLd } from "~/lib/site-meta";
 import type { Route } from "./+types/home";
 import type { loader as rootLoader } from "~/root";
 import { getDataAccess } from "~/lib/data-access";
@@ -25,7 +25,7 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
         "The Texas Branch of the American Society for Microbiology: meetings, abstracts, awards and newsletters.",
       fullTitle: true,
     }),
-    jsonLd(organizationLd()),
+    jsonLd(siteLd()),
   ];
 }
 

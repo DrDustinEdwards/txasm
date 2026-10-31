@@ -1106,9 +1106,10 @@ export const mediaChange = sqliteTable("media_change", {
   mediaKey: text("media_key").notNull(),
 });
 
-// A count of the 404s the site serves, per path per UTC day (site-runtime ./not-found, written
-// by countNotFound in workers/app.ts). The shape is site-runtime's NOT_FOUND_SQL exactly: the
-// pathname only, never the query, which can carry a sign-in token.
+// A count of the 404s the site serves, per path, referring host and UTC day (site-runtime
+// ./not-found, written by countNotFound in workers/app.ts). The shape is site-runtime's
+// NOT_FOUND_SQL, reached by NOT_FOUND_UPGRADE_SQL (migration 0024): the pathname only, never the
+// query, which can carry a sign-in token, and of the Referer only its host.
 export const page404Daily = sqliteTable(
   "page_404_daily",
   {
@@ -1116,9 +1117,23 @@ export const page404Daily = sqliteTable(
     day: tsMs("day").notNull(),
     path: text("path").notNull(),
     hitCount: integer("hit_count").notNull().default(0),
+    referrerHost: text("referrer_host").notNull().default(""),
+    kind: text("kind").notNull().default("page"),
   },
-  (t) => [uniqueIndex("page_404_daily_day_path_uq").on(t.day, t.path)],
+  (t) => [uniqueIndex("page_404_daily_day_path_referrer_uq").on(t.day, t.path, t.referrerHost)],
 );
+
+// Each scheduled job's last start, success and failure, in epoch ms (site-runtime ./cron, written
+// by runJobs in workers/app.ts and read by /health's cron check). The shape is its CRON_SQL.
+export const cronRuns = sqliteTable("cron_runs", {
+  name: text("name").primaryKey(),
+  everyMinutes: integer("every_minutes").notNull(),
+  firstStartedAt: integer("first_started_at"),
+  lastStartedAt: integer("last_started_at"),
+  lastOkAt: integer("last_ok_at"),
+  lastFailedAt: integer("last_failed_at"),
+  lastError: text("last_error"),
+});
 
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of

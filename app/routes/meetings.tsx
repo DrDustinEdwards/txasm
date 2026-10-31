@@ -23,6 +23,7 @@ export const headers = () => publicPageHeaders();
 export function meta({ matches }: Route.MetaArgs) {
   return pageHead(matches, {
     path: "/meetings",
+    pageType: "CollectionPage",
     name: "Meetings",
     description:
       "Past meetings of the Texas Branch ASM, their programs, and their abstract archives. Search accepted abstracts by author, title, or topic.",

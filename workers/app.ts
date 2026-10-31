@@ -11,13 +11,14 @@ import {
   settleCacheHeaders,
   withPurgePages,
 } from "@dustinedwards/site-runtime/edge-cache";
-import { countNotFound } from "@dustinedwards/site-runtime/not-found";
+import { runJobs } from "@dustinedwards/site-runtime/cron";
+import { countNotFound, pruneNotFound } from "@dustinedwards/site-runtime/not-found";
 import { refuseCrossOrigin } from "@dustinedwards/site-runtime/origin";
 import { preloads, rootStylesheets, withPreloadHeader } from "@dustinedwards/site-runtime/preload";
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
-import { runNightlyBackup } from "../app/lib/backup.server";
+import { backupUploads, runNightlyBackup } from "../app/lib/backup.server";
 import {
   CSP_REPORT_PATH,
   SECURITY_HEADERS,
@@ -152,21 +153,23 @@ export default {
         page = privateRender(page);
       }
     }
-    // Each 404 to a GET counts against its path for the day (page_404_daily), in
-    // waitUntil, so it never holds or fails the page. The path only, never the query.
+    // Each 404 to a GET counts against its path and referring host for the day (page_404_daily),
+    // in waitUntil, so it never holds or fails the page. The path only, never the query.
     countNotFound(env.DB, request, page, ctx);
     return page;
   },
 
-  // The cron fires daily (see wrangler.jsonc). It takes the nightly D1 backup;
-  // the deadline jobs and reminders (submission and review deadline reminders,
-  // status transitions) are wired per edition in a later phase. A failed backup
-  // throws so the run shows as failed in Workers Logs.
-  async scheduled(controller, env, _ctx) {
-    console.log(
-      `[cron] tick ${controller.cron} at ${new Date(controller.scheduledTime).toISOString()}`,
-    );
-    await runNightlyBackup(env);
+  // The cron fires daily (see wrangler.jsonc): the nightly D1 backup, the uploads copy beside it and the 404 count's
+  // pruning, each recorded in cron_runs by site-runtime's runJobs, so /health notices one that failed or stopped. The
+  // deadline jobs and reminders (submission and review deadline reminders, status transitions) join this list when
+  // they are wired per edition. A failed job does not stop the next; runJobs throws after the last, so the invocation
+  // shows as failed in Workers Logs.
+  async scheduled(_controller, env, _ctx) {
+    await runJobs(env.DB, [
+      { name: "backup", everyMinutes: 1440, run: () => runNightlyBackup(env) },
+      { name: "backup-uploads", everyMinutes: 1440, run: () => backupUploads(env) },
+      { name: "prune-404", everyMinutes: 1440, run: () => pruneNotFound(env.DB) },
+    ]);
   },
 } satisfies ExportedHandler<Env>;
 
