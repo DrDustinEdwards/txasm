@@ -142,10 +142,15 @@ const site = {
       // The key is the host (the share card is named on it, pageHead), the path and the query without tracking
       // parameters; a reader who already holds the page gets a 304.
       const stored = await ctx.exports.Renderer.fetch(forRenderer(request), { cf: { cacheKey: cacheKey(url, { dimensions: { host: url.host } }) } });
-      const reader = forReader(stored, request);
-      // A 304 leaves out the policy: the reader's copy keeps its own, whose nonce is the one in that copy's scripts.
-      if (reader.status === 304) reader.headers.delete("Content-Security-Policy");
-      page = renewNonce(reader);
+      // The cache answers a conditional request with its own 304, whose headers are immutable, so the policy is
+      // dropped from a copy (deleting it in place threw, a 1101 for every returning reader, 2026-10-31). A 304 leaves
+      // out the policy: the reader's copy keeps its own, whose nonce is the one in that copy's scripts.
+      const reader = forReader(renewNonce(stored), request);
+      if (reader.status === 304) {
+        const headers = new Headers(reader.headers);
+        headers.delete("Content-Security-Policy");
+        page = new Response(null, { status: 304, headers });
+      } else page = reader;
     } else {
       // Rendered live with this request's nonce, on the render and in its header; never stored.
       const nonce = generateNonce();
