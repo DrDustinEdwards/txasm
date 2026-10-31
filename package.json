@@ -23,7 +23,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.12",
     "@cloudflare/puppeteer": "1.1.0",
-    "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.18.0",
+    "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.20.0",
     "@dustinedwards/d1-dump": "github:DrDustinEdwards/d1-dump#v0.6.0",
     "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.14.0",
     "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#v0.41.0",
@@ -45,6 +45,7 @@
     "remark-gfm": "4.0.1",
     "remark-parse": "11.0.0",
     "remark-rehype": "11.1.2",
+    "remark-smartypants": "3.0.3",
     "unified": "11.0.5",
     "unist-util-visit": "5.2.0"
   },
