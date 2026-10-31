@@ -24,6 +24,7 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
         loaderData?.description ||
         "The Texas Branch of the American Society for Microbiology: meetings, abstracts, awards and newsletters.",
       fullTitle: true,
+      search: loaderData?.searchFields,
     }),
     jsonLd(siteLd()),
   ];

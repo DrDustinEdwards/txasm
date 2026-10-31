@@ -1,0 +1,1 @@
+ALTER TABLE `page` ADD `search_fields` text;

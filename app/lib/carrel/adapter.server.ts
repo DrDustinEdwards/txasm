@@ -22,8 +22,9 @@ import {
   type SiteAdapter,
   type WriteResult,
 } from "@dustinedwards/site-api";
+import { SEARCH_FIELDS } from "@dustinedwards/site-api/frontmatter";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
-import { getCarrelMedia, getCarrelPages, type Page, type PageWrite } from "../data-access";
+import { getCarrelMedia, getCarrelPages, type Page, type PageSearch, type PageWrite } from "../data-access";
 import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { parseSource, type PageSource } from "./source";
@@ -102,6 +103,24 @@ async function renderBody(env: Env, body: string): Promise<{ html: string; rende
   }
 }
 
+/** The search fields as the routes read them: a share image must be a library file, sized from the library's index. */
+async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<PageSearch | null> {
+  const out: PageSearch = {};
+  if (search.searchTitle.trim()) out.searchTitle = search.searchTitle.trim();
+  if (search.image.trim()) {
+    const key = mediaKeyOf(search.image);
+    const [row] = key ? await getCarrelMedia(env).many([key]) : [];
+    if (!row) throw new RefusedError(`${search.image} is not in the media library. A share image is a library picture: upload it in Carrel first.`);
+    out.image = { url: mediaPath(row.key), width: row.width, height: row.height, ...(search.imageAlt.trim() ? { alt: search.imageAlt.trim() } : {}) };
+  }
+  if (search.canonical.trim()) {
+    if (!/^https?:\/\//.test(search.canonical.trim())) throw new RefusedError("canonical must be an absolute http(s) address.");
+    out.canonical = search.canonical.trim();
+  }
+  if (search.noindex) out.noindex = true;
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 export function createCarrelAdapter(env: Env): SiteAdapter {
   const pages = getCarrelPages(env);
 
@@ -130,6 +149,7 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
       source,
       title: parsed.title,
       description: parsed.description,
+      searchFields: await searchFieldsFor(env, parsed.search),
       ...(await renderBody(env, parsed.body)),
       publishedAt: new Date(),
     };
@@ -146,6 +166,8 @@ export function createCarrelAdapter(env: Env): SiteAdapter {
     },
 
     content: {
+      searchFields: SEARCH_FIELDS,
+
       async list({ status, q, cursor, limit }) {
         const needle = q?.toLowerCase();
         const matching = (await pages.list())

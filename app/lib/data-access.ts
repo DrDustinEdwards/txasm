@@ -90,7 +90,7 @@ export type {
   PlatformSettings,
   PlatformSettingsPatch,
 } from "./data-access/settings";
-export type { Page, PageWrite } from "./data-access/pages";
+export type { Page, PageSearch, PageWrite } from "./data-access/pages";
 export type { MediaFields, MediaRevisionRow, MediaRow, MediaWrite } from "./data-access/media";
 
 // The controlled-vocabulary types live in ./vocab (client-safe, one source).
