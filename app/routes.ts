@@ -1,5 +1,5 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
-import { FEED_PATH, INDEXNOW_KEY } from "./lib/site-meta";
+import { FEED_PATH, INDEXNOW_KEY, SIGN_IN_CONFIRM_PATH } from "./lib/site-meta";
 
 export default [
   route("robots.txt", "routes/robots.ts"),
@@ -22,6 +22,7 @@ export default [
     route("sponsorship", "routes/sponsorship.tsx"),
     route("contact", "routes/contact.tsx"),
     route("signin", "routes/signin.tsx"),
+    route(SIGN_IN_CONFIRM_PATH.slice(1), "routes/signin.confirm.tsx"),
     route("signout", "routes/signout.tsx"),
     route("account", "routes/account.tsx"),
     route("my/abstracts", "routes/my.abstracts.tsx"),

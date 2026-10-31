@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
+import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
-import { privateMeta } from "~/lib/site-meta";
+import { SIGN_IN_CONFIRM_PATH, privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import {
   SIGN_IN_CODE_PATH,
@@ -18,10 +19,17 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sign in");
 }
 
+// `next` is the page to return to after signing in again: adding a passkey needs a sign-in from
+// the last 10 minutes (site-runtime ./sign-in, FRESH_SECONDS). Only /account pages qualify.
+function nextPath(next: unknown): string | null {
+  return typeof next === "string" && next ? safeAdminNext(next, { prefix: "/account", path: "/signin" }) : null;
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const next = nextPath(new URL(request.url).searchParams.get("next"));
   const user = await getSessionUser(request);
-  if (user) throw redirect("/");
-  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey };
+  if (user && !next) throw redirect("/");
+  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey, next };
 }
 
 type ActionResult =
@@ -44,7 +52,13 @@ function forwardedHeaders(request: Request): Headers {
 // tab; the code signs in this one (site-runtime ./sign-in). A wrong code counts,
 // and after three it is spent while the link still works. Through the handler,
 // for Better Auth's limiter, as the link request is.
-async function signInWithCode(env: Env, request: Request, email: string, code: string): Promise<ActionResult> {
+async function signInWithCode(
+  env: Env,
+  request: Request,
+  email: string,
+  code: string,
+  landing: string,
+): Promise<ActionResult> {
   const answer = (codeError: string): ActionResult => ({ ok: true, email, codeError });
   try {
     const response = await (await getAuth(env)).handler(
@@ -58,12 +72,15 @@ async function signInWithCode(env: Env, request: Request, email: string, code: s
       // Only the session cookies go on to the redirect.
       const headers = new Headers();
       for (const cookie of response.headers.getSetCookie()) headers.append("Set-Cookie", cookie);
-      throw redirect("/account?welcome=1", { headers });
+      throw redirect(landing, { headers });
     }
-    if (response.status === 429) return answer("Too many tries. Wait a minute, or use the link in the email.");
     const { code: reason } = (await response.json().catch(() => ({}))) as { code?: string };
     // The status and Better Auth's code only: the body can carry the address.
     logEvent(OWASP_EVENTS.signInFailure, { ...requestFields(request), via: "code", status: response.status, reason }, { level: "warn" });
+    // Better Auth's per-IP limit, or the address's ten codes a day (EMAIL_RATE_LIMITED).
+    if (response.status === 429) {
+      return answer(`Too many tries. ${reason === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute"}, or use the link in the email.`);
+    }
     if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
     if (reason === "OTP_EXPIRED" || reason === "TOO_MANY_ATTEMPTS") {
       return answer("That code has expired or was tried too many times. Use the link in the email, or send a new one.");
@@ -86,10 +103,13 @@ export async function action({
   }
 
   const { env } = context.get(cloudflareContext);
+  // The link and the code land on /account, which offers a passkey to someone who has none and
+  // sends everyone else on home; or back on the page that asked for a new sign-in.
+  const landing = nextPath(formData.get("next")) ?? "/account?welcome=1";
   const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
   if (formData.get("intent") === "code") {
     if (!/^\d{6}$/.test(code)) return { ok: true, email, codeError: "Enter the six-digit code from the email." };
-    return signInWithCode(env, request, email, code);
+    return signInWithCode(env, request, email, code, landing);
   }
   try {
     // Through Better Auth's HTTP handler, not auth.api: only the handler runs the
@@ -103,15 +123,16 @@ export async function action({
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
         headers,
-        // The link lands on /account, which offers a passkey to someone who has none
-        // and sends everyone else on home.
-        body: JSON.stringify({ email, callbackURL: "/account?welcome=1" }),
+        // A spent or expired link comes back to the confirm page, which says so.
+        body: JSON.stringify({ email, callbackURL: landing, errorCallbackURL: SIGN_IN_CONFIRM_PATH }),
       }),
     );
     if (response.status === 429) {
+      // Better Auth's per-IP limit, or the address's five mails an hour (EMAIL_RATE_LIMITED).
+      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
       return {
         ok: false,
-        error: "Too many sign-in requests. Wait a minute and try again.",
+        error: `Too many sign-in requests. ${code === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute and try again"}.`,
       };
     }
     // The captcha plugin's refusals: no token, or one Cloudflare would not pass.
@@ -142,7 +163,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLHeadingElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
-  const siteKey = loaderData.turnstileSiteKey;
+  const { turnstileSiteKey: siteKey, next } = loaderData;
 
   const sent = actionData?.ok === true;
   const error = actionData && !actionData.ok ? actionData.error : null;
@@ -152,7 +173,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   async function signInWithPasskey(autoFill: boolean) {
     const result = await authClient.signIn.passkey({ autoFill });
     if (!result?.error) {
-      window.location.assign("/");
+      window.location.assign(next ?? "/");
     } else if (!autoFill) {
       setPasskeyError("That passkey did not sign you in. Try again, or get a link by email.");
     }
@@ -195,6 +216,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         </p>
         <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="code" />
+          {next ? <input type="hidden" name="next" value={next} /> : null}
           <input type="hidden" name="email" value={actionData.email} />
           <div className="cap-field">
             <label htmlFor="code" className="cap-field-label">
@@ -237,8 +259,11 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   return (
     <div className="narrow stack-6">
       <div className="stack-2">
-        <h1 className="page-title">Sign in</h1>
-        <p>Use your passkey, or get a sign-in link by email. No password needed.</p>
+        <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
+        <p>
+          {next ? "To change your passkeys, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
+          password needed.
+        </p>
       </div>
 
       <div className="stack-2">
@@ -255,6 +280,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
       <p className="cap-muted">Or get a link by email</p>
 
       <Form method="post" className="stack-4" noValidate>
+        {next ? <input type="hidden" name="next" value={next} /> : null}
         <div className="cap-field">
           <label htmlFor="email" className="cap-field-label">
             Email
@@ -264,7 +290,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
             id="email"
             name="email"
             type="email"
-            autoComplete="email webauthn"
+            autoComplete="username webauthn"
             required
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "email-error" : undefined}
@@ -280,7 +306,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         {siteKey ? <div ref={turnstileRef} /> : null}
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="secondary">
-          {submitting ? "Sending..." : "Send sign-in link"}
+          {submitting ? "Sending..." : "Email me a sign-in link"}
         </button>
       </Form>
     </div>

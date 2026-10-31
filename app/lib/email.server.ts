@@ -5,13 +5,15 @@
 //
 // Dormant until cutover: the binding is commented out in wrangler.jsonc and
 // EMAIL_ENABLED defaults off, so isEmailConfigured is false and sendEmail logs
-// the message instead of sending. It never throws for being unconfigured.
+// that a message would have gone instead of sending. It never throws for being
+// unconfigured.
 // Turning it on later is a config change (uncomment the binding, set
 // EMAIL_ENABLED), not a code change.
 
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { logEvent } from "@dustinedwards/site-runtime/log";
 import { SIGN_IN_EXPIRES_IN_WORDS } from "@dustinedwards/site-runtime/sign-in";
+import { magicLink, renderEmail } from "capsomer/email";
 import { extractPlainText } from "./richtext";
 
 // The send_email binding shape we use, per the Cloudflare Email Sending API. It
@@ -84,12 +86,9 @@ export async function sendEmail(
   const secrets = options.secrets ?? [];
 
   if (!isEmailConfigured(env)) {
-    // Dormant: log what would have gone out and report not sent, without
-    // throwing. Until cutover this log is how a sign-in link and code are read
-    // (dev server output, wrangler tail), so it keeps them; the dormant site
-    // has no members yet. Once mail is live they are never logged.
-    console.log(`[email:dormant] would send to ${message.to}: ${message.subject}`);
-    console.log(message.text);
+    // Dormant: log only that a message would have gone, never its body, which
+    // can hold a sign-in link and code (Workers Logs keep every line).
+    console.log(`[email:dormant] not sent, mail is off: ${message.subject}`);
     return { sent: false, reason: "disabled" };
   }
 
@@ -130,19 +129,20 @@ function htmlParagraphs(lines: string[]): string {
     .join("");
 }
 
-// The sign-in mail (site-runtime ./sign-in): Better Auth's link untouched and the
-// six-digit code as text, for the tab that asked when the link opens in another
-// browser (the mail app's, a phone), with how long both last. Both sign in, so
-// sendEmail is given them to cut out of a logged send error.
-export function magicLinkEmail(url: string, code: string): EmailContent {
-  const subject = "Your TXASM sign-in link";
-  const lead = `Use the link below to sign in to TXASM, or type this code on the page where you asked for it: ${code}. Both work once and expire in ${SIGN_IN_EXPIRES_IN_WORDS}.`;
-  const ignore = "If you did not request this, you can ignore this email.";
-  const text = [lead, url, ignore].join("\n\n");
-  const html = `${htmlParagraphs([lead])}<p><a href="${escapeHtml(
+// The sign-in mail (site-runtime ./sign-in) on Capsomer's magic-link template:
+// Better Auth's link untouched and the six-digit code as text, for the tab that
+// asked when the link opens in another browser (the mail app's, a phone). Both
+// sign in, so sendEmail is given them to cut out of a logged send error.
+// Capsomer refuses a link that is not https, so it throws on a local http URL.
+export function magicLinkEmail(to: string, url: string, code: string): EmailContent {
+  return renderEmail(magicLink, {
+    brand: { name: "TXASM", family: "navy" },
+    to,
     url,
-  )}">${escapeHtml(url)}</a></p>${htmlParagraphs([ignore])}`;
-  return { subject, text, html };
+    code,
+    expiresIn: SIGN_IN_EXPIRES_IN_WORDS,
+    copy: { subject: "Your TXASM sign-in link" },
+  });
 }
 
 function presentationLabel(value: "oral" | "poster"): string {

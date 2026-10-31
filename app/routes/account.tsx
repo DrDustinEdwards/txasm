@@ -42,6 +42,12 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     setBusy(true);
     setError(null);
     const result = await authClient.passkey.addPasskey();
+    // A sign-in older than 10 minutes cannot add a passkey (site-runtime ./sign-in, FRESH_SECONDS):
+    // sign in again, then come back here.
+    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
+      window.location.assign("/signin?next=/account");
+      return;
+    }
     setBusy(false);
     if (result?.error) {
       setError("The passkey was not saved. Try again.");
@@ -59,7 +65,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   const addButton = (
     <button type="button" className="cap-btn" data-variant="primary" disabled={busy} onClick={() => void addPasskey()}>
-      {busy ? "Waiting for your device..." : "Add a passkey"}
+      {busy ? "Waiting for your device..." : "Create a passkey"}
     </button>
   );
 
@@ -106,10 +112,10 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                 type="button"
                 className="cap-btn"
                 data-variant="quiet"
-                aria-label={`Remove ${p.name}`}
+                aria-label={`Remove passkey ${p.name}`}
                 onClick={() => void removePasskey(p.id)}
               >
-                Remove
+                Remove passkey
               </button>
             </li>
           ))}

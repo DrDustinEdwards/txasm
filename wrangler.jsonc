@@ -53,6 +53,10 @@
 		// CSP violation reports (/csp-report), per address. Loose, because a page tripping ten rules sends ten.
 		{ "name": "CSP_REPORT_RATE_LIMIT", "namespace_id": "7402", "simple": { "limit": 60, "period": 60 } }
 	],
+	// site-runtime's exact rate limiter (./rate-limit), exported from workers/app.ts: the sign-in's per-address
+	// limits (app/lib/auth.server.ts, emailLimiter). One SQLite-backed instance per key.
+	"durable_objects": { "bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiter" }] },
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["RateLimiter"] }],
 	// Browser Rendering for the abstract book PDF. Generate in a batch job, not a
 	// user request, to stay inside the quota. May want the paid Workers plan for headroom.
 	"browser": { "binding": "BROWSER" },

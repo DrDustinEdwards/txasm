@@ -38,6 +38,9 @@ export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
 /** The site's RSS feed: new newsletters, abstract books and programs (app/routes/rss.ts). */
 export const FEED_PATH = "/rss.xml";
 
+/** Where the emailed sign-in link opens (site-runtime ./sign-in's confirmPath): under /signin, so it is private. */
+export const SIGN_IN_CONFIRM_PATH = "/signin/confirm";
+
 /** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
 export const SECURITY_CONTACT = "security@dustinedwards.info";
 export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
