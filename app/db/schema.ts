@@ -1048,6 +1048,7 @@ export const pageRevision = sqliteTable(
 // site-api media id. rev is the version every editable write checks and bumps in one statement,
 // so a stale write is refused rather than lost (datetime resolution would let two writes in one
 // second share a version). sha256 is the current bytes', for duplicates. tags is a JSON array.
+// placeholder (a tiny blurred WebP data: URI) and color (#rrggbb) are site-api's, for Carrel's library.
 // Abstract book and program covers are not here: they are inline SVG drawn by app/lib/cover.ts.
 export const media = sqliteTable(
   "media",
@@ -1072,6 +1073,8 @@ export const media = sqliteTable(
     rev: integer("rev").notNull().default(0),
     uploadedAt: tsMs("uploaded_at").notNull(),
     updatedAt: updatedAt(),
+    placeholder: text("placeholder"),
+    color: text("color"),
   },
   (t) => [index("ix_media_sha256").on(t.sha256)],
 );

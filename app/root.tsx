@@ -41,7 +41,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const settings = await getDataAccess(
     context.get(cloudflareContext).env,
   ).settings.get();
-  return { theme, settings };
+  // The origin this page was served from, for the share card's address (pageHead).
+  return { theme, settings, origin: new URL(request.url).origin };
 }
 
 // Paths a hovered link must not prefetch (a prefetch runs the loader), beyond the family's

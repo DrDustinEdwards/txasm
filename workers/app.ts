@@ -130,8 +130,9 @@ const site = {
 
     let page: Response;
     if (cacheable(request, url)) {
-      // The key is the path and the query without tracking parameters; a reader who already holds the page gets a 304.
-      const stored = await ctx.exports.Renderer.fetch(forRenderer(request), { cf: { cacheKey: cacheKey(url) } });
+      // The key is the host (the share card is named on it, pageHead), the path and the query without tracking
+      // parameters; a reader who already holds the page gets a 304.
+      const stored = await ctx.exports.Renderer.fetch(forRenderer(request), { cf: { cacheKey: cacheKey(url, { dimensions: { host: url.host } }) } });
       const reader = forReader(stored, request);
       // A 304 leaves out the policy: the reader's copy keeps its own, whose nonce is the one in that copy's scripts.
       if (reader.status === 304) reader.headers.delete("Content-Security-Policy");
