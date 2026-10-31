@@ -177,6 +177,18 @@ export function createAwards(db: DB) {
         .orderBy(schema.award.sortOrder, schema.award.name);
     },
 
+    // The slug an award renamed away from `slug` has now, or null for a slug never renamed (award_slug_redirect).
+    // Public: the award route's renameRedirect lookup.
+    async renamedSlug(slug: string): Promise<string | null> {
+      const [row] = await db
+        .select({ slug: schema.award.slug })
+        .from(schema.awardSlugRedirect)
+        .innerJoin(schema.award, eq(schema.award.id, schema.awardSlugRedirect.awardId))
+        .where(eq(schema.awardSlugRedirect.fromSlug, slug))
+        .limit(1);
+      return row?.slug ?? null;
+    },
+
     // One award plus its recipients grouped by year and category. Public.
     async getBySlug(slug: string) {
       const awardRow = await db.query.award.findFirst({
@@ -269,7 +281,21 @@ export function createAwards(db: DB) {
       if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
 
       if (Object.keys(set).length > 0) {
-        await db.update(schema.award).set(set).where(eq(schema.award.id, id));
+        const update = db.update(schema.award).set(set).where(eq(schema.award.id, id));
+        if (set.slug && set.slug !== row.slug) {
+          // A rename keeps the old address answering: the old slug redirects to this award (renamedSlug), and the new
+          // slug, now live, is no redirect's any more. One batch, so the award never moves without its redirect.
+          await db.batch([
+            update,
+            db
+              .insert(schema.awardSlugRedirect)
+              .values({ fromSlug: row.slug, awardId: id })
+              .onConflictDoUpdate({ target: schema.awardSlugRedirect.fromSlug, set: { awardId: id } }),
+            db.delete(schema.awardSlugRedirect).where(eq(schema.awardSlugRedirect.fromSlug, set.slug)),
+          ]);
+        } else {
+          await update;
+        }
       }
       return db.query.award.findFirst({ where: eq(schema.award.id, id) });
     },

@@ -218,6 +218,13 @@
       "when": 1793444494986,
       "tag": "0030_auth_events",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1793467043943,
+      "tag": "0031_award_slug_redirect",
+      "breakpoints": true
     }
   ]
 }

@@ -120,4 +120,6 @@ export default [
   route("health", "routes/health.ts"),
   route(".well-known/security.txt", "routes/security-txt.ts"),
   route(`${INDEXNOW_KEY}.txt`, "routes/indexnow-key.ts"),
+  // Every other path: 410 for a page removed on purpose, else 404, drawn by the root ErrorBoundary.
+  route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;
