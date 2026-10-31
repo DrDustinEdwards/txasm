@@ -262,7 +262,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
       <div className="stack-2">
         <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
         <p>
-          {next ? "To change your passkeys, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
+          {next ? "To change your passkeys or signed-in devices, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
           password needed.
         </p>
       </div>
