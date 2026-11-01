@@ -96,8 +96,9 @@ export default [
   ]),
   // Where Cloudflare Access sends a platform admin back from (app/lib/access.server.ts).
   route("admin/access", "routes/admin.access.tsx"),
-  // The hashed admin list the Access drift check reads (site-runtime ADMIN_LIST_PATH, behind Access).
-  route("admin/access-drift", "routes/admin.access-drift.ts"),
+  // The hashed admin list the Access drift check reads. It sits under admin/access, the one path the
+  // txasm-login Access application covers, so a service token reaches it (/admin/access-drift is outside it).
+  route("admin/access/drift", "routes/admin.access-drift.ts"),
   // Resource routes: full-document HTML / streamed PDF, no shell chrome.
   route(
     "admin/editions/:editionId/book/preview",
