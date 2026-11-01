@@ -16,8 +16,8 @@
 //
 // UPLOADS. An upload and a replace go through site-api's prepareUpload: HEIC and HEIF to JPEG, the location taken
 // out, the shrink, the embedded fields, and the placeholder and main color, stored for Carrel's library (a turn and a
-// revert make them again for their bytes). The pages never use the placeholder: their CSP allows images from 'self'
-// only, so an inline data: one would be blocked.
+// revert make them again for their bytes). The pages show it while a picture loads (render.server.ts), and a replace, a
+// turn in place and a revert render the pages that show the file again, so their addresses carry its new version.
 //
 // NOT OFFERED: the resize pass (above). SVG and PDF are not accepted:
 // the library is pictures for pages, and the archive keeps the PDFs (admin/documents).
@@ -54,6 +54,7 @@ import { editImage } from "@dustinedwards/site-runtime/image";
 import { getCarrelMedia, getCarrelPages, type MediaFields, type MediaRow, type MediaWrite } from "../data-access";
 import { MEDIA_PREFIX, mediaKeysIn, mediaPath } from "../media/images";
 import { suggestFor } from "../media/suggest.server";
+import { rerenderUsing } from "./render.server";
 
 /** Pictures only; each is one the Images binding reads, and none can carry script. */
 const TYPES: Record<string, string> = {
@@ -410,7 +411,9 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
       }
       await claim(id, input.expectedVersion);
       await swapBytes(row, { bytes, width: width ?? row.width, height: height ?? row.height, reason: "replace" }, { focus: null, placeholder, color });
-      // The image route keys its cached sizes by the object's etag (site-runtime ./image), so none is stale.
+      // The image route keys its cached sizes by the object's etag (site-runtime ./image), so none is stale; the pages'
+      // addresses carry the old version until they are rendered again.
+      await rerenderUsing(env, id);
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
     },
 
@@ -455,6 +458,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
       await swapBytes(row, { bytes, width, height, reason: "transform" }, { focus, ...look });
       // replaceObject dropped the old point with the old bytes; the moved one goes back on the object for ./image.
       if (focus) await writeFocus(bucket, id, focus);
+      await rerenderUsing(env, id);
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
     },
 
@@ -484,6 +488,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
       const bytes = new Uint8Array(await kept.arrayBuffer());
       await claim(id, input.expectedVersion);
       await swapBytes(row, { bytes, width: revision.width, height: revision.height, reason: "revert" }, { focus: null, ...(await placeholderAndColor(env.IMAGES, bytes)) });
+      await rerenderUsing(env, id);
       return { item: itemOf(await fresh(id)), sizesNeedPurge: false };
     },
 

@@ -231,7 +231,7 @@ test("a library picture: a page publishes it with its sizes, and while a page us
   });
   assert.equal(published.status, 200);
   const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'home'").first<{ html: string }>())!;
-  assert.match(html, /<picture><source type="image\/avif" srcset="[^"]*\.avif\?w=768 768w/);
+  assert.match(html, /<picture><source type="image\/avif" srcset="[^"]*\.avif\?v=[0-9a-f]{12}(?:&|&#x26;)w=768 768w/);
   assert.match(html, /width="768" height="432"/);
 
   const detail = await json(await call(`${PREFIX}/media/${enc(file.id)}`));
@@ -259,14 +259,24 @@ test("bytes the library already holds answer as that file, and nothing new is st
 });
 
 test("a turn keeps the old bytes in the history, a revert puts them back, and a turn that changes the size is a new file", async () => {
-  const square = await json(await upload(png({ width: 50, height: 50 }, { Seed: "square" }), "square.png"));
+  const square = await json(await upload(png({ width: 800, height: 800 }, { Seed: "square" }), "square.png"));
   const original = await objectBytes(square.id);
+  // A published page that shows it: its addresses carry the file's version, so a turn renders the page again.
+  const doc = await json(await call(`${PREFIX}/content/award-nominations`));
+  const shown = await call(`${PREFIX}/content/award-nominations/publish`, {
+    method: "POST",
+    body: JSON.stringify({ source: `${doc.source}\n![A square](${square.url})\n`, expectedVersion: doc.version, changeId: "chg_square" }),
+  });
+  assert.equal(shown.status, 200);
   const flipped = await json(await call(`${PREFIX}/media/${enc(square.id)}/transform`, {
     method: "POST",
     body: JSON.stringify({ op: "flip-h", expectedVersion: square.version, changeId: "chg_flip" }),
   }));
   assert.equal(flipped.asNewFile, false, JSON.stringify(flipped));
   assert.notDeepEqual(await objectBytes(square.id), original);
+  const { sha256 } = (await db.prepare("SELECT sha256 FROM media WHERE key = ?").bind(square.id).first<{ sha256: string }>())!;
+  const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'award-nominations'").first<{ html: string }>())!;
+  assert.match(html, new RegExp(`href="/${square.id}\\?v=${sha256.slice(0, 12)}"`));
   const { revisions } = await json(await call(`${PREFIX}/media/${enc(square.id)}/history`));
   assert.deepEqual(revisions.map((r: { reason: string; current: boolean }) => [r.reason, r.current]), [["transform", true], ["upload", false]]);
   const reverted = await call(`${PREFIX}/media/${enc(square.id)}/revert`, {
