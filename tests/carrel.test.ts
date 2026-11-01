@@ -1,7 +1,7 @@
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
-import { createSiteApi, type PublishEvent } from "@dustinedwards/site-api";
+import { createSiteApi, stripMetadata, type PublishEvent } from "@dustinedwards/site-api";
 import { runConformance } from "@dustinedwards/site-api/conformance";
 import { d1SiteApiStore } from "@dustinedwards/site-api/store";
 import { createCarrelAdapter } from "../app/lib/carrel/adapter.server";
@@ -100,11 +100,12 @@ const fakeImages = {
 };
 
 const fakeAi = {
-  run: async () => ({ response: 'Sure: {"alt": "A poster session in a hotel ballroom.", "tags": ["Posters", "ballroom", "ballroom"]}' }),
+  run: async () => ({ response: { alt: "A poster session in a hotel ballroom.", tags: ["Posters", "ballroom", "ballroom"] } }),
 };
 
 async function upload(bytes: Uint8Array, name: string, extra: Record<string, string> = {}) {
-  const query = new URLSearchParams({ filename: name, changeId: `chg_${name.replace(/[^A-Za-z0-9_-]/g, "_")}`, ...extra });
+  // site-api 0.19+ refuses an upload with neither alt nor decorative: no alt is the decorative choice.
+  const query = new URLSearchParams({ filename: name, changeId: `chg_${name.replace(/[^A-Za-z0-9_-]/g, "_")}`, ...("alt" in extra ? {} : { decorative: "yes" }), ...extra });
   return call(`${PREFIX}/media?${query}`, { method: "POST", body: bytes, headers: { "Content-Type": "image/png" } });
 }
 const enc = encodeURIComponent;
@@ -299,13 +300,18 @@ test("a turn keeps the old bytes in the history, a revert puts them back, and a 
 test("a large picture is shrunk at upload unless asked not to, and its original is kept", async () => {
   const bytes = png({ width: 5000, height: 2500 }, { Seed: "large" });
   const shrunk = await json(await upload(bytes, "large.png"));
-  assert.deepEqual([shrunk.width, shrunk.height, shrunk.resizedFrom], [2560, 1280, { width: 5000, height: 2500, bytes: bytes.length }]);
+  // The original is kept without its private metadata (its tEXt chunk), as the stored file is.
+  const clean = stripMetadata(bytes, "image/png");
+  assert.deepEqual([shrunk.width, shrunk.height, shrunk.resizedFrom], [2560, 1280, { width: 5000, height: 2500, bytes: clean.length }]);
   const kept = (await uploads.list({ prefix: "media-history/" })).objects.find((o) => o.key.endsWith(`/${shrunk.id}`));
   assert.ok(kept, "the original was not kept");
-  assert.deepEqual(await objectBytes(kept.key), bytes);
+  assert.deepEqual(await objectBytes(kept.key), clean);
+  // Sent again, the shrunk file is found, though its stored bytes are not the ones sent.
+  assert.equal((await json(await upload(bytes, "large-again.png"))).duplicateOf, shrunk.id);
 
-  const asIs = await json(await upload(png({ width: 5000, height: 2500 }, { Seed: "large-kept" }), "large-kept.png", { resize: "no" }));
-  assert.deepEqual([asIs.width, asIs.height], [5000, 2500]);
+  // Another picture: one that differs only in its tEXt would be the same file.
+  const asIs = await json(await upload(png({ width: 4800, height: 2400 }), "large-kept.png", { resize: "no" }));
+  assert.deepEqual([asIs.width, asIs.height], [4800, 2400]);
 });
 
 test("the change log names each file changed since a cursor, and each one deleted for good", async () => {

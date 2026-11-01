@@ -1241,6 +1241,14 @@ export const webmentionTargets = sqliteTable("webmention_targets", {
   sentAt: text("sent_at").notNull(),
 });
 
+// site-api 0.21.0 (SITE_API_STORE_SQL_V0_21): the media file each upload's duplicates key became, so a picture the
+// adapter converted or shrank is still found when it is sent again.
+export const mediaUploads = sqliteTable("media_uploads", {
+  sha256: text("sha256").primaryKey(),
+  mediaId: text("media_id").notNull(),
+  at: text("at").notNull(),
+});
+
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter. Add once the core above is agreed.

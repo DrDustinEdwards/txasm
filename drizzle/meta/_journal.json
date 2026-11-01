@@ -225,6 +225,13 @@
       "when": 1793463158088,
       "tag": "0031_session_device",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1793516285838,
+      "tag": "0032_site_api_media_uploads",
+      "breakpoints": true
     }
   ]
 }
