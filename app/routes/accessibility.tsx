@@ -11,6 +11,9 @@ const STATEMENT = accessibilityStatement({
   siteName: "txasm.org",
   contact: { href: "/contact", label: "the contact page" },
   date: "2026-11-01",
+  // Built from Capsomer; links in running text are semibold in the link color (no link.css marks), WCAG 1.4.1 by weight.
+  capsomer: true,
+  links: "bold",
 });
 
 export function meta({ matches }: Route.MetaArgs) {
