@@ -9,6 +9,7 @@
 // PLACEHOLDERS. A picture shows site-api's stored placeholder and main color while it loads: Prelum writes them on the
 // img (has-lqip, sized by Capsomer's picture.css), and the policy allows data: images for them (security-headers.ts).
 import { RefusedError } from "@dustinedwards/site-api";
+import { logEvent } from "@dustinedwards/site-runtime/log";
 import { getCarrelMedia, getCarrelPages, type MediaRow } from "../data-access";
 import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
 import { parseSource } from "./source";
@@ -95,7 +96,7 @@ export async function rerenderUsing(env: Env, key: string): Promise<number> {
       await pages.rerendered(page.slug, { html, renderVersion, searchFields });
       done += 1;
     } catch (err) {
-      console.error(JSON.stringify({ event: "render.media-failed", page: page.slug, key, error: err instanceof Error ? err.message : String(err) }));
+      logEvent("render.media-failed", { page: page.slug, key, error: err instanceof Error ? err.message : String(err) }, { level: "error" });
     }
   }
   return done;
