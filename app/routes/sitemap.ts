@@ -19,6 +19,7 @@ const STATIC_PATHS = [
   "/trail",
   "/sponsorship",
   "/contact",
+  "/accessibility",
 ];
 
 export async function loader({ context }: Route.LoaderArgs) {
