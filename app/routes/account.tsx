@@ -18,7 +18,7 @@ import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
 import { getAuth } from "~/lib/auth.server";
-import { type AccountRecordKind, getDataAccess } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import { authClient } from "~/lib/auth-client";
 import { formatDateTime } from "~/lib/format";
 import { readForm } from "~/lib/form.server";
@@ -29,15 +29,6 @@ export const handle = { hydrate: true };
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Account");
 }
-
-// What an account holds that keeps it from being deleted here (data-access/account.ts), in words.
-const RECORD_WORDS: Record<AccountRecordKind, string> = {
-  role: "a role in a Meeting (admin, chair or reviewer)",
-  registration: "a Meeting registration",
-  abstract: "abstracts",
-  review: "reviews",
-  work: "work done for a Meeting",
-};
 
 // A security history row's kind (site-runtime securityHistory), in words; a sign-in says how.
 const HISTORY_WORDS: Record<string, string> = {
@@ -119,7 +110,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 // Through Better Auth's handler, for its limiter and origin check, as the sign-in form does. Better
 // Auth refuses a sign-in older than FRESH_SECONDS (SESSION_EXPIRED), and app/lib/auth.server.ts an
-// account that holds Meeting records (ACCOUNT_HAS_RECORDS). Deleted, the browser's cookies are
+// account that holds a Meeting role (ACCOUNT_HAS_ROLE). Meeting records stay. Deleted, the browser's cookies are
 // cleared and the person lands on the sign-in page.
 async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request: Request) {
   const headers = new Headers({ "Content-Type": "application/json" });
@@ -137,7 +128,7 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
   }
   const { code } = (await response.json().catch(() => ({}))) as { code?: string };
   if (code === "SESSION_EXPIRED") return { deleteError: "Your sign-in is too old to delete the account. Sign in again, then try." };
-  if (code === "ACCOUNT_HAS_RECORDS") return { deleteError: "Your account holds Meeting records, so it was not deleted." };
+  if (code === "ACCOUNT_HAS_ROLE") return { deleteError: "Your account holds a role in a Meeting, so it was not deleted." };
   return { deleteError: "The account was not deleted. Try again." };
 }
 
@@ -476,14 +467,15 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         <h2 className="subsection-title">Delete your account</h2>
         {deletionBlockers.length > 0 ? (
           <p>
-            Your account holds {deletionBlockers.map((kind) => RECORD_WORDS[kind]).join(", ")}. These stay in the
-            Meeting archive, so the account cannot be deleted here. <Link to="/contact">Contact the branch</Link> to
-            ask about removing it.
+            Your account holds a role in a Meeting (admin, chair or reviewer). <Link to="/contact">Contact the branch</Link>{" "}
+            to hand it over, then you can delete your account here.
           </p>
         ) : (
           <p>
-            This deletes your account, its passkeys and its signed-in devices. It cannot be undone. You can make a new
-            account later with any email address.
+            This deletes your account, its passkeys and its signed-in devices, and removes your email and name from it.
+            It cannot be undone. Your abstracts, reviews and registrations stay in the Meeting archive, with author
+            names as you submitted them, no longer connected to an account. You can make a new account later with any
+            email address.
           </p>
         )}
       </div>

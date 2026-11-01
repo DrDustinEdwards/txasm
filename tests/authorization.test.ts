@@ -132,10 +132,10 @@ test("a meeting's lists hold all of its abstracts and none of another's", async 
   await assert.rejects(dataAccess.abstracts.listForEdition(chairOfA, "ed-b"), ForbiddenError);
 });
 
-// Deleting an account (/account) is refused while it holds meeting records, which D1's foreign
-// keys would refuse anyway, but only after Better Auth had already ended the sessions. The list
-// must name every reference to user.id that does not cascade.
-test("an account is deletable only when it holds no meeting records", async () => {
+// Deleting an account (/account): the person goes, what they put into a Meeting stays, handed to a
+// "Deleted account" user. The list must name every reference to user.id that does not cascade, or the
+// delete would fail on a foreign key after Better Auth had already ended the sessions.
+test("deleting an account keeps its meeting records and refuses only an active role", async () => {
   const tables = await d1.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all<{ name: string }>();
   const blocking = new Set<string>();
   for (const { name } of tables.results.filter((t) => !/^(_cf_|sqlite_|d1_)/.test(t.name))) {
@@ -147,7 +147,7 @@ test("an account is deletable only when it holds no meeting records", async () =
     blocking,
   );
 
-  assert.deepEqual(await dataAccess.account.deletionBlockers("u-author"), ["abstract"]);
+  assert.deepEqual(await dataAccess.account.deletionBlockers("u-author"), []);
   await d1.prepare("INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-leaving', 'leaving@example.com', 1, 1)").run();
   await d1
     .prepare("INSERT INTO role_grant (id, user_id, role, edition_id, status, created_at) VALUES ('g-leaving', 'u-leaving', 'reviewer', 'ed-a', 'active', 1)")
@@ -156,7 +156,24 @@ test("an account is deletable only when it holds no meeting records", async () =
   await d1.prepare("UPDATE role_grant SET status = 'revoked' WHERE id = 'g-leaving'").run();
   assert.deepEqual(await dataAccess.account.deletionBlockers("u-leaving"), []);
   await d1.prepare("DELETE FROM user WHERE id = 'u-leaving'").run();
-  await assert.rejects(d1.prepare("DELETE FROM user WHERE id = 'u-author'").run(), /FOREIGN KEY/);
+
+  // The author owns an abstract: handing over keeps the abstract and its author line, drops the contact email, and lets the user row go.
+  const abstractsBefore = await d1.prepare("SELECT COUNT(*) AS n FROM abstract WHERE submitter_id = 'u-author'").first<{ n: number }>();
+  assert.ok(abstractsBefore && abstractsBefore.n > 0);
+  await d1
+    .prepare("INSERT INTO author (id, abstract_id, user_id, first_name, last_name, email, ordinal, created_at) SELECT 'au-test', id, 'u-author', 'Ada', 'Lovelace', 'ada@example.com', 1, 1 FROM abstract WHERE submitter_id = 'u-author' LIMIT 1")
+    .run();
+  await dataAccess.account.handOverRecords("u-author");
+  await dataAccess.account.handOverRecords("u-author"); // a retry after a half-finished delete changes nothing
+  await d1.prepare("DELETE FROM user WHERE id = 'u-author'").run();
+  const kept = await d1
+    .prepare("SELECT COUNT(*) AS n FROM abstract WHERE submitter_id = 'deleted-u-author'")
+    .first<{ n: number }>();
+  assert.equal(kept?.n, abstractsBefore.n);
+  const line = await d1.prepare("SELECT first_name, last_name, email, user_id FROM author WHERE id = 'au-test'").first<Record<string, unknown>>();
+  assert.deepEqual(line, { first_name: "Ada", last_name: "Lovelace", email: null, user_id: "deleted-u-author" });
+  const heir = await d1.prepare("SELECT name, email FROM user WHERE id = 'deleted-u-author'").first<Record<string, unknown>>();
+  assert.deepEqual(heir, { name: "Deleted account", email: "deleted-u-author@deleted.invalid" });
 });
 
 test("platform admin is the ADMIN_EMAILS list on every request, never an old admin grant", async () => {
