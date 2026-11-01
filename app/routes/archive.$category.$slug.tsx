@@ -18,7 +18,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   return pageHead(matches, {
     path: location.pathname,
     name: title,
-    description: `${title}, from the Texas Branch ASM archive.`,
+    description: `${title}, from the Texas Branch ASM archive of past meetings: the PDF to read in the browser or download.`,
   });
 }
 

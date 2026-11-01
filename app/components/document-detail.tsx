@@ -1,4 +1,6 @@
 import { Link } from "capsomer/react/link";
+import { Breadcrumb } from "capsomer/react/breadcrumb";
+import { renderLink } from "~/components/site-chrome";
 import { PdfViewer } from "./pdf-viewer";
 import { documentSubtitle, type ArchiveDoc } from "~/lib/document-nav";
 
@@ -23,9 +25,10 @@ export function DocumentDetail({
   return (
     <div className="stack-6">
       <header className="stack-3">
-        <p className="small">
-          <Link to={basePath}>{backTitle}</Link>
-        </p>
+        <Breadcrumb
+          renderLink={renderLink}
+          items={[{ label: "Home", href: "/" }, { label: backTitle, href: basePath }, { label: doc.title }]}
+        />
         <h1 className="page-title">{doc.title}</h1>
         {subtitle ? <p className="cap-muted">{subtitle}</p> : null}
         <p>

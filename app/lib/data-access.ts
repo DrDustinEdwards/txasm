@@ -31,6 +31,7 @@ import { createDocuments } from "./data-access/documents";
 import { createSettings } from "./data-access/settings";
 import { createMeetingImporter } from "./data-access/importer";
 import { createCarrelPages, createPages } from "./data-access/pages";
+import { createSitemap } from "./data-access/sitemap";
 import { createCarrelMedia } from "./data-access/media";
 import { createAccount } from "./data-access/account";
 
@@ -130,6 +131,7 @@ function createDataAccess(db: DB) {
     abstractCategories: createAbstractCategories(db),
     settings: createSettings(db),
     pages: createPages(db),
+    sitemap: createSitemap(db),
     account: createAccount(db),
   };
 }

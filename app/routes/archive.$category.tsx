@@ -16,7 +16,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
     path: location.pathname,
     pageType: "CollectionPage",
     name: title,
-    description: `${title} from past Texas Branch ASM meetings.`,
+    description: `${title} from past Texas Branch ASM meetings, each a PDF to read in the browser or download.`,
   });
 }
 
