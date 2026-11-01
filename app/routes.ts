@@ -22,6 +22,7 @@ export default [
     route("trail", "routes/trail.tsx"),
     route("sponsorship", "routes/sponsorship.tsx"),
     route("contact", "routes/contact.tsx"),
+    route("accessibility", "routes/accessibility.tsx"),
     route("signin", "routes/signin.tsx"),
     route(SIGN_IN_CONFIRM_PATH.slice(1), "routes/signin.confirm.tsx"),
     route("signout", "routes/signout.tsx"),

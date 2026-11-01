@@ -87,6 +87,8 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
   const footerLinks = settings?.footerLinks ?? [];
   // Contact is always offered; an admin's own /contact link stands in for it.
   const hasContact = footerLinks.some((link) => link.url === "/contact");
+  // So is the accessibility statement (devkit-a11y S6).
+  const hasAccessibility = footerLinks.some((link) => link.url === "/accessibility");
 
   return (
     <footer className="txasm-footer">
@@ -96,6 +98,7 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
             <FooterLink key={`${link.label}-${link.url}`} label={link.label} url={link.url} />
           ))}
           {hasContact ? null : <FooterLink label="Contact" url="/contact" />}
+          {hasAccessibility ? null : <FooterLink label="Accessibility" url="/accessibility" />}
           {settings?.facebookUrl ? <FooterLink label="Facebook group" url={settings.facebookUrl} /> : null}
         </nav>
         {/* Decorative footer wordmark; the copyright line below names the org, so
