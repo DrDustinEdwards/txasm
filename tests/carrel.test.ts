@@ -100,11 +100,12 @@ const fakeImages = {
 };
 
 const fakeAi = {
-  run: async () => ({ response: 'Sure: {"alt": "A poster session in a hotel ballroom.", "tags": ["Posters", "ballroom", "ballroom"]}' }),
+  run: async () => ({ response: { alt: "A poster session in a hotel ballroom.", tags: ["Posters", "ballroom", "ballroom"] } }),
 };
 
 async function upload(bytes: Uint8Array, name: string, extra: Record<string, string> = {}) {
-  const query = new URLSearchParams({ filename: name, changeId: `chg_${name.replace(/[^A-Za-z0-9_-]/g, "_")}`, ...extra });
+  // site-api 0.19+ refuses an upload with neither alt nor decorative: no alt is the decorative choice.
+  const query = new URLSearchParams({ filename: name, changeId: `chg_${name.replace(/[^A-Za-z0-9_-]/g, "_")}`, ...("alt" in extra ? {} : { decorative: "yes" }), ...extra });
   return call(`${PREFIX}/media?${query}`, { method: "POST", body: bytes, headers: { "Content-Type": "image/png" } });
 }
 const enc = encodeURIComponent;
