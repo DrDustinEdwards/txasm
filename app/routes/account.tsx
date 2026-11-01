@@ -61,8 +61,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
   const { headers } = request;
-  // With the request, so this session's last use and place move with it (site-runtime sessionDetails).
-  const current = await auth.api.getSession({ headers, request });
+  // With the request, so this session's last use and place move with it (site-runtime sessionDetails), and
+  // asResponse: false, or Better Auth answers with a Response and the page reads everyone as signed out.
+  const current = await auth.api.getSession({ headers, request, asResponse: false });
   if (!current) throw redirect("/signin");
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");

@@ -168,9 +168,12 @@ export async function getSessionUser(
   if (!env.BETTER_AUTH_SECRET) return null;
   try {
     // With the request, so the session's last use and place move with it (sessionDetails above).
+    // asResponse: false, since Better Auth answers a call that carries a request with a Response,
+    // which has no user, unless told not to.
     const session = await (await getAuth(env)).api.getSession({
       headers: request.headers,
       request,
+      asResponse: false,
     });
     if (!session?.user) return null;
     const { id, email, name } = session.user;
