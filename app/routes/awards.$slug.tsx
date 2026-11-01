@@ -1,10 +1,11 @@
-import { Link } from "capsomer/react/link";
+import { Breadcrumb } from "capsomer/react/breadcrumb";
+import { renderLink } from "~/components/site-chrome";
 import { Empty } from "capsomer/react/empty";
 import { Badge } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
 import { cloudflareContext } from "~/load-context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
-import { pageHead } from "~/lib/site-meta";
+import { SITE_NAME, pageHead, plainText } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
@@ -16,7 +17,14 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   return pageHead(matches, {
     path: location.pathname,
     name,
-    description: award?.description || `The ${name} of the Texas Branch ASM and its recipients.`,
+    breadcrumbs: [
+      { name: SITE_NAME, path: "/" },
+      { name: "Awardees", path: "/awardees" },
+      { name, path: location.pathname },
+    ],
+    description: award?.description
+      ? `${plainText(award.description)} ${name} recipients from the Texas Branch ASM, by year.`
+      : `The ${name} of the Texas Branch of the American Society for Microbiology and its recipients, by year.`,
   });
 }
 
@@ -46,9 +54,10 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
   return (
     <div className="stack-8">
       <header className="stack-3">
-        <p className="small">
-          <Link to="/awardees">All awards</Link>
-        </p>
+        <Breadcrumb
+          renderLink={renderLink}
+          items={[{ label: "Home", href: "/" }, { label: "Awardees", href: "/awardees" }, { label: award.name }]}
+        />
         <h1 className="page-title">{award.name}</h1>
         {award.description ? <p className="lead" dangerouslySetInnerHTML={{ __html: award.description }} /> : null}
         {award.namesakeBio ? <p className="lead small" dangerouslySetInnerHTML={{ __html: award.namesakeBio }} /> : null}
