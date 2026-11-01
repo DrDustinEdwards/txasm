@@ -80,14 +80,17 @@ async function buildAuth(env: Env) {
       },
       // Self-service deletion from /account. Better Auth asks for a sign-in in the last
       // FRESH_SECONDS and removes the sessions, linked accounts and (by cascade) passkeys.
-      // An account that holds meeting records is refused (data-access/account.ts).
+      // What the person put into a Meeting stays: handOverRecords gives those rows to a
+      // "Deleted account" user first (data-access/account.ts). An active admin, chair or
+      // reviewer grant is handed over before deleting.
       deleteUser: {
         enabled: true,
         beforeDelete: async (user) => {
-          const blockers = await getDataAccess(env).account.deletionBlockers(user.id);
-          if (blockers.length > 0) {
-            throw new APIError("BAD_REQUEST", { code: "ACCOUNT_HAS_RECORDS", message: "The account holds meeting records." });
+          const account = getDataAccess(env).account;
+          if ((await account.deletionBlockers(user.id)).length > 0) {
+            throw new APIError("BAD_REQUEST", { code: "ACCOUNT_HAS_ROLE", message: "The account holds a role in a Meeting." });
           }
+          await account.handOverRecords(user.id);
         },
       },
     },
