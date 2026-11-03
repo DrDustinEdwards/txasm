@@ -11,6 +11,7 @@ import {
   passkeyRows,
   revokeSessionById,
   securityHistory,
+  sessionLookup,
   shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
 import { canOfferPasskey, signalPasskeys, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
@@ -52,9 +53,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);
   const { headers } = request;
-  // With the request, so this session's last use and place move with it (site-runtime sessionDetails), and
+  // site-runtime sessionLookup: with the request, so this session's last use and place move with it, and
   // asResponse: false, or Better Auth answers with a Response and the page reads everyone as signed out.
-  const current = await auth.api.getSession({ headers, request, asResponse: false });
+  const current = await auth.api.getSession(sessionLookup(request));
   if (!current) throw redirect("/signin");
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");
@@ -95,7 +96,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const form = await readForm(request, 4 * 1024);
   if (form.get("intent") === "delete") return deleteAccount(auth, request);
   if (form.get("intent") === "not-now") {
-    const current = await auth.api.getSession({ headers: request.headers });
+    const current = await auth.api.getSession(sessionLookup(request));
     if (current) await dismissPasskeyOffer(env.DB, current.user.id, { request });
     throw redirect("/");
   }

@@ -5,7 +5,7 @@ import { redirect } from "react-router";
 import { env, waitUntil } from "cloudflare:workers";
 import { accessSignInUrl } from "@dustinedwards/site-runtime/access";
 import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
-import { emailConfirmURL, signInOptions } from "@dustinedwards/site-runtime/sign-in";
+import { emailConfirmURL, sessionLookup, signInOptions } from "@dustinedwards/site-runtime/sign-in";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
@@ -170,14 +170,10 @@ export async function getSessionUser(
 ): Promise<SessionUser | null> {
   if (!env.BETTER_AUTH_SECRET) return null;
   try {
-    // With the request, so the session's last use and place move with it (sessionDetails above).
-    // asResponse: false, since Better Auth answers a call that carries a request with a Response,
-    // which has no user, unless told not to.
-    const session = await (await getAuth(env)).api.getSession({
-      headers: request.headers,
-      request,
-      asResponse: false,
-    });
+    // site-runtime sessionLookup: the request on a GET, so the session's last use and place move with it
+    // (sessionDetails above), and always asResponse: false, without which Better Auth answers with a
+    // Response that has no user.
+    const session = await (await getAuth(env)).api.getSession(sessionLookup(request));
     if (!session?.user) return null;
     const { id, email, name } = session.user;
     return { id, email, name: name ?? null };
