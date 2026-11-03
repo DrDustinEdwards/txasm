@@ -54,6 +54,11 @@ jobs:
       - name: Migrations are expand-only
         run: npm run --silent check:migrations
 
+      # Every server-side Better Auth session read goes through site-runtime sessionLookup, which always sets
+      # asResponse: false (without it a signed-in reader reads as signed out; site-runtime-session-check).
+      - name: Session reads go through sessionLookup
+        run: npm run --silent check:session
+
       - name: Build
         run: npm run build
 
