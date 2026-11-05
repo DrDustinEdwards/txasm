@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   drill:
-    uses: DrDustinEdwards/devkit/.github/workflows/restore-drill.yml@454002f526e5e8e645a9c110605880e220b611a0 # v0.21.0
+    uses: DrDustinEdwards/devkit/.github/workflows/restore-drill.yml@56adc0c3072f0661961ae658bc644da8533b4cb4 # v0.21.2
     with:
       bucket: txasm-books
       d1-dump-ref: v0.8.0
