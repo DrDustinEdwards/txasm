@@ -1249,6 +1249,24 @@ export const mediaUploads = sqliteTable("media_uploads", {
   at: text("at").notNull(),
 });
 
+// site-api 0.22.0 (SITE_API_STORE_SQL_V0_22): the public path of each live item Carrel deleted or trashed, so its old
+// address answers 410 (gone_paths), and each publish hook's run for GET /hooks/recent (hook_runs).
+export const gonePaths = sqliteTable("gone_paths", {
+  path: text("path").primaryKey(),
+  goneAt: text("gone_at").notNull(),
+});
+
+export const hookRuns = sqliteTable(
+  "hook_runs",
+  {
+    changeId: text("change_id").notNull(),
+    hook: text("hook").notNull(),
+    ok: integer("ok").notNull(),
+    at: text("at").notNull(),
+  },
+  (t) => [index("hook_runs_change").on(t.changeId), index("hook_runs_at").on(t.at)],
+);
+
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter. Add once the core above is agreed.
