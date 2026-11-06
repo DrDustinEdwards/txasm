@@ -1,4 +1,5 @@
-import { and, desc, eq, like, or } from "drizzle-orm";
+import { likeContains } from "@drdustinedwards/site-helpers/search";
+import { type AnyColumn, type SQL, and, desc, eq, or, sql } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import { isEmptyRichText, sanitizeBody } from "../richtext";
 import {
@@ -387,23 +388,26 @@ export function createAwardRecipients(db: DB) {
 
     // Public search across person, institution, mentor, year, and award name and
     // slug, with optional award/year/institution filters. Every term is bound as
-    // a query parameter (drizzle `like`/`eq`), never string-interpolated.
+    // a query parameter, never string-interpolated, and matches as typed: its %,
+    // _ and backslash are escaped (Prelum likeContains, ESCAPE '\\'), so "50%"
+    // or "E_coli" is not a wildcard, as in public-abstracts.ts.
     async search(
       query: string,
       filters: AwardSearchFilters = {},
     ): Promise<AwardSearchResult[]> {
       const term = query.trim();
       const conditions = [];
+      const contains = (column: AnyColumn, value: string): SQL =>
+        sql`${column} LIKE ${likeContains(value)} ESCAPE '\\'`;
       if (term) {
-        const pattern = `%${term}%`;
         conditions.push(
           or(
-            like(schema.awardRecipient.personName, pattern),
-            like(schema.awardRecipient.institution, pattern),
-            like(schema.awardRecipient.mentor, pattern),
-            like(schema.awardRecipient.year, pattern),
-            like(schema.award.name, pattern),
-            like(schema.award.slug, pattern),
+            contains(schema.awardRecipient.personName, term),
+            contains(schema.awardRecipient.institution, term),
+            contains(schema.awardRecipient.mentor, term),
+            contains(schema.awardRecipient.year, term),
+            contains(schema.award.name, term),
+            contains(schema.award.slug, term),
           ),
         );
       }
@@ -415,7 +419,7 @@ export function createAwardRecipients(db: DB) {
       }
       if (filters.institution) {
         conditions.push(
-          like(schema.awardRecipient.institution, `%${filters.institution}%`),
+          contains(schema.awardRecipient.institution, filters.institution),
         );
       }
 
