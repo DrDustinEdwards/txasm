@@ -2,7 +2,7 @@
 //
 // VERSIONS. Every address a page writes for a library picture carries the file's version (`v=`, the first 12
 // characters of its bytes' sha256, site-runtime ./image): its sizes, its link to the original and its share image. The
-// route caches a versioned address for a year, so a replace, a turn or a revert must move the pages to the new
+// route caches a versioned address for a year, so a replace, a turn, a revert or a shrink must move the pages to the new
 // version, or a browser keeps the old picture for that year. The page's stored html is what holds the addresses, so
 // the media writes call rerenderUsing, which renders each page that shows the file again from its published source.
 //
@@ -92,7 +92,8 @@ export async function rerenderUsing(env: Env, key: string): Promise<number> {
       const { html, renderVersion } = await renderBody(env, parseSource(published).body);
       const image = page.searchFields?.image;
       const [row] = image && mediaKeyOf(image.url) === key ? await getCarrelMedia(env).many([key]) : [];
-      const searchFields = image && row ? { ...page.searchFields, image: { ...image, url: versionedPath(row) } } : page.searchFields;
+      // A shrink changes the size as well as the version, so the share image takes both.
+      const searchFields = image && row ? { ...page.searchFields, image: { ...image, url: versionedPath(row), width: row.width, height: row.height } } : page.searchFields;
       await pages.rerendered(page.slug, { html, renderVersion, searchFields });
       done += 1;
     } catch (err) {

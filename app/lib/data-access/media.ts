@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import type { MediaLibraryStore, MediaRecord, MediaRecordFields, MediaRevisionRecord } from "@dustinedwards/site-api";
 import * as schema from "../../db/schema";
 import type { DB } from "./core";
 
@@ -6,103 +7,182 @@ import type { DB } from "./core";
 // it is written only by Carrel through the site API, a machine caller with no acting user, so
 // this is its own path, reached only from app/lib/carrel. The objects themselves live in the
 // UPLOADS bucket under media/; this layer touches the index only.
+//
+// `library` is site-api's MediaLibraryStore over these tables, for mediaLibrary
+// (app/lib/carrel/media-adapter.server.ts): mapping only. Times are ms integers here and ISO 8601
+// there; tags a JSON array; a revision's kept copy is backup_key (copyKey); updated_at is set by
+// Drizzle on every insert and update. `many` is the rows as the page renders read them.
 
 export type MediaRow = typeof schema.media.$inferSelect;
-export type MediaRevisionRow = typeof schema.mediaRevision.$inferSelect;
-export type MediaFields = Partial<Omit<MediaRow, "key" | "rev" | "uploadedAt" | "updatedAt">>;
+type MediaRevisionRow = typeof schema.mediaRevision.$inferSelect;
 
-/** A versioned write's outcome: the new rev, or why nothing changed (and the rev the row holds). */
-export type MediaWrite = { ok: true; rev: number } | { ok: false; reason: "missing" | "stale"; rev: number | null };
+function storedTags(raw: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function recordOf(row: MediaRow): MediaRecord {
+  return {
+    key: row.key,
+    rev: row.rev,
+    filename: row.filename,
+    contentType: row.contentType,
+    bytes: row.bytes,
+    width: row.width,
+    height: row.height,
+    sha256: row.sha256,
+    alt: row.alt,
+    caption: row.caption,
+    tags: storedTags(row.tags),
+    focus: row.focus,
+    credit: row.credit,
+    license: row.license,
+    sourceUrl: row.sourceUrl,
+    licenseExpires: row.licenseExpires,
+    takenAt: row.takenAt,
+    placeholder: row.placeholder,
+    color: row.color,
+    uploadedAt: row.uploadedAt.toISOString(),
+    trashedAt: row.trashedAt ? row.trashedAt.toISOString() : null,
+  };
+}
+
+/** A record's fields as this table's columns; the fields the table has no column for are dropped. */
+function columnsOf(fields: MediaRecordFields): Partial<typeof schema.media.$inferInsert> {
+  const { tags, uploadedAt, trashedAt, sha256, decorative: _d, copyright: _c, licenseUrl: _l, acquireLicenseUrl: _a, ...rest } = fields;
+  return {
+    ...rest,
+    ...(tags !== undefined ? { tags: JSON.stringify(tags) } : {}),
+    ...(uploadedAt !== undefined ? { uploadedAt: new Date(uploadedAt) } : {}),
+    ...(trashedAt !== undefined ? { trashedAt: trashedAt === null ? null : new Date(trashedAt) } : {}),
+    // The column is NOT NULL; the library sets a hash on every write that names one.
+    ...(sha256 ? { sha256 } : {}),
+  };
+}
+
+function revisionOf(row: MediaRevisionRow): MediaRevisionRecord {
+  return {
+    id: row.id,
+    at: row.at.toISOString(),
+    bytes: row.bytes,
+    width: row.width,
+    height: row.height,
+    reason: row.reason,
+    sha256: row.sha256,
+    copyKey: row.backupKey,
+  };
+}
 
 export function createCarrelMedia(db: DB) {
   const media = schema.media;
   const revisions = schema.mediaRevision;
+  const one = async (key: string) => (await db.query.media.findFirst({ where: eq(media.key, key) })) ?? null;
 
-  return {
-    /** Every row. The library is a branch site's page pictures, so a list filters and sorts it in the Worker. */
-    all: (): Promise<MediaRow[]> => db.select().from(media),
+  const library: MediaLibraryStore = {
+    record: async (key) => {
+      const row = await one(key);
+      return row ? recordOf(row) : null;
+    },
 
-    get: async (key: string): Promise<MediaRow | null> =>
-      (await db.query.media.findFirst({ where: eq(media.key, key) })) ?? null,
+    records: async (keys) => (keys.length === 0 ? [] : (await db.select().from(media).where(inArray(media.key, keys))).map(recordOf)),
 
-    many: async (keys: string[]): Promise<MediaRow[]> =>
-      keys.length === 0 ? [] : db.select().from(media).where(inArray(media.key, keys)),
+    all: async () => (await db.select().from(media).orderBy(desc(media.uploadedAt), asc(media.key))).map(recordOf),
 
-    /** The file whose bytes, now or as first uploaded (before a shrink), have this hash. */
-    async byHash(sha256: string): Promise<MediaRow | null> {
-      const current = await db.query.media.findFirst({ where: eq(media.sha256, sha256), orderBy: asc(media.uploadedAt) });
-      if (current) return current;
+    async byHash(sha256) {
+      const current = await db.query.media.findFirst({ where: eq(media.sha256, sha256), orderBy: [asc(media.uploadedAt), asc(media.key)] });
+      if (current) return recordOf(current);
       const [first] = await db
         .select({ key: revisions.mediaKey })
         .from(revisions)
         .where(and(eq(revisions.sha256, sha256), inArray(revisions.reason, ["upload", "import"])))
+        .orderBy(asc(revisions.id))
         .limit(1);
-      return first ? ((await db.query.media.findFirst({ where: eq(media.key, first.key) })) ?? null) : null;
+      const row = first ? await one(first.key) : null;
+      return row ? recordOf(row) : null;
     },
 
-    insert: async (row: typeof schema.media.$inferInsert): Promise<void> => {
-      await db.insert(media).values(row);
+    async insert(record) {
+      await db.insert(media).values({ ...columnsOf(record), key: record.key, contentType: record.contentType, bytes: record.bytes, sha256: record.sha256 ?? "", uploadedAt: new Date(record.uploadedAt) });
     },
 
-    /**
-     * Writes `fields` and bumps rev, only if the row is still at `expectedRev` (null: whatever it holds), in one
-     * statement, so a stale writer is refused and never overwrites a newer write.
-     */
-    async writeAtRev(key: string, fields: MediaFields, expectedRev: number | null): Promise<MediaWrite> {
-      const where = expectedRev === null ? eq(media.key, key) : and(eq(media.key, key), eq(media.rev, expectedRev));
+    async writeAtRev(key, fields, expectedRev) {
       const [written] = await db
         .update(media)
-        .set({ ...fields, rev: sql`${media.rev} + 1` })
-        .where(where)
-        .returning({ rev: media.rev });
-      if (written) return { ok: true, rev: written.rev };
-      const row = await db.query.media.findFirst({ where: eq(media.key, key), columns: { rev: true } });
-      return { ok: false, reason: row ? "stale" : "missing", rev: row?.rev ?? null };
+        .set({ ...columnsOf(fields), rev: sql`${media.rev} + 1` })
+        .where(and(eq(media.key, key), eq(media.rev, expectedRev)))
+        .returning();
+      if (written) return { ok: true, record: recordOf(written) };
+      const row = await one(key);
+      return row ? { ok: false, reason: "stale", rev: row.rev } : { ok: false, reason: "missing" };
     },
 
-    /** Index columns that follow the object (bytes, size, hash), after the caller claimed the version. */
-    follow: async (key: string, fields: MediaFields): Promise<void> => {
-      await db.update(media).set(fields).where(eq(media.key, key));
+    async follow(key, fields) {
+      const columns = columnsOf(fields);
+      const [row] = Object.keys(columns).length > 0 ? await db.update(media).set(columns).where(eq(media.key, key)).returning() : [await one(key)];
+      if (!row) throw new Error(`${key} changed its bytes, but its row is gone`);
+      return recordOf(row);
     },
 
-    /** Removes the row and, by cascade, its revisions. */
-    remove: async (key: string): Promise<boolean> =>
-      (await db.delete(media).where(eq(media.key, key)).returning({ key: media.key })).length > 0,
-
-    /** Newest first. */
-    revisions: (key: string, limit = 100): Promise<MediaRevisionRow[]> =>
-      db.select().from(revisions).where(eq(revisions.mediaKey, key)).orderBy(desc(revisions.id)).limit(limit),
-
-    addRevision: async (row: typeof schema.mediaRevision.$inferInsert): Promise<number> => {
-      const [made] = await db.insert(revisions).values(row).returning({ id: revisions.id });
-      return made!.id;
+    async addRevision(key, revision) {
+      const [made] = await db
+        .insert(revisions)
+        .values({
+          mediaKey: key,
+          at: new Date(revision.at),
+          bytes: revision.bytes,
+          width: revision.width,
+          height: revision.height,
+          reason: revision.reason,
+          sha256: revision.sha256,
+          backupKey: revision.copyKey,
+        })
+        .returning({ id: revisions.id });
+      if (!made) throw new Error(`${key}'s revision was not recorded`);
+      return made.id;
     },
 
-    /** Names the kept copy of a revision's bytes, once newer bytes replace them. */
-    keepRevision: async (id: number, backupKey: string): Promise<void> => {
-      await db.update(revisions).set({ backupKey }).where(eq(revisions.id, id));
+    revisions: async (key, limit = 100) =>
+      (await db.select().from(revisions).where(eq(revisions.mediaKey, key)).orderBy(desc(revisions.id)).limit(limit)).map(revisionOf),
+
+    async keepCopy(revisionId, copyKey) {
+      await db.update(revisions).set({ backupKey: copyKey }).where(eq(revisions.id, revisionId));
     },
 
-    /** The newest change's sequence number, 0 before any. */
-    async changeCursor(): Promise<number> {
+    // Only at the rev the reference check saw. The revisions go by name as well as by the foreign key's cascade, in one
+    // batch with the row, and only once the row is gone.
+    async remove(key, rev) {
+      const [deleted] = await db.batch([
+        db.delete(media).where(and(eq(media.key, key), eq(media.rev, rev))).returning({ key: media.key }),
+        db.delete(revisions).where(and(eq(revisions.mediaKey, key), sql`NOT EXISTS (SELECT 1 FROM ${media} WHERE ${media.key} = ${key})`)),
+      ]);
+      if (deleted.length > 0) return "removed";
+      return (await one(key)) ? "stale" : "missing";
+    },
+
+    async changeCursor() {
       const [row] = await db.select({ seq: sql<number | null>`max(${schema.mediaChange.seq})` }).from(schema.mediaChange);
       return Number(row?.seq ?? 0);
     },
 
-    /**
-     * The keys changed after `since` and up to `upTo`, each once at its latest change, oldest first: one more than
-     * `limit`, so the caller can tell whether more wait.
-     */
-    changedSince(since: number, upTo: number, limit: number): Promise<Array<{ key: string; seq: number }>> {
+    changedSince(from, head, limit) {
       const change = schema.mediaChange;
       const latest = sql<number>`max(${change.seq})`;
       return db
         .select({ key: change.mediaKey, seq: latest })
         .from(change)
-        .where(sql`${change.seq} > ${since} AND ${change.seq} <= ${upTo}`)
+        .where(sql`${change.seq} > ${from} AND ${change.seq} <= ${head}`)
         .groupBy(change.mediaKey)
         .orderBy(asc(latest))
         .limit(limit + 1);
     },
+  };
+
+  return {
+    library,
+    many: async (keys: string[]): Promise<MediaRow[]> => (keys.length === 0 ? [] : db.select().from(media).where(inArray(media.key, keys))),
   };
 }
