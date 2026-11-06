@@ -142,13 +142,13 @@ export function InstitutionAutocomplete({
         className={inputClassName}
       />
       {open ? (
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/no-noninteractive-element-to-interactive-role -- the ARIA combobox pattern: a styled suggestion list cannot be a <datalist> or <select>
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- the ARIA combobox pattern: a styled suggestion list cannot be a <datalist> or <select>
         <ul id={listId} role="listbox" className="cap-listbox suggest-popup">
           {results.map((suggestion, index) => (
             <li
               key={suggestion.id}
               id={`${listId}-opt-${index}`}
-              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/no-noninteractive-element-to-interactive-role -- the ARIA combobox pattern: a styled suggestion is a listbox option, which a <select> cannot draw
+              // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- the ARIA combobox pattern: a styled suggestion is a listbox option, which a <select> cannot draw
               role="option"
               aria-selected={index === activeIndex}
               onMouseDown={(event) => {

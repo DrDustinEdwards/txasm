@@ -31,8 +31,31 @@ const boundaryPatterns = [
 
 export default defineConfig({
   extends: [base, react],
-  // Generated migrations, and the vendored Paged.js (app/lib/paged.ts) and pdf.js builds, kept byte for byte.
-  ignorePatterns: ["drizzle/", "public/pagedjs/", "public/pdfjs/"],
+  rules: {
+    // off in devkit 0.24.0
+    "typescript/no-non-null-assertion": "off",
+    // off in devkit 0.24.0
+    "react/only-export-components": "off",
+    // off in devkit 0.24.0
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // off in devkit 0.24.0
+    "jsx-a11y/control-has-associated-label": "off",
+    // off in devkit 0.24.0
+    "jsx-a11y/media-has-caption": "off",
+  },
+  ignorePatterns: [
+    // devkit's base ignores, which Oxlint 1.92 does not carry through `extends` (devkit 0.24.0 exports them).
+    "build/",
+    "dist/",
+    ".react-router/",
+    ".wrangler/",
+    "worker-configuration.d.ts",
+    "**/*.gen.ts",
+    // Generated migrations, and the vendored Paged.js (app/lib/paged.ts) and pdf.js builds, kept byte for byte.
+    "drizzle/",
+    "public/pagedjs/",
+    "public/pdfjs/",
+  ],
   overrides: [
     // This repository's node tests live in tests/, not test/.
     { files: ["scripts/**", "bin/**", "test/**", "tests/**"], ...node },

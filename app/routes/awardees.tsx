@@ -65,34 +65,32 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <search aria-label="Search awardees">
-        <Form method="get" className="card stack-4">
-          <Field label="Search term">
-            <input id="q" name="q" type="search" defaultValue={q} placeholder="Name, institution, or mentor" className="cap-input" />
+      <Form method="get" role="search" aria-label="Search awardees" className="card stack-4">
+        <Field label="Search term">
+          <input id="q" name="q" type="search" defaultValue={q} placeholder="Name, institution, or mentor" className="cap-input" />
+        </Field>
+        <div className="grid-3">
+          <Field label="Award">
+            <select id="award" name="award" defaultValue={award} className="cap-select">
+              <option value="">All awards</option>
+              {awards.map((a) => (
+                <option key={a.slug} value={a.slug}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
           </Field>
-          <div className="grid-3">
-            <Field label="Award">
-              <select id="award" name="award" defaultValue={award} className="cap-select">
-                <option value="">All awards</option>
-                {awards.map((a) => (
-                  <option key={a.slug} value={a.slug}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Year">
-              <input id="year" name="year" type="text" defaultValue={year} placeholder="2025-26" className="cap-input" />
-            </Field>
-            <Field label="Institution">
-              <input id="institution" name="institution" type="text" defaultValue={institution} className="cap-input" />
-            </Field>
-          </div>
-          <button type="submit" className="cap-btn" data-variant="primary">
-            Search
-          </button>
-        </Form>
-      </search>
+          <Field label="Year">
+            <input id="year" name="year" type="text" defaultValue={year} placeholder="2025-26" className="cap-input" />
+          </Field>
+          <Field label="Institution">
+            <input id="institution" name="institution" type="text" defaultValue={institution} className="cap-input" />
+          </Field>
+        </div>
+        <button type="submit" className="cap-btn" data-variant="primary">
+          Search
+        </button>
+      </Form>
 
       {results ? (
         <section aria-label="Search results" className="stack-4">

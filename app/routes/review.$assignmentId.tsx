@@ -232,7 +232,6 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </Form>
       ) : (
         <div className="stack-4">
-          {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a role="status" message is the WCAG ARIA22 pattern; <output> is for the result of a calculation */}
           <p role="status" className="card card-s card-sunken small">
             The review deadline has passed. This review can no longer be edited.
           </p>

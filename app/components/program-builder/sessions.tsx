@@ -2,8 +2,7 @@ import { Form } from "react-router";
 import type { ProgramAbstractOption, ProgramDay, ProgramSessionResolved } from "~/lib/data-access";
 import { toDateTimeLocal } from "~/lib/format";
 import { AddItemForms, ItemRow } from "./items";
-import { slotTimeLine, toDateInput } from "./days";
-import type { SpeakerOption } from "./shared";
+import { slotTimeLine, type SpeakerOption, toDateInput } from "./shared";
 
 export function SessionFields({
   session,

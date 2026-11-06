@@ -131,12 +131,7 @@ async function upload(bytes: Uint8Array, name: string, extra: Record<string, str
   return call(`${PREFIX}/media?${query}`, { method: "POST", body: bytes, headers: { "Content-Type": "image/png" } });
 }
 const enc = encodeURIComponent;
-/** The value, or a failed test naming what was missing. */
-function present<T>(value: T | null | undefined, what: string): T {
-  assert.ok(value != null, `${what} is missing`);
-  return value;
-}
-const objectBytes = async (key: string) => new Uint8Array(await present(await uploads.get(key), key).arrayBuffer());
+const objectBytes = async (key: string) => new Uint8Array(await (await uploads.get(key))!.arrayBuffer());
 
 before(async () => {
   mf = new Miniflare({
@@ -190,7 +185,7 @@ test("a draft stays off the live page, a publish puts it there, and each write i
     body: JSON.stringify({ expectedVersion: saved.version, changeId: "chg_publish" }),
   });
   assert.equal(published.status, 200);
-  assert.match(present(await live(), "the page").html, /Deadline: July 15/);
+  assert.match((await live())!.html, /Deadline: July 15/);
 
   const audit = await db.prepare("SELECT event, change_id FROM page_revision ORDER BY created_at, rowid").all();
   assert.deepEqual(audit.results, [
@@ -208,7 +203,7 @@ test("a draft stays off the live page, a publish puts it there, and each write i
 test("an update scheduled on a live page goes live from the cron at its time and no sooner, and the hooks hear it", async () => {
   const live = () =>
     db.prepare("SELECT html, published_at FROM page WHERE slug = 'award-nominations'").first<{ html: string; published_at: number }>();
-  const before = present(await live(), "the page").html;
+  const before = (await live())!.html;
   const doc = await json(await call(`${PREFIX}/content/award-nominations`));
   const source = `${doc.source}\nA scheduled sample paragraph.\n`;
   const publishAt = "2030-01-01T15:00:00.000Z";
@@ -223,9 +218,9 @@ test("an update scheduled on a live page goes live from the cron at its time and
 
   heard.length = 0;
   assert.equal((await api.runSchedules({ now: new Date("2030-01-01T14:59:00Z") })).applied.length, 0);
-  assert.equal(present(await live(), "the page").html, before);
+  assert.equal((await live())!.html, before);
   assert.equal((await api.runSchedules({ now: new Date("2030-01-01T15:00:30Z") })).applied.length, 1);
-  const after = present(await live(), "the page");
+  const after = (await live())!;
   assert.match(after.html, /A scheduled sample paragraph\./);
   assert.equal(after.published_at, Date.parse(publishAt));
   assert.equal((await json(await call(`${PREFIX}/content/award-nominations`))).scheduledUpdate, null);
@@ -258,7 +253,7 @@ test("a library picture: a page publishes it with its sizes, and while a page us
     body: JSON.stringify({ source: `${doc.source}\n![Posters in the hall](${file.url})\n`, expectedVersion: doc.version, changeId: "chg_picture" }),
   });
   assert.equal(published.status, 200);
-  const { html } = present(await db.prepare("SELECT html FROM page WHERE slug = 'home'").first<{ html: string }>(), "the row");
+  const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'home'").first<{ html: string }>())!;
   assert.match(html, /<picture><source type="image\/avif" srcset="[^"]*\.avif\?v=[0-9a-f]{12}(?:&|&#x26;)w=768 768w/);
   assert.match(html, /width="768" height="432"/);
 
@@ -283,7 +278,7 @@ test("bytes the library already holds answer as that file, and nothing new is st
   assert.equal(again.status, 200);
   const answered = await json(again);
   assert.deepEqual([answered.id, answered.duplicateOf], [first.id, first.id]);
-  assert.equal(present(await db.prepare("SELECT count(*) AS n FROM media WHERE filename = 'renamed.png'").first<{ n: number }>(), "the row").n, 0);
+  assert.equal((await db.prepare("SELECT count(*) AS n FROM media WHERE filename = 'renamed.png'").first<{ n: number }>())!.n, 0);
 });
 
 test("a turn keeps the old bytes in the history, a revert puts them back, and a turn that changes the size is a new file", async () => {
@@ -302,8 +297,8 @@ test("a turn keeps the old bytes in the history, a revert puts them back, and a 
   }));
   assert.equal(flipped.asNewFile, false, JSON.stringify(flipped));
   assert.notDeepEqual(await objectBytes(square.id), original);
-  const { sha256 } = present(await db.prepare("SELECT sha256 FROM media WHERE key = ?").bind(square.id).first<{ sha256: string }>(), "the row");
-  const { html } = present(await db.prepare("SELECT html FROM page WHERE slug = 'award-nominations'").first<{ html: string }>(), "the row");
+  const { sha256 } = (await db.prepare("SELECT sha256 FROM media WHERE key = ?").bind(square.id).first<{ sha256: string }>())!;
+  const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'award-nominations'").first<{ html: string }>())!;
   assert.match(html, new RegExp(`href="/${square.id}\\?v=${sha256.slice(0, 12)}"`));
   const { revisions } = await json(await call(`${PREFIX}/media/${enc(square.id)}/history`));
   assert.deepEqual(revisions.map((r: { reason: string; current: boolean }) => [r.reason, r.current]), [["transform", true], ["upload", false]]);

@@ -43,38 +43,38 @@ export default function start(root: HTMLElement, props: { url: string }): void {
   // The in-flight render, so a page or zoom change cancels the previous one.
   let renderTask: { cancel: () => void } | null = null;
 
-  const sync = () => {
+  function sync() {
     const ready = doc !== null;
     const pages = doc?.numPages ?? 0;
-    prev.disabled = !ready || page <= 1;
-    next.disabled = !ready || page >= pages;
-    zoomOut.disabled = !ready || scale <= MIN_SCALE;
-    zoomIn.disabled = !ready || scale >= MAX_SCALE;
-    status.textContent = ready ? `Page ${page} of ${pages}` : "Loading";
-    zoom.textContent = `${Math.round(scale * 100)}%`;
-  };
+    prev!.disabled = !ready || page <= 1;
+    next!.disabled = !ready || page >= pages;
+    zoomOut!.disabled = !ready || scale <= MIN_SCALE;
+    zoomIn!.disabled = !ready || scale >= MAX_SCALE;
+    status!.textContent = ready ? `Page ${page} of ${pages}` : "Loading";
+    zoom!.textContent = `${Math.round(scale * 100)}%`;
+  }
 
-  const render = async () => {
+  async function render() {
     if (!doc) return;
     try {
       const pdfPage = await doc.getPage(page);
       const viewport = pdfPage.getViewport({ scale });
-      const context = canvas.getContext("2d");
+      const context = canvas!.getContext("2d");
       if (!context) return;
-      canvas.width = Math.floor(viewport.width);
-      canvas.height = Math.floor(viewport.height);
+      canvas!.width = Math.floor(viewport.width);
+      canvas!.height = Math.floor(viewport.height);
       // Drops the page-sized space app.css holds for it until now.
-      canvas.dataset.sized = "";
+      canvas!.dataset.sized = "";
       renderTask?.cancel();
-      const task = pdfPage.render({ canvas, canvasContext: context, viewport });
+      const task = pdfPage.render({ canvas: canvas!, canvasContext: context, viewport });
       renderTask = task;
       await task.promise;
     } catch {
       // A canceled render rejects; ignore it.
     }
-  };
+  }
 
-  const go = (to: { page?: number; scale?: number }) => {
+  function go(to: { page?: number; scale?: number }) {
     if (!doc) return;
     const nextPage = Math.min(Math.max(1, to.page ?? page), doc.numPages || 1);
     const nextScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round((to.scale ?? scale) * 100) / 100));
@@ -83,10 +83,10 @@ export default function start(root: HTMLElement, props: { url: string }): void {
     scale = nextScale;
     sync();
     void render();
-  };
+  }
 
   // In place of the page when loading fails, so the raw PDF is still reachable (the link under the viewer stays too).
-  const fail = () => {
+  function fail() {
     const error = document.createElement("div");
     error.className = "stack-2 pdf-viewer-error";
     const message = document.createElement("p");
@@ -95,8 +95,8 @@ export default function start(root: HTMLElement, props: { url: string }): void {
     error.appendChild(message);
     const fallback = root.querySelector(":scope > p.small");
     if (fallback) error.appendChild(fallback.cloneNode(true));
-    canvas.replaceWith(error);
-  };
+    canvas!.replaceWith(error);
+  }
 
   prev.addEventListener("click", () => go({ page: page - 1 }));
   next.addEventListener("click", () => go({ page: page + 1 }));

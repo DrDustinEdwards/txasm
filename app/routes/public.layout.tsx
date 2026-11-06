@@ -5,8 +5,7 @@ import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
-import { initials, renderLink, useThemeCookie } from "~/components/site-chrome";
-import { THEME_PREF_KEY } from "~/lib/theme";
+import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
 import { FEED_PATH } from "~/lib/site-meta";
 
 // Public shell: Capsomer's site header and txasm's footer around every public

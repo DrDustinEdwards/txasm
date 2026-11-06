@@ -291,7 +291,6 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   return (
     <div className="narrow stack-6">
       {deleted ? (
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a role="status" message is the WCAG ARIA22 pattern; <output> is for the result of a calculation
         <p role="status">Your account was deleted.</p>
       ) : null}
       <div className="stack-2">

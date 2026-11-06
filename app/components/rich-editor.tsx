@@ -148,7 +148,6 @@ export function RichEditor({
       </div>
       <div
         ref={editorRef}
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- the contenteditable editor is an ARIA textbox; an <input> or <textarea> cannot hold its markup
         role="textbox"
         aria-multiline={mode === "body"}
         aria-labelledby={labelId}

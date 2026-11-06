@@ -72,48 +72,46 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <search aria-label="Search abstracts">
-        <Form method="get" className="card stack-4">
-          <Field label="Search abstracts">
-            <input id="q" name="q" type="search" defaultValue={q} placeholder="Author, title, or topic" className="cap-input" />
+      <Form method="get" role="search" aria-label="Search abstracts" className="card stack-4">
+        <Field label="Search abstracts">
+          <input id="q" name="q" type="search" defaultValue={q} placeholder="Author, title, or topic" className="cap-input" />
+        </Field>
+        <div className="grid-3">
+          <Field label="Level">
+            <select id="level" name="level" defaultValue={level} className="cap-select">
+              <option value="">All levels</option>
+              {ABSTRACT_LEVELS.map((l) => (
+                <option key={l} value={l}>
+                  {ABSTRACT_LEVEL_LABELS[l]}
+                </option>
+              ))}
+            </select>
           </Field>
-          <div className="grid-3">
-            <Field label="Level">
-              <select id="level" name="level" defaultValue={level} className="cap-select">
-                <option value="">All levels</option>
-                {ABSTRACT_LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {ABSTRACT_LEVEL_LABELS[l]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Format">
-              <select id="format" name="format" defaultValue={format} className="cap-select">
-                <option value="">All formats</option>
-                {ABSTRACT_FORMATS.map((f) => (
-                  <option key={f} value={f}>
-                    {ABSTRACT_FORMAT_LABELS[f]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Meeting">
-              <select id="meeting" name="meeting" defaultValue={meeting} className="cap-select">
-                <option value="">All meetings</option>
-                {meetings.map((m) => (
-                  <option key={m.slug} value={m.slug}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-          <button type="submit" className="cap-btn" data-variant="primary">
-            Search
-          </button>
-        </Form>
-      </search>
+          <Field label="Format">
+            <select id="format" name="format" defaultValue={format} className="cap-select">
+              <option value="">All formats</option>
+              {ABSTRACT_FORMATS.map((f) => (
+                <option key={f} value={f}>
+                  {ABSTRACT_FORMAT_LABELS[f]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Meeting">
+            <select id="meeting" name="meeting" defaultValue={meeting} className="cap-select">
+              <option value="">All meetings</option>
+              {meetings.map((m) => (
+                <option key={m.slug} value={m.slug}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+        <button type="submit" className="cap-btn" data-variant="primary">
+          Search
+        </button>
+      </Form>
 
       {results ? (
         <section aria-label="Search results" className="stack-4">

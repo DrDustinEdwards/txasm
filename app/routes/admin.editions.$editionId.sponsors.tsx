@@ -100,7 +100,6 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
         />
         <datalist id={`tiers-${idBase}`}>
           {SPONSOR_TIERS.map((tier) => (
-            // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- a <datalist> option is a suggestion labeled by its value, not a control
             <option key={tier} value={tier} />
           ))}
         </datalist>

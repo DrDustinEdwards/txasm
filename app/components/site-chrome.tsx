@@ -7,6 +7,8 @@ import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";
 // What the public and admin shells share around Capsomer's site header and
 // AdminShell: router links, the avatar's letters, and the theme's memory.
 
+export { THEME_PREF_KEY } from "~/lib/theme";
+
 // /signout is a POST action and /documents serve files: a full load for both.
 const DOCUMENT_HREF = /^(\/(signout|documents)(\/|$)|https?:|mailto:)/;
 
