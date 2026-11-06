@@ -224,3 +224,24 @@ test("platform admin is the ADMIN_EMAILS list on every request, never an old adm
   assert.equal(isAdmin(await getActor(env("someone@example.com"), user)), false);
   assert.equal(isAdmin(await getActor(env("someone@example.com, former@example.com"), user)), true);
 });
+
+test("award search matches %, _ and backslash as typed, in the term and the institution filter", async () => {
+  const run = (sql: string, ...values: unknown[]) => d1.prepare(sql).bind(...values).run();
+  await run("INSERT INTO award (id, slug, name, created_at, updated_at) VALUES ('aw-1', 'sample-award', 'Sample Award', 1, 1)");
+  for (const [id, person, institution] of [
+    ["ar-1", "Pat 50% Sample", "Sample_Lab"],
+    ["ar-2", "Pat 500 Sample", "SampleXLab"],
+  ]) {
+    await run(
+      "INSERT INTO award_recipient (id, award_id, year, person_name, institution, created_at, updated_at) VALUES (?, 'aw-1', '2026', ?, ?, 1, 1)",
+      id,
+      person,
+      institution,
+    );
+  }
+  const ids = async (query: string, institution?: string) =>
+    (await dataAccess.awardRecipients.search(query, { institution })).map((r) => r.id).sort();
+  assert.deepEqual(await ids("50%"), ["ar-1"]);
+  assert.deepEqual(await ids("", "Sample_Lab"), ["ar-1"]);
+  assert.deepEqual(await ids("50"), ["ar-1", "ar-2"]);
+});

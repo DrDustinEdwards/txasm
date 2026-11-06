@@ -213,7 +213,7 @@ export default {
   ...site,
   fetch: withRequestLog(
     (request: Request, env: Env, ctx: ExecutionContext) =>
-      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx)),
+      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), { secret: env.ADMIN_IDLE_SECRET }),
     { sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA, tokenPath: PREVIEW_TOKEN },
   ),
 } satisfies ExportedHandler<Env>;
