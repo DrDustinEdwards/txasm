@@ -1,4 +1,8 @@
-import { SIGN_IN_LINK_WORDS, confirmSignInLink, signInLinkProblem } from "@dustinedwards/site-runtime/sign-in";
+import {
+  SIGN_IN_LINK_WORDS,
+  confirmSignInLink,
+  signInLinkProblem,
+} from "@dustinedwards/site-runtime/sign-in";
 import { Link } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
@@ -24,7 +28,11 @@ export const headers = () => ({ "Cache-Control": "no-store", "X-Robots-Tag": "no
 export async function loader({ request }: Route.LoaderArgs) {
   // Whether this browser is signed in matters only once the link has failed.
   const failed = new URL(request.url).searchParams.has("error");
-  return { problem: signInLinkProblem(request.url, { signedIn: failed && (await getSessionUser(request)) !== null }) };
+  return {
+    problem: signInLinkProblem(request.url, {
+      signedIn: failed && (await getSessionUser(request)) !== null,
+    }),
+  };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {

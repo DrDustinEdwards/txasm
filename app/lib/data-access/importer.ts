@@ -132,10 +132,7 @@ export function createMeetingImporter(db: DB) {
   // the same axis validation as live submission. Chair/admin of the meeting only.
   // Status is set to accepted directly (archived meeting), skipping only the
   // submission-window check that is meaningless here.
-  async function createAcceptedAbstract(
-    actor: Actor,
-    input: ImportAbstractInput,
-  ) {
+  async function createAcceptedAbstract(actor: Actor, input: ImportAbstractInput) {
     if (!isChair(actor, input.editionId)) throw new ForbiddenError();
 
     const title = sanitizeTitle(input.title ?? "");

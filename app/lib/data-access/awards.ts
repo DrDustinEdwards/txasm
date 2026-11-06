@@ -107,9 +107,7 @@ function normalizeAwardSlug(raw: string): string {
 // Group flat recipient rows into years, then categories within each year,
 // preserving the stored sortOrder (rows arrive pre-sorted). A null category
 // keeps its own bucket so uncategorized awards render as a plain list.
-function groupRecipientsByYear(
-  rows: AwardRecipientView[],
-): AwardYearGroup[] {
+function groupRecipientsByYear(rows: AwardRecipientView[]): AwardYearGroup[] {
   const years: AwardYearGroup[] = [];
   const yearIndex = new Map<string, AwardYearGroup>();
   for (const row of rows) {
@@ -172,10 +170,7 @@ function validateRecipient(input: AwardRecipientInput) {
 export function createAwards(db: DB) {
   return {
     async listAll() {
-      return db
-        .select()
-        .from(schema.award)
-        .orderBy(schema.award.sortOrder, schema.award.name);
+      return db.select().from(schema.award).orderBy(schema.award.sortOrder, schema.award.name);
     },
 
     // One award plus its recipients grouped by year and category. Public.
@@ -197,10 +192,7 @@ export function createAwards(db: DB) {
         })
         .from(schema.awardRecipient)
         .where(eq(schema.awardRecipient.awardId, awardRow.id))
-        .orderBy(
-          schema.awardRecipient.sortOrder,
-          schema.awardRecipient.personName,
-        );
+        .orderBy(schema.awardRecipient.sortOrder, schema.awardRecipient.personName);
       return { award: awardRow, years: groupRecipientsByYear(rows) };
     },
 
@@ -214,9 +206,7 @@ export function createAwards(db: DB) {
         where: eq(schema.award.slug, slug),
       });
       if (existing) {
-        throw new AlreadyExistsError(
-          `An award with slug "${slug}" already exists.`,
-        );
+        throw new AlreadyExistsError(`An award with slug "${slug}" already exists.`);
       }
       const namesakeBio = sanitizeAwardHtml(input.namesakeBio);
       const description = sanitizeAwardHtml(input.description);
@@ -249,9 +239,7 @@ export function createAwards(db: DB) {
             where: eq(schema.award.slug, slug),
           });
           if (clash) {
-            throw new AlreadyExistsError(
-              `An award with slug "${slug}" already exists.`,
-            );
+            throw new AlreadyExistsError(`An award with slug "${slug}" already exists.`);
           }
         }
         set.slug = slug;
@@ -307,10 +295,7 @@ export function createAwardRecipients(db: DB) {
         })
         .from(schema.awardRecipient)
         .where(eq(schema.awardRecipient.awardId, awardId))
-        .orderBy(
-          schema.awardRecipient.sortOrder,
-          schema.awardRecipient.personName,
-        );
+        .orderBy(schema.awardRecipient.sortOrder, schema.awardRecipient.personName);
     },
 
     async create(actor: Actor, input: AwardRecipientInput) {
@@ -364,10 +349,7 @@ export function createAwardRecipients(db: DB) {
       if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
 
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.awardRecipient)
-          .set(set)
-          .where(eq(schema.awardRecipient.id, id));
+        await db.update(schema.awardRecipient).set(set).where(eq(schema.awardRecipient.id, id));
       }
       return db.query.awardRecipient.findFirst({
         where: eq(schema.awardRecipient.id, id),
@@ -380,9 +362,7 @@ export function createAwardRecipients(db: DB) {
       });
       if (!row) throw new NotFoundError();
       requireRecipientWriter(actor, row.editionId);
-      await db
-        .delete(schema.awardRecipient)
-        .where(eq(schema.awardRecipient.id, id));
+      await db.delete(schema.awardRecipient).where(eq(schema.awardRecipient.id, id));
       return { id };
     },
 
@@ -391,10 +371,7 @@ export function createAwardRecipients(db: DB) {
     // a query parameter, never string-interpolated, and matches as typed: its %,
     // _ and backslash are escaped (Prelum likeContains, ESCAPE '\\'), so "50%"
     // or "E_coli" is not a wildcard, as in public-abstracts.ts.
-    async search(
-      query: string,
-      filters: AwardSearchFilters = {},
-    ): Promise<AwardSearchResult[]> {
+    async search(query: string, filters: AwardSearchFilters = {}): Promise<AwardSearchResult[]> {
       const term = query.trim();
       const conditions = [];
       const contains = (column: AnyColumn, value: string): SQL =>
@@ -418,9 +395,7 @@ export function createAwardRecipients(db: DB) {
         conditions.push(eq(schema.awardRecipient.year, filters.year));
       }
       if (filters.institution) {
-        conditions.push(
-          contains(schema.awardRecipient.institution, filters.institution),
-        );
+        conditions.push(contains(schema.awardRecipient.institution, filters.institution));
       }
 
       return db
@@ -437,10 +412,7 @@ export function createAwardRecipients(db: DB) {
           awardName: schema.award.name,
         })
         .from(schema.awardRecipient)
-        .innerJoin(
-          schema.award,
-          eq(schema.awardRecipient.awardId, schema.award.id),
-        )
+        .innerJoin(schema.award, eq(schema.awardRecipient.awardId, schema.award.id))
         .where(conditions.length ? and(...conditions) : undefined)
         .orderBy(
           desc(schema.awardRecipient.year),

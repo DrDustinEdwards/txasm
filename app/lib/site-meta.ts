@@ -10,7 +10,8 @@ import { CATEGORY_PATHS } from "./document-nav";
 type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings; origin?: string } };
 
 const rootData = (matches: ReadonlyArray<{ id: string } | undefined>) =>
-  (matches as ReadonlyArray<RootMatch | undefined>).find((match) => match?.id === "root")?.loaderData;
+  (matches as ReadonlyArray<RootMatch | undefined>).find((match) => match?.id === "root")
+    ?.loaderData;
 
 function titleSuffix(matches: ReadonlyArray<{ id: string } | undefined>): string {
   const shortName = rootData(matches)?.settings?.shortName ?? "";
@@ -72,7 +73,9 @@ export const ROBOTS_DISALLOW = [
 /** True for a path under ROBOTS_DISALLOW: those responses carry X-Robots-Tag: noindex. */
 export function isPrivatePath(pathname: string): boolean {
   return ROBOTS_DISALLOW.some((prefix) =>
-    prefix.endsWith("/") ? pathname.startsWith(prefix) : pathname === prefix || pathname.startsWith(`${prefix}/`),
+    prefix.endsWith("/")
+      ? pathname.startsWith(prefix)
+      : pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }
 
@@ -120,10 +123,21 @@ export function pageHead(
     search?: PageSearch | null;
   },
 ) {
-  const head = defineHead({ origin: SITE_ORIGIN, siteName: SITE_NAME, image: SITE_CARD, suffix: titleSuffix(matches), sections: SECTIONS });
+  const head = defineHead({
+    origin: SITE_ORIGIN,
+    siteName: SITE_NAME,
+    image: SITE_CARD,
+    suffix: titleSuffix(matches),
+    sections: SECTIONS,
+  });
   const origin = rootData(matches)?.origin ?? SITE_ORIGIN;
   const image = search?.image
-    ? { url: `${origin}${search.image.url}`, width: search.image.width ?? undefined, height: search.image.height ?? undefined, alt: search.image.alt }
+    ? {
+        url: `${origin}${search.image.url}`,
+        width: search.image.width ?? undefined,
+        height: search.image.height ?? undefined,
+        alt: search.image.alt,
+      }
     : { ...SITE_CARD, url: `${origin}${SITE_CARD.url}` };
   return head({
     ...page,
@@ -146,7 +160,11 @@ function organizationLd() {
     alternateName: SITE_NAME,
     url: `${SITE_ORIGIN}/`,
     logo: `${SITE_ORIGIN}/txasm-logo.svg`,
-    parentOrganization: { "@type": "Organization", name: "American Society for Microbiology", url: "https://asm.org" },
+    parentOrganization: {
+      "@type": "Organization",
+      name: "American Society for Microbiology",
+      url: "https://asm.org",
+    },
   });
 }
 

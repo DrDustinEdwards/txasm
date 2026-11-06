@@ -16,11 +16,13 @@ import { base, react, node, ignorePatterns } from "@dustinedwards/devkit/oxlint"
 const boundaryPatterns = [
   {
     group: ["**/db/schema", "**/db/schema*"],
-    message: "Do not import the Drizzle schema directly. Go through createDataAccess in app/lib/data-access.ts.",
+    message:
+      "Do not import the Drizzle schema directly. Go through createDataAccess in app/lib/data-access.ts.",
   },
   {
     group: ["**/db/index.server"],
-    message: "Do not import the Drizzle client factory directly. Use getDataAccess from app/lib/data-access.ts.",
+    message:
+      "Do not import the Drizzle client factory directly. Use getDataAccess from app/lib/data-access.ts.",
   },
   {
     group: ["drizzle-orm/d1"],
@@ -48,7 +50,12 @@ export default defineConfig({
     {
       // The infrastructure boundary itself. These files are allowed to import
       // the schema and the Drizzle client; nothing else is.
-      files: ["app/db/index.server.ts", "app/lib/data-access.ts", "app/lib/data-access/**/*.ts", "app/lib/auth.server.ts"],
+      files: [
+        "app/db/index.server.ts",
+        "app/lib/data-access.ts",
+        "app/lib/data-access/**/*.ts",
+        "app/lib/auth.server.ts",
+      ],
       rules: { "eslint/no-restricted-imports": "off" },
     },
   ],

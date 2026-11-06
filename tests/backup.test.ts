@@ -44,7 +44,9 @@ before(async () => {
     )
     .run();
   await db
-    .prepare("INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)")
+    .prepare(
+      "INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)",
+    )
     .run();
   await db
     .prepare(
@@ -70,10 +72,7 @@ test("the nightly dump keeps user rows and drops every credential table", async 
   await runNightlyBackup(env);
   const text = await allObjectText();
   assert.ok(text.includes("ada@example.org"), "user rows must be in the dump");
-  assert.ok(
-    !text.includes("MAGIC-LINK-TOKEN-ABC"),
-    "a verification token must not reach the dump",
-  );
+  assert.ok(!text.includes("MAGIC-LINK-TOKEN-ABC"), "a verification token must not reach the dump");
   const listed = await bucket.list({ prefix: "backups/" });
   for (const table of EXCLUDED_TABLES) {
     assert.ok(
@@ -92,7 +91,10 @@ test("the restore drill passes on a dump without the credential tables", async (
   });
   // txasm has no FTS5 table, which the drill's `search` check passes since d1-dump 0.7.1.
   const failed = result.checks.filter((c) => !c.ok);
-  assert.deepEqual(failed.map((c) => `${c.name}: ${c.detail}`), []);
+  assert.deepEqual(
+    failed.map((c) => `${c.name}: ${c.detail}`),
+    [],
+  );
 });
 
 test("an empty bucket reports a warning, not an age", async () => {
@@ -149,14 +151,20 @@ test("a good dump has no problems", () => {
 test("an excluded table in the dump is refused", () => {
   const dump = goodDump();
   dump.tables.push({ name: "verification", rows: 1 });
-  assert.match(standardProblems(dump as never, siteOptions).join(";"), /verification is in the dump/);
+  assert.match(
+    standardProblems(dump as never, siteOptions).join(";"),
+    /verification is in the dump/,
+  );
 });
 
 test("a missing required table is refused and named", () => {
   for (const name of REQUIRED_TABLES) {
     const dump = goodDump();
     dump.tables = dump.tables.filter((t) => t.name !== name);
-    assert.match(standardProblems(dump as never, siteOptions).join(";"), new RegExp(`${name} is missing`));
+    assert.match(
+      standardProblems(dump as never, siteOptions).join(";"),
+      new RegExp(`${name} is missing`),
+    );
   }
 });
 
@@ -167,7 +175,9 @@ test("an emptied database never gets the complete marker", async () => {
     await assert.rejects(runNightlyBackup(env), /left incomplete.*platform_settings dumped empty/);
   } finally {
     await db
-      .prepare("INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)")
+      .prepare(
+        "INSERT INTO platform_settings (id, org_name, created_at, updated_at) VALUES ('default', 'TXASM', 1, 1)",
+      )
       .run();
   }
   const after = await backupHealth(env.BOOKS);
@@ -182,7 +192,9 @@ test("the migrated tables take the 404 count per referrer and the cron record", 
   await recordNotFound(db, url, undefined, "https://a.example.com/other");
   await recordNotFound(db, url, undefined, null);
   const rows = (
-    await db.prepare("SELECT path, referrer_host, hit_count FROM page_404_daily ORDER BY referrer_host").all()
+    await db
+      .prepare("SELECT path, referrer_host, hit_count FROM page_404_daily ORDER BY referrer_host")
+      .all()
   ).results;
   assert.deepEqual(rows, [
     { path: "/gone", referrer_host: "", hit_count: 1 },

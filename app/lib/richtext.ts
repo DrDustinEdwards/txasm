@@ -21,10 +21,7 @@ function escapeText(text: string): string {
     .split(/(&(?:#\d+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);)/)
     .map((part, i) => {
       if (i % 2 === 1) return part; // an entity reference, keep as-is
-      return part
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      return part.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     })
     .join("");
 }
@@ -44,9 +41,7 @@ function tokenize(input: string): Token[] {
     }
     const raw = match[0];
     const tag = match[1].toLowerCase();
-    tokens.push(
-      raw.startsWith("</") ? { type: "close", tag } : { type: "open", tag },
-    );
+    tokens.push(raw.startsWith("</") ? { type: "close", tag } : { type: "open", tag });
     lastIndex = match.index + raw.length;
   }
   if (lastIndex < cleaned.length) {
@@ -57,10 +52,7 @@ function tokenize(input: string): Token[] {
 
 // Keep only the allowed tags (no attributes), strip everything else to plain
 // text, and return well-formed, balanced HTML.
-export function sanitizeRichText(
-  input: string,
-  allowed: readonly string[],
-): string {
+export function sanitizeRichText(input: string, allowed: readonly string[]): string {
   if (!input) return "";
   // Drop C0 control characters (NUL and friends), keeping tab, newline, and
   // carriage return. These are invalid in stored text and, left in, break tools
@@ -122,10 +114,7 @@ const ENTITIES: Record<string, string> = {
 // Plain text from sanitized HTML, for word and character counting.
 export function extractPlainText(html: string): string {
   const noTags = html.replace(/<[^>]*>/g, "");
-  return noTags.replace(
-    /&(?:amp|lt|gt|quot|apos|nbsp|#39);/g,
-    (match) => ENTITIES[match] ?? match,
-  );
+  return noTags.replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39);/g, (match) => ENTITIES[match] ?? match);
 }
 
 export function countWords(html: string): number {

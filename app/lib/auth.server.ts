@@ -39,7 +39,11 @@ async function buildAuth(env: Env) {
     // logs neither; at cutover the same call sends a real email, and a send
     // error has the link and code cut out.
     sendMagicLink: async ({ email, url, token, code }) => {
-      await sendEmail(env, { to: email, ...magicLinkEmail(email, url, code) }, { secrets: [url, token, code] });
+      await sendEmail(
+        env,
+        { to: email, ...magicLinkEmail(email, url, code) },
+        { secrets: [url, token, code] },
+      );
     },
     // The link opens /signin/confirm, under /signin, so it is private and never stored (site-meta.ts).
     confirmPath: SIGN_IN_CONFIRM_PATH,
@@ -54,7 +58,10 @@ async function buildAuth(env: Env) {
     // A mail to the account's address for each change to how it signs in: a passkey added or removed,
     // other devices signed out (site-runtime ./sign-in, sendSecurityNotice). Dormant with the rest of the mail.
     sendSecurityNotice: async (_kind, { user, detail }) => {
-      await sendEmail(env, { to: user.email, ...securityNoticeEmail(user.email, detail, new URL("/account", env.BETTER_AUTH_URL).href) });
+      await sendEmail(env, {
+        to: user.email,
+        ...securityNoticeEmail(user.email, detail, new URL("/account", env.BETTER_AUTH_URL).href),
+      });
     },
   });
 
@@ -75,7 +82,20 @@ async function buildAuth(env: Env) {
         enabled: true,
         sendChangeEmailConfirmation: async ({ user, newEmail, url, token }) => {
           const link = emailConfirmUrl(url);
-          await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "current", newEmail, EMAIL_CHANGE_EXPIRES_IN_WORDS) }, { secrets: [link, token] });
+          await sendEmail(
+            env,
+            {
+              to: user.email,
+              ...emailChangeEmail(
+                user.email,
+                link,
+                "current",
+                newEmail,
+                EMAIL_CHANGE_EXPIRES_IN_WORDS,
+              ),
+            },
+            { secrets: [link, token] },
+          );
         },
       },
       // Self-service deletion from /account. Better Auth asks for a sign-in in the last
@@ -88,7 +108,10 @@ async function buildAuth(env: Env) {
         beforeDelete: async (user) => {
           const account = getDataAccess(env).account;
           if ((await account.deletionBlockers(user.id)).length > 0) {
-            throw new APIError("BAD_REQUEST", { code: "ACCOUNT_HAS_ROLE", message: "The account holds a role in a Meeting." });
+            throw new APIError("BAD_REQUEST", {
+              code: "ACCOUNT_HAS_ROLE",
+              message: "The account holds a role in a Meeting.",
+            });
           }
           await account.handOverRecords(user.id);
         },
@@ -99,7 +122,14 @@ async function buildAuth(env: Env) {
       // The second step of an email change: the link to the new address (user.email is it here).
       sendVerificationEmail: async ({ user, url, token }) => {
         const link = emailConfirmUrl(url);
-        await sendEmail(env, { to: user.email, ...emailChangeEmail(user.email, link, "new", undefined, EMAIL_CHANGE_EXPIRES_IN_WORDS) }, { secrets: [link, token] });
+        await sendEmail(
+          env,
+          {
+            to: user.email,
+            ...emailChangeEmail(user.email, link, "new", undefined, EMAIL_CHANGE_EXPIRES_IN_WORDS),
+          },
+          { secrets: [link, token] },
+        );
       },
     },
     // A notice is mailed after the answer, not before it. The instance is kept per isolate, so it
@@ -165,9 +195,7 @@ export interface ChairContext {
 
 // Non-throwing session read. Returns null when signed out, and also when auth is
 // not configured yet (no secret) so public pages still render before cutover.
-export async function getSessionUser(
-  request: Request,
-): Promise<SessionUser | null> {
+export async function getSessionUser(request: Request): Promise<SessionUser | null> {
   if (!env.BETTER_AUTH_SECRET) return null;
   try {
     // site-runtime sessionLookup: the request on a GET, so the session's last use and place move with it
@@ -186,7 +214,11 @@ export async function getSessionUser(
 // The 403 for a signed-in user without the grant a page needs, logged as OWASP `authz_fail` with what was missing
 // (never who asked: the line carries the request's path and id only).
 export function forbidden(request: Request, need: string): Response {
-  logEvent(OWASP_EVENTS.authorizationFailure, { ...requestFields(request, { status: 403 }), need }, { level: "warn" });
+  logEvent(
+    OWASP_EVENTS.authorizationFailure,
+    { ...requestFields(request, { status: 403 }), need },
+    { level: "warn" },
+  );
   return new Response("Forbidden", { status: 403 });
 }
 
@@ -218,10 +250,7 @@ async function requireAdminAccess(request: Request, user: SessionUser) {
 // Require a chair (or admin) of a specific meeting. Signed-out users go to
 // sign-in; signed-in users without the grant get a 403. isChair already treats a
 // platform admin as a chair of every meeting.
-export async function requireChair(
-  request: Request,
-  editionId: string,
-): Promise<ChairContext> {
+export async function requireChair(request: Request, editionId: string): Promise<ChairContext> {
   const user = await requireUser(request);
   const actor = await getActor(env, user);
   if (!isChair(actor, editionId)) {

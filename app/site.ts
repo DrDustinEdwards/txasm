@@ -25,11 +25,16 @@ function startTheme() {
   document.addEventListener("cap-theme", (e) => {
     const choice = (e as CustomEvent<{ choice?: string }>).detail?.choice;
     if (choice !== "light" && choice !== "dark") return;
-    document.cookie = themeCookie(choice, { name: THEME_COOKIE, secure: location.protocol === "https:" });
+    document.cookie = themeCookie(choice, {
+      name: THEME_COOKIE,
+      secure: location.protocol === "https:",
+    });
   });
   // React's ThemeButton renders itself as already wired and keeps its key in a prop, so the behavior module is told
   // both here: the button is not wired yet, and the key it remembers the choice under.
-  for (const button of document.querySelectorAll<HTMLElement>("[data-cap='theme-switch'][data-variant='button']")) {
+  for (const button of document.querySelectorAll<HTMLElement>(
+    "[data-cap='theme-switch'][data-variant='button']",
+  )) {
     delete button.dataset.capReady;
     button.dataset.capPref = THEME_PREF_KEY;
   }
@@ -39,7 +44,8 @@ function startTheme() {
 // Sign out is a POST to /signout (its action ends the session; a GET only goes home). The header's two Sign out
 // buttons, in the account panel and the phone sheet, post it as a form, as the hydrated header's useSubmit does.
 function wireSignOut(header: HTMLElement) {
-  const SIGN_OUT = ".cap-site-header-account [data-panel-close], .cap-site-header-sheet-account button";
+  const SIGN_OUT =
+    ".cap-site-header-account [data-panel-close], .cap-site-header-sheet-account button";
   header.addEventListener("click", (e) => {
     const button = (e.target as Element).closest(SIGN_OUT);
     // "Sign out" in the panel, "Sign out (<email>)" in the sheet.

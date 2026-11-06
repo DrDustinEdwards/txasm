@@ -24,26 +24,71 @@ export const links: Route.LinksFunction = () => [
 const link = (label: string, href: string) => ({ id: `${href}-${label}`, label, href });
 
 const MEETINGS_GROUPS: HeaderGroup[] = [
-  { label: "This meeting", links: [link("Registration", "/register"), link("Programs", "/meetings"), link("Abstracts", "/my/abstracts")] },
-  { label: "Branch", links: [link("Newsletters", "/newsletters"), link("Trail", "/trail"), link("Sponsorship", "/sponsorship")] },
+  {
+    label: "This meeting",
+    links: [
+      link("Registration", "/register"),
+      link("Programs", "/meetings"),
+      link("Abstracts", "/my/abstracts"),
+    ],
+  },
+  {
+    label: "Branch",
+    links: [
+      link("Newsletters", "/newsletters"),
+      link("Trail", "/trail"),
+      link("Sponsorship", "/sponsorship"),
+    ],
+  },
   {
     label: "Archive",
-    links: [link("Meetings and abstracts", "/meetings"), link("Abstract books", "/archive/abstract-books"), link("Programs", "/archive/programs")],
+    links: [
+      link("Meetings and abstracts", "/meetings"),
+      link("Abstract books", "/archive/abstract-books"),
+      link("Programs", "/archive/programs"),
+    ],
   },
 ];
 
-const AWARDS_GROUPS: HeaderGroup[] = [{ links: [link("Awardees", "/awardees"), link("Nominations", "/award-nominations")] }];
+const AWARDS_GROUPS: HeaderGroup[] = [
+  { links: [link("Awardees", "/awardees"), link("Nominations", "/award-nominations")] },
+];
 
 const isOn = (pathname: string, groups: HeaderGroup[]) =>
   groups.some((g) => g.links.some((l) => pathname === l.href || pathname.startsWith(`${l.href}/`)));
 
-function PublicHeader({ email, isAdmin, isReviewer, wordmark }: { email: string | null; isAdmin: boolean; isReviewer: boolean; wordmark: string }) {
+function PublicHeader({
+  email,
+  isAdmin,
+  isReviewer,
+  wordmark,
+}: {
+  email: string | null;
+  isAdmin: boolean;
+  isReviewer: boolean;
+  wordmark: string;
+}) {
   const { pathname } = useLocation();
   const submit = useSubmit();
   const sections: HeaderSection[] = [
-    { id: "officers", label: "Officers", href: "/branch-officers", current: pathname.startsWith("/branch-officers") },
-    { id: "meetings", label: "Meetings", groups: MEETINGS_GROUPS, current: isOn(pathname, MEETINGS_GROUPS) },
-    { id: "awards", label: "Awards", groups: AWARDS_GROUPS, current: isOn(pathname, AWARDS_GROUPS) },
+    {
+      id: "officers",
+      label: "Officers",
+      href: "/branch-officers",
+      current: pathname.startsWith("/branch-officers"),
+    },
+    {
+      id: "meetings",
+      label: "Meetings",
+      groups: MEETINGS_GROUPS,
+      current: isOn(pathname, MEETINGS_GROUPS),
+    },
+    {
+      id: "awards",
+      label: "Awards",
+      groups: AWARDS_GROUPS,
+      current: isOn(pathname, AWARDS_GROUPS),
+    },
   ];
   const rows = [
     { label: "My abstracts", href: "/my/abstracts" },
@@ -53,12 +98,21 @@ function PublicHeader({ email, isAdmin, isReviewer, wordmark }: { email: string 
   ].map((r) => ({ ...r, current: pathname.startsWith(r.href) }));
   return (
     <SiteHeader
-      logo={{ href: "/", label: wordmark || "TXASM", wordmark: <BrandWordmark className="txasm-wordmark" /> }}
+      logo={{
+        href: "/",
+        label: wordmark || "TXASM",
+        wordmark: <BrandWordmark className="txasm-wordmark" />,
+      }}
       sections={sections}
       themePrefKey={THEME_PREF_KEY}
       account={
         email
-          ? { name: email, initials: initials(email), groups: [{ links: rows }], onSignOut: () => void submit(null, { method: "post", action: "/signout" }) }
+          ? {
+              name: email,
+              initials: initials(email),
+              groups: [{ links: rows }],
+              onSignOut: () => void submit(null, { method: "post", action: "/signout" }),
+            }
           : undefined
       }
       signIn={email ? undefined : { href: "/signin" }}
@@ -72,11 +126,7 @@ function PublicHeader({ email, isAdmin, isReviewer, wordmark }: { email: string 
 function FooterLink({ label, url }: { label: string; url: string }) {
   // An outside address is a plain link; internal paths go through the router.
   if (/^https?:/i.test(url)) {
-    return (
-      <a href={url}>
-        {label}
-      </a>
-    );
+    return <a href={url}>{label}</a>;
   }
   return renderLink({ href: url, children: label });
 }
@@ -99,7 +149,9 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
           ))}
           {hasContact ? null : <FooterLink label="Contact" url="/contact" />}
           {hasAccessibility ? null : <FooterLink label="Accessibility" url="/accessibility" />}
-          {settings?.facebookUrl ? <FooterLink label="Facebook group" url={settings.facebookUrl} /> : null}
+          {settings?.facebookUrl ? (
+            <FooterLink label="Facebook group" url={settings.facebookUrl} />
+          ) : null}
         </nav>
         {/* Decorative footer wordmark; the copyright line below names the org, so
             the wrapper is aria-hidden to keep it out of assistive tech. */}
@@ -119,7 +171,12 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="txasm-page">
-      <PublicHeader email={loaderData.email} isAdmin={loaderData.isAdmin} isReviewer={loaderData.isReviewer} wordmark={settings?.shortName ?? ""} />
+      <PublicHeader
+        email={loaderData.email}
+        isAdmin={loaderData.isAdmin}
+        isReviewer={loaderData.isReviewer}
+        wordmark={settings?.shortName ?? ""}
+      />
       <main id="main" tabIndex={-1} className="txasm-frame txasm-main">
         <Outlet />
       </main>

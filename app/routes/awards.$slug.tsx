@@ -56,16 +56,27 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
       <header className="stack-3">
         <Breadcrumb
           renderLink={renderLink}
-          items={[{ label: "Home", href: "/" }, { label: "Awardees", href: "/awardees" }, { label: award.name }]}
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Awardees", href: "/awardees" },
+            { label: award.name },
+          ]}
         />
         <h1 className="page-title">{award.name}</h1>
-        {award.description ? <p className="lead" dangerouslySetInnerHTML={{ __html: award.description }} /> : null}
-        {award.namesakeBio ? <p className="lead small" dangerouslySetInnerHTML={{ __html: award.namesakeBio }} /> : null}
+        {award.description ? (
+          <p className="lead" dangerouslySetInnerHTML={{ __html: award.description }} />
+        ) : null}
+        {award.namesakeBio ? (
+          <p className="lead small" dangerouslySetInnerHTML={{ __html: award.namesakeBio }} />
+        ) : null}
       </header>
 
       {years.length === 0 ? (
         <section aria-label="Recipients">
-          <Empty kind="nothing-yet" title="Recipient records for this award are being compiled and will appear here." />
+          <Empty
+            kind="nothing-yet"
+            title="Recipient records for this award are being compiled and will appear here."
+          />
         </section>
       ) : (
         <div className="stack-8">
@@ -79,13 +90,19 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
                     {bucket.recipients.map((recipient) => (
                       <li key={recipient.id}>
                         <p className="cluster recipient">
-                          {recipient.placement ? <Pill variant="secondary">{recipient.placement}</Pill> : null}
+                          {recipient.placement ? (
+                            <Pill variant="secondary">{recipient.placement}</Pill>
+                          ) : null}
                           <span>
                             <span className="strong">{recipient.personName}</span>
-                            {recipient.institution ? <span className="cap-muted"> &middot; {recipient.institution}</span> : null}
+                            {recipient.institution ? (
+                              <span className="cap-muted"> &middot; {recipient.institution}</span>
+                            ) : null}
                           </span>
                         </p>
-                        {recipient.mentor ? <p className="small cap-muted">Mentor: {recipient.mentor}</p> : null}
+                        {recipient.mentor ? (
+                          <p className="small cap-muted">Mentor: {recipient.mentor}</p>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

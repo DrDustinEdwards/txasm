@@ -23,7 +23,10 @@ let api: ReturnType<typeof createSiteApi>;
 const heard: PublishEvent[] = [];
 
 const call = (path: string, init: RequestInit = {}) => {
-  const headers = new Headers({ Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" });
+  const headers = new Headers({
+    Authorization: `Bearer ${KEY}`,
+    "Content-Type": "application/json",
+  });
   // A test's own headers win, in any form of HeadersInit (an object spread would turn an array into indices).
   for (const [name, value] of new Headers(init.headers)) headers.set(name, value);
   return api.handle(new Request(BASE + path, { ...init, headers }));
@@ -72,7 +75,9 @@ function png({ width, height }: Size, text: Record<string, string> = {}): Uint8A
   const parts = [
     new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk("IHDR", ihdr),
-    ...Object.entries(text).map(([k, v]) => chunk("tEXt", new TextEncoder().encode(`${k}\u0000${v}`))),
+    ...Object.entries(text).map(([k, v]) =>
+      chunk("tEXt", new TextEncoder().encode(`${k}\u0000${v}`)),
+    ),
     chunk("IEND", new Uint8Array()),
   ];
   return new Uint8Array(parts.flatMap((p) => [...p]));
@@ -87,7 +92,10 @@ const MARK = "|steps:";
 function stepsOf(bytes: Uint8Array): { base: Uint8Array; steps: unknown[] } {
   const at = new TextDecoder("latin1").decode(bytes).lastIndexOf(MARK);
   if (at === -1) return { base: bytes, steps: [] };
-  return { base: bytes.subarray(0, at), steps: JSON.parse(new TextDecoder().decode(bytes.subarray(at + MARK.length))) as unknown[] };
+  return {
+    base: bytes.subarray(0, at),
+    steps: JSON.parse(new TextDecoder().decode(bytes.subarray(at + MARK.length))) as unknown[],
+  };
 }
 const fakeImages = {
   async info(stream: ReadableStream) {
@@ -96,7 +104,8 @@ const fakeImages = {
     let size = { width: view.getUint32(16), height: view.getUint32(20) };
     const steps = stepsOf(bytes).steps as Array<{ rotate?: number; width?: number }>;
     for (const step of steps) {
-      if (step.rotate === 90 || step.rotate === 270) size = { width: size.height, height: size.width };
+      if (step.rotate === 90 || step.rotate === 270)
+        size = { width: size.height, height: size.width };
       if (step.width) {
         const scale = Math.min(1, step.width / Math.max(size.width, size.height));
         size = { width: Math.round(size.width * scale), height: Math.round(size.height * scale) };
@@ -112,8 +121,13 @@ const fakeImages = {
         return handle;
       },
       async output() {
-        const { base, steps: earlier } = stepsOf(new Uint8Array(await new Response(stream).arrayBuffer()));
-        const marked = new Uint8Array([...base, ...new TextEncoder().encode(`${MARK}${JSON.stringify([...earlier, ...steps])}`)]);
+        const { base, steps: earlier } = stepsOf(
+          new Uint8Array(await new Response(stream).arrayBuffer()),
+        );
+        const marked = new Uint8Array([
+          ...base,
+          ...new TextEncoder().encode(`${MARK}${JSON.stringify([...earlier, ...steps])}`),
+        ]);
         return { response: () => new Response(marked) };
       },
     };
@@ -122,16 +136,31 @@ const fakeImages = {
 };
 
 const fakeAi = {
-  run: async () => ({ response: { alt: "A poster session in a hotel ballroom.", tags: ["Posters", "ballroom", "ballroom"] } }),
+  run: async () => ({
+    response: {
+      alt: "A poster session in a hotel ballroom.",
+      tags: ["Posters", "ballroom", "ballroom"],
+    },
+  }),
 };
 
 async function upload(bytes: Uint8Array, name: string, extra: Record<string, string> = {}) {
   // site-api 0.19+ refuses an upload with neither alt nor decorative: no alt is the decorative choice.
-  const query = new URLSearchParams({ filename: name, changeId: `chg_${name.replace(/[^A-Za-z0-9_-]/g, "_")}`, ...("alt" in extra ? {} : { decorative: "yes" }), ...extra });
-  return call(`${PREFIX}/media?${query}`, { method: "POST", body: bytes, headers: { "Content-Type": "image/png" } });
+  const query = new URLSearchParams({
+    filename: name,
+    changeId: `chg_${name.replace(/[^A-Za-z0-9_-]/g, "_")}`,
+    ...("alt" in extra ? {} : { decorative: "yes" }),
+    ...extra,
+  });
+  return call(`${PREFIX}/media?${query}`, {
+    method: "POST",
+    body: bytes,
+    headers: { "Content-Type": "image/png" },
+  });
 }
 const enc = encodeURIComponent;
-const objectBytes = async (key: string) => new Uint8Array(await (await uploads.get(key))!.arrayBuffer());
+const objectBytes = async (key: string) =>
+  new Uint8Array(await (await uploads.get(key))!.arrayBuffer());
 
 before(async () => {
   mf = new Miniflare({
@@ -143,7 +172,13 @@ before(async () => {
   db = await mf.getD1Database("DB");
   uploads = (await mf.getR2Bucket("UPLOADS")) as unknown as R2Bucket;
   await applyMigrations(db);
-  const env = { DB: db, UPLOADS: uploads, IMAGES: fakeImages, AI: fakeAi, BETTER_AUTH_URL: BASE } as unknown as Env;
+  const env = {
+    DB: db,
+    UPLOADS: uploads,
+    IMAGES: fakeImages,
+    AI: fakeAi,
+    BETTER_AUTH_URL: BASE,
+  } as unknown as Env;
   api = createSiteApi({
     adapter: createCarrelAdapter(env),
     key: KEY,
@@ -163,21 +198,30 @@ test("passes site-api's own conformance suite", async () => {
     baseUrl: BASE,
     key: KEY,
     probeMediaUpload: true,
-    fetch: ((input: RequestInfo | URL, init?: RequestInit) => api.handle(new Request(input as string, init))) as typeof fetch,
+    fetch: ((input: RequestInfo | URL, init?: RequestInit) =>
+      api.handle(new Request(input as string, init))) as typeof fetch,
   });
-  assert.deepEqual(report.checks.filter((c) => !c.ok).map((c) => `${c.name}: ${c.detail}`), []);
+  assert.deepEqual(
+    report.checks.filter((c) => !c.ok).map((c) => `${c.name}: ${c.detail}`),
+    [],
+  );
 });
 
 test("a draft stays off the live page, a publish puts it there, and each write is audited", async () => {
-  const live = () => db.prepare("SELECT title, html FROM page WHERE slug = 'award-nominations'").first<{ title: string; html: string }>();
+  const live = () =>
+    db
+      .prepare("SELECT title, html FROM page WHERE slug = 'award-nominations'")
+      .first<{ title: string; html: string }>();
   const before = await live();
   const doc = await json(await call("/api/carrel/v1/content/award-nominations"));
   const source = (doc.source as string).replace("Deadline: August 1", "Deadline: July 15");
 
-  const saved = await json(await call("/api/carrel/v1/content/award-nominations/draft", {
-    method: "PUT",
-    body: JSON.stringify({ source, expectedVersion: doc.version, changeId: "chg_save" }),
-  }));
+  const saved = await json(
+    await call("/api/carrel/v1/content/award-nominations/draft", {
+      method: "PUT",
+      body: JSON.stringify({ source, expectedVersion: doc.version, changeId: "chg_save" }),
+    }),
+  );
   assert.deepEqual(await live(), before);
 
   const published = await call("/api/carrel/v1/content/award-nominations/publish", {
@@ -187,7 +231,9 @@ test("a draft stays off the live page, a publish puts it there, and each write i
   assert.equal(published.status, 200);
   assert.match((await live())!.html, /Deadline: July 15/);
 
-  const audit = await db.prepare("SELECT event, change_id FROM page_revision ORDER BY created_at, rowid").all();
+  const audit = await db
+    .prepare("SELECT event, change_id FROM page_revision ORDER BY created_at, rowid")
+    .all();
   assert.deepEqual(audit.results, [
     { event: "save", change_id: "chg_save" },
     { event: "publish", change_id: "chg_publish" },
@@ -195,44 +241,88 @@ test("a draft stays off the live page, a publish puts it there, and each write i
 
   const unpublish = await call("/api/carrel/v1/content/award-nominations/unpublish", {
     method: "POST",
-    body: JSON.stringify({ expectedVersion: (await json(published)).version, changeId: "chg_down" }),
+    body: JSON.stringify({
+      expectedVersion: (await json(published)).version,
+      changeId: "chg_down",
+    }),
   });
   assert.equal(unpublish.status, 422);
 });
 
 test("an update scheduled on a live page goes live from the cron at its time and no sooner, and the hooks hear it", async () => {
   const live = () =>
-    db.prepare("SELECT html, published_at FROM page WHERE slug = 'award-nominations'").first<{ html: string; published_at: number }>();
+    db
+      .prepare("SELECT html, published_at FROM page WHERE slug = 'award-nominations'")
+      .first<{ html: string; published_at: number }>();
   const before = (await live())!.html;
   const doc = await json(await call(`${PREFIX}/content/award-nominations`));
   const source = `${doc.source}\nA scheduled sample paragraph.\n`;
   const publishAt = "2030-01-01T15:00:00.000Z";
 
-  const scheduled = await json(await call(`${PREFIX}/content/award-nominations/schedule`, {
-    method: "POST",
-    body: JSON.stringify({ source, publishAt, expectedVersion: doc.version, changeId: "chg_schedule" }),
-  }));
+  const scheduled = await json(
+    await call(`${PREFIX}/content/award-nominations/schedule`, {
+      method: "POST",
+      body: JSON.stringify({
+        source,
+        publishAt,
+        expectedVersion: doc.version,
+        changeId: "chg_schedule",
+      }),
+    }),
+  );
   // The page stays live and unchanged, with the update beside it.
-  assert.deepEqual([scheduled.status, scheduled.scheduledUpdate], ["published", { publishAt, changeId: "chg_schedule" }]);
-  assert.equal((await json(await call(`${PREFIX}/content/award-nominations/schedule`))).source, source);
+  assert.deepEqual(
+    [scheduled.status, scheduled.scheduledUpdate],
+    ["published", { publishAt, changeId: "chg_schedule" }],
+  );
+  assert.equal(
+    (await json(await call(`${PREFIX}/content/award-nominations/schedule`))).source,
+    source,
+  );
 
   heard.length = 0;
-  assert.equal((await api.runSchedules({ now: new Date("2030-01-01T14:59:00Z") })).applied.length, 0);
+  assert.equal(
+    (await api.runSchedules({ now: new Date("2030-01-01T14:59:00Z") })).applied.length,
+    0,
+  );
   assert.equal((await live())!.html, before);
-  assert.equal((await api.runSchedules({ now: new Date("2030-01-01T15:00:30Z") })).applied.length, 1);
+  assert.equal(
+    (await api.runSchedules({ now: new Date("2030-01-01T15:00:30Z") })).applied.length,
+    1,
+  );
   const after = (await live())!;
   assert.match(after.html, /A scheduled sample paragraph\./);
   assert.equal(after.published_at, Date.parse(publishAt));
-  assert.equal((await json(await call(`${PREFIX}/content/award-nominations`))).scheduledUpdate, null);
-  assert.deepEqual(heard.map((e) => [e.action, e.trigger, e.url]), [["update", "schedule", `${BASE}/award-nominations`]]);
+  assert.equal(
+    (await json(await call(`${PREFIX}/content/award-nominations`))).scheduledUpdate,
+    null,
+  );
+  assert.deepEqual(
+    heard.map((e) => [e.action, e.trigger, e.url]),
+    [["update", "schedule", `${BASE}/award-nominations`]],
+  );
   // Recorded under the change that scheduled it, and a second pass finds nothing.
-  const audit = await db.prepare("SELECT event FROM page_revision WHERE change_id = 'chg_schedule' ORDER BY created_at, rowid").all();
-  assert.deepEqual(audit.results.map((r) => r.event), ["schedule", "publish"]);
-  assert.equal((await api.runSchedules({ now: new Date("2030-01-01T15:01:00Z") })).applied.length, 0);
+  const audit = await db
+    .prepare(
+      "SELECT event FROM page_revision WHERE change_id = 'chg_schedule' ORDER BY created_at, rowid",
+    )
+    .all();
+  assert.deepEqual(
+    audit.results.map((r) => r.event),
+    ["schedule", "publish"],
+  );
+  assert.equal(
+    (await api.runSchedules({ now: new Date("2030-01-01T15:01:00Z") })).applied.length,
+    0,
+  );
 });
 
 test("a library picture: a page publishes it with its sizes, and while a page uses it the file stays", async () => {
-  const uploaded = await upload(png({ width: 1600, height: 900 }, { Author: "Example Photographer" }), "Poster Hall.png", { alt: "Posters" });
+  const uploaded = await upload(
+    png({ width: 1600, height: 900 }, { Author: "Example Photographer" }),
+    "Poster Hall.png",
+    { alt: "Posters" },
+  );
   assert.equal(uploaded.status, 201);
   const file = await json(uploaded);
   assert.match(file.id, /^media\/\d{4}\/[0-9a-f]{10}-poster-hall\.png$/);
@@ -244,28 +334,49 @@ test("a library picture: a page publishes it with its sizes, and while a page us
   const doc = await json(await call(`${PREFIX}/content/home`));
   const outside = await call(`${PREFIX}/content/home/publish`, {
     method: "POST",
-    body: JSON.stringify({ source: `${doc.source}\n![A poster](https://example.com/poster.png)\n`, expectedVersion: doc.version, changeId: "chg_outside" }),
+    body: JSON.stringify({
+      source: `${doc.source}\n![A poster](https://example.com/poster.png)\n`,
+      expectedVersion: doc.version,
+      changeId: "chg_outside",
+    }),
   });
   assert.equal(outside.status, 422);
 
   const published = await call(`${PREFIX}/content/home/publish`, {
     method: "POST",
-    body: JSON.stringify({ source: `${doc.source}\n![Posters in the hall](${file.url})\n`, expectedVersion: doc.version, changeId: "chg_picture" }),
+    body: JSON.stringify({
+      source: `${doc.source}\n![Posters in the hall](${file.url})\n`,
+      expectedVersion: doc.version,
+      changeId: "chg_picture",
+    }),
   });
   assert.equal(published.status, 200);
-  const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'home'").first<{ html: string }>())!;
-  assert.match(html, /<picture><source type="image\/avif" srcset="[^"]*\.avif\?v=[0-9a-f]{12}(?:&|&#x26;)w=768 768w/);
+  const { html } = (await db
+    .prepare("SELECT html FROM page WHERE slug = 'home'")
+    .first<{ html: string }>())!;
+  assert.match(
+    html,
+    /<picture><source type="image\/avif" srcset="[^"]*\.avif\?v=[0-9a-f]{12}(?:&|&#x26;)w=768 768w/,
+  );
   assert.match(html, /width="768" height="432"/);
 
   const detail = await json(await call(`${PREFIX}/media/${enc(file.id)}`));
-  assert.deepEqual(detail.usedBy.map((u: { id: string; detail: string }) => [u.id, u.detail]), [["home", "the published page and its draft"]]);
-  const refused = await call(`${PREFIX}/media/${enc(file.id)}?changeId=chg_delete`, { method: "DELETE" });
+  assert.deepEqual(
+    detail.usedBy.map((u: { id: string; detail: string }) => [u.id, u.detail]),
+    [["home", "the published page and its draft"]],
+  );
+  const refused = await call(`${PREFIX}/media/${enc(file.id)}?changeId=chg_delete`, {
+    method: "DELETE",
+  });
   assert.equal(refused.status, 422);
   assert.ok(await uploads.head(file.id));
 
   // Each write names the version it was loaded at: the second of two from one version is refused, not lost.
   const alt = (changeId: string) =>
-    call(`${PREFIX}/media/${enc(file.id)}/alt`, { method: "PUT", body: JSON.stringify({ alt: changeId, expectedVersion: file.version, changeId }) });
+    call(`${PREFIX}/media/${enc(file.id)}/alt`, {
+      method: "PUT",
+      body: JSON.stringify({ alt: changeId, expectedVersion: file.version, changeId }),
+    });
   assert.equal((await alt("chg_alt_1")).status, 200);
   assert.equal((await alt("chg_alt_2")).status, 409);
   assert.equal((await json(await call(`${PREFIX}/media/${enc(file.id)}`))).alt, "chg_alt_1");
@@ -278,43 +389,84 @@ test("bytes the library already holds answer as that file, and nothing new is st
   assert.equal(again.status, 200);
   const answered = await json(again);
   assert.deepEqual([answered.id, answered.duplicateOf], [first.id, first.id]);
-  assert.equal((await db.prepare("SELECT count(*) AS n FROM media WHERE filename = 'renamed.png'").first<{ n: number }>())!.n, 0);
+  assert.equal(
+    (await db
+      .prepare("SELECT count(*) AS n FROM media WHERE filename = 'renamed.png'")
+      .first<{ n: number }>())!.n,
+    0,
+  );
 });
 
 test("a turn keeps the old bytes in the history, a revert puts them back, and a turn that changes the size is a new file", async () => {
-  const square = await json(await upload(png({ width: 800, height: 800 }, { Seed: "square" }), "square.png"));
+  const square = await json(
+    await upload(png({ width: 800, height: 800 }, { Seed: "square" }), "square.png"),
+  );
   const original = await objectBytes(square.id);
   // A published page that shows it: its addresses carry the file's version, so a turn renders the page again.
   const doc = await json(await call(`${PREFIX}/content/award-nominations`));
   const shown = await call(`${PREFIX}/content/award-nominations/publish`, {
     method: "POST",
-    body: JSON.stringify({ source: `${doc.source}\n![A square](${square.url})\n`, expectedVersion: doc.version, changeId: "chg_square" }),
+    body: JSON.stringify({
+      source: `${doc.source}\n![A square](${square.url})\n`,
+      expectedVersion: doc.version,
+      changeId: "chg_square",
+    }),
   });
   assert.equal(shown.status, 200);
-  const flipped = await json(await call(`${PREFIX}/media/${enc(square.id)}/transform`, {
-    method: "POST",
-    body: JSON.stringify({ op: "flip-h", expectedVersion: square.version, changeId: "chg_flip" }),
-  }));
+  const flipped = await json(
+    await call(`${PREFIX}/media/${enc(square.id)}/transform`, {
+      method: "POST",
+      body: JSON.stringify({ op: "flip-h", expectedVersion: square.version, changeId: "chg_flip" }),
+    }),
+  );
   assert.equal(flipped.asNewFile, false, JSON.stringify(flipped));
   assert.notDeepEqual(await objectBytes(square.id), original);
-  const { sha256 } = (await db.prepare("SELECT sha256 FROM media WHERE key = ?").bind(square.id).first<{ sha256: string }>())!;
-  const { html } = (await db.prepare("SELECT html FROM page WHERE slug = 'award-nominations'").first<{ html: string }>())!;
+  const { sha256 } = (await db
+    .prepare("SELECT sha256 FROM media WHERE key = ?")
+    .bind(square.id)
+    .first<{ sha256: string }>())!;
+  const { html } = (await db
+    .prepare("SELECT html FROM page WHERE slug = 'award-nominations'")
+    .first<{ html: string }>())!;
   assert.match(html, new RegExp(`href="/${square.id}\\?v=${sha256.slice(0, 12)}"`));
   const { revisions } = await json(await call(`${PREFIX}/media/${enc(square.id)}/history`));
-  assert.deepEqual(revisions.map((r: { reason: string; current: boolean }) => [r.reason, r.current]), [["transform", true], ["upload", false]]);
+  assert.deepEqual(
+    revisions.map((r: { reason: string; current: boolean }) => [r.reason, r.current]),
+    [
+      ["transform", true],
+      ["upload", false],
+    ],
+  );
   const reverted = await call(`${PREFIX}/media/${enc(square.id)}/revert`, {
     method: "POST",
-    body: JSON.stringify({ to: revisions[1].rev, expectedVersion: flipped.version, changeId: "chg_revert" }),
+    body: JSON.stringify({
+      to: revisions[1].rev,
+      expectedVersion: flipped.version,
+      changeId: "chg_revert",
+    }),
   });
   assert.equal(reverted.status, 200);
   assert.deepEqual(await objectBytes(square.id), original);
 
-  const wide = await json(await upload(png({ width: 60, height: 30 }, { Seed: "wide" }), "wide.png", { alt: "A wide chart" }));
-  const turned = await json(await call(`${PREFIX}/media/${enc(wide.id)}/transform`, {
-    method: "POST",
-    body: JSON.stringify({ op: "rotate-90", expectedVersion: wide.version, changeId: "chg_turn" }),
-  }));
-  assert.deepEqual([turned.asNewFile, turned.width, turned.height, turned.alt], [true, 30, 60, "A wide chart"]);
+  const wide = await json(
+    await upload(png({ width: 60, height: 30 }, { Seed: "wide" }), "wide.png", {
+      alt: "A wide chart",
+    }),
+  );
+  const turned = await json(
+    await call(`${PREFIX}/media/${enc(wide.id)}/transform`, {
+      method: "POST",
+      body: JSON.stringify({
+        op: "rotate-90",
+        expectedVersion: wide.version,
+        changeId: "chg_turn",
+      }),
+    }),
+  );
+  assert.deepEqual(
+    [turned.asNewFile, turned.width, turned.height, turned.alt],
+    [true, 30, 60, "A wide chart"],
+  );
   assert.notEqual(turned.id, wide.id);
   assert.equal((await json(await call(`${PREFIX}/media/${enc(wide.id)}`))).version, wide.version);
 });
@@ -324,7 +476,10 @@ test("a large picture is shrunk at upload unless asked not to, and its original 
   const shrunk = await json(await upload(bytes, "large.png"));
   // The original is kept without its private metadata (its tEXt chunk), as the stored file is.
   const clean = stripMetadata(bytes, "image/png");
-  assert.deepEqual([shrunk.width, shrunk.height, shrunk.resizedFrom], [2560, 1280, { width: 5000, height: 2500, bytes: clean.length }]);
+  assert.deepEqual(
+    [shrunk.width, shrunk.height, shrunk.resizedFrom],
+    [2560, 1280, { width: 5000, height: 2500, bytes: clean.length }],
+  );
   const [kept] = (await uploads.list({ prefix: `media-history/${shrunk.id}/` })).objects;
   assert.ok(kept, "the original was not kept");
   assert.deepEqual(await objectBytes(kept.key), clean);
@@ -332,25 +487,37 @@ test("a large picture is shrunk at upload unless asked not to, and its original 
   assert.equal((await json(await upload(bytes, "large-again.png"))).duplicateOf, shrunk.id);
 
   // Another picture: one that differs only in its tEXt would be the same file.
-  const asIs = await json(await upload(png({ width: 4800, height: 2400 }), "large-kept.png", { resize: "no" }));
+  const asIs = await json(
+    await upload(png({ width: 4800, height: 2400 }), "large-kept.png", { resize: "no" }),
+  );
   assert.deepEqual([asIs.width, asIs.height], [4800, 2400]);
 });
 
 test("the change log names each file changed since a cursor, and each one deleted for good", async () => {
   const { changeCursor } = await json(await call(`${PREFIX}/media?limit=1`));
-  const file = await json(await upload(png({ width: 20, height: 20 }, { Seed: "changes" }), "changes.png"));
+  const file = await json(
+    await upload(png({ width: 20, height: 20 }, { Seed: "changes" }), "changes.png"),
+  );
   const changed = await json(await call(`${PREFIX}/media?changedSince=${changeCursor}`));
   assert.ok(changed.items.some((i: { id: string }) => i.id === file.id));
 
-  assert.equal((await call(`${PREFIX}/media/${enc(file.id)}?changeId=chg_gone`, { method: "DELETE" })).status, 200);
+  assert.equal(
+    (await call(`${PREFIX}/media/${enc(file.id)}?changeId=chg_gone`, { method: "DELETE" })).status,
+    200,
+  );
   const after = await json(await call(`${PREFIX}/media?changedSince=${changed.changeCursor}`));
   assert.deepEqual(after.removed, [file.id]);
   assert.equal(await uploads.head(file.id), null);
 });
 
 test("suggestions come from the model in the contract's spelling, and nothing is applied", async () => {
-  const file = await json(await upload(png({ width: 30, height: 20 }, { Seed: "suggest" }), "suggest.png"));
+  const file = await json(
+    await upload(png({ width: 30, height: 20 }, { Seed: "suggest" }), "suggest.png"),
+  );
   const suggested = await json(await call(`${PREFIX}/media/${enc(file.id)}/suggestions`));
-  assert.deepEqual([suggested.alt, suggested.tags], ["A poster session in a hotel ballroom.", ["posters", "ballroom"]]);
+  assert.deepEqual(
+    [suggested.alt, suggested.tags],
+    ["A poster session in a hotel ballroom.", ["posters", "ballroom"]],
+  );
   assert.deepEqual((await json(await call(`${PREFIX}/media/${enc(file.id)}`))).alt, "");
 });

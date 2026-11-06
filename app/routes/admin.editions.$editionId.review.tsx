@@ -172,13 +172,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                         <li key={a.assignmentId} className="spread small">
                           <span>
                             {a.reviewerName || a.reviewerEmail}{" "}
-                            <span
-                              className={
-                                a.reviewSubmitted
-                                  ? "ok-text"
-                                  : "cap-muted"
-                              }
-                            >
+                            <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
                               ({a.reviewSubmitted ? "review submitted" : "assigned"})
                             </span>
                           </span>

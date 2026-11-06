@@ -77,7 +77,10 @@ export default function start(root: HTMLElement, props: { url: string }): void {
   function go(to: { page?: number; scale?: number }) {
     if (!doc) return;
     const nextPage = Math.min(Math.max(1, to.page ?? page), doc.numPages || 1);
-    const nextScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round((to.scale ?? scale) * 100) / 100));
+    const nextScale = Math.min(
+      MAX_SCALE,
+      Math.max(MIN_SCALE, Math.round((to.scale ?? scale) * 100) / 100),
+    );
     if (nextPage === page && nextScale === scale) return;
     page = nextPage;
     scale = nextScale;

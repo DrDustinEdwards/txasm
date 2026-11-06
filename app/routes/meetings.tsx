@@ -67,14 +67,21 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       <header className="stack-3">
         <h1 className="page-title">Meetings</h1>
         <p className="lead">
-          The branch meets twice a year. Search the accepted abstracts across all
-          meetings, or open a meeting for its program and full abstract archive.
+          The branch meets twice a year. Search the accepted abstracts across all meetings, or open
+          a meeting for its program and full abstract archive.
         </p>
       </header>
 
       <Form method="get" role="search" aria-label="Search abstracts" className="card stack-4">
         <Field label="Search abstracts">
-          <input id="q" name="q" type="search" defaultValue={q} placeholder="Author, title, or topic" className="cap-input" />
+          <input
+            id="q"
+            name="q"
+            type="search"
+            defaultValue={q}
+            placeholder="Author, title, or topic"
+            className="cap-input"
+          />
         </Field>
         <div className="grid-3">
           <Field label="Level">
@@ -124,11 +131,16 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
             <ul className="card-list">
               {results.map((result) => (
                 <li key={`${result.editionSlug}-${result.number}`}>
-                  <Link to={`/meetings/${result.editionSlug}/abstracts/${result.number}`} className="strong">
+                  <Link
+                    to={`/meetings/${result.editionSlug}/abstracts/${result.number}`}
+                    className="strong"
+                  >
                     <span dangerouslySetInnerHTML={{ __html: result.title }} />
                   </Link>
                   <p className="small cap-muted">
-                    {[result.presentingAuthorName ?? "", result.editionName, result.topic ?? ""].filter((p) => p.length > 0).join(" · ")}
+                    {[result.presentingAuthorName ?? "", result.editionName, result.topic ?? ""]
+                      .filter((p) => p.length > 0)
+                      .join(" · ")}
                   </p>
                 </li>
               ))}
@@ -140,7 +152,10 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       <section aria-label="Meetings" className="stack-4">
         <h2 className="subsection-title">All meetings</h2>
         {meetings.length === 0 ? (
-          <Empty kind="nothing-yet" title="Meetings appear here once their programs are published." />
+          <Empty
+            kind="nothing-yet"
+            title="Meetings appear here once their programs are published."
+          />
         ) : (
           <ul className="stack-4">
             {meetings.map((m) => {
@@ -148,7 +163,11 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
               return (
                 <li key={m.slug} className="card stack-1">
                   <h3 className="subsection-title">{m.name}</h3>
-                  <p className="small cap-muted">{[`${SEASON_LABELS[m.season]} ${m.year}`, venue].filter((p) => p.length > 0).join(" · ")}</p>
+                  <p className="small cap-muted">
+                    {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
+                      .filter((p) => p.length > 0)
+                      .join(" · ")}
+                  </p>
                   <p className="cluster small">
                     <Link to={`/meetings/${m.slug}/abstracts`}>Abstracts ({m.abstractCount})</Link>
                     <Link to={`/meetings/${m.slug}/program`}>Program</Link>

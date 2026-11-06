@@ -11,7 +11,9 @@ import {
 
 // Column factories. crypto.randomUUID is available in the Workers runtime.
 function pk() {
-  return text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
+  return text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID());
 }
 function createdAt() {
   return integer("created_at", { mode: "timestamp_ms" })
@@ -39,9 +41,7 @@ export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name"),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -228,10 +228,7 @@ export const invitation = sqliteTable(
     acceptedUserId: text("accepted_user_id").references(() => user.id),
     createdAt: createdAt(),
   },
-  (t) => [
-    index("ix_invitation_edition").on(t.editionId),
-    index("ix_invitation_email").on(t.email),
-  ],
+  (t) => [index("ix_invitation_edition").on(t.editionId), index("ix_invitation_email").on(t.email)],
 );
 
 // ---------------------------------------------------------------------------
@@ -356,14 +353,7 @@ export const abstract = sqliteTable(
       .notNull()
       .default("either"),
     status: text("status", {
-      enum: [
-        "draft",
-        "submitted",
-        "under_review",
-        "accepted",
-        "rejected",
-        "withdrawn",
-      ],
+      enum: ["draft", "submitted", "under_review", "accepted", "rejected", "withdrawn"],
     })
       .notNull()
       .default("draft"),
@@ -390,18 +380,11 @@ export const author = sqliteTable(
     lastName: text("last_name").notNull(),
     email: text("email"),
     ordinal: integer("ordinal").notNull(), // display order on the abstract
-    isPresenting: integer("is_presenting", { mode: "boolean" })
-      .notNull()
-      .default(false),
-    isCorresponding: integer("is_corresponding", { mode: "boolean" })
-      .notNull()
-      .default(false),
+    isPresenting: integer("is_presenting", { mode: "boolean" }).notNull().default(false),
+    isCorresponding: integer("is_corresponding", { mode: "boolean" }).notNull().default(false),
     createdAt: createdAt(),
   },
-  (t) => [
-    index("ix_author_abstract").on(t.abstractId),
-    index("ix_author_user").on(t.userId),
-  ],
+  (t) => [index("ix_author_abstract").on(t.abstractId), index("ix_author_user").on(t.userId)],
 );
 
 export const affiliation = sqliteTable(
@@ -702,25 +685,22 @@ export const document = sqliteTable(
 // abstracts never get a book row. See app/lib/book-numbering.ts for the reflow.
 // ---------------------------------------------------------------------------
 
-export const abstractBook = sqliteTable(
-  "abstract_book",
-  {
-    id: pk(),
-    editionId: text("edition_id")
-      .notNull()
-      .references(() => edition.id, { onDelete: "cascade" })
-      .unique(), // v1: one book per edition
-    status: text("status", { enum: ["draft", "published"] })
-      .notNull()
-      .default("draft"),
-    numberingScheme: text("numbering_scheme").notNull().default("prefix"),
-    publishedHtml: text("published_html"), // frozen render, set on publish
-    publishedAt: tsMs("published_at"),
-    generatedById: text("generated_by_id").references(() => user.id),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-);
+export const abstractBook = sqliteTable("abstract_book", {
+  id: pk(),
+  editionId: text("edition_id")
+    .notNull()
+    .references(() => edition.id, { onDelete: "cascade" })
+    .unique(), // v1: one book per edition
+  status: text("status", { enum: ["draft", "published"] })
+    .notNull()
+    .default("draft"),
+  numberingScheme: text("numbering_scheme").notNull().default("prefix"),
+  publishedHtml: text("published_html"), // frozen render, set on publish
+  publishedAt: tsMs("published_at"),
+  generatedById: text("generated_by_id").references(() => user.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
 
 export const bookSection = sqliteTable(
   "book_section",
@@ -781,13 +761,7 @@ export const invitedSpeaker = sqliteTable(
     name: text("name").notNull(),
     affiliation: text("affiliation"),
     role: text("role", {
-      enum: [
-        "keynote",
-        "goldschmidt_lecture",
-        "award_lecture",
-        "career",
-        "other",
-      ],
+      enum: ["keynote", "goldschmidt_lecture", "award_lecture", "career", "other"],
     }),
     talkTitle: text("talk_title"),
     bio: text("bio"), // sanitized HTML (em/sup/sub)
@@ -929,9 +903,7 @@ export const platformSettings = sqliteTable("platform_settings", {
   facebookUrl: text("facebook_url"),
   footerLinks: text("footer_links"), // JSON array of { label, url }
   defaultCurrency: text("default_currency").notNull().default("usd"),
-  defaultAbstractWordLimit: integer("default_abstract_word_limit")
-    .notNull()
-    .default(250),
+  defaultAbstractWordLimit: integer("default_abstract_word_limit").notNull().default(250),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

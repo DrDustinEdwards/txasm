@@ -12,8 +12,7 @@ export function meta({ matches }: Route.MetaArgs) {
   return pageHead(matches, {
     path: "/contact",
     name: "Contact",
-    description:
-      "How to reach the Texas Branch of the American Society for Microbiology.",
+    description: "How to reach the Texas Branch of the American Society for Microbiology.",
   });
 }
 
@@ -30,9 +29,8 @@ export default function Contact() {
       <header className="stack-3">
         <h1 className="page-title">Contact</h1>
         <p className="lead">
-          Questions about meetings, registration, abstracts, or the awards
-          program are welcome. Reach the branch by email or through the member
-          group.
+          Questions about meetings, registration, abstracts, or the awards program are welcome.
+          Reach the branch by email or through the member group.
         </p>
       </header>
 
@@ -53,14 +51,17 @@ export default function Contact() {
             <div className="stack-1">
               <dt className="cap-label">Facebook group</dt>
               <dd>
-                <a href={facebookUrl}>
-                  Join the member group
-                </a>
+                <a href={facebookUrl}>Join the member group</a>
               </dd>
             </div>
           ) : null}
         </dl>
-        {!contactEmail && !facebookUrl ? <Empty kind="nothing-yet" title="Contact details are being set up and will appear here." /> : null}
+        {!contactEmail && !facebookUrl ? (
+          <Empty
+            kind="nothing-yet"
+            title="Contact details are being set up and will appear here."
+          />
+        ) : null}
       </section>
     </div>
   );

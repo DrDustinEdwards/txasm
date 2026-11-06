@@ -27,10 +27,7 @@ import { PLATFORM_SETTINGS_ID, resolveSettings } from "./settings";
 // design and returns data only for a meeting at a public stage.
 export function createProgramSessions(db: DB) {
   return {
-    async listForEdition(
-      actor: Actor,
-      editionId: string,
-    ): Promise<ProgramSessionResolved[]> {
+    async listForEdition(actor: Actor, editionId: string): Promise<ProgramSessionResolved[]> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       return loadResolvedProgram(db, editionId);
     },
@@ -101,17 +98,11 @@ export function createProgramSessions(db: DB) {
       });
       if (!session) throw new NotFoundError();
       if (!isChair(actor, session.editionId)) throw new ForbiddenError();
-      await db
-        .delete(schema.programSession)
-        .where(eq(schema.programSession.id, sessionId));
+      await db.delete(schema.programSession).where(eq(schema.programSession.id, sessionId));
       return { id: sessionId };
     },
 
-    async reorder(
-      actor: Actor,
-      editionId: string,
-      orderedSessionIds: string[],
-    ) {
+    async reorder(actor: Actor, editionId: string, orderedSessionIds: string[]) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const existing = await db
         .select({ id: schema.programSession.id })
@@ -157,10 +148,7 @@ export function createProgramSessions(db: DB) {
     // (the same deterministic grouping the public view uses, so builder and
     // public agree), plus the meeting date range for the day tabs. Includes every
     // session regardless of edition status.
-    async getScheduleForEdition(
-      actor: Actor,
-      editionId: string,
-    ): Promise<ProgramSchedule> {
+    async getScheduleForEdition(actor: Actor, editionId: string): Promise<ProgramSchedule> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const ed = await db.query.edition.findFirst({
         where: eq(schema.edition.id, editionId),
@@ -219,10 +207,7 @@ export function createProgramSessions(db: DB) {
 // data so renderProgramBook in ./program-book is a pure function of it.
 export function createProgram(db: DB) {
   return {
-    async getProgramData(
-      actor: Actor,
-      editionId: string,
-    ): Promise<ProgramBookData> {
+    async getProgramData(actor: Actor, editionId: string): Promise<ProgramBookData> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const ed = await db.query.edition.findFirst({
         where: eq(schema.edition.id, editionId),

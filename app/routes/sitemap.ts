@@ -35,7 +35,10 @@ export async function loader({ context }: Route.LoaderArgs) {
     da.sitemap.lastModified(),
     ...(["newsletter", "abstract_book", "program"] as const).map(async (category) => {
       const basePath = CATEGORY_PATHS[category]?.basePath;
-      const docs = (await da.documents.listByCategory(category)).map((d) => ({ path: `${basePath}/${d.slug}`, lastmod: d.updatedAt }));
+      const docs = (await da.documents.listByCategory(category)).map((d) => ({
+        path: `${basePath}/${d.slug}`,
+        lastmod: d.updatedAt,
+      }));
       return { basePath, docs };
     }),
   ]);
@@ -46,7 +49,10 @@ export async function loader({ context }: Route.LoaderArgs) {
     ...Object.fromEntries(documents.map((c) => [c.basePath, newest(c.docs.map((d) => d.lastmod))])),
   };
   const pages = [
-    ...STATIC_PATHS.filter((path) => !noindex.has(path)).map((path) => ({ path, lastmod: changed.page.get(path) ?? listed[path] })),
+    ...STATIC_PATHS.filter((path) => !noindex.has(path)).map((path) => ({
+      path,
+      lastmod: changed.page.get(path) ?? listed[path],
+    })),
     ...meetings.flatMap((m) => {
       const lastmod = changed.edition.get(m.slug);
       return [
@@ -57,10 +63,13 @@ export async function loader({ context }: Route.LoaderArgs) {
     ...awards.map((a) => ({ path: `/awards/${a.slug}`, lastmod: changed.award.get(a.id) })),
     ...documents.flatMap((c) => c.docs),
   ];
-  return new Response(sitemapDocument(pages.map(({ path, lastmod }) => ({ loc: `${SITE_ORIGIN}${path}`, lastmod }))), {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+  return new Response(
+    sitemapDocument(pages.map(({ path, lastmod }) => ({ loc: `${SITE_ORIGIN}${path}`, lastmod }))),
+    {
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=3600",
+      },
     },
-  });
+  );
 }

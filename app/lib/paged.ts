@@ -7,7 +7,8 @@ const PAGED_JS_PATH = "/pagedjs/paged.polyfill-0.4.3.js";
 // Subresource integrity for that exact file. The book preview runs on the app origin
 // with the chair's session, so a changed file must not run there. A new version
 // needs a new hash.
-const PAGED_JS_INTEGRITY = "sha384-JkjBt3FPbcQ3WBc3qp+maUIw8YLoZxNNj8H+tn73mljkC1ba8aEPWlgwfCRPpAxV";
+const PAGED_JS_INTEGRITY =
+  "sha384-JkjBt3FPbcQ3WBc3qp+maUIw8YLoZxNNj8H+tn73mljkC1ba8aEPWlgwfCRPpAxV";
 
 // The closing scripts of a printable book. The config signals when Paged.js has
 // finished laying out the pages: the PDF render waits on data-pagedjs-done so

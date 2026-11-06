@@ -29,10 +29,7 @@ export interface NumberingEntry {
 }
 
 // The prefix for an entry, or null when it carries no code (missing level/format).
-function codePrefix(
-  level: AbstractLevel | null,
-  format: AbstractFormat | null,
-): string | null {
+function codePrefix(level: AbstractLevel | null, format: AbstractFormat | null): string | null {
   if (level === null || format === null) return null;
   return LEVEL_CODE_LETTERS[level] + FORMAT_CODE_LETTERS[format];
 }
@@ -41,9 +38,7 @@ function codePrefix(
 // book order. Returns a map of entry id to its code, or null for entries that
 // carry no code. Excluded and null-level/format entries are skipped and do not
 // advance their prefix run.
-export function computeBookCodes(
-  entries: readonly NumberingEntry[],
-): Map<string, string | null> {
+export function computeBookCodes(entries: readonly NumberingEntry[]): Map<string, string | null> {
   const runningByPrefix = new Map<string, number>();
   const codes = new Map<string, string | null>();
 

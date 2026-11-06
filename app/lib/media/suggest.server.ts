@@ -8,5 +8,6 @@ import { mediaSuggester } from "@dustinedwards/site-api";
 /** What the model suggests for one stored picture. Throws when the site has no AI binding. */
 export const suggestFor = mediaSuggester({
   app: "txasm",
-  describe: "on the website of a scientific society, the Texas Branch of the American Society for Microbiology",
+  describe:
+    "on the website of a scientific society, the Texas Branch of the American Society for Microbiology",
 });

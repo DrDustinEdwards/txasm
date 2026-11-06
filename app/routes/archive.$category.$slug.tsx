@@ -2,11 +2,7 @@ import type { Route } from "./+types/archive.$category.$slug";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
 import { DocumentDetail } from "~/components/document-detail";
-import {
-  ARCHIVE_SEGMENTS,
-  CATEGORY_PATHS,
-  adjacentSlugs,
-} from "~/lib/document-nav";
+import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, adjacentSlugs } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -52,9 +48,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   };
 }
 
-export default function ArchiveDocumentPage({
-  loaderData,
-}: Route.ComponentProps) {
+export default function ArchiveDocumentPage({ loaderData }: Route.ComponentProps) {
   const { doc, basePath, backTitle, prevSlug, nextSlug } = loaderData;
   return (
     <DocumentDetail

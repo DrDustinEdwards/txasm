@@ -51,7 +51,10 @@ export function useThemeCookie(serverTheme: Theme | null): void {
     const onTheme = (e: Event) => {
       const choice = (e as CustomEvent<{ choice?: string }>).detail?.choice;
       if (choice !== "light" && choice !== "dark") return;
-      document.cookie = themeCookie(choice, { name: THEME_COOKIE, secure: location.protocol === "https:" });
+      document.cookie = themeCookie(choice, {
+        name: THEME_COOKIE,
+        secure: location.protocol === "https:",
+      });
     };
     document.addEventListener("cap-theme", onTheme);
     return () => document.removeEventListener("cap-theme", onTheme);

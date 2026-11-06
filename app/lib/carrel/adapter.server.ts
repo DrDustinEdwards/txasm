@@ -42,7 +42,13 @@ import { readKey, SEARCH_FIELDS, splitSource } from "@dustinedwards/site-api/fro
 import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { notFoundReport } from "@dustinedwards/site-runtime/not-found";
-import { getCarrelMedia, getCarrelPages, type Page, type PageSearch, type PageWrite } from "../data-access";
+import {
+  getCarrelMedia,
+  getCarrelPages,
+  type Page,
+  type PageSearch,
+  type PageWrite,
+} from "../data-access";
 import { mediaKeyOf } from "../media/images";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { renderBody, versionedPath } from "./render.server";
@@ -55,10 +61,13 @@ type Waiting = Pick<ScheduledUpdate, "publishAt" | "changeId"> | null;
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 
-const waitingOf = (u: ScheduledUpdate | null): Waiting => (u ? { publishAt: u.publishAt, changeId: u.changeId } : null);
+const waitingOf = (u: ScheduledUpdate | null): Waiting =>
+  u ? { publishAt: u.publishAt, changeId: u.changeId } : null;
 
 const versionOf = (p: Pick<Page, "source" | "html">, update: Waiting = null): Promise<string> =>
-  contentVersion(update ? [p.source, p.html, update.publishAt, update.changeId] : [p.source, p.html]);
+  contentVersion(
+    update ? [p.source, p.html, update.publishAt, update.changeId] : [p.source, p.html],
+  );
 
 // A page's path is its slug, and the home page is the site root.
 const pathOf = (slug: string) => (slug === "home" ? "/" : `/${slug}`);
@@ -106,11 +115,20 @@ async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<
   if (search.image.trim()) {
     const key = mediaKeyOf(search.image);
     const [row] = key ? await getCarrelMedia(env).many([key]) : [];
-    if (!row) throw new RefusedError(`${search.image} is not in the media library. A share image is a library picture: upload it in Carrel first.`);
-    out.image = { url: versionedPath(row), width: row.width, height: row.height, ...(search.imageAlt.trim() ? { alt: search.imageAlt.trim() } : {}) };
+    if (!row)
+      throw new RefusedError(
+        `${search.image} is not in the media library. A share image is a library picture: upload it in Carrel first.`,
+      );
+    out.image = {
+      url: versionedPath(row),
+      width: row.width,
+      height: row.height,
+      ...(search.imageAlt.trim() ? { alt: search.imageAlt.trim() } : {}),
+    };
   }
   if (search.canonical.trim()) {
-    if (!/^https?:\/\//.test(search.canonical.trim())) throw new RefusedError("canonical must be an absolute http(s) address.");
+    if (!/^https?:\/\//.test(search.canonical.trim()))
+      throw new RefusedError("canonical must be an absolute http(s) address.");
     out.canonical = search.canonical.trim();
   }
   if (search.noindex) out.noindex = true;
@@ -138,7 +156,8 @@ export function createCarrelAdapter(
     const update = current ? waitingOf(await pages.scheduled(slug)) : null;
     const now = current ? await versionOf(current, update) : null;
     if (now !== expectedVersion) throw new VersionConflictError(now);
-    if (!current) throw new RefusedError("txasm has no route for a new page; Carrel edits the pages it lists.");
+    if (!current)
+      throw new RefusedError("txasm has no route for a new page; Carrel edits the pages it lists.");
     const change = await build(current, update);
     const next = { ...current, ...change.fields };
     const schedule = change.schedule;
@@ -150,10 +169,19 @@ export function createCarrelAdapter(
           : update;
     const version = await versionOf(next, nextUpdate);
     await pages.write(slug, { event, changeId, version, source: next.source, ...change });
-    return { id: slug, version, status: summaryOf(next, nextUpdate).status, changeId, scheduledUpdate: nextUpdate };
+    return {
+      id: slug,
+      version,
+      status: summaryOf(next, nextUpdate).status,
+      changeId,
+      scheduledUpdate: nextUpdate,
+    };
   }
 
-  async function publishFields(source: string, publishedAt: Date): Promise<NonNullable<PageWrite["fields"]>> {
+  async function publishFields(
+    source: string,
+    publishedAt: Date,
+  ): Promise<NonNullable<PageWrite["fields"]>> {
     const parsed = parse(source);
     return {
       source,
@@ -167,11 +195,16 @@ export function createCarrelAdapter(
 
   // The source goes live at publishAt; it is rendered now too, so a source that cannot go live is refused today
   // rather than failing at its time. Scheduling again replaces the update that was waiting.
-  const scheduleUpdate = (id: string, input: { source?: string; publishAt: string; expectedVersion: string; changeId: string }) =>
+  const scheduleUpdate = (
+    id: string,
+    input: { source?: string; publishAt: string; expectedVersion: string; changeId: string },
+  ) =>
     write(id, "schedule", input.changeId, input.expectedVersion, async (current) => {
       const source = input.source ?? current.source;
       await publishFields(source, new Date());
-      return { schedule: { put: { source, publishAt: input.publishAt, changeId: input.changeId } } };
+      return {
+        schedule: { put: { source, publishAt: input.publishAt, changeId: input.changeId } },
+      };
     });
 
   const content: ContentAdapter = {
@@ -200,7 +233,10 @@ export function createCarrelAdapter(
       const key = ORDER[sort];
       rows.sort((a, b) => {
         const [x, y] = [key(a), key(b)];
-        return (typeof x === "string" ? x.localeCompare(y as string) : x - (y as number)) * (dir === "asc" ? 1 : -1);
+        return (
+          (typeof x === "string" ? x.localeCompare(y as string) : x - (y as number)) *
+          (dir === "asc" ? 1 : -1)
+        );
       });
       const start = Math.max(0, Number(query.cursor) || 0);
       const page = rows.slice(start, start + query.limit);
@@ -218,7 +254,12 @@ export function createCarrelAdapter(
       const p = await pages.get(id);
       if (!p) return null;
       const update = waitingOf(await pages.scheduled(id));
-      return { ...summaryOf(p, update), format: "markdown" as const, source: p.source, version: await versionOf(p, update) };
+      return {
+        ...summaryOf(p, update),
+        format: "markdown" as const,
+        source: p.source,
+        version: await versionOf(p, update),
+      };
     },
 
     // A draft changes only the working source; the route keeps showing the published page, and an update
@@ -232,7 +273,10 @@ export function createCarrelAdapter(
     // What goes live is this publish, so an update waiting on the page is dropped and the cron never brings it back.
     publish: (id, input) =>
       write(id, "publish", input.changeId, input.expectedVersion, async (current) => ({
-        fields: await publishFields(input.source ?? current.source, input.publishedAt ? new Date(input.publishedAt) : new Date()),
+        fields: await publishFields(
+          input.source ?? current.source,
+          input.publishedAt ? new Date(input.publishedAt) : new Date(),
+        ),
         schedule: { drop: true },
       })),
 
@@ -243,7 +287,9 @@ export function createCarrelAdapter(
     unpublish: (id, input) =>
       write(id, "publish", input.changeId, input.expectedVersion, () =>
         Promise.reject(
-          new RefusedError("Every txasm page is a live route, so it stays published. Publish a new version instead."),
+          new RefusedError(
+            "Every txasm page is a live route, so it stays published. Publish a new version instead.",
+          ),
         ),
       ),
 
@@ -272,10 +318,16 @@ export function createCarrelAdapter(
 
     async cancel(id, input) {
       if (!(await pages.get(id))) throw new NotFoundError();
-      return write(id, "unschedule", input.changeId, input.expectedVersion, async (_current, update) => {
-        if (!update) throw new RefusedError("Nothing is scheduled for this page.");
-        return { schedule: { drop: true } };
-      });
+      return write(
+        id,
+        "unschedule",
+        input.changeId,
+        input.expectedVersion,
+        async (_current, update) => {
+          if (!update) throw new RefusedError("Nothing is scheduled for this page.");
+          return { schedule: { drop: true } };
+        },
+      );
     },
 
     due: ({ now, limit }) => pages.due(now, limit),
@@ -288,10 +340,16 @@ export function createCarrelAdapter(
       if (due.kind !== "update" || !current || !update) return null;
       if (update.publishAt !== due.publishAt || update.changeId !== due.changeId) return null;
       if (Date.parse(due.publishAt) > due.now.getTime()) return null;
-      return write(id, "publish", due.changeId, await versionOf(current, waitingOf(update)), async () => ({
-        fields: await publishFields(update.source, new Date(due.publishAt)),
-        schedule: { drop: { publishAt: due.publishAt, changeId: due.changeId } },
-      }));
+      return write(
+        id,
+        "publish",
+        due.changeId,
+        await versionOf(current, waitingOf(update)),
+        async () => ({
+          fields: await publishFields(update.source, new Date(due.publishAt)),
+          schedule: { drop: { publishAt: due.publishAt, changeId: due.changeId } },
+        }),
+      );
     },
   };
 

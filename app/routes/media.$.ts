@@ -20,7 +20,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
     cache: (caches as typeof caches & { default: Cache }).default,
     // The pages' addresses carry the file's version (`v`, render.server.ts), so one with it is cached for good. Without
     // it (an address a person copied), a day, so a replaced file shows through within one.
-    ...(new URL(request.url).searchParams.has("v") ? {} : { cacheControl: "public, max-age=86400" }),
+    ...(new URL(request.url).searchParams.has("v")
+      ? {}
+      : { cacheControl: "public, max-age=86400" }),
     reread: () => env.UPLOADS.get(key),
   });
   const headers = new Headers(response.headers);

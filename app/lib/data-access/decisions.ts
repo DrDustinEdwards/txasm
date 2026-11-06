@@ -1,11 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import { isEmptyRichText, sanitizeBody } from "../richtext";
-import {
-  DECISION_OUTCOMES,
-  type DecisionOutcome,
-  type PresentationType,
-} from "../vocab";
+import { DECISION_OUTCOMES, type DecisionOutcome, type PresentationType } from "../vocab";
 import { submittedAbstracts } from "./abstracts";
 import {
   type Actor,
@@ -49,22 +45,14 @@ export function createDecisions(db: DB) {
 
       let presentationType: PresentationType | null = null;
       if (input.outcome === "accept") {
-        if (
-          input.presentationType !== "oral" &&
-          input.presentationType !== "poster"
-        ) {
-          throw new ValidationError(
-            "Choose oral or poster for an accepted abstract.",
-          );
+        if (input.presentationType !== "oral" && input.presentationType !== "poster") {
+          throw new ValidationError("Choose oral or poster for an accepted abstract.");
         }
         presentationType = input.presentationType;
       }
 
-      const sanitized = input.decisionMessage
-        ? sanitizeBody(input.decisionMessage)
-        : null;
-      const message =
-        sanitized && !isEmptyRichText(sanitized) ? sanitized : null;
+      const sanitized = input.decisionMessage ? sanitizeBody(input.decisionMessage) : null;
+      const message = sanitized && !isEmptyRichText(sanitized) ? sanitized : null;
 
       const existing = await db.query.decision.findFirst({
         where: eq(schema.decision.abstractId, input.abstractId),
@@ -118,9 +106,14 @@ export function createDecisions(db: DB) {
 
       const submittedReviews = await byIdChunks(ids, (part) =>
         db
-          .select({ abstractId: schema.review.abstractId, recommendation: schema.review.recommendation })
+          .select({
+            abstractId: schema.review.abstractId,
+            recommendation: schema.review.recommendation,
+          })
           .from(schema.review)
-          .where(and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted"))),
+          .where(
+            and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted")),
+          ),
       );
       const decisionRows = await byIdChunks(ids, (part) =>
         db.select().from(schema.decision).where(inArray(schema.decision.abstractId, part)),
@@ -131,9 +124,12 @@ export function createDecisions(db: DB) {
         { accept: number; reject: number; revise: number; total: number }
       >();
       for (const r of submittedReviews) {
-        const s =
-          summaryByAbstract.get(r.abstractId) ??
-          { accept: 0, reject: 0, revise: 0, total: 0 };
+        const s = summaryByAbstract.get(r.abstractId) ?? {
+          accept: 0,
+          reject: 0,
+          revise: 0,
+          total: 0,
+        };
         s.total += 1;
         if (r.recommendation === "accept") s.accept += 1;
         else if (r.recommendation === "reject") s.reject += 1;
@@ -141,15 +137,16 @@ export function createDecisions(db: DB) {
         summaryByAbstract.set(r.abstractId, s);
       }
 
-      const decisionByAbstract = new Map(
-        decisionRows.map((d) => [d.abstractId, d]),
-      );
+      const decisionByAbstract = new Map(decisionRows.map((d) => [d.abstractId, d]));
 
       return rows.map((r) => {
         const decisionRow = decisionByAbstract.get(r.id);
-        const summary =
-          summaryByAbstract.get(r.id) ??
-          { accept: 0, reject: 0, revise: 0, total: 0 };
+        const summary = summaryByAbstract.get(r.id) ?? {
+          accept: 0,
+          reject: 0,
+          revise: 0,
+          total: 0,
+        };
         return {
           id: r.id,
           title: r.title,
@@ -210,9 +207,7 @@ export function createDecisions(db: DB) {
       if (!abs) throw new NotFoundError();
       if (!isChair(actor, abs.editionId)) throw new ForbiddenError();
 
-      await db
-        .delete(schema.decision)
-        .where(eq(schema.decision.abstractId, abstractId));
+      await db.delete(schema.decision).where(eq(schema.decision.abstractId, abstractId));
 
       const assignments = await db
         .select({ id: schema.reviewAssignment.id })
@@ -255,9 +250,7 @@ export function createDecisions(db: DB) {
         where: eq(schema.decision.abstractId, abstractId),
       });
       if (!decisionRow) {
-        throw new ValidationError(
-          "Record a decision before notifying the author.",
-        );
+        throw new ValidationError("Record a decision before notifying the author.");
       }
 
       const submitter = await db.query.user.findFirst({

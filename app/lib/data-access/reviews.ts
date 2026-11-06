@@ -1,11 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import { isEmptyRichText, sanitizeBody } from "../richtext";
-import {
-  CONFLICT_REASONS,
-  type ConflictReason,
-  REVIEW_RECOMMENDATIONS,
-} from "../vocab";
+import { CONFLICT_REASONS, type ConflictReason, REVIEW_RECOMMENDATIONS } from "../vocab";
 import {
   type Actor,
   ConflictOfInterestError,
@@ -69,9 +65,7 @@ export function createReviews(db: DB) {
       const isOwnAuthor =
         abs.submitterId === input.reviewerId ||
         authors.some(
-          (a) =>
-            a.userId === input.reviewerId ||
-            (!!a.email && a.email === reviewerRow.email),
+          (a) => a.userId === input.reviewerId || (!!a.email && a.email === reviewerRow.email),
         );
       if (isOwnAuthor) throw new ConflictOfInterestError("reviewer is an author");
 
@@ -114,10 +108,7 @@ export function createReviews(db: DB) {
       const edition = await db.query.edition.findFirst({
         where: eq(schema.edition.id, assignment.editionId),
       });
-      if (
-        edition?.reviewDeadline &&
-        Date.now() > edition.reviewDeadline.getTime()
-      ) {
+      if (edition?.reviewDeadline && Date.now() > edition.reviewDeadline.getTime()) {
         throw new DeadlinePassedError("The review deadline has passed.");
       }
 
@@ -143,9 +134,7 @@ export function createReviews(db: DB) {
 
       // Comments follow the abstract body allowlist (em, sup, sub); everything
       // else is stripped to plain text. An empty comment stores null.
-      const overall = input.overallComment
-        ? sanitizeBody(input.overallComment)
-        : null;
+      const overall = input.overallComment ? sanitizeBody(input.overallComment) : null;
       const confidential = input.confidentialComment
         ? sanitizeBody(input.confidentialComment)
         : null;
@@ -188,9 +177,7 @@ export function createReviews(db: DB) {
       }
 
       // Replace scores as a set. With no rubric this phase, that is zero scores.
-      await db
-        .delete(schema.reviewScore)
-        .where(eq(schema.reviewScore.reviewId, reviewId));
+      await db.delete(schema.reviewScore).where(eq(schema.reviewScore.reviewId, reviewId));
       if (input.scores.length > 0) {
         await db.insert(schema.reviewScore).values(
           input.scores.map((s) => ({
@@ -295,14 +282,8 @@ export function createReviews(db: DB) {
           reviewStatus: schema.review.status,
         })
         .from(schema.reviewAssignment)
-        .innerJoin(
-          schema.abstract,
-          eq(schema.reviewAssignment.abstractId, schema.abstract.id),
-        )
-        .leftJoin(
-          schema.review,
-          eq(schema.review.assignmentId, schema.reviewAssignment.id),
-        )
+        .innerJoin(schema.abstract, eq(schema.reviewAssignment.abstractId, schema.abstract.id))
+        .leftJoin(schema.review, eq(schema.review.assignmentId, schema.reviewAssignment.id))
         .where(
           and(
             eq(schema.reviewAssignment.reviewerId, actor.userId),
@@ -327,18 +308,9 @@ export function createReviews(db: DB) {
           reviewStatus: schema.review.status,
         })
         .from(schema.reviewAssignment)
-        .innerJoin(
-          schema.abstract,
-          eq(schema.reviewAssignment.abstractId, schema.abstract.id),
-        )
-        .innerJoin(
-          schema.edition,
-          eq(schema.reviewAssignment.editionId, schema.edition.id),
-        )
-        .leftJoin(
-          schema.review,
-          eq(schema.review.assignmentId, schema.reviewAssignment.id),
-        )
+        .innerJoin(schema.abstract, eq(schema.reviewAssignment.abstractId, schema.abstract.id))
+        .innerJoin(schema.edition, eq(schema.reviewAssignment.editionId, schema.edition.id))
+        .leftJoin(schema.review, eq(schema.review.assignmentId, schema.reviewAssignment.id))
         .where(eq(schema.reviewAssignment.reviewerId, actor.userId))
         .orderBy(desc(schema.reviewAssignment.assignedAt));
       return rows.map((r) => ({
@@ -369,14 +341,8 @@ export function createReviews(db: DB) {
           reviewStatus: schema.review.status,
         })
         .from(schema.reviewAssignment)
-        .innerJoin(
-          schema.user,
-          eq(schema.reviewAssignment.reviewerId, schema.user.id),
-        )
-        .leftJoin(
-          schema.review,
-          eq(schema.review.assignmentId, schema.reviewAssignment.id),
-        )
+        .innerJoin(schema.user, eq(schema.reviewAssignment.reviewerId, schema.user.id))
+        .leftJoin(schema.review, eq(schema.review.assignmentId, schema.reviewAssignment.id))
         .where(eq(schema.reviewAssignment.editionId, editionId))
         .orderBy(asc(schema.user.email));
       return rows.map((r) => ({
@@ -412,12 +378,7 @@ export function createReviews(db: DB) {
         })
         .from(schema.review)
         .innerJoin(schema.user, eq(schema.review.reviewerId, schema.user.id))
-        .where(
-          and(
-            eq(schema.review.abstractId, abstractId),
-            eq(schema.review.status, "submitted"),
-          ),
-        )
+        .where(and(eq(schema.review.abstractId, abstractId), eq(schema.review.status, "submitted")))
         .orderBy(asc(schema.user.email));
     },
 

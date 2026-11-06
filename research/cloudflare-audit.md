@@ -6,10 +6,10 @@ Bundle-size change is "none" unless stated.
 
 ## Fixed in this PR
 
-| # | Finding | Fix |
-|---|---|---|
-| 1 | observability was `{ enabled: true }` only: no stated sampling, no traces | logs on at rate 1 with invocation logs, traces on at rate 0.1 (wrangler.jsonc) |
-| 4 | no `no-floating-promises` lint rule, and no CI at all (there is no .github directory) | type-aware rule on app/ and workers/; 4 existing floating promises marked `void` (pdf-viewer.tsx x2, book admin route x2) |
+| #   | Finding                                                                               | Fix                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1   | observability was `{ enabled: true }` only: no stated sampling, no traces             | logs on at rate 1 with invocation logs, traces on at rate 0.1 (wrangler.jsonc)                                            |
+| 4   | no `no-floating-promises` lint rule, and no CI at all (there is no .github directory) | type-aware rule on app/ and workers/; 4 existing floating promises marked `void` (pdf-viewer.tsx x2, book admin route x2) |
 
 Tests: tests/wrangler-config.test.ts (`npm test`) fails if observability loses logs or traces or a stated rate, or nodejs_compat is dropped. Seen failing with the traces block removed, then restored. The lint rule was seen failing on a planted `Promise.resolve(1);` in workers/app.ts, then restored.
 

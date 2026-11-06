@@ -36,14 +36,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="stack-6">
-      <h1 className="page-title">
-        {settings?.orgFullName ?? ""}
-      </h1>
-      {settings?.tagline ? (
-        <p className="lead home-tagline">
-          {settings.tagline}
-        </p>
-      ) : null}
+      <h1 className="page-title">{settings?.orgFullName ?? ""}</h1>
+      {settings?.tagline ? <p className="lead home-tagline">{settings.tagline}</p> : null}
       {loaderData ? (
         <div className="page-prose" dangerouslySetInnerHTML={{ __html: loaderData.html }} />
       ) : null}

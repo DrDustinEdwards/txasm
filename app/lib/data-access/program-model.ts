@@ -141,13 +141,8 @@ export interface ProgramBookData {
 // groups. Sessions with overlapping [startsAt, endsAt) run in parallel; sessions
 // with no time each stand alone. Days are chronological with the no-date bucket
 // last, and parallel tracks within a group are ordered by location.
-export function groupSessionsIntoDays(
-  sessions: ProgramSessionResolved[],
-): ProgramDay[] {
-  const byDay = new Map<
-    string,
-    { date: Date | null; sessions: ProgramSessionResolved[] }
-  >();
+export function groupSessionsIntoDays(sessions: ProgramSessionResolved[]): ProgramDay[] {
+  const byDay = new Map<string, { date: Date | null; sessions: ProgramSessionResolved[] }>();
   for (const s of sessions) {
     const d = s.sessionDate ?? s.startsAt ?? null;
     const key = d ? d.toISOString().slice(0, 10) : NO_DATE_KEY;
@@ -190,9 +185,7 @@ export function groupSessionsIntoDays(
       g.concurrent = g.sessions.length > 1;
       if (g.concurrent) {
         g.sessions.sort(
-          (a, b) =>
-            (a.location ?? "").localeCompare(b.location ?? "") ||
-            a.sortOrder - b.sortOrder,
+          (a, b) => (a.location ?? "").localeCompare(b.location ?? "") || a.sortOrder - b.sortOrder,
         );
       }
     }
@@ -215,10 +208,7 @@ export const PROGRAM_PUBLIC_STATUSES: readonly EditionStatus[] = [
 // its own numbering, it only mirrors book_entry.code (the board number for a
 // poster, the speaking order for an oral). Draft books stay invisible here, so
 // rearranging before publish never shows a code that could still change.
-export async function publishedBookCodes(
-  db: DB,
-  editionId: string,
-): Promise<Map<string, string>> {
+export async function publishedBookCodes(db: DB, editionId: string): Promise<Map<string, string>> {
   const codes = new Map<string, string>();
   const book = (
     await db
@@ -266,12 +256,7 @@ export async function acceptedAbstractsInBookOrder(
       categoryId: schema.abstract.categoryId,
     })
     .from(schema.abstract)
-    .where(
-      and(
-        eq(schema.abstract.editionId, editionId),
-        eq(schema.abstract.status, "accepted"),
-      ),
-    );
+    .where(and(eq(schema.abstract.editionId, editionId), eq(schema.abstract.status, "accepted")));
   if (absRows.length === 0) return [];
 
   const categoryRows = await db
@@ -279,7 +264,10 @@ export async function acceptedAbstractsInBookOrder(
     .from(schema.abstractCategory)
     .where(eq(schema.abstractCategory.editionId, editionId))
     .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
-  const presenting = await presentingAuthorNames(db, absRows.map((a) => a.id));
+  const presenting = await presentingAuthorNames(
+    db,
+    absRows.map((a) => a.id),
+  );
   const ordered = inBookOrder(absRows, categoryRows);
 
   return ordered.map((row) => ({
@@ -306,9 +294,7 @@ async function resolveProgram(
   // an item whose speaker was later removed (speaker_id set null) still renders
   // by its kind label.
   const speakerRefIds = [
-    ...new Set(
-      items.map((i) => i.speakerId).filter((x): x is string => x !== null),
-    ),
+    ...new Set(items.map((i) => i.speakerId).filter((x): x is string => x !== null)),
   ];
   const speakerNameById = new Map<string, string>();
   const speakerTalkById = new Map<string, string | null>();
@@ -328,11 +314,7 @@ async function resolveProgram(
   }
 
   const refIds = [
-    ...new Set(
-      items
-        .map((i) => i.abstractId)
-        .filter((x): x is string => x !== null),
-    ),
+    ...new Set(items.map((i) => i.abstractId).filter((x): x is string => x !== null)),
   ];
   const absRows = await byIdChunks(refIds, (part) =>
     db
@@ -371,22 +353,14 @@ async function resolveProgram(
           startsAt: item.startsAt,
           note: item.note,
           abstractId: item.abstractId,
-          abstractCode: item.abstractId
-            ? codeById.get(item.abstractId) ?? null
-            : null,
-          abstractTitle: item.abstractId
-            ? titleById.get(item.abstractId) ?? null
-            : null,
+          abstractCode: item.abstractId ? (codeById.get(item.abstractId) ?? null) : null,
+          abstractTitle: item.abstractId ? (titleById.get(item.abstractId) ?? null) : null,
           presentingAuthorName: item.abstractId
-            ? presentingById.get(item.abstractId) ?? null
+            ? (presentingById.get(item.abstractId) ?? null)
             : null,
           speakerId: item.speakerId,
-          speakerName: item.speakerId
-            ? speakerNameById.get(item.speakerId) ?? null
-            : null,
-          speakerTalkTitle: item.speakerId
-            ? speakerTalkById.get(item.speakerId) ?? null
-            : null,
+          speakerName: item.speakerId ? (speakerNameById.get(item.speakerId) ?? null) : null,
+          speakerTalkTitle: item.speakerId ? (speakerTalkById.get(item.speakerId) ?? null) : null,
           customTitle: item.customTitle,
         })),
     }));

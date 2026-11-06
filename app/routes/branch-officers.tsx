@@ -58,7 +58,9 @@ function PastOfficerRow({ entry }: { entry: PastOfficer }) {
         {entry.name ? (
           <>
             <span className="strong">{entry.name}</span>
-            {entry.institution ? <span className="cap-muted"> &middot; {entry.institution}</span> : null}
+            {entry.institution ? (
+              <span className="cap-muted"> &middot; {entry.institution}</span>
+            ) : null}
           </>
         ) : (
           <span className="cap-muted">Not recorded</span>
@@ -101,10 +103,9 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
       <header className="stack-3">
         <h1 className="page-title">Branch officers</h1>
         <p className="lead">
-          The branch is run by elected officers and volunteers from member
-          institutions across Texas. They organize the twice-yearly meetings,
-          steward the awards program, and represent Texas microbiologists to the
-          national society.
+          The branch is run by elected officers and volunteers from member institutions across
+          Texas. They organize the twice-yearly meetings, steward the awards program, and represent
+          Texas microbiologists to the national society.
         </p>
       </header>
 
@@ -141,8 +142,8 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
             Past branch officers
           </h2>
           <p className="lead">
-            A history of those who have led the branch, by role. Choose a role to
-            see its record of term, name, and institution.
+            A history of those who have led the branch, by role. Choose a role to see its record of
+            term, name, and institution.
           </p>
         </div>
         <PastOfficersTabs tabs={pastTabs} />

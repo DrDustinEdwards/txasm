@@ -1,10 +1,6 @@
 {
   "spelling": {
-    "skip": [
-      "public/pdfjs/**",
-      "public/pagedjs/**",
-      "scripts/seed-data/**"
-    ]
+    "skip": ["public/pdfjs/**", "public/pagedjs/**", "scripts/seed-data/**"]
   },
   "tokens": {
     "--text": "app/lib/cover.ts styles the PDF cover, a print document that does not load app.css or Capsomer"
