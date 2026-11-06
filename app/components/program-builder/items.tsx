@@ -2,7 +2,7 @@ import { Form } from "react-router";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { toDateTimeLocal } from "~/lib/format";
 import { extractPlainText } from "~/lib/richtext";
-import { Badge } from "capsomer/react/status";
+import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { inputClass, KindSelect, type SpeakerOption } from "./shared";
 
@@ -24,7 +24,7 @@ export function ItemRow({
     <li className="card card-s">
       <div className="spread">
         <div className="small">
-          <Badge variant="secondary">{programKindLabel(item.kind)}</Badge>
+          <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
           {item.abstractId ? (
             <p>
               {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
