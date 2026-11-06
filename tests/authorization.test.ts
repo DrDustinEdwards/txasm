@@ -132,6 +132,43 @@ test("a meeting's lists hold all of its abstracts and none of another's", async 
   await assert.rejects(dataAccess.abstracts.listForEdition(chairOfA, "ed-b"), ForbiddenError);
 });
 
+// Saving an abstract's authors replaces them, its affiliations and their links together: one bad field refuses the
+// save before anything is deleted, so the abstract keeps the lists it had.
+test("an abstract's authors and affiliations are replaced together or not at all", async () => {
+  const chairOfB = { userId: "u-chair", grants: [{ role: "chair", editionId: "ed-b" }] } as Actor;
+  const lines = () =>
+    d1
+      .prepare(
+        "SELECT au.last_name AS name, af.institution AS institution FROM author au LEFT JOIN author_affiliation l ON l.author_id = au.id LEFT JOIN affiliation af ON af.id = l.affiliation_id WHERE au.abstract_id = 'b-0' ORDER BY au.ordinal, af.ordinal",
+      )
+      .all()
+      .then((r) => r.results);
+  const before = await lines();
+  assert.deepEqual(before, [{ name: "Author b-0", institution: "Sample University" }]);
+
+  await assert.rejects(
+    dataAccess.abstracts.setContributors(chairOfB, "b-0", {
+      affiliations: [{ institution: "Example College" }],
+      authors: [{ firstName: "Ada", lastName: 42 as unknown as string, affiliationOrdinals: [1] }],
+    }),
+    ValidationError,
+  );
+  assert.deepEqual(await lines(), before);
+
+  await dataAccess.abstracts.setContributors(chairOfB, "b-0", {
+    affiliations: [{ institution: "Example College" }, { institution: "Sample University" }],
+    authors: [
+      { firstName: "Ada", lastName: "Lovelace", affiliationOrdinals: [2, 1, 1] },
+      { firstName: "Sam", lastName: "Sample", affiliationOrdinals: [2, 9] },
+    ],
+  });
+  assert.deepEqual(await lines(), [
+    { name: "Lovelace", institution: "Example College" },
+    { name: "Lovelace", institution: "Sample University" },
+    { name: "Sample", institution: "Sample University" },
+  ]);
+});
+
 // Deleting an account (/account): the person goes, what they put into a Meeting stays, handed to a
 // "Deleted account" user. The list must name every reference to user.id that does not cascade, or the
 // delete would fail on a foreign key after Better Auth had already ended the sessions.

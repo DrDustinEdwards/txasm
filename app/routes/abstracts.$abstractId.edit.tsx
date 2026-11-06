@@ -161,12 +161,10 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       categoryId: String(form.get("categoryId") ?? ""),
       presentationPreference,
     });
-    await da.abstracts.setAffiliations(
-      actor,
-      params.abstractId,
-      affiliations as AffiliationInput[],
-    );
-    await da.abstracts.setAuthors(actor, params.abstractId, authors as AuthorInput[]);
+    await da.abstracts.setContributors(actor, params.abstractId, {
+      affiliations: affiliations as AffiliationInput[],
+      authors: authors as AuthorInput[],
+    });
 
     if (intent === "submit") {
       // Self-grow the institution master list from any new institutions typed.

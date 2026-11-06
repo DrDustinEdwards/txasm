@@ -30,7 +30,7 @@ import {
 // any live gating: every function is admin/chair gated, and it only bypasses the
 // submission-window check that live create enforces, which is meaningless for an
 // archived meeting. Authors and affiliations still go through the normal
-// abstracts.setAuthors / setAffiliations (an admin actor is a chair of every
+// abstracts.setContributors (an admin actor is a chair of every
 // meeting, so those work past the deadline without loosening anything).
 // ---------------------------------------------------------------------------
 
