@@ -247,12 +247,6 @@ async function main() {
             numToOrdinal.set(String(aff.num).trim(), index + 1);
           }
         });
-        const affiliationCount = await da.abstracts.setAffiliations(
-          actor,
-          created.id,
-          affiliations.map((aff) => ({ institution: aff.text })),
-        );
-        summary.affiliationsCreated += affiliationCount;
 
         // Authors, in order, first author marked presenting. Resolve each
         // author's affiliation numbers to ordinals; when a name has no refs and
@@ -277,16 +271,13 @@ async function main() {
             affiliationOrdinals: ordinals,
           };
         });
-        const authorCount = await da.abstracts.setAuthors(
-          actor,
-          created.id,
-          authorInputs,
-        );
-        summary.authorsCreated += authorCount;
-        summary.linksCreated += authorInputs.reduce(
-          (sum, a) => sum + a.affiliationOrdinals.length,
-          0,
-        );
+        const counts = await da.abstracts.setContributors(actor, created.id, {
+          affiliations: affiliations.map((aff) => ({ institution: aff.text })),
+          authors: authorInputs,
+        });
+        summary.affiliationsCreated += counts.affiliations;
+        summary.authorsCreated += counts.authors;
+        summary.linksCreated += counts.links;
         summary.abstractsCreated += 1;
       } catch (error) {
         const message =

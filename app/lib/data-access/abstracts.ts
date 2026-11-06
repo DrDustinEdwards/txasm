@@ -89,6 +89,59 @@ async function requireEditableAbstract(db: DB, actor: Actor, abstractId: string)
   return row;
 }
 
+// A text field from the form's JSON: a string, or nothing. Anything else (a
+// number, an object) is refused before the save writes a row.
+function textField(value: unknown, what: string): string {
+  if (value === undefined || value === null) return "";
+  if (typeof value !== "string") throw new ValidationError(`Could not read ${what}.`);
+  return value.trim();
+}
+
+function listOf(value: unknown, what: string): Record<string, unknown>[] {
+  if (!Array.isArray(value) || !value.every((v) => v !== null && typeof v === "object")) {
+    throw new ValidationError(`Could not read the ${what}.`);
+  }
+  return value as Record<string, unknown>[];
+}
+
+// The affiliations as stored: trimmed, blank optional fields null, rows with no
+// institution dropped.
+function cleanAffiliations(input: unknown) {
+  return listOf(input, "affiliations")
+    .map((a, i) => {
+      const what = `affiliation ${i + 1}`;
+      return {
+        institution: textField(a.institution, what),
+        department: textField(a.department, what) || null,
+        city: textField(a.city, what) || null,
+        country: textField(a.country, what) || null,
+      };
+    })
+    .filter((a) => a.institution.length > 0);
+}
+
+// The authors as stored: trimmed, rows with no name dropped, affiliation
+// ordinals whole numbers.
+function cleanAuthors(input: unknown) {
+  return listOf(input, "authors")
+    .map((a, i) => {
+      const what = `author ${i + 1}`;
+      const ordinals = a.affiliationOrdinals ?? [];
+      if (!Array.isArray(ordinals) || !ordinals.every((n) => Number.isInteger(n))) {
+        throw new ValidationError(`Could not read ${what}'s affiliations.`);
+      }
+      return {
+        firstName: textField(a.firstName, what),
+        lastName: textField(a.lastName, what),
+        email: textField(a.email, what) || null,
+        isPresenting: !!a.isPresenting,
+        isCorresponding: !!a.isCorresponding,
+        affiliationOrdinals: ordinals as number[],
+      };
+    })
+    .filter((a) => a.firstName.length > 0 || a.lastName.length > 0);
+}
+
 export function createAbstracts(db: DB) {
   return {
     // Read scoping: chair/admin see any abstract in the edition, the submitter
@@ -273,69 +326,28 @@ export function createAbstracts(db: DB) {
       return this.get(actor, abstractId);
     },
 
-    // Replace the abstract's affiliations as a set, ordinals by position. Run
-    // this before setAuthors, since author links reference affiliation ordinals.
-    async setAffiliations(
+    // Replace the abstract's affiliations, authors and their links as one set,
+    // ordinals by position (an author's affiliationOrdinals name affiliations by
+    // position). Every field is checked before anything is written, then the
+    // deletes and inserts go to D1 in one batch, which D1 runs as a transaction:
+    // a failed statement rolls the whole batch back
+    // (https://developers.cloudflare.com/d1/worker-api/d1-database/#batch,
+    // https://orm.drizzle.team/docs/batch-api). A bad save leaves the old lists.
+    async setContributors(
       actor: Actor,
       abstractId: string,
-      affiliations: AffiliationInput[],
+      input: { affiliations: AffiliationInput[]; authors: AuthorInput[] },
     ) {
       await requireEditableAbstract(db, actor, abstractId);
-      await db
-        .delete(schema.affiliation)
-        .where(eq(schema.affiliation.abstractId, abstractId));
-
-      const cleaned = affiliations
-        .map((a) => ({
-          institution: a.institution?.trim() ?? "",
-          department: a.department?.trim() || null,
-          city: a.city?.trim() || null,
-          country: a.country?.trim() || null,
-        }))
-        .filter((a) => a.institution.length > 0);
-
-      if (cleaned.length > 0) {
-        const rows = cleaned.map((a, i) => ({
-          abstractId,
-          ordinal: i + 1,
-          institution: a.institution,
-          department: a.department,
-          city: a.city,
-          country: a.country,
-        }));
-        // affiliation binds 7 columns per row (id plus the six above).
-        for (const part of chunk(rows, insertChunkSize(7))) {
-          await db.insert(schema.affiliation).values(part);
-        }
-      }
-      return cleaned.length;
-    },
-
-    // Replace the abstract's authors as a set, ordinals by position, and rebuild
-    // their author-affiliation links by affiliation ordinal. Call setAffiliations
-    // first so the ordinals resolve.
-    async setAuthors(actor: Actor, abstractId: string, authors: AuthorInput[]) {
-      await requireEditableAbstract(db, actor, abstractId);
-      await db
-        .delete(schema.author)
-        .where(eq(schema.author.abstractId, abstractId));
-
-      const cleaned = authors
-        .map((a) => ({
-          firstName: a.firstName?.trim() ?? "",
-          lastName: a.lastName?.trim() ?? "",
-          email: a.email?.trim() || null,
-          isPresenting: !!a.isPresenting,
-          isCorresponding: !!a.isCorresponding,
-          affiliationOrdinals: Array.isArray(a.affiliationOrdinals)
-            ? a.affiliationOrdinals
-            : [],
-        }))
-        .filter((a) => a.firstName.length > 0 || a.lastName.length > 0);
-
-      if (cleaned.length === 0) return 0;
-
-      const authorRows = cleaned.map((a, i) => ({
+      const affiliations = cleanAffiliations(input.affiliations).map((a, i) => ({
+        ...a,
+        id: crypto.randomUUID(),
+        abstractId,
+        ordinal: i + 1,
+      }));
+      const cleaned = cleanAuthors(input.authors);
+      const authors = cleaned.map((a, i) => ({
+        id: crypto.randomUUID(),
         abstractId,
         ordinal: i + 1,
         firstName: a.firstName,
@@ -344,39 +356,30 @@ export function createAbstracts(db: DB) {
         isPresenting: a.isPresenting,
         isCorresponding: a.isCorresponding,
       }));
-      // author binds 10 columns per row (id, user_id, created_at, and the seven
-      // above), so split large author lists to stay under the D1 parameter cap.
-      const inserted: (typeof schema.author.$inferSelect)[] = [];
-      for (const part of chunk(authorRows, insertChunkSize(10))) {
-        const got = await db.insert(schema.author).values(part).returning();
-        inserted.push(...got);
-      }
+      // An ordinal past the list is dropped, and a repeated one linked once (the
+      // link's primary key would refuse it, and with it the whole save).
+      const links = cleaned.flatMap((a, i) =>
+        [...new Set(a.affiliationOrdinals)]
+          .filter((ord) => ord >= 1 && ord <= affiliations.length)
+          .map((ord) => ({ authorId: authors[i].id, affiliationId: affiliations[ord - 1].id })),
+      );
 
-      const affs = await db
-        .select({
-          id: schema.affiliation.id,
-          ordinal: schema.affiliation.ordinal,
-        })
-        .from(schema.affiliation)
-        .where(eq(schema.affiliation.abstractId, abstractId));
-      const affIdByOrdinal = new Map(affs.map((a) => [a.ordinal, a.id]));
-
-      const links: { authorId: string; affiliationId: string }[] = [];
-      for (const authorRow of inserted) {
-        const source = cleaned[authorRow.ordinal - 1];
-        if (!source) continue;
-        for (const ord of source.affiliationOrdinals) {
-          const affId = affIdByOrdinal.get(ord);
-          if (affId) links.push({ authorId: authorRow.id, affiliationId: affId });
-        }
-      }
-      if (links.length > 0) {
-        // authorAffiliation binds 2 columns per row.
-        for (const part of chunk(links, insertChunkSize(2))) {
-          await db.insert(schema.authorAffiliation).values(part);
-        }
-      }
-      return inserted.length;
+      // Each insert stays under D1's bound-parameter cap: affiliation binds 7
+      // columns per row, author 10 (with user_id and created_at), a link 2.
+      await db.batch([
+        db.delete(schema.author).where(eq(schema.author.abstractId, abstractId)),
+        db.delete(schema.affiliation).where(eq(schema.affiliation.abstractId, abstractId)),
+        ...chunk(affiliations, insertChunkSize(7)).map((part) =>
+          db.insert(schema.affiliation).values(part),
+        ),
+        ...chunk(authors, insertChunkSize(10)).map((part) =>
+          db.insert(schema.author).values(part),
+        ),
+        ...chunk(links, insertChunkSize(2)).map((part) =>
+          db.insert(schema.authorAffiliation).values(part),
+        ),
+      ]);
+      return { affiliations: affiliations.length, authors: authors.length, links: links.length };
     },
 
     // Move a draft to submitted. Only the submitter, only before the deadline,
