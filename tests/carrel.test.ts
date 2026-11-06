@@ -303,7 +303,7 @@ test("a large picture is shrunk at upload unless asked not to, and its original 
   // The original is kept without its private metadata (its tEXt chunk), as the stored file is.
   const clean = stripMetadata(bytes, "image/png");
   assert.deepEqual([shrunk.width, shrunk.height, shrunk.resizedFrom], [2560, 1280, { width: 5000, height: 2500, bytes: clean.length }]);
-  const kept = (await uploads.list({ prefix: "media-history/" })).objects.find((o) => o.key.endsWith(`/${shrunk.id}`));
+  const [kept] = (await uploads.list({ prefix: `media-history/${shrunk.id}/` })).objects;
   assert.ok(kept, "the original was not kept");
   assert.deepEqual(await objectBytes(kept.key), clean);
   // Sent again, the shrunk file is found, though its stored bytes are not the ones sent.
