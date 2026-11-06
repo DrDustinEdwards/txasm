@@ -1,7 +1,7 @@
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { Empty } from "capsomer/react/empty";
-import { Badge } from "capsomer/react/status";
+import { Pill } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
 import { cloudflareContext } from "~/load-context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
@@ -79,7 +79,7 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
                     {bucket.recipients.map((recipient) => (
                       <li key={recipient.id}>
                         <p className="cluster recipient">
-                          {recipient.placement ? <Badge variant="secondary">{recipient.placement}</Badge> : null}
+                          {recipient.placement ? <Pill variant="secondary">{recipient.placement}</Pill> : null}
                           <span>
                             <span className="strong">{recipient.personName}</span>
                             {recipient.institution ? <span className="cap-muted"> &middot; {recipient.institution}</span> : null}

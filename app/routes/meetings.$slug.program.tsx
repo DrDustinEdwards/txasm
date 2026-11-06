@@ -14,7 +14,7 @@ import { formatDateTime, formatMeetingDates, joinParts } from "~/lib/format";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { Empty } from "capsomer/react/empty";
-import { Badge } from "capsomer/react/status";
+import { Pill } from "capsomer/react/status";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -84,7 +84,7 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
   return (
     <li className="stack-1">
       <div className="cluster program-item">
-        <Badge variant="secondary">{programKindLabel(item.kind)}</Badge>
+        <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
         {item.abstractId ? (
           <p>
             {item.abstractCode ? <span className="strong cap-muted">{item.abstractCode} </span> : null}
