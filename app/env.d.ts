@@ -12,6 +12,8 @@ interface TxasmSecrets {
   ADMIN_EMAILS?: string;
   // Carrel's site API key (app/lib/carrel/handler.server.ts). Unset: the API refuses every call.
   CARREL_SITE_KEY?: string;
+  // Keys site-runtime's admin idle cookie (withAdminIdle `secret`). Minted by the deploy (devkit worker-deploy `generated-secrets`), never shown; unset falls back to the unkeyed cookie and logs admin_idle_unkeyed.
+  ADMIN_IDLE_SECRET?: string;
   // Cloudflare Turnstile on the sign-in link (app/lib/auth.server.ts). The check is on only
   // when both are set, so a key without its secret never locks everyone out.
   TURNSTILE_SITE_KEY?: string;
