@@ -82,25 +82,25 @@ function normalizeInstitutionName(name: string): string {
     .replace(/[%_]/g, "");
 }
 
-export function createRegistrations(db: DB) {
+export function createRegistrations(_db: DB) {
   return {
     // Attendee scoping: a user reads their own registration; a chair reads any
     // in the edition. The PayPal capture webhook flips status to paid out of band.
     // Bodies land in Part B once PayPal credentials exist.
-    listForEdition(actor: Actor, editionId: string): Promise<unknown[]> {
+    listForEdition(_actor: Actor, _editionId: string): Promise<unknown[]> {
       throw new Error("not implemented");
     },
-    getMine(actor: Actor, editionId: string): Promise<unknown> {
+    getMine(_actor: Actor, _editionId: string): Promise<unknown> {
       throw new Error("not implemented");
     },
     startCheckout(
-      actor: Actor,
-      input: { editionId: string; categoryId: string },
+      _actor: Actor,
+      _input: { editionId: string; categoryId: string },
     ): Promise<{ approveUrl: string }> {
       // Creates a PayPal order and returns its approval link for the payer.
       throw new Error("not implemented");
     },
-    markPaidFromWebhook(input: { paypalOrderId: string }): Promise<unknown> {
+    markPaidFromWebhook(_input: { paypalOrderId: string }): Promise<unknown> {
       // Called by the verified PayPal webhook, not by a user, so it has no Actor.
       throw new Error("not implemented");
     },

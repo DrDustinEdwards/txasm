@@ -3,7 +3,7 @@ import * as schema from "../../db/schema";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
-// Enforce with an eslint no-restricted-imports rule on every other module so
+// Enforce with an Oxlint no-restricted-imports rule on every other module so
 // nothing queries Drizzle directly outside this layer.
 
 export type DB = DrizzleD1Database<typeof schema>;

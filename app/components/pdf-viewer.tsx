@@ -69,6 +69,7 @@ export function PdfViewer({
       </div>
 
       <div
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- the page canvas takes focus so the arrow and zoom keys reach it
         tabIndex={0}
         aria-label={`${label}. Use the arrow keys to change page and the plus and minus keys to zoom.`}
         className="pdf-viewer-page"

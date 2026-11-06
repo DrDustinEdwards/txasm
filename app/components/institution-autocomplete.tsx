@@ -42,11 +42,8 @@ export function InstitutionAutocomplete({
       return;
     }
     const query = value.trim();
-    if (query.length < 2) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
+    // Too short to search: typing cleared the list already (the input's onChange).
+    if (query.length < 2) return;
     let canceled = false;
     const timer = setTimeout(() => {
       fetch(`/api/institutions?q=${encodeURIComponent(query)}`, {
@@ -130,7 +127,14 @@ export function InstitutionAutocomplete({
         }
         autoComplete="off"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          const next = event.target.value;
+          if (next.trim().length < 2) {
+            setResults([]);
+            setOpen(false);
+          }
+          onChange(next);
+        }}
         onKeyDown={onKeyDown}
         onFocus={() => {
           if (results.length > 0) setOpen(true);
@@ -138,11 +142,13 @@ export function InstitutionAutocomplete({
         className={inputClassName}
       />
       {open ? (
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- the ARIA combobox pattern: a styled suggestion list cannot be a <datalist> or <select>
         <ul id={listId} role="listbox" className="cap-listbox suggest-popup">
           {results.map((suggestion, index) => (
             <li
               key={suggestion.id}
               id={`${listId}-opt-${index}`}
+              // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- the ARIA combobox pattern: a styled suggestion is a listbox option, which a <select> cannot draw
               role="option"
               aria-selected={index === activeIndex}
               onMouseDown={(event) => {

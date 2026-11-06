@@ -37,7 +37,6 @@ import {
   type AuthorState,
   emptyAffiliation,
   emptyAuthor,
-  inputClass,
 } from "~/components/abstract-authors";
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
 import { readForm } from "~/lib/form.server";

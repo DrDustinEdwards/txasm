@@ -130,18 +130,22 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   const statusRef = useRef<HTMLParagraphElement>(null);
 
   // The action returns the authoritative BookView (with reflowed codes); adopt it
-  // whenever a builder mutation resolves.
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data && "book" in fetcher.data) {
-      const next = (fetcher.data as { book?: BookView }).book;
-      if (next) setBook(next);
-    }
-  }, [fetcher.state, fetcher.data]);
+  // whenever a builder mutation resolves. Adjusted while rendering, not in an
+  // effect, so the stale book never paints
+  // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+  const [adoptedData, setAdoptedData] = useState(fetcher.data);
+  if (fetcher.state === "idle" && fetcher.data !== adoptedData) {
+    setAdoptedData(fetcher.data);
+    const next = fetcher.data && "book" in fetcher.data ? (fetcher.data as { book?: BookView }).book : undefined;
+    if (next) setBook(next);
+  }
 
   // The interim PDF Form triggers a loader revalidation; adopt the reloaded book.
-  useEffect(() => {
+  const [adoptedLoaderBook, setAdoptedLoaderBook] = useState(loaderData.book);
+  if (loaderData.book !== adoptedLoaderBook) {
+    setAdoptedLoaderBook(loaderData.book);
     setBook(loaderData.book);
-  }, [loaderData.book]);
+  }
 
   const fetcherMsg =
     fetcher.data && "error" in fetcher.data
@@ -335,6 +339,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                   <h2 className="subsection-title">{section.title}</h2>
                   <ul className="stack-2">
                     {section.entries.map((entry, index) => (
+                      // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- drag to reorder is the pointer path; the Move up and Move down buttons are the keyboard one
                       <li
                         key={entry.entryId}
                         draggable={editable}

@@ -22,14 +22,36 @@ let api: ReturnType<typeof createSiteApi>;
 /** What the publish hooks heard, as IndexNow, the page purge and the webmentions would. */
 const heard: PublishEvent[] = [];
 
-const call = (path: string, init: RequestInit = {}) =>
-  api.handle(
-    new Request(BASE + path, {
-      ...init,
-      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...init.headers },
-    }),
-  );
-const json = async (r: Response) => (await r.json()) as Record<string, any>;
+const call = (path: string, init: RequestInit = {}) => {
+  const headers = new Headers({ Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" });
+  // A test's own headers win, in any form of HeadersInit (an object spread would turn an array into indices).
+  for (const [name, value] of new Headers(init.headers)) headers.set(name, value);
+  return api.handle(new Request(BASE + path, { ...init, headers }));
+};
+/** The response fields these tests read, as site-api's contract writes them. */
+interface Body {
+  id: string;
+  version: string;
+  source: string;
+  status: string;
+  scheduledUpdate: { publishAt: string; changeId: string } | null;
+  url: string;
+  alt: string;
+  tags: string[];
+  credit: string;
+  embedded: string[];
+  width: number;
+  height: number;
+  duplicateOf: string;
+  resizedFrom: { width: number; height: number; bytes: number };
+  asNewFile: boolean;
+  usedBy: Array<{ id: string; detail: string }>;
+  revisions: Array<{ rev: string; reason: string; current: boolean }>;
+  items: Array<{ id: string }>;
+  removed: string[];
+  changeCursor: string;
+}
+const json = async (r: Response) => (await r.json()) as Body;
 const PREFIX = "/api/carrel/v1";
 
 type Size = { width: number; height: number };

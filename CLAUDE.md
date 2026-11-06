@@ -25,14 +25,14 @@ Reach D1, R2, KV, the send_email binding, and Browser Rendering through the inje
 - `npm run build` - production build (client + server)
 - `npm run deploy` - wrangler deploy (do not touch txasm.org DNS until cutover). A merge to main deploys: CI's `deploy` job applies the pending D1 migrations that only add (a drop, rename or row delete is refused for a hand run), then deploys, while the repo variable `CF_DEPLOY` is `true`.
 - `npm run typecheck` - wrangler types + react-router typegen + tsc -b
-- `npm run lint` and `npm test` - eslint, and the node tests in `tests/` (real D1 and R2 in Miniflare)
+- `npm run lint` and `npm test` - Oxlint (the shared config, `oxlint.config.ts`), and the node tests in `tests/` (real D1 and R2 in Miniflare)
 - `npm run db:generate` / `db:migrate` / `db:migrate:prod`
 
 ## Hard rules
 
 A rule stays here only if it stops a real, costly mistake that nothing else catches. Earlier rulings are in the version history of Capsid `txasm/decisions.md` (retired 2026-10-29).
 
-1. D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`; eslint refuses other imports of the Drizzle client). Roles are admin, chair, reviewer (explicit grants); author and attendee come from ownership and a paid registration. Conflict of interest is checked at assignment time. Chairs stay out of admin-only config (categories, fees, windows), and the confidential comment is for chairs and admins only, never authors or other reviewers.
+1. D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`; Oxlint refuses other imports of the Drizzle client, and `tests/boundary.test.ts` proves it). Roles are admin, chair, reviewer (explicit grants); author and attendee come from ownership and a paid registration. Conflict of interest is checked at assignment time. Chairs stay out of admin-only config (categories, fees, windows), and the confidential comment is for chairs and admins only, never authors or other reviewers.
 2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive. The rubric is data (rubric_criterion and review_score per edition), not columns, so it changes each meeting with no migration.
 3. Migrations are generated with drizzle-kit, applied with wrangler, and additive only once data exists.
 4. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.

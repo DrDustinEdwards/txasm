@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
 import { BODY_TAGS, TITLE_TAGS, countWords, sanitizeRichText } from "~/lib/richtext";
 
 interface RichEditorProps {
@@ -33,11 +33,13 @@ export function RichEditor({
 
   // Set the editable content once after mount, then manage it imperatively so
   // typing does not reset the caret. Report the initial value to the parent.
-  // value is intentionally not a dependency: re-running would reset the caret.
-  useEffect(() => {
+  // An effect event, so the mount effect reads value without re-running on it
+  // (re-running would reset the caret).
+  const mount = useEffectEvent(() => {
     if (editorRef.current) editorRef.current.innerHTML = value;
     onValueChange?.(value);
-  }, []);
+  });
+  useEffect(() => mount(), []);
 
   function sync() {
     const el = editorRef.current;

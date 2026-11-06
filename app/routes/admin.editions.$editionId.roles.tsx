@@ -105,13 +105,8 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <RoleList title="Chairs" editionId={edition.id} empty="No chairs yet." grants={chairs} />
-      <RoleList
-        title="Reviewers"
-        editionId={edition.id}
-        empty="No reviewers yet."
-        grants={reviewers}
-      />
+      <RoleList title="Chairs" empty="No chairs yet." grants={chairs} />
+      <RoleList title="Reviewers" empty="No reviewers yet." grants={reviewers} />
 
       <section className="card stack-4">
         <h2 className="subsection-title">Add a chair or reviewer</h2>
@@ -151,12 +146,10 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
 
 function RoleList({
   title,
-  editionId,
   empty,
   grants,
 }: {
   title: string;
-  editionId: string;
   empty: string;
   grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
 }) {
