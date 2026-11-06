@@ -16,7 +16,7 @@ import type { DB } from "./core";
 export type MediaRow = typeof schema.media.$inferSelect;
 type MediaRevisionRow = typeof schema.mediaRevision.$inferSelect;
 
-function tagsOf(raw: string): string[] {
+function storedTags(raw: string): string[] {
   try {
     const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === "string") : [];
@@ -37,7 +37,7 @@ function recordOf(row: MediaRow): MediaRecord {
     sha256: row.sha256,
     alt: row.alt,
     caption: row.caption,
-    tags: tagsOf(row.tags),
+    tags: storedTags(row.tags),
     focus: row.focus,
     credit: row.credit,
     license: row.license,
