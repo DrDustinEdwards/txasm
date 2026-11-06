@@ -1,27 +1,19 @@
-# The no-bloat checks (Knip, jscpd, gzip weight per route) on every pull request. WARN-ONLY: they report to the run's
-# summary and never turn a pull request red. A number above its baseline is a ::warning::, not a failure.
-# Knip and jscpd are devkit's shared workflow with warn-only (devkit-no-bloat --warn-only against .no-bloat.json, both
-# run through npx at the specs it names; neither is a dependency of the app). Route weight stays a job here.
-# See no-bloat/README.md.
+# The gzip weight of each route's JS and CSS against .route-weight.json, on every pull request (area 7, D5). Knip and
+# jscpd, which ran beside it here, are in checks.yml now (devkit's pr.yml, warn-only). See no-bloat/README.md.
 
-name: No bloat
+name: Route weight
 
 on:
   pull_request:
 
 concurrency:
-  group: no-bloat-${{ github.ref }}
+  group: route-weight-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  no-bloat:
-    uses: DrDustinEdwards/devkit/.github/workflows/no-bloat.yml@e2914d9fdd2b2ef4eb7d393db739c3bb2a808583 # v0.23.0
-    with:
-      warn-only: true
-
   route-weight:
     name: Route weight
     runs-on: ubuntu-latest
