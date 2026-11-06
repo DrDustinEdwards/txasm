@@ -93,10 +93,9 @@ export default function Sponsorship() {
       <header className="stack-3">
         <h1 className="page-title">Sponsorship</h1>
         <p className="lead">
-          Sponsors help the branch keep meeting registration affordable, fund the
-          student awards, and support travel for early-career researchers. Support
-          is welcome from companies, laboratories, academic departments, and
-          individuals.
+          Sponsors help the branch keep meeting registration affordable, fund the student awards,
+          and support travel for early-career researchers. Support is welcome from companies,
+          laboratories, academic departments, and individuals.
         </p>
         <p>
           <a href={SPONSOR_REGISTRATION_URL} className="cap-btn" data-variant="primary">
@@ -132,11 +131,9 @@ export default function Sponsorship() {
           Become a sponsor
         </h2>
         <p className="lead">
-          Complete the{" "}
-          <a href={SPONSOR_REGISTRATION_URL}>
-            sponsor registration form
-          </a>{" "}
-          to reserve a level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss sponsoring an upcoming meeting.
+          Complete the <a href={SPONSOR_REGISTRATION_URL}>sponsor registration form</a> to reserve a
+          level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss
+          sponsoring an upcoming meeting.
         </p>
       </section>
     </div>

@@ -27,7 +27,9 @@ export function meta({ matches }: Route.MetaArgs) {
 // `next` is the page to return to after signing in again: adding a passkey needs a sign-in from
 // the last 10 minutes (site-runtime ./sign-in, FRESH_SECONDS). Only /account pages qualify.
 function nextPath(next: unknown): string | null {
-  return typeof next === "string" && next ? safeAdminNext(next, { prefix: "/account", path: "/signin" }) : null;
+  return typeof next === "string" && next
+    ? safeAdminNext(next, { prefix: "/account", path: "/signin" })
+    : null;
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -36,12 +38,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (user && !next) throw redirect("/");
   // Set by /account after the person deleted their account.
   const deleted = new URL(request.url).searchParams.has("deleted");
-  return { turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey, next, deleted };
+  return {
+    turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey,
+    next,
+    deleted,
+  };
 }
 
-type ActionResult =
-  | { ok: true; email: string; codeError?: string }
-  | { ok: false; error: string };
+type ActionResult = { ok: true; email: string; codeError?: string } | { ok: false; error: string };
 
 // The headers Better Auth's handler is handed: the origin it checks, the
 // address its limiter counts and the user agent.
@@ -68,7 +72,9 @@ async function signInWithCode(
 ): Promise<ActionResult> {
   const answer = (codeError: string): ActionResult => ({ ok: true, email, codeError });
   try {
-    const response = await (await getAuth(env)).handler(
+    const response = await (
+      await getAuth(env)
+    ).handler(
       new Request(new URL(`/api/auth${SIGN_IN_CODE_PATH}`, request.url), {
         method: "POST",
         headers: forwardedHeaders(request),
@@ -83,21 +89,34 @@ async function signInWithCode(
     }
     const { code: reason } = (await response.json().catch(() => ({}))) as { code?: string };
     // The status and Better Auth's code only: the body can carry the address.
-    logEvent(OWASP_EVENTS.signInFailure, { ...requestFields(request), via: "code", status: response.status, reason }, { level: "warn" });
+    logEvent(
+      OWASP_EVENTS.signInFailure,
+      { ...requestFields(request), via: "code", status: response.status, reason },
+      { level: "warn" },
+    );
     // Better Auth's per-IP limit, or the address's ten codes a day (EMAIL_RATE_LIMITED).
     if (response.status === 429) {
-      return answer(`Too many tries. ${reason === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute"}, or use the link in the email.`);
+      return answer(
+        `Too many tries. ${reason === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute"}, or use the link in the email.`,
+      );
     }
     // The per-address code counter is down, so a typed code is refused; the link in the same mail still works.
     if (response.status === 503 && reason === "RATE_LIMIT_UNAVAILABLE") {
-      return answer("Codes can't be checked right now. Use the link in the email, or try again in a few minutes.");
+      return answer(
+        "Codes can't be checked right now. Use the link in the email, or try again in a few minutes.",
+      );
     }
-    if (reason === "INVALID_OTP") return answer("That code is not right. Check the email and try again.");
+    if (reason === "INVALID_OTP")
+      return answer("That code is not right. Check the email and try again.");
     if (reason === "OTP_EXPIRED") {
-      return answer(`That code has expired: a code works for ${SIGN_IN_EXPIRES_IN_WORDS}. Send yourself a new one.`);
+      return answer(
+        `That code has expired: a code works for ${SIGN_IN_EXPIRES_IN_WORDS}. Send yourself a new one.`,
+      );
     }
     if (reason === "TOO_MANY_ATTEMPTS") {
-      return answer("That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.");
+      return answer(
+        "That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.",
+      );
     }
   } catch (error) {
     if (error instanceof Response) throw error;
@@ -106,10 +125,7 @@ async function signInWithCode(
   return answer("That sign-in did not complete. Try again, or use the link in the email.");
 }
 
-export async function action({
-  request,
-  context,
-}: Route.ActionArgs): Promise<ActionResult> {
+export async function action({ request, context }: Route.ActionArgs): Promise<ActionResult> {
   const formData = await readForm(request);
   const email = String(formData.get("email") ?? "").trim();
   if (!email) {
@@ -122,7 +138,8 @@ export async function action({
   const landing = nextPath(formData.get("next")) ?? "/account?welcome=1";
   const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
   if (formData.get("intent") === "code") {
-    if (!/^\d{6}$/.test(code)) return { ok: true, email, codeError: "Enter the six-digit code from the email." };
+    if (!/^\d{6}$/.test(code))
+      return { ok: true, email, codeError: "Enter the six-digit code from the email." };
     return signInWithCode(env, request, email, code, landing);
   }
   try {
@@ -133,7 +150,9 @@ export async function action({
     // The Turnstile widget's token, for the captcha plugin (app/lib/auth.server.ts).
     const captchaToken = String(formData.get("cf-turnstile-response") ?? "");
     if (captchaToken) headers.set("x-captcha-response", captchaToken);
-    const response = await (await getAuth(env)).handler(
+    const response = await (
+      await getAuth(env)
+    ).handler(
       new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
         method: "POST",
         headers,
@@ -144,7 +163,10 @@ export async function action({
     );
     if (response.status === 429) {
       // Better Auth's per-IP limit, or the address's five mails an hour (EMAIL_RATE_LIMITED).
-      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      const { code } = (await response
+        .clone()
+        .json()
+        .catch(() => ({}))) as { code?: string };
       return {
         ok: false,
         error: `Too many sign-in requests. ${code === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute and try again"}.`,
@@ -152,16 +174,25 @@ export async function action({
     }
     // The captcha plugin's refusals: no token, or one Cloudflare would not pass.
     if (response.status === 400 || response.status === 403) {
-      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      const { code } = (await response
+        .clone()
+        .json()
+        .catch(() => ({}))) as { code?: string };
       if (code === "MISSING_RESPONSE" || code === "VERIFICATION_FAILED") {
         return { ok: false, error: "Complete the check, then send the link again." };
       }
     }
     // Turnstile's keys are missing and the site has not said to go on without them (app/lib/auth.server.ts).
     if (response.status === 503) {
-      const { code } = (await response.clone().json().catch(() => ({}))) as { code?: string };
+      const { code } = (await response
+        .clone()
+        .json()
+        .catch(() => ({}))) as { code?: string };
       if (code === "TURNSTILE_NOT_SET") {
-        return { ok: false, error: "Sign-in links can't be sent right now. Use a passkey, or try again later." };
+        return {
+          ok: false,
+          error: "Sign-in links can't be sent right now. Use a passkey, or try again later.",
+        };
       }
     }
     if (!response.ok) {
@@ -243,8 +274,8 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           Check your inbox
         </h1>
         <p>
-          A sign-in link and code are on their way. Open the link, or type the
-          code here. Both expire in {SIGN_IN_EXPIRES_IN_WORDS}.
+          A sign-in link and code are on their way. Open the link, or type the code here. Both
+          expire in {SIGN_IN_EXPIRES_IN_WORDS}.
         </p>
         <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="code" />
@@ -279,9 +310,9 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         </Form>
         {import.meta.env.DEV ? (
           <Banner tone="neutral">
-            Development note: mail is off until cutover (EMAIL_ENABLED and the send_email
-            binding), so the link and code were not sent. The Worker log shows only the
-            subject of the mail that would have gone, never the link or the code.
+            Development note: mail is off until cutover (EMAIL_ENABLED and the send_email binding),
+            so the link and code were not sent. The Worker log shows only the subject of the mail
+            that would have gone, never the link or the code.
           </Banner>
         ) : null}
       </div>
@@ -290,19 +321,24 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="narrow stack-6">
-      {deleted ? (
-        <p role="status">Your account was deleted.</p>
-      ) : null}
+      {deleted ? <p role="status">Your account was deleted.</p> : null}
       <div className="stack-2">
         <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
         <p>
-          {next ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. " : null}Use your passkey, or get a sign-in link by email. No
-          password needed.
+          {next
+            ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. "
+            : null}
+          Use your passkey, or get a sign-in link by email. No password needed.
         </p>
       </div>
 
       <div className="stack-2">
-        <button type="button" className="cap-btn" data-variant="primary" onClick={() => void signInWithPasskeyButton()}>
+        <button
+          type="button"
+          className="cap-btn"
+          data-variant="primary"
+          onClick={() => void signInWithPasskeyButton()}
+        >
           Sign in with a passkey
         </button>
         {passkeyError ? (

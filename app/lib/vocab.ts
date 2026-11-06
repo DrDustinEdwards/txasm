@@ -124,10 +124,7 @@ const CODE_SOURCES = ["printed", "generated"] as const;
 export type CodeSource = (typeof CODE_SOURCES)[number];
 export const PRESENTATION_PREFERENCES = ["oral", "poster", "either"] as const;
 export type PresentationPreference = (typeof PRESENTATION_PREFERENCES)[number];
-export const PRESENTATION_PREFERENCE_LABELS: Record<
-  PresentationPreference,
-  string
-> = {
+export const PRESENTATION_PREFERENCE_LABELS: Record<PresentationPreference, string> = {
   oral: "Oral",
   poster: "Poster",
   either: "Either",
@@ -146,17 +143,9 @@ export const PRESENTATION_TYPE_LABELS: Record<PresentationType, string> = {
 // Registration.
 // ---------------------------------------------------------------------------
 
-export const REGISTRATION_CATEGORY_KEYS = [
-  "member",
-  "student",
-  "nonmember",
-] as const;
-export type RegistrationCategoryKey =
-  (typeof REGISTRATION_CATEGORY_KEYS)[number];
-export const REGISTRATION_CATEGORY_KEY_LABELS: Record<
-  RegistrationCategoryKey,
-  string
-> = {
+export const REGISTRATION_CATEGORY_KEYS = ["member", "student", "nonmember"] as const;
+export type RegistrationCategoryKey = (typeof REGISTRATION_CATEGORY_KEYS)[number];
+export const REGISTRATION_CATEGORY_KEY_LABELS: Record<RegistrationCategoryKey, string> = {
   member: "Member",
   student: "Student",
   nonmember: "Nonmember",
@@ -167,12 +156,7 @@ export const REGISTRATION_CATEGORY_KEY_LABELS: Record<
 // ---------------------------------------------------------------------------
 
 export const REVIEW_RECOMMENDATIONS = ["accept", "reject", "revise"] as const;
-export const CONFLICT_REASONS = [
-  "author",
-  "coauthor",
-  "colleague",
-  "other",
-] as const;
+export const CONFLICT_REASONS = ["author", "coauthor", "colleague", "other"] as const;
 export type ConflictReason = (typeof CONFLICT_REASONS)[number];
 export const DECISION_OUTCOMES = ["accept", "reject", "revise"] as const;
 export type DecisionOutcome = (typeof DECISION_OUTCOMES)[number];
@@ -222,7 +206,6 @@ export function programKindLabel(kind: ProgramItemKind): string {
   return PROGRAM_ITEM_KIND_LABELS[kind] ?? "Other";
 }
 
-
 export const SPEAKER_ROLES = [
   "keynote",
   "goldschmidt_lecture",
@@ -239,7 +222,7 @@ const SPEAKER_ROLE_LABELS: Record<SpeakerRole, string> = {
   other: "Other",
 };
 export function speakerRoleLabel(role: SpeakerRole | null): string {
-  return role ? SPEAKER_ROLE_LABELS[role] ?? "Other" : "";
+  return role ? (SPEAKER_ROLE_LABELS[role] ?? "Other") : "";
 }
 
 // ---------------------------------------------------------------------------
@@ -294,9 +277,7 @@ export function isImageCategory(category: DocumentCategory): boolean {
   return (IMAGE_DOCUMENT_CATEGORIES as readonly string[]).includes(category);
 }
 
-export function allowedMimeTypesForCategory(
-  category: DocumentCategory,
-): readonly string[] {
+export function allowedMimeTypesForCategory(category: DocumentCategory): readonly string[] {
   return isImageCategory(category) ? IMAGE_MIME_TYPES : [PDF_MIME_TYPE];
 }
 
@@ -337,13 +318,7 @@ export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
 // inline. Not a DB enum.
 // ---------------------------------------------------------------------------
 
-export const SPONSOR_TIERS = [
-  "Platinum",
-  "Gold",
-  "Silver",
-  "Bronze",
-  "Partner",
-] as const;
+export const SPONSOR_TIERS = ["Platinum", "Gold", "Silver", "Bronze", "Partner"] as const;
 
 // Sections of the branch officers page, in page order.
 export const OFFICER_SECTIONS = ["officer", "board", "past"] as const;

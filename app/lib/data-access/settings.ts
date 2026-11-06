@@ -130,10 +130,7 @@ export function createSettings(db: DB) {
       return resolveSettings(row);
     },
 
-    async update(
-      actor: Actor,
-      patch: PlatformSettingsPatch,
-    ): Promise<PlatformSettings> {
+    async update(actor: Actor, patch: PlatformSettingsPatch): Promise<PlatformSettings> {
       if (!isAdmin(actor)) throw new ForbiddenError();
 
       const set: Partial<typeof schema.platformSettings.$inferInsert> = {};

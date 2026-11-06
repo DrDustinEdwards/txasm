@@ -21,10 +21,7 @@ import {
   createRegistrationCategories,
   createRegistrations,
 } from "./data-access/editions";
-import {
-  createInvitedSpeakers,
-  createSponsors,
-} from "./data-access/speakers-sponsors";
+import { createInvitedSpeakers, createSponsors } from "./data-access/speakers-sponsors";
 import { createAwardRecipients, createAwards } from "./data-access/awards";
 import { createBranchOfficers } from "./data-access/officers";
 import { createDocuments } from "./data-access/documents";
@@ -47,13 +44,8 @@ export {
   isReviewerAnywhere,
 } from "./data-access/core";
 export type { Actor } from "./data-access/core";
-export type {
-  AuthorInput,
-  AffiliationInput,
-} from "./data-access/abstracts";
-export type {
-  GrantableRole,
-} from "./data-access/reviews";
+export type { AuthorInput, AffiliationInput } from "./data-access/abstracts";
+export type { GrantableRole } from "./data-access/reviews";
 export type {
   BookAuthor,
   BookAffiliation,
@@ -69,43 +61,19 @@ export type {
   ProgramDay,
   ProgramBookData,
 } from "./data-access/program-model";
-export type {
-  PublicAbstractSummary,
-} from "./data-access/public-abstracts";
-export type {
-  EditionPatch,
-  RegistrationCategoryPatch,
-} from "./data-access/editions";
-export type {
-  SponsorPublic,
-  SpeakerPublic,
-} from "./data-access/speakers-sponsors";
-export type {
-  AwardRecipientView,
-} from "./data-access/awards";
-export type {
-  Officer,
-  PastOfficer,
-  PastOfficerTab,
-} from "./data-access/officers";
-export type {
-  FooterLink,
-  PlatformSettings,
-  PlatformSettingsPatch,
-} from "./data-access/settings";
+export type { PublicAbstractSummary } from "./data-access/public-abstracts";
+export type { EditionPatch, RegistrationCategoryPatch } from "./data-access/editions";
+export type { SponsorPublic, SpeakerPublic } from "./data-access/speakers-sponsors";
+export type { AwardRecipientView } from "./data-access/awards";
+export type { Officer, PastOfficer, PastOfficerTab } from "./data-access/officers";
+export type { FooterLink, PlatformSettings, PlatformSettingsPatch } from "./data-access/settings";
 export type { Page, PageSearch, PageWrite } from "./data-access/pages";
 export type { MediaRow } from "./data-access/media";
 
 // The controlled-vocabulary types live in ./vocab (client-safe, one source).
 // Re-export the ones callers reach for through the data-access layer so their
 // imports keep resolving here.
-export type {
-  AbstractFormat,
-  AbstractLevel,
-  ProgramItemKind,
-  Season,
-  SpeakerRole,
-} from "./vocab";
+export type { AbstractFormat, AbstractLevel, ProgramItemKind, Season, SpeakerRole } from "./vocab";
 
 function createDataAccess(db: DB) {
   return {
@@ -150,7 +118,9 @@ export function getDataAccess(env: Env) {
 // Platform admin is an address on ADMIN_EMAILS (else ADMIN_EMAIL), read on every
 // request as the other sites do; chair and reviewer are grants in D1.
 export function getActor(env: Env, user: { id: string; email: string }): Promise<Actor> {
-  return loadActor(getDb(env), user.id, { admin: adminEmails(env).includes(user.email.trim().toLowerCase()) });
+  return loadActor(getDb(env), user.id, {
+    admin: adminEmails(env).includes(user.email.trim().toLowerCase()),
+  });
 }
 
 // Build the importer from the environment, parallel to getDataAccess. Server

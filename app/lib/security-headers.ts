@@ -2,7 +2,12 @@
 // Content-Security-Policy. X-Frame-Options: deny is the part that matters most here: a framed admin page could
 // otherwise submit a role grant or a book publish with the chair's cookie.
 import { applyHeaderSet } from "@dustinedwards/site-runtime/headers";
-import { buildContentSecurityPolicy, buildStagedPolicy, reportingEndpoints, scriptHash } from "@dustinedwards/site-runtime/csp";
+import {
+  buildContentSecurityPolicy,
+  buildStagedPolicy,
+  reportingEndpoints,
+  scriptHash,
+} from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
 import { PAGED_JS_CONFIG } from "./paged";
 import { SECURITY_HEADERS } from "./header-set";
@@ -42,7 +47,10 @@ function contentSecurityPolicies(nonce: string | undefined) {
     cloudflareWebAnalytics: true,
     ...SINK,
   };
-  return [buildContentSecurityPolicy(policy), buildStagedPolicy(policy, { trustedTypes: true, denyUnlisted: true })];
+  return [
+    buildContentSecurityPolicy(policy),
+    buildStagedPolicy(policy, { trustedTypes: true, denyUnlisted: true }),
+  ];
 }
 
 /**
@@ -64,10 +72,17 @@ export async function bookPolicy(): Promise<Record<string, string>> {
 // rebuilt around a fresh copy. `nonce` is the one the page was rendered with.
 // Signed-in, admin and API paths (robots.txt's Disallow list) also get X-Robots-Tag: noindex,
 // which covers their resource routes and redirects, where no meta tag can go.
-export function withSecurityHeaders(response: Response, request: Request, nonce?: string): Response {
+export function withSecurityHeaders(
+  response: Response,
+  request: Request,
+  nonce?: string,
+): Response {
   const headers = new Headers(response.headers);
   applyHeaderSet(headers, SECURITY_HEADERS, { overwrite: false });
-  if (!headers.has("Content-Security-Policy") && !headers.has("Content-Security-Policy-Report-Only")) {
+  if (
+    !headers.has("Content-Security-Policy") &&
+    !headers.has("Content-Security-Policy-Report-Only")
+  ) {
     for (const csp of contentSecurityPolicies(nonce)) headers.set(csp.name, csp.value);
   }
   // reportingEndpoints refuses a plain-http origin off loopback (the http request the https redirect answers), which a

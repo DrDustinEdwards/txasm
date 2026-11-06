@@ -25,7 +25,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   } catch (error) {
     if (error instanceof NotFoundError) {
       return new Response(
-        "<!doctype html><meta charset=utf-8><title>No book yet</title><body style=\"font-family:system-ui;padding:2rem\"><p>No book has been generated for this meeting yet. Generate it from the book builder, then reopen this preview.</p></body>",
+        '<!doctype html><meta charset=utf-8><title>No book yet</title><body style="font-family:system-ui;padding:2rem"><p>No book has been generated for this meeting yet. Generate it from the book builder, then reopen this preview.</p></body>',
         { status: 404, headers: { "Content-Type": "text/html; charset=utf-8", ...policy } },
       );
     }

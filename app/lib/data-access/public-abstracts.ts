@@ -110,15 +110,13 @@ async function buildNumberedAbstracts(
   const absRows = await db
     .select()
     .from(schema.abstract)
-    .where(
-      and(
-        eq(schema.abstract.editionId, editionId),
-        eq(schema.abstract.status, "accepted"),
-      ),
-    );
+    .where(and(eq(schema.abstract.editionId, editionId), eq(schema.abstract.status, "accepted")));
   if (absRows.length === 0) return [];
 
-  const parts = await assembleBookAbstracts(db, absRows.map((a) => a.id));
+  const parts = await assembleBookAbstracts(
+    db,
+    absRows.map((a) => a.id),
+  );
   const categoryRows = await db
     .select()
     .from(schema.abstractCategory)
@@ -136,9 +134,7 @@ async function buildNumberedAbstracts(
       title: row.title,
       level: row.level,
       format: row.format,
-      topic: row.categoryId
-        ? categoryNameById.get(row.categoryId) ?? null
-        : null,
+      topic: row.categoryId ? (categoryNameById.get(row.categoryId) ?? null) : null,
       authors: (parts.get(row.id)?.authors ?? []).map((a) => ({
         name: `${a.firstName} ${a.lastName}`.trim(),
         affiliationOrdinals: a.affiliationOrdinals,
@@ -152,9 +148,7 @@ async function buildNumberedAbstracts(
 }
 
 // The public edition summary shape, from a raw edition row.
-export function publicEditionSummary(
-  ed: typeof schema.edition.$inferSelect,
-): PublicEditionSummary {
+export function publicEditionSummary(ed: typeof schema.edition.$inferSelect): PublicEditionSummary {
   return {
     slug: ed.slug,
     name: ed.name,
@@ -203,10 +197,7 @@ export function createPublicAbstracts(db: DB) {
 
     // One abstract by its book number within a public-stage edition. Null when
     // the edition is not public or the number does not match an accepted abstract.
-    async getOne(
-      editionSlug: string,
-      number: number,
-    ): Promise<PublicAbstractPage | null> {
+    async getOne(editionSlug: string, number: number): Promise<PublicAbstractPage | null> {
       if (!Number.isInteger(number) || number < 1) return null;
       const ed = await db.query.edition.findFirst({
         where: eq(schema.edition.slug, editionSlug),
@@ -263,10 +254,7 @@ export function createPublicAbstracts(db: DB) {
           editionId: schema.abstract.editionId,
         })
         .from(schema.abstract)
-        .innerJoin(
-          schema.edition,
-          eq(schema.abstract.editionId, schema.edition.id),
-        )
+        .innerJoin(schema.edition, eq(schema.abstract.editionId, schema.edition.id))
         .leftJoin(schema.author, eq(schema.author.abstractId, schema.abstract.id))
         .leftJoin(
           schema.abstractCategory,
@@ -296,9 +284,7 @@ export function createPublicAbstracts(db: DB) {
         .from(schema.edition)
         .where(inArray(schema.edition.id, editionIds));
       const editionById = new Map(editionRows.map((e) => [e.id, e]));
-      const startsBySlug = new Map(
-        editionRows.map((e) => [e.slug, e.meetingStartsAt]),
-      );
+      const startsBySlug = new Map(editionRows.map((e) => [e.slug, e.meetingStartsAt]));
 
       const results: PublicAbstractSearchResult[] = [];
       for (const editionId of editionIds) {
@@ -315,9 +301,7 @@ export function createPublicAbstracts(db: DB) {
             code: detail.code,
             title: detail.title,
             presentingAuthorName:
-              detail.authors.find((a) => a.isPresenting)?.name ??
-              detail.authors[0]?.name ??
-              null,
+              detail.authors.find((a) => a.isPresenting)?.name ?? detail.authors[0]?.name ?? null,
             level: detail.level,
             format: detail.format,
             topic: detail.topic,

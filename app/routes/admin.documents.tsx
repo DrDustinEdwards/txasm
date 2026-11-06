@@ -26,7 +26,12 @@ import {
 } from "~/lib/vocab";
 import { privateMeta } from "~/lib/site-meta";
 import { parseYear, readForm } from "~/lib/form.server";
-import { type MultipartPart, multipartBoundary, multipartParts, partText } from "~/lib/multipart.server";
+import {
+  type MultipartPart,
+  multipartBoundary,
+  multipartParts,
+  partText,
+} from "~/lib/multipart.server";
 
 // File picker hint: allow every accepted type so images are selectable for the
 // brand_image category. The real gate is the per-category MIME check in the
@@ -94,7 +99,10 @@ async function* capped(chunks: AsyncGenerator<Uint8Array>, max: number) {
   let total = 0;
   for await (const chunk of chunks) {
     total += chunk.length;
-    if (total > max) throw new ValidationError(`The file must be ${Math.round(max / (1024 * 1024))} MB or smaller.`);
+    if (total > max)
+      throw new ValidationError(
+        `The file must be ${Math.round(max / (1024 * 1024))} MB or smaller.`,
+      );
     yield chunk;
   }
 }
@@ -105,7 +113,9 @@ async function* prepend(head: Uint8Array, rest: AsyncGenerator<Uint8Array>) {
   for (let next = await rest.next(); !next.done; next = await rest.next()) yield next.value;
 }
 
-async function collect(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<Uint8Array> {
+async function collect(
+  chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>,
+): Promise<Uint8Array> {
   const parts: Uint8Array[] = [];
   for await (const chunk of chunks) parts.push(chunk);
   const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
@@ -121,7 +131,12 @@ async function collect(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>)
 // an R2 multipart upload: parts of PART_BYTES (R2 wants every part but the last the same size, at least 5 MiB), one
 // held in memory at a time. A file within one part is a plain put.
 const PART_BYTES = 8 * 1024 * 1024;
-async function storeStream(bucket: R2Bucket, key: string, contentType: string, chunks: AsyncIterable<Uint8Array>) {
+async function storeStream(
+  bucket: R2Bucket,
+  key: string,
+  contentType: string,
+  chunks: AsyncIterable<Uint8Array>,
+) {
   const httpMetadata = { contentType };
   const part = new Uint8Array(PART_BYTES);
   let filled = 0;
@@ -158,19 +173,32 @@ type Admin = Awaited<ReturnType<typeof requireAdmin>>["actor"];
 
 // The upload form, read part by part rather than buffered: the browser sends its fields in page order, so the text
 // fields arrive first, then the file, which is checked on its first bytes and streamed to R2, then "publish".
-async function createDocument(request: Request, boundary: string, env: Env, da: DataAccess, actor: Admin) {
+async function createDocument(
+  request: Request,
+  boundary: string,
+  env: Env,
+  da: DataAccess,
+  actor: Admin,
+) {
   const fields = new Map<string, string>();
   let createdId: string | null = null;
   for await (const part of multipartParts(request.body, boundary, MAX_UPLOAD_REQUEST)) {
     if (part.filename === null) fields.set(part.name, await partText(part));
-    else if (part.name === "file" && !createdId) createdId = await storeUpload(part, fields, env, da, actor);
+    else if (part.name === "file" && !createdId)
+      createdId = await storeUpload(part, fields, env, da, actor);
   }
   if (!createdId) throw new ValidationError("Choose a file to upload.");
   if (fields.get("publish")) await da.documents.publish(actor, createdId);
   return redirect("/admin/documents");
 }
 
-async function storeUpload(part: MultipartPart, fields: Map<string, string>, env: Env, da: DataAccess, actor: Admin) {
+async function storeUpload(
+  part: MultipartPart,
+  fields: Map<string, string>,
+  env: Env,
+  da: DataAccess,
+  actor: Admin,
+) {
   if (fields.get("intent") !== "create") throw new ValidationError("Unknown action.");
   if (!part.filename) throw new ValidationError("Choose a file to upload.");
   const category = toCategory(fields.get("category") ?? "");
@@ -205,7 +233,13 @@ async function storeUpload(part: MultipartPart, fields: Map<string, string>, env
     try {
       const prepared = await prepareUpload(
         env.IMAGES,
-        { bytes: await collect(file), contentType: mime, filename: part.filename, alt: "", changeId: "" },
+        {
+          bytes: await collect(file),
+          contentType: mime,
+          filename: part.filename,
+          alt: "",
+          changeId: "",
+        },
         { limits: { maxBytes, types: [...IMAGE_MIME_TYPES] } },
       );
       // Only the location goes: no HEIC is accepted here, and no shrink is asked for, so the type is the one declared.

@@ -155,10 +155,7 @@ export function createBranchOfficers(db: DB) {
 
     async create(actor: Actor, input: BranchOfficerInput) {
       if (!isAdmin(actor)) throw new ForbiddenError();
-      const [created] = await db
-        .insert(schema.branchOfficer)
-        .values(validate(input))
-        .returning();
+      const [created] = await db.insert(schema.branchOfficer).values(validate(input)).returning();
       return created;
     },
 
@@ -175,9 +172,7 @@ export function createBranchOfficers(db: DB) {
 
     async remove(actor: Actor, id: string) {
       if (!isAdmin(actor)) throw new ForbiddenError();
-      await db
-        .delete(schema.branchOfficer)
-        .where(eq(schema.branchOfficer.id, id));
+      await db.delete(schema.branchOfficer).where(eq(schema.branchOfficer.id, id));
       return { id };
     },
   };

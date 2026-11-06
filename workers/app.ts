@@ -18,7 +18,11 @@ import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
 import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
 import { preloads, rootStylesheets, withPreloadHeader } from "@dustinedwards/site-runtime/preload";
-import { SPECULATION_RULES_HEADER, SPECULATION_RULES_PATH, speculationRulesResponse } from "@dustinedwards/site-runtime/prefetch";
+import {
+  SPECULATION_RULES_HEADER,
+  SPECULATION_RULES_PATH,
+  speculationRulesResponse,
+} from "@dustinedwards/site-runtime/prefetch";
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
@@ -56,7 +60,12 @@ const isWrite = (request: Request) => request.method !== "GET" && request.method
 // Runs the React Router handler with the Cloudflare env and execution context, so loaders and actions reach
 // bindings through context.get(cloudflareContext), never ambiently. `nonce` goes to the render (app/entry.server.tsx);
 // without one, the page is rendered for the edge cache. Its time goes in Server-Timing.
-async function render(request: Request, env: Env, ctx: ExecutionContext, nonce: string | undefined) {
+async function render(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  nonce: string | undefined,
+) {
   const context = new RouterContextProvider();
   context.set(cloudflareContext, { env, ctx });
   context.set(cspNonceContext, nonce);
@@ -67,7 +76,10 @@ async function render(request: Request, env: Env, ctx: ExecutionContext, nonce: 
 // so the browser starts the render-blocking stylesheet and the text's font while the Worker still renders
 // (site-runtime ./preload).
 async function withEarlyHints(page: Response): Promise<Response> {
-  return withPreloadHeader(page, preloads([...rootStylesheets(await serverBuild()), ...FONT_PRELOADS]).header);
+  return withPreloadHeader(
+    page,
+    preloads([...rootStylesheets(await serverBuild()), ...FONT_PRELOADS]).header,
+  );
 }
 
 /**
@@ -83,7 +95,9 @@ export class Renderer extends withPurgePages(WorkerEntrypoint<Env>) {
     // The page is rendered with a nonce on its scripts and in its policy; the gateway gives each reader a fresh one
     // (renewNonce), so a stored page never hands two readers the same nonce.
     const nonce = generateNonce();
-    const page = await withEarlyHints(withSecurityHeaders(await render(request, this.env, this.ctx, nonce), request, nonce));
+    const page = await withEarlyHints(
+      withSecurityHeaders(await render(request, this.env, this.ctx, nonce), request, nonce),
+    );
     // With the request, it fails closed if the gateway's rule ever lets a cookie through: a page rendered for a
     // cookie, or one setting a cookie, is never stored.
     return settleCacheHeaders(page, request);
@@ -98,7 +112,13 @@ export class Renderer extends withPurgePages(WorkerEntrypoint<Env>) {
 function cacheable(request: Request, url: URL): boolean {
   if (isWrite(request) || request.headers.has("Cookie")) return false;
   const path = url.pathname;
-  if (isPrivatePath(path) || path.startsWith("/media/") || path.startsWith("/documents/") || path === "/health") return false;
+  if (
+    isPrivatePath(path) ||
+    path.startsWith("/media/") ||
+    path.startsWith("/documents/") ||
+    path === "/health"
+  )
+    return false;
   const last = path.slice(path.lastIndexOf("/") + 1);
   return !last.includes(".") || last.endsWith(".data");
 }
@@ -115,7 +135,11 @@ const site = {
     // request never reaches the security headers, whose report endpoint must be https; the redirect takes them for
     // where it points.
     const redirect = canonicalRedirect(request);
-    if (redirect) return withSecurityHeaders(redirect, new Request(redirect.headers.get("Location") ?? request.url));
+    if (redirect)
+      return withSecurityHeaders(
+        redirect,
+        new Request(redirect.headers.get("Location") ?? request.url),
+      );
 
     // CSP violation reports: site-runtime's receiver logs each one as a trimmed JSON
     // line (origin and path only, no address or user agent) and stores nothing. Per
@@ -123,23 +147,34 @@ const site = {
     // (still 204).
     if (url.pathname === CSP_REPORT_PATH) {
       const allow = async (r: Request) =>
-        (await env.CSP_REPORT_RATE_LIMIT.limit({ key: r.headers.get("cf-connecting-ip") ?? "anon" })).success;
+        (
+          await env.CSP_REPORT_RATE_LIMIT.limit({
+            key: r.headers.get("cf-connecting-ip") ?? "anon",
+          })
+        ).success;
       return receiveCspReport(request, { allow, headers: SECURITY_HEADERS });
     }
 
     // The prefetch rules the pages' Speculation-Rules header names.
     if (url.pathname === SPECULATION_RULES_PATH) {
-      return withSecurityHeaders(speculationRulesResponse({ exclude: PREFETCH_EXCLUDE }, request), request);
+      return withSecurityHeaders(
+        speculationRulesResponse({ exclude: PREFETCH_EXCLUDE }, request),
+        request,
+      );
     }
 
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
     if (isCarrelRequest(url)) {
-      const carrel = await carrelRequestApi(env, rootStylesheets(await serverBuild()).map((s) => s.href));
+      const carrel = await carrelRequestApi(
+        env,
+        rootStylesheets(await serverBuild()).map((s) => s.href),
+      );
       // A preview link Carrel made (/preview/<token>, no key): the page's current source in the site's stylesheet,
       // noindex and never stored. The package's no-referrer stays (the set does not overwrite), so the token, which is
       // the address, is never sent on.
-      if (carrel.matchesPreviewLink(request)) return withSecurityHeaders(await carrel.servePreviewLink(request), request);
+      if (carrel.matchesPreviewLink(request))
+        return withSecurityHeaders(await carrel.servePreviewLink(request), request);
       if (carrel.matches(request)) {
         const response = await carrel.handle(request, ctx);
         // A write that can change a public page drops every stored page: Carrel's (the site pages, media) here, and
@@ -164,7 +199,9 @@ const site = {
     if (cacheable(request, url)) {
       // The key is the host (the share card is named on it, pageHead), the path and the query without tracking
       // parameters; a reader who already holds the page gets a 304.
-      const stored = await ctx.exports.Renderer.fetch(forRenderer(request), { cf: { cacheKey: cacheKey(url, { dimensions: { host: url.host } }) } });
+      const stored = await ctx.exports.Renderer.fetch(forRenderer(request), {
+        cf: { cacheKey: cacheKey(url, { dimensions: { host: url.host } }) },
+      });
       // The cache answers a conditional request with its own 304, whose headers are immutable, so the policy is
       // dropped from a copy (deleting it in place threw, a 1101 for every returning reader, 2026-10-31). A 304 leaves
       // out the policy: the reader's copy keeps its own, whose nonce is the one in that copy's scripts.
@@ -178,11 +215,15 @@ const site = {
       // Rendered live with this request's nonce, on the render and in its header; never stored.
       const nonce = generateNonce();
       const response = await render(request, env, ctx, nonce);
-      if (url.pathname.startsWith("/admin")) purgeAfterWrite(request, response, ctx, `admin ${request.method} ${url.pathname}`);
+      if (url.pathname.startsWith("/admin"))
+        purgeAfterWrite(request, response, ctx, `admin ${request.method} ${url.pathname}`);
       page = await withEarlyHints(withSecurityHeaders(response, request, nonce));
       // A route's public headers mean nothing on this path: it was rendered for one reader. A response with no
       // Cache-Control (a signed-in page, a redirect) is said to be private rather than left to heuristics.
-      if (!page.headers.has("Cache-Control") || page.headers.get("Cache-Control") === SHARED_CACHE_CONTROL) {
+      if (
+        !page.headers.has("Cache-Control") ||
+        page.headers.get("Cache-Control") === SHARED_CACHE_CONTROL
+      ) {
         page = privateRender(page);
       }
     }
@@ -213,7 +254,9 @@ export default {
   ...site,
   fetch: withRequestLog(
     (request: Request, env: Env, ctx: ExecutionContext) =>
-      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), { secret: env.ADMIN_IDLE_SECRET }),
+      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), {
+        secret: env.ADMIN_IDLE_SECRET,
+      }),
     { sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA, tokenPath: PREVIEW_TOKEN },
   ),
 } satisfies ExportedHandler<Env>;

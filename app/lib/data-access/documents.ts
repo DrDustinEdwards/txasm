@@ -99,11 +99,7 @@ export interface DocumentPatch {
 // The single generated document for a meeting in one category (abstract book
 // or program), whatever its status. One row per (edition, category) with
 // source "generated"; a regenerate reuses it.
-async function findGeneratedDoc(
-  db: DB,
-  editionId: string,
-  category: DocumentCategory,
-) {
+async function findGeneratedDoc(db: DB, editionId: string, category: DocumentCategory) {
   return db.query.document.findFirst({
     where: and(
       eq(schema.document.editionId, editionId),
@@ -128,17 +124,8 @@ export function createDocuments(db: DB) {
       return db
         .select()
         .from(schema.document)
-        .where(
-          and(
-            eq(schema.document.category, category),
-            eq(schema.document.status, "published"),
-          ),
-        )
-        .orderBy(
-          schema.document.sortOrder,
-          desc(schema.document.year),
-          schema.document.title,
-        );
+        .where(and(eq(schema.document.category, category), eq(schema.document.status, "published")))
+        .orderBy(schema.document.sortOrder, desc(schema.document.year), schema.document.title);
     },
 
     // The newest published documents across categories, newest added first, for the RSS feed.
@@ -192,11 +179,7 @@ export function createDocuments(db: DB) {
         .select()
         .from(schema.document)
         .where(where)
-        .orderBy(
-          schema.document.category,
-          desc(schema.document.year),
-          schema.document.title,
-        );
+        .orderBy(schema.document.category, desc(schema.document.year), schema.document.title);
     },
 
     // Published documents tied to a meeting (its book, program, and any uploaded
@@ -206,21 +189,14 @@ export function createDocuments(db: DB) {
         .select()
         .from(schema.document)
         .where(
-          and(
-            eq(schema.document.editionId, editionId),
-            eq(schema.document.status, "published"),
-          ),
+          and(eq(schema.document.editionId, editionId), eq(schema.document.status, "published")),
         )
         .orderBy(schema.document.sortOrder, schema.document.title);
     },
 
     // Chair/admin read of a meeting's generated document in one category, for the
     // admin panel and the download route. Null when nothing is generated yet.
-    async getGeneratedForEdition(
-      actor: Actor,
-      editionId: string,
-      category: DocumentCategory,
-    ) {
+    async getGeneratedForEdition(actor: Actor, editionId: string, category: DocumentCategory) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const row = await findGeneratedDoc(db, editionId, category);
       if (!row) return null;
@@ -249,9 +225,7 @@ export function createDocuments(db: DB) {
         where: eq(schema.document.slug, slug),
       });
       if (clash) {
-        throw new AlreadyExistsError(
-          `A document with slug "${slug}" already exists.`,
-        );
+        throw new AlreadyExistsError(`A document with slug "${slug}" already exists.`);
       }
       const mimeType = input.mimeType ?? PDF_MIME_TYPE;
       const [created] = await db
@@ -306,9 +280,7 @@ export function createDocuments(db: DB) {
             where: eq(schema.document.slug, slug),
           });
           if (clash) {
-            throw new AlreadyExistsError(
-              `A document with slug "${slug}" already exists.`,
-            );
+            throw new AlreadyExistsError(`A document with slug "${slug}" already exists.`);
           }
         }
         set.slug = slug;
@@ -322,10 +294,7 @@ export function createDocuments(db: DB) {
       if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
 
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.document)
-          .set(set)
-          .where(eq(schema.document.id, id));
+        await db.update(schema.document).set(set).where(eq(schema.document.id, id));
       }
       return db.query.document.findFirst({ where: eq(schema.document.id, id) });
     },
@@ -348,10 +317,7 @@ export function createDocuments(db: DB) {
     // recently, the caller should wait. A stale generating row (from a crashed
     // run) is allowed to restart. The previous r2Key is kept so an existing PDF
     // stays downloadable until the new one is ready.
-    async recordGenerating(
-      actor: Actor,
-      input: { editionId: string; category: DocumentCategory },
-    ) {
+    async recordGenerating(actor: Actor, input: { editionId: string; category: DocumentCategory }) {
       const { editionId } = input;
       const category = assertDocumentCategory(input.category);
       if (!isChair(actor, editionId)) throw new ForbiddenError();
@@ -447,9 +413,7 @@ export function createDocuments(db: DB) {
       if (!row) throw new NotFoundError();
       assertDocumentWrite(actor, row.editionId);
       if (row.source === "generated" && row.genStatus !== "ready") {
-        throw new ValidationError(
-          "Generate the document before publishing it.",
-        );
+        throw new ValidationError("Generate the document before publishing it.");
       }
       await db
         .update(schema.document)

@@ -4,10 +4,7 @@ import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
 import type { Route } from "./+types/meetings.$slug.abstracts";
 import { cloudflareContext } from "~/load-context";
-import {
-  getDataAccess,
-  type PublicAbstractSummary,
-} from "~/lib/data-access";
+import { getDataAccess, type PublicAbstractSummary } from "~/lib/data-access";
 import {
   ABSTRACT_FORMATS,
   ABSTRACT_FORMAT_LABELS,
@@ -101,16 +98,15 @@ function metaLine(abstract: PublicAbstractSummary): string {
   // unrecognized value degrades to plain text instead of an undefined that throws
   // on .length. Empty when the axis is unset.
   return [
-    abstract.level ? ABSTRACT_LEVEL_LABELS[abstract.level] ?? abstract.level : "",
-    abstract.format ? ABSTRACT_FORMAT_LABELS[abstract.format] ?? abstract.format : "",
+    abstract.level ? (ABSTRACT_LEVEL_LABELS[abstract.level] ?? abstract.level) : "",
+    abstract.format ? (ABSTRACT_FORMAT_LABELS[abstract.format] ?? abstract.format) : "",
   ]
     .filter((p) => p.length > 0)
     .join(" · ");
 }
 
 export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
-  const { edition, topics, abstracts, total, untopicedLabel, filters } =
-    loaderData;
+  const { edition, topics, abstracts, total, untopicedLabel, filters } = loaderData;
   const groups = groupByTopic(abstracts);
   const filtered = filters.level || filters.format || filters.topic;
 
@@ -129,7 +125,8 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         <h1 className="page-title">{edition.name}</h1>
         <p className="home-tagline cap-muted">Abstracts</p>
         <p className="small cap-muted">
-          {`${SEASON_LABELS[edition.season]} ${edition.year}`} · <Link to={`/meetings/${edition.slug}/program`}>Program</Link>
+          {`${SEASON_LABELS[edition.season]} ${edition.year}`} ·{" "}
+          <Link to={`/meetings/${edition.slug}/program`}>Program</Link>
         </p>
       </header>
 
@@ -195,12 +192,21 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                     const line = metaLine(abstract);
                     return (
                       <li key={abstract.number} className="card abstract-row">
-                        <span className="small strong cap-muted">{abstract.code ?? abstract.number}</span>
+                        <span className="small strong cap-muted">
+                          {abstract.code ?? abstract.number}
+                        </span>
                         <div className="stack-1">
-                          <Link to={`/meetings/${edition.slug}/abstracts/${abstract.number}`} className="strong">
+                          <Link
+                            to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
+                            className="strong"
+                          >
                             <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
                           </Link>
-                          {abstract.authors.length > 0 ? <p className="small cap-muted">{abstract.authors.map((a) => a.name).join(", ")}</p> : null}
+                          {abstract.authors.length > 0 ? (
+                            <p className="small cap-muted">
+                              {abstract.authors.map((a) => a.name).join(", ")}
+                            </p>
+                          ) : null}
                           {line ? <p className="cap-label">{line}</p> : null}
                         </div>
                       </li>

@@ -75,11 +75,7 @@ export function normalizeCurrency(currency?: string) {
 // wildcards removed so it is safe to interpolate into a search pattern. The seed
 // and the ensure path use this same function so the unique index lines up.
 function normalizeInstitutionName(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .replace(/[%_]/g, "");
+  return name.trim().toLowerCase().replace(/\s+/g, " ").replace(/[%_]/g, "");
 }
 
 export function createRegistrations(_db: DB) {
@@ -113,10 +109,7 @@ export function createEditions(db: DB) {
     // is a separate, narrower query added later.
     async list(actor: Actor) {
       if (!isAdmin(actor)) throw new ForbiddenError();
-      return db
-        .select()
-        .from(schema.edition)
-        .orderBy(desc(schema.edition.meetingStartsAt));
+      return db.select().from(schema.edition).orderBy(desc(schema.edition.meetingStartsAt));
     },
 
     // Admin only. Season must be one of the two values and (season, year) must be
@@ -134,15 +127,10 @@ export function createEditions(db: DB) {
       if (!name) throw new ValidationError("Name is required.");
 
       const existing = await db.query.edition.findFirst({
-        where: and(
-          eq(schema.edition.season, input.season),
-          eq(schema.edition.year, input.year),
-        ),
+        where: and(eq(schema.edition.season, input.season), eq(schema.edition.year, input.year)),
       });
       if (existing) {
-        throw new AlreadyExistsError(
-          `A meeting for ${input.season} ${input.year} already exists.`,
-        );
+        throw new AlreadyExistsError(`A meeting for ${input.season} ${input.year} already exists.`);
       }
 
       const [created] = await db
@@ -192,37 +180,22 @@ export function createEditions(db: DB) {
           ? patch.registrationClosesAt
           : row.registrationClosesAt;
       if (regOpens && regCloses && regCloses.getTime() < regOpens.getTime()) {
-        throw new ValidationError(
-          "Registration deadline cannot be before registration opens.",
-        );
+        throw new ValidationError("Registration deadline cannot be before registration opens.");
       }
 
       const subOpens =
-        patch.submissionOpensAt !== undefined
-          ? patch.submissionOpensAt
-          : row.submissionOpensAt;
+        patch.submissionOpensAt !== undefined ? patch.submissionOpensAt : row.submissionOpensAt;
       const subDeadline =
-        patch.submissionDeadline !== undefined
-          ? patch.submissionDeadline
-          : row.submissionDeadline;
+        patch.submissionDeadline !== undefined ? patch.submissionDeadline : row.submissionDeadline;
       if (subOpens && subDeadline && subDeadline.getTime() < subOpens.getTime()) {
-        throw new ValidationError(
-          "Submission deadline cannot be before submission opens.",
-        );
+        throw new ValidationError("Submission deadline cannot be before submission opens.");
       }
 
       const meetStarts =
-        patch.meetingStartsAt !== undefined
-          ? patch.meetingStartsAt
-          : row.meetingStartsAt;
-      const meetEnds =
-        patch.meetingEndsAt !== undefined
-          ? patch.meetingEndsAt
-          : row.meetingEndsAt;
+        patch.meetingStartsAt !== undefined ? patch.meetingStartsAt : row.meetingStartsAt;
+      const meetEnds = patch.meetingEndsAt !== undefined ? patch.meetingEndsAt : row.meetingEndsAt;
       if (meetStarts && meetEnds && meetEnds.getTime() < meetStarts.getTime()) {
-        throw new ValidationError(
-          "The meeting cannot end before it starts.",
-        );
+        throw new ValidationError("The meeting cannot end before it starts.");
       }
 
       const set: Partial<typeof schema.edition.$inferInsert> = {};
@@ -256,10 +229,7 @@ export function createEditions(db: DB) {
       }
 
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.edition)
-          .set(set)
-          .where(eq(schema.edition.id, editionId));
+        await db.update(schema.edition).set(set).where(eq(schema.edition.id, editionId));
       }
       return this.getById(actor, editionId);
     },
@@ -320,10 +290,7 @@ export function createRegistrationCategories(db: DB) {
         .select()
         .from(schema.registrationCategory)
         .where(eq(schema.registrationCategory.editionId, editionId))
-        .orderBy(
-          schema.registrationCategory.sortOrder,
-          schema.registrationCategory.key,
-        );
+        .orderBy(schema.registrationCategory.sortOrder, schema.registrationCategory.key);
     },
 
     async create(actor: Actor, input: RegistrationCategoryInput) {
@@ -333,9 +300,7 @@ export function createRegistrationCategories(db: DB) {
       if (!label) throw new ValidationError("Label is required.");
       assertAmountCents(input.amountCents);
       if (!REGISTRATION_CATEGORY_KEYS.includes(input.key)) {
-        throw new ValidationError(
-          "Category type must be member, student, or nonmember.",
-        );
+        throw new ValidationError("Category type must be member, student, or nonmember.");
       }
 
       const existing = await db.query.registrationCategory.findFirst({
@@ -345,9 +310,7 @@ export function createRegistrationCategories(db: DB) {
         ),
       });
       if (existing) {
-        throw new AlreadyExistsError(
-          `A ${input.key} category already exists for this meeting.`,
-        );
+        throw new AlreadyExistsError(`A ${input.key} category already exists for this meeting.`);
       }
 
       const [created] = await db
@@ -436,10 +399,7 @@ export function createAbstractCategories(db: DB) {
         .orderBy(schema.abstractCategory.sortOrder, schema.abstractCategory.name);
     },
 
-    async create(
-      actor: Actor,
-      input: { editionId: string; name: string; sortOrder?: number },
-    ) {
+    async create(actor: Actor, input: { editionId: string; name: string; sortOrder?: number }) {
       if (!isAdmin(actor)) throw new ForbiddenError();
       const name = input.name.trim();
       if (!name) throw new ValidationError("Name is required.");
@@ -451,9 +411,7 @@ export function createAbstractCategories(db: DB) {
         ),
       });
       if (existing) {
-        throw new AlreadyExistsError(
-          `A category named "${name}" already exists for this meeting.`,
-        );
+        throw new AlreadyExistsError(`A category named "${name}" already exists for this meeting.`);
       }
 
       const [created] = await db
@@ -467,11 +425,7 @@ export function createAbstractCategories(db: DB) {
       return created;
     },
 
-    async update(
-      actor: Actor,
-      id: string,
-      patch: { name?: string; sortOrder?: number },
-    ) {
+    async update(actor: Actor, id: string, patch: { name?: string; sortOrder?: number }) {
       if (!isAdmin(actor)) throw new ForbiddenError();
       const row = await db.query.abstractCategory.findFirst({
         where: eq(schema.abstractCategory.id, id),
@@ -500,10 +454,7 @@ export function createAbstractCategories(db: DB) {
       if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
 
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.abstractCategory)
-          .set(set)
-          .where(eq(schema.abstractCategory.id, id));
+        await db.update(schema.abstractCategory).set(set).where(eq(schema.abstractCategory.id, id));
       }
       return db.query.abstractCategory.findFirst({
         where: eq(schema.abstractCategory.id, id),
@@ -516,9 +467,7 @@ export function createAbstractCategories(db: DB) {
         where: eq(schema.abstractCategory.id, id),
       });
       if (!row) throw new NotFoundError();
-      await db
-        .delete(schema.abstractCategory)
-        .where(eq(schema.abstractCategory.id, id));
+      await db.delete(schema.abstractCategory).where(eq(schema.abstractCategory.id, id));
       return { id };
     },
   };

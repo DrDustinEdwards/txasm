@@ -23,13 +23,38 @@ const DAY = 1440;
 export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[]> {
   return {
     [SCHEDULES_CRON]: [
-      { name: "carrel-schedules", everyMinutes: 1, timeoutMs: 50_000, run: () => runCarrelSchedules(env, scheduledTime) },
+      {
+        name: "carrel-schedules",
+        everyMinutes: 1,
+        timeoutMs: 50_000,
+        run: () => runCarrelSchedules(env, scheduledTime),
+      },
     ],
     [DAILY_CRON]: [
-      { name: "backup", everyMinutes: DAY, timeoutMs: 5 * MINUTE, run: () => runNightlyBackup(env) },
-      { name: "backup-uploads", everyMinutes: DAY, timeoutMs: 4 * MINUTE, run: () => backupUploads(env) },
-      { name: "prune-404", everyMinutes: DAY, timeoutMs: MINUTE, run: () => pruneNotFound(env.DB, { days: 90 }) },
-      { name: "prune-auth-events", everyMinutes: DAY, timeoutMs: MINUTE, run: () => pruneAuthEvents(env.DB) },
+      {
+        name: "backup",
+        everyMinutes: DAY,
+        timeoutMs: 5 * MINUTE,
+        run: () => runNightlyBackup(env),
+      },
+      {
+        name: "backup-uploads",
+        everyMinutes: DAY,
+        timeoutMs: 4 * MINUTE,
+        run: () => backupUploads(env),
+      },
+      {
+        name: "prune-404",
+        everyMinutes: DAY,
+        timeoutMs: MINUTE,
+        run: () => pruneNotFound(env.DB, { days: 90 }),
+      },
+      {
+        name: "prune-auth-events",
+        everyMinutes: DAY,
+        timeoutMs: MINUTE,
+        run: () => pruneAuthEvents(env.DB),
+      },
     ],
   };
 }

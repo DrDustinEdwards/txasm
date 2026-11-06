@@ -9,7 +9,9 @@ export const headers = () => publicPageHeaders();
 
 // The page's text is edited in Carrel (app/lib/carrel) and stored in D1.
 export async function loader({ context }: Route.LoaderArgs) {
-  const page = await getDataAccess(context.get(cloudflareContext).env).pages.published("award-nominations");
+  const page = await getDataAccess(context.get(cloudflareContext).env).pages.published(
+    "award-nominations",
+  );
   if (!page) throw new Response("Not found", { status: 404 });
   return page;
 }
@@ -18,7 +20,8 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
   return pageHead(matches, {
     path: "/award-nominations",
     name: loaderData?.title ?? "Award Nominations",
-    description: loaderData?.description || "How to nominate a member for a Texas Branch ASM award.",
+    description:
+      loaderData?.description || "How to nominate a member for a Texas Branch ASM award.",
     search: loaderData?.searchFields,
   });
 }

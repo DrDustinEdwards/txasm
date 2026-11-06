@@ -13,7 +13,12 @@ import { emailChange, magicLink, renderEmail, securityNotice } from "capsomer/em
 import { extractPlainText } from "./richtext";
 
 // The email config, read off env without the generated type: SEND_EMAIL is not in it while the binding is commented out.
-type EmailEnv = { EMAIL_ENABLED?: string; EMAIL_FROM?: string; EMAIL_FROM_NAME?: string; SEND_EMAIL?: SendEmail };
+type EmailEnv = {
+  EMAIL_ENABLED?: string;
+  EMAIL_FROM?: string;
+  EMAIL_FROM_NAME?: string;
+  SEND_EMAIL?: SendEmail;
+};
 
 export interface EmailContent {
   subject: string;
@@ -111,9 +116,7 @@ export function decisionEmail(input: {
   if (input.outcome === "accept" && input.presentationType) {
     lines.push(`Presentation type: ${presentationLabel(input.presentationType)}.`);
   }
-  const message = input.message
-    ? extractPlainText(input.message).trim()
-    : "";
+  const message = input.message ? extractPlainText(input.message).trim() : "";
   if (message) {
     lines.push("Message from the organizers:");
     lines.push(message);
@@ -127,4 +130,3 @@ export function decisionEmail(input: {
     html: htmlParagraphs(lines),
   };
 }
-

@@ -1,4 +1,11 @@
-import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData, useSubmit } from "react-router";
+import {
+  Outlet,
+  useLocation,
+  useMatches,
+  useParams,
+  useRouteLoaderData,
+  useSubmit,
+} from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
@@ -52,13 +59,16 @@ const ICONS = {
   meetings: "M4.5 5.5h15v14h-15zM4.5 10h15M8.5 3.5v4M15.5 3.5v4",
   add: "M12 5v14M5 12h14",
   award: "M12 3.5a5 5 0 1 0 0 10a5 5 0 1 0 0-10zM8.8 12.4 7.5 20.5l4.5-2.5 4.5 2.5-1.3-8.1",
-  people: "M9 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM2.5 19.5c.8-3.5 3.3-5.5 6.5-5.5s5.7 2 6.5 5.5M15.5 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5c1.8.8 3 2.5 3.5 5",
+  people:
+    "M9 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM2.5 19.5c.8-3.5 3.3-5.5 6.5-5.5s5.7 2 6.5 5.5M15.5 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5c1.8.8 3 2.5 3.5 5",
   document: "M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6",
-  settings: "M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8",
+  settings:
+    "M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8",
   overview: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   ticket: "M3.5 7.5h17v3a1.5 1.5 0 0 0 0 3v3h-17v-3a1.5 1.5 0 0 0 0-3zM14.5 7.5v9",
   tag: "M3.5 3.5h8l9 9-8 8-9-9zM8 7.5h.01",
-  roles: "M10 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM3.5 19.5c.8-3.5 3.3-5.5 6.5-5.5 1.5 0 2.8.4 3.9 1.2M15 18l2 2 4-4",
+  roles:
+    "M10 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM3.5 19.5c.8-3.5 3.3-5.5 6.5-5.5 1.5 0 2.8.4 3.9 1.2M15 18l2 2 4-4",
   assign: "M8 4.5h8v3H8zM6 6H4.5v14.5h15V6H18M8.5 12.5h7M8.5 16h4",
   decide: "M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17zM8 12.2l2.8 2.8L16.2 9.5",
   program: "M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17zM12 7.5V12l3 2",
@@ -90,7 +100,13 @@ function phoneTabs(nav: AdminEntry[], editionId?: string): AdminEntry[] {
 // meeting config, a selected meeting shows its chair tools, reviewers see their
 // queue.
 function adminNav(isAdmin: boolean, isReviewer: boolean, editionId?: string): Entry[] {
-  const e = (group: string, label: string, href: string, icon: keyof typeof ICONS, end = false): Entry => ({
+  const e = (
+    group: string,
+    label: string,
+    href: string,
+    icon: keyof typeof ICONS,
+    end = false,
+  ): Entry => ({
     id: href,
     group,
     label,
@@ -149,14 +165,23 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
       tabs={phoneTabs(nav, editionId)}
       navLabel="Admin"
       prefKey="txasm-admin"
-      logo={{ href: "/", label: `${wordmark} admin`, mark: <BrandMark className="txasm-mark" />, wordmark: <span aria-hidden="true">Admin</span> }}
+      logo={{
+        href: "/",
+        label: `${wordmark} admin`,
+        mark: <BrandMark className="txasm-mark" />,
+        wordmark: <span aria-hidden="true">Admin</span>,
+      }}
       status={meetingName ? <span className="txasm-meeting">{meetingName}</span> : undefined}
       themePrefKey={THEME_PREF_KEY}
       renderLink={renderLink}
       viewSite="/"
       account={
         email
-          ? { name: email, initials: initials(email), onSignOut: () => void submit(null, { method: "post", action: "/signout" }) }
+          ? {
+              name: email,
+              initials: initials(email),
+              onSignOut: () => void submit(null, { method: "post", action: "/signout" }),
+            }
           : undefined
       }
     >

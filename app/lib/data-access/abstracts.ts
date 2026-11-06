@@ -1,11 +1,6 @@
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import {
-  countWords,
-  isEmptyRichText,
-  sanitizeBody,
-  sanitizeTitle,
-} from "../richtext";
+import { countWords, isEmptyRichText, sanitizeBody, sanitizeTitle } from "../richtext";
 import {
   ABSTRACT_FORMATS,
   ABSTRACT_LEVELS,
@@ -213,9 +208,7 @@ export function createAbstracts(db: DB) {
         edition,
         authors: authors.map((a) => ({
           ...a,
-          affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort(
-            (x, y) => x - y,
-          ),
+          affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort((x, y) => x - y),
         })),
         affiliations,
       };
@@ -318,10 +311,7 @@ export function createAbstracts(db: DB) {
       }
 
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.abstract)
-          .set(set)
-          .where(eq(schema.abstract.id, abstractId));
+        await db.update(schema.abstract).set(set).where(eq(schema.abstract.id, abstractId));
       }
       return this.get(actor, abstractId);
     },
@@ -372,9 +362,7 @@ export function createAbstracts(db: DB) {
         ...chunk(affiliations, insertChunkSize(7)).map((part) =>
           db.insert(schema.affiliation).values(part),
         ),
-        ...chunk(authors, insertChunkSize(10)).map((part) =>
-          db.insert(schema.author).values(part),
-        ),
+        ...chunk(authors, insertChunkSize(10)).map((part) => db.insert(schema.author).values(part)),
         ...chunk(links, insertChunkSize(2)).map((part) =>
           db.insert(schema.authorAffiliation).values(part),
         ),
@@ -414,9 +402,7 @@ export function createAbstracts(db: DB) {
       }
       const wordLimit = ed?.abstractWordLimit ?? DEFAULT_WORD_LIMIT;
       if (countWords(row.bodyText) > wordLimit) {
-        throw new ValidationError(
-          `The abstract body is over the ${wordLimit} word limit.`,
-        );
+        throw new ValidationError(`The abstract body is over the ${wordLimit} word limit.`);
       }
       if (!row.level) {
         throw new ValidationError("Choose a level before submitting.");
@@ -467,7 +453,9 @@ export function createAbstracts(db: DB) {
         db
           .select({ abstractId: schema.review.abstractId })
           .from(schema.review)
-          .where(and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted"))),
+          .where(
+            and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted")),
+          ),
       );
 
       const assignmentCount = new Map<string, number>();
@@ -504,7 +492,11 @@ export async function submittedAbstracts(db: DB, editionId: string) {
   const ids = rows.map((r) => r.id);
   const authors = await byIdChunks(ids, (part) =>
     db
-      .select({ abstractId: schema.author.abstractId, firstName: schema.author.firstName, lastName: schema.author.lastName })
+      .select({
+        abstractId: schema.author.abstractId,
+        firstName: schema.author.firstName,
+        lastName: schema.author.lastName,
+      })
       .from(schema.author)
       .where(inArray(schema.author.abstractId, part))
       .orderBy(schema.author.ordinal),

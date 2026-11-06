@@ -14,8 +14,7 @@ export function meta({ matches }: Route.MetaArgs) {
     path: "/newsletters",
     pageType: "CollectionPage",
     name: "Newsletters",
-    description:
-      "Newsletters from the Texas Branch of the American Society for Microbiology.",
+    description: "Newsletters from the Texas Branch of the American Society for Microbiology.",
   });
 }
 
@@ -40,8 +39,8 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
       <header className="stack-3">
         <h1 className="page-title">Newsletters</h1>
         <p className="lead">
-          The branch newsletter shares meeting recaps, award announcements, and
-          news from member institutions across Texas. Read past issues below.
+          The branch newsletter shares meeting recaps, award announcements, and news from member
+          institutions across Texas. Read past issues below.
         </p>
       </header>
 

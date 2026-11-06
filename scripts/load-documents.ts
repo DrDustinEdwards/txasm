@@ -62,9 +62,7 @@ const EDITORS: Record<string, string> = {
   "fall-1991-newsletter": "G. Roland Vela",
 };
 
-function parseSeasonYear(
-  filename: string,
-): { season: Season; year: number } | null {
+function parseSeasonYear(filename: string): { season: Season; year: number } | null {
   const match = filename.match(/(spring|fall)[-_ ]?(\d{4})/i);
   if (!match) return null;
   return {
@@ -95,9 +93,7 @@ async function main() {
   // Every PDF in the folder that names this category and a season and year.
   const files = readdirSync(dir)
     .filter((name) => name.toLowerCase().endsWith(".pdf"))
-    .filter((name) =>
-      meta.keyword ? name.toLowerCase().includes(meta.keyword) : true,
-    )
+    .filter((name) => (meta.keyword ? name.toLowerCase().includes(meta.keyword) : true))
     .sort();
 
   console.log(

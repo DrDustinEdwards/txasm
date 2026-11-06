@@ -24,10 +24,7 @@ export function createProgramItems(db: DB) {
   return {
     // Accepted abstracts in the meeting not yet placed in any session, for the
     // add-to-session picker, in book order.
-    async listUnplacedAbstracts(
-      actor: Actor,
-      editionId: string,
-    ): Promise<ProgramAbstractOption[]> {
+    async listUnplacedAbstracts(actor: Actor, editionId: string): Promise<ProgramAbstractOption[]> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const ordered = await acceptedAbstractsInBookOrder(db, editionId);
       if (ordered.length === 0) return [];
@@ -72,9 +69,7 @@ export function createProgramItems(db: DB) {
         throw new ValidationError("That abstract belongs to a different meeting.");
       }
       if (abs.status !== "accepted") {
-        throw new ValidationError(
-          "Only accepted abstracts can be added to the program.",
-        );
+        throw new ValidationError("Only accepted abstracts can be added to the program.");
       }
 
       // One placement per abstract across the edition. The picker only offers
@@ -216,11 +211,7 @@ export function createProgramItems(db: DB) {
       if (patch.kind !== undefined) set.kind = assertKind(patch.kind);
       // customTitle applies to plain custom items only (no abstract, no speaker);
       // ignore it for abstract and speaker items.
-      if (
-        patch.customTitle !== undefined &&
-        item.abstractId === null &&
-        item.speakerId === null
-      ) {
+      if (patch.customTitle !== undefined && item.abstractId === null && item.speakerId === null) {
         const t = patch.customTitle.trim();
         if (!t) throw new ValidationError("Item title is required.");
         set.customTitle = t;
@@ -228,10 +219,7 @@ export function createProgramItems(db: DB) {
       if (patch.note !== undefined) set.note = patch.note?.trim() || null;
       if (patch.startsAt !== undefined) set.startsAt = patch.startsAt;
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.programItem)
-          .set(set)
-          .where(eq(schema.programItem.id, itemId));
+        await db.update(schema.programItem).set(set).where(eq(schema.programItem.id, itemId));
       }
       return db.query.programItem.findFirst({
         where: eq(schema.programItem.id, itemId),
@@ -248,9 +236,7 @@ export function createProgramItems(db: DB) {
       });
       if (!session) throw new NotFoundError();
       if (!isChair(actor, session.editionId)) throw new ForbiddenError();
-      await db
-        .delete(schema.programItem)
-        .where(eq(schema.programItem.id, itemId));
+      await db.delete(schema.programItem).where(eq(schema.programItem.id, itemId));
       return { id: itemId };
     },
 

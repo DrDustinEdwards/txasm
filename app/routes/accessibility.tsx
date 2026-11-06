@@ -1,4 +1,7 @@
-import { accessibilityStatement, ACCESSIBILITY_PATH } from "@drdustinedwards/site-helpers/accessibility";
+import {
+  accessibilityStatement,
+  ACCESSIBILITY_PATH,
+} from "@drdustinedwards/site-helpers/accessibility";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import type { Route } from "./+types/accessibility";
 import { pageHead } from "~/lib/site-meta";
@@ -17,7 +20,11 @@ const STATEMENT = accessibilityStatement({
 });
 
 export function meta({ matches }: Route.MetaArgs) {
-  return pageHead(matches, { path: ACCESSIBILITY_PATH, name: STATEMENT.title, description: STATEMENT.description });
+  return pageHead(matches, {
+    path: ACCESSIBILITY_PATH,
+    name: STATEMENT.title,
+    description: STATEMENT.description,
+  });
 }
 
 export default function Accessibility() {
@@ -26,7 +33,11 @@ export default function Accessibility() {
       <header className="stack-3">
         <h1 className="page-title">{STATEMENT.title}</h1>
       </header>
-      <div className="stack-4" style={{ maxWidth: "65ch" }} dangerouslySetInnerHTML={{ __html: STATEMENT.html }} />
+      <div
+        className="stack-4"
+        style={{ maxWidth: "65ch" }}
+        dangerouslySetInnerHTML={{ __html: STATEMENT.html }}
+      />
     </div>
   );
 }

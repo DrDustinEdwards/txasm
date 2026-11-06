@@ -1,11 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import { extractPlainText } from "../richtext";
-import {
-  ABSTRACT_LEVELS,
-  type AbstractFormat,
-  type AbstractLevel,
-} from "../vocab";
+import { ABSTRACT_LEVELS, type AbstractFormat, type AbstractLevel } from "../vocab";
 import {
   assembleBookAbstracts,
   type BookArrangementInput,
@@ -59,9 +55,7 @@ export function createBooks(db: DB) {
           .limit(1)
       )[0];
       if (existing && existing.status === "published") {
-        throw new ValidationError(
-          "This book is published. Reopen it to edit before regenerating.",
-        );
+        throw new ValidationError("This book is published. Reopen it to edit before regenerating.");
       }
 
       const absRows = await db
@@ -74,13 +68,13 @@ export function createBooks(db: DB) {
         })
         .from(schema.abstract)
         .where(
-          and(
-            eq(schema.abstract.editionId, editionId),
-            eq(schema.abstract.status, "accepted"),
-          ),
+          and(eq(schema.abstract.editionId, editionId), eq(schema.abstract.status, "accepted")),
         );
 
-      const parts = await assembleBookAbstracts(db, absRows.map((a) => a.id));
+      const parts = await assembleBookAbstracts(
+        db,
+        absRows.map((a) => a.id),
+      );
       const categoryRows = await db
         .select()
         .from(schema.abstractCategory)
@@ -108,26 +102,22 @@ export function createBooks(db: DB) {
       for (const row of absRows) {
         const format = effFormat(row);
         const key = `${row.level ?? ""}|${format ?? ""}|${row.categoryId ?? ""}`;
-        const bucket =
-          buckets.get(key) ??
-          {
-            level: row.level,
-            format,
-            categoryId: row.categoryId ?? null,
-            rows: [],
-          };
+        const bucket = buckets.get(key) ?? {
+          level: row.level,
+          format,
+          categoryId: row.categoryId ?? null,
+          rows: [],
+        };
         bucket.rows.push(row);
         buckets.set(key, bucket);
       }
 
       const levelIndex = (l: AbstractLevel | null) =>
         l === null ? ABSTRACT_LEVELS.length : ABSTRACT_LEVELS.indexOf(l);
-      const formatIndex = (f: AbstractFormat | null) =>
-        f === "poster" ? 0 : f === "oral" ? 1 : 2;
+      const formatIndex = (f: AbstractFormat | null) => (f === "poster" ? 0 : f === "oral" ? 1 : 2);
       const categoryIndex = (id: string | null) =>
-        id === null ? Number.MAX_SAFE_INTEGER : categoryById.get(id)?.sortOrder ?? 0;
-      const catName = (id: string | null) =>
-        id ? categoryById.get(id)?.name ?? null : null;
+        id === null ? Number.MAX_SAFE_INTEGER : (categoryById.get(id)?.sortOrder ?? 0);
+      const catName = (id: string | null) => (id ? (categoryById.get(id)?.name ?? null) : null);
 
       const orderedBuckets = [...buckets.values()].sort(
         (a, b) =>
@@ -154,11 +144,9 @@ export function createBooks(db: DB) {
             (px?.firstName ?? "").localeCompare(py?.firstName ?? "", "en", {
               sensitivity: "base",
             }) ||
-            extractPlainText(x.title).localeCompare(
-              extractPlainText(y.title),
-              "en",
-              { sensitivity: "base" },
-            )
+            extractPlainText(x.title).localeCompare(extractPlainText(y.title), "en", {
+              sensitivity: "base",
+            })
           );
         });
       }
@@ -185,9 +173,7 @@ export function createBooks(db: DB) {
       if (existing) {
         // Regenerate replaces a draft arrangement; deleting sections cascades to
         // their entries.
-        await db
-          .delete(schema.bookSection)
-          .where(eq(schema.bookSection.bookId, bookId));
+        await db.delete(schema.bookSection).where(eq(schema.bookSection.bookId, bookId));
         await db
           .update(schema.abstractBook)
           .set({ status: "draft", generatedById: actor.userId, updatedAt: new Date() })
@@ -314,12 +300,7 @@ export function createBooks(db: DB) {
         await db
           .select({ id: schema.bookEntry.id })
           .from(schema.bookEntry)
-          .where(
-            and(
-              eq(schema.bookEntry.id, entryId),
-              eq(schema.bookEntry.bookId, book.id),
-            ),
-          )
+          .where(and(eq(schema.bookEntry.id, entryId), eq(schema.bookEntry.bookId, book.id)))
           .limit(1)
       )[0];
       if (!entry) throw new NotFoundError("entry not found");
@@ -380,7 +361,10 @@ export function createBooks(db: DB) {
         (part) => db.select().from(schema.abstract).where(inArray(schema.abstract.id, part)),
       );
       const absById = new Map(absRows.map((a) => [a.id, a]));
-      const parts = await assembleBookAbstracts(db, entries.map((e) => e.abstractId));
+      const parts = await assembleBookAbstracts(
+        db,
+        entries.map((e) => e.abstractId),
+      );
 
       const bySection = new Map<string, typeof entries>();
       for (const e of entries) {
@@ -433,14 +417,12 @@ export function createBooks(db: DB) {
             const last = author.lastName.trim();
             if (!first && !last) continue;
             const key = `${last.toLowerCase()} ${first.toLowerCase()}`;
-            const existingEntry =
-              indexByKey.get(key) ??
-              {
-                name: `${first} ${last}`.trim(),
-                lastName: last,
-                firstName: first,
-                codes: [] as string[],
-              };
+            const existingEntry = indexByKey.get(key) ?? {
+              name: `${first} ${last}`.trim(),
+              lastName: last,
+              firstName: first,
+              codes: [] as string[],
+            };
             if (!existingEntry.codes.includes(entry.code)) {
               existingEntry.codes.push(entry.code);
             }

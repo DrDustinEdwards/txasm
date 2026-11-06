@@ -10,13 +10,7 @@ import startPdfViewer, { DEFAULT_SCALE } from "~/islands/pdf-viewer";
 // navigation from a hydrating page), the effect below starts the same island, once. PDF.js never enters a bundle:
 // the island imports it from /pdfjs at runtime, in the browser only.
 
-export function PdfViewer({
-  url,
-  title,
-}: {
-  url: string;
-  title?: string;
-}) {
+export function PdfViewer({ url, title }: { url: string; title?: string }) {
   const root = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (root.current) startPdfViewer(root.current, { url });
@@ -28,9 +22,7 @@ export function PdfViewer({
   // island repeats it in place of the page when loading fails.
   const fallback = (
     <p className="small">
-      <a href={url}>
-        Open the PDF
-      </a>
+      <a href={url}>Open the PDF</a>
     </p>
   );
 
@@ -45,10 +37,24 @@ export function PdfViewer({
     >
       <div className="cluster pdf-viewer-bar">
         <div className="cap-btn-group" role="group" aria-label="Pages">
-          <button type="button" disabled className="cap-btn" data-size="sm" aria-label="Previous page" data-pdf="prev">
+          <button
+            type="button"
+            disabled
+            className="cap-btn"
+            data-size="sm"
+            aria-label="Previous page"
+            data-pdf="prev"
+          >
             Previous
           </button>
-          <button type="button" disabled className="cap-btn" data-size="sm" aria-label="Next page" data-pdf="next">
+          <button
+            type="button"
+            disabled
+            className="cap-btn"
+            data-size="sm"
+            aria-label="Next page"
+            data-pdf="next"
+          >
             Next
           </button>
         </div>
@@ -56,13 +62,27 @@ export function PdfViewer({
           Loading
         </p>
         <div className="cluster pdf-viewer-zoom">
-          <button type="button" disabled className="cap-btn" data-size="sm" aria-label="Zoom out" data-pdf="zoom-out">
+          <button
+            type="button"
+            disabled
+            className="cap-btn"
+            data-size="sm"
+            aria-label="Zoom out"
+            data-pdf="zoom-out"
+          >
             Zoom out
           </button>
           <span className="small cap-muted cap-num" data-pdf="zoom">
             {Math.round(DEFAULT_SCALE * 100)}%
           </span>
-          <button type="button" disabled className="cap-btn" data-size="sm" aria-label="Zoom in" data-pdf="zoom-in">
+          <button
+            type="button"
+            disabled
+            className="cap-btn"
+            data-size="sm"
+            aria-label="Zoom in"
+            data-pdf="zoom-in"
+          >
             Zoom in
           </button>
         </div>

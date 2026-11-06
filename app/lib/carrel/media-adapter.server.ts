@@ -24,7 +24,13 @@
 // COVERS. The abstract book and program covers are inline SVG (app/lib/cover.ts), not files, and
 // nothing here reads or writes them.
 import { slugify } from "@drdustinedwards/site-helpers/slug";
-import { extensionFor, mediaLibrary, type MediaAdapter, type MediaKeyInput, type MediaUse } from "@dustinedwards/site-api";
+import {
+  extensionFor,
+  mediaLibrary,
+  type MediaAdapter,
+  type MediaKeyInput,
+  type MediaUse,
+} from "@dustinedwards/site-api";
 import { getCarrelMedia, getCarrelPages } from "../data-access";
 import { MEDIA_PREFIX, mediaKeysIn, mediaPath } from "../media/images";
 import { suggestFor } from "../media/suggest.server";
@@ -33,7 +39,15 @@ import { rerenderUsing } from "./render.server";
 /** Pictures only, each one the Images binding reads and none able to carry script; HEIC and HEIF (an iPhone's photos) are stored as JPEG. */
 const LIMITS = {
   maxBytes: 20 * 1024 * 1024,
-  types: ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif", "image/heic", "image/heif"],
+  types: [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+    "image/gif",
+    "image/heic",
+    "image/heif",
+  ],
 };
 
 /** What an upload shrinks to unless it says resize=no: twice the reading column's width, and then some. */
@@ -53,7 +67,11 @@ async function pageUses(env: Env): Promise<Map<string, MediaUse[]>> {
     const draft = mediaKeysIn(page.source);
     const live = page.publishedAt ? mediaKeysIn(page.html) : new Set<string>();
     for (const key of new Set([...draft, ...live])) {
-      const detail = live.has(key) ? (draft.has(key) ? "the published page and its draft" : "the published page") : "the draft";
+      const detail = live.has(key)
+        ? draft.has(key)
+          ? "the published page and its draft"
+          : "the published page"
+        : "the draft";
       const list = uses.get(key) ?? [];
       list.push({ type: "page", id: page.slug, title: page.title.slice(0, 1000), detail });
       uses.set(key, list);
@@ -77,8 +95,16 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
     afterBytes: async (key) => {
       await rerenderUsing(env, key);
     },
-    suggest: (picture) => suggestFor({ ...env, AI_GATEWAY_BASE_URL: (env as { AI_GATEWAY_BASE_URL?: string }).AI_GATEWAY_BASE_URL }, picture),
+    suggest: (picture) =>
+      suggestFor(
+        {
+          ...env,
+          AI_GATEWAY_BASE_URL: (env as { AI_GATEWAY_BASE_URL?: string }).AI_GATEWAY_BASE_URL,
+        },
+        picture,
+      ),
     // The package checks every address and each redirect before this fetch runs.
-    importFetch: ((input: RequestInfo | URL, init?: RequestInit) => fetch(input, init)) as typeof fetch,
+    importFetch: ((input: RequestInfo | URL, init?: RequestInit) =>
+      fetch(input, init)) as typeof fetch,
   });
 }

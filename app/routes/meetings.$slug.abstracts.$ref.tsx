@@ -3,11 +3,7 @@ import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
 import { cloudflareContext } from "~/load-context";
 import { getDataAccess } from "~/lib/data-access";
 import { joinParts } from "~/lib/format";
-import {
-  ABSTRACT_FORMAT_LABELS,
-  ABSTRACT_LEVEL_LABELS,
-  SEASON_LABELS,
-} from "~/lib/vocab";
+import { ABSTRACT_FORMAT_LABELS, ABSTRACT_LEVEL_LABELS, SEASON_LABELS } from "~/lib/vocab";
 import { SITE_NAME, pageHead, plainText } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
@@ -73,8 +69,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
 
       <header className="stack-3">
         <p className="small cap-muted">
-          {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract{" "}
-          {codeLabel}
+          {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract {codeLabel}
         </p>
         <h1
           className="page-title abstract-title"
@@ -111,23 +106,12 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
             {abstract.affiliations.map((aff) => (
               <li key={aff.ordinal} className="affiliation">
                 <sup className="strong">{aff.ordinal}</sup>
-                <span>
-                  {joinParts([
-                    aff.institution,
-                    aff.department,
-                    aff.city,
-                    aff.country,
-                  ])}
-                </span>
+                <span>{joinParts([aff.institution, aff.department, aff.city, aff.country])}</span>
               </li>
             ))}
           </ol>
         ) : null}
-        {metaLabel ? (
-          <p className="cap-label">
-            {metaLabel}
-          </p>
-        ) : null}
+        {metaLabel ? <p className="cap-label">{metaLabel}</p> : null}
       </header>
 
       {abstract.bodyText ? (
@@ -140,9 +124,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
       )}
 
       <p className="small doc-pager">
-        <Link to={`/meetings/${edition.slug}/abstracts`}>
-          Back to {edition.name} abstracts
-        </Link>
+        <Link to={`/meetings/${edition.slug}/abstracts`}>Back to {edition.name} abstracts</Link>
       </p>
     </div>
   );

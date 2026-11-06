@@ -12,8 +12,14 @@ export const FORM_LIMIT = 1024 * 1024;
  */
 export async function readForm(request: Request, max = FORM_LIMIT): Promise<FormData> {
   const bytes = await readCappedBytes(request, max);
-  if (!bytes) throw new Response("Payload Too Large", { status: 413, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
-  return new Response(bytes as Uint8Array<ArrayBuffer>, { headers: { "Content-Type": request.headers.get("Content-Type") ?? "" } }).formData();
+  if (!bytes)
+    throw new Response("Payload Too Large", {
+      status: 413,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  return new Response(bytes as Uint8Array<ArrayBuffer>, {
+    headers: { "Content-Type": request.headers.get("Content-Type") ?? "" },
+  }).formData();
 }
 
 // A sort order: a whole number, 0 when the field is blank.

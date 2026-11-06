@@ -185,13 +185,27 @@
 /* Rhythm and layout: a stack spaces its children (the number is Tailwind's
    step it replaced, in quarters of a rem), a cluster lines them up and wraps,
    a spread pushes them to both ends. */
-.stack-1 > * + * { margin-top: 0.25rem; }
-.stack-2 > * + * { margin-top: 0.5rem; }
-.stack-3 > * + * { margin-top: 0.75rem; }
-.stack-4 > * + * { margin-top: 1rem; }
-.stack-6 > * + * { margin-top: 1.5rem; }
-.stack-8 > * + * { margin-top: 2rem; }
-.stack-10 > * + * { margin-top: 2.5rem; }
+.stack-1 > * + * {
+  margin-top: 0.25rem;
+}
+.stack-2 > * + * {
+  margin-top: 0.5rem;
+}
+.stack-3 > * + * {
+  margin-top: 0.75rem;
+}
+.stack-4 > * + * {
+  margin-top: 1rem;
+}
+.stack-6 > * + * {
+  margin-top: 1.5rem;
+}
+.stack-8 > * + * {
+  margin-top: 2rem;
+}
+.stack-10 > * + * {
+  margin-top: 2.5rem;
+}
 /* A check or a button straight in a stack takes its own line, as a block would. */
 [class*="stack-"] > :is(.cap-check, .cap-btn) {
   display: flex;
@@ -411,18 +425,57 @@
    numbered and bulleted lists indented, links in the link color. */
 .page-prose {
   color: var(--muted);
-  & > * + * { margin-top: 1.25rem; }
-  & h2 { margin-top: 2.5rem; font-size: 1.5rem; line-height: 2rem; font-weight: 600; color: var(--text); }
-  & h3 { font-size: 1.125rem; line-height: 1.75rem; font-weight: 600; color: var(--text); }
-  & ol { list-style: decimal; padding-left: 1.5rem; }
-  & ul { list-style: disc; padding-left: 1.5rem; }
-  & li + li { margin-top: 0.5rem; }
-  & a { color: var(--accent-text); overflow-wrap: anywhere; }
-  & a:hover { text-decoration: underline; }
-  & a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  & img { max-width: 100%; height: auto; }
-  & .heading-anchor { margin-left: 0.4em; color: var(--muted); opacity: 0; }
-  & :is(h2, h3):hover .heading-anchor, & .heading-anchor:focus-visible { opacity: 1; }
+  & > * + * {
+    margin-top: 1.25rem;
+  }
+  & h2 {
+    margin-top: 2.5rem;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  & h3 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  & ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+  }
+  & ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+  }
+  & li + li {
+    margin-top: 0.5rem;
+  }
+  & a {
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
+  }
+  & a:hover {
+    text-decoration: underline;
+  }
+  & a:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  & img {
+    max-width: 100%;
+    height: auto;
+  }
+  & .heading-anchor {
+    margin-left: 0.4em;
+    color: var(--muted);
+    opacity: 0;
+  }
+  & :is(h2, h3):hover .heading-anchor,
+  & .heading-anchor:focus-visible {
+    opacity: 1;
+  }
 }
 
 /* Card variants: smaller padding, a sunken note, a dashed add-row, a warning edge. */
@@ -441,26 +494,58 @@
 }
 
 /* More layout pieces for the admin and author screens. */
-.cluster-start { align-items: flex-start; }
-.cluster-end { align-items: flex-end; }
-.cluster-tight { gap: 0.25rem; }
-.cluster-right { justify-content: flex-end; }
-.push-end { margin-inline-start: auto; }
-.grow { flex: 1; min-width: 0; }
-.shrink { min-width: 0; }
-.relative { position: relative; }
-.inline { display: inline; }
-.block { display: block; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-3 { margin-top: 0.75rem; }
+.cluster-start {
+  align-items: flex-start;
+}
+.cluster-end {
+  align-items: flex-end;
+}
+.cluster-tight {
+  gap: 0.25rem;
+}
+.cluster-right {
+  justify-content: flex-end;
+}
+.push-end {
+  margin-inline-start: auto;
+}
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+.shrink {
+  min-width: 0;
+}
+.relative {
+  position: relative;
+}
+.inline {
+  display: inline;
+}
+.block {
+  display: block;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-3 {
+  margin-top: 0.75rem;
+}
 .span-2 {
   @media (width >= 640px) {
     grid-column: span 2;
   }
 }
-.short-field { max-width: 10rem; }
-.tiny-field { width: 6rem; }
-.time-col { flex: none; width: 3.5rem; }
+.short-field {
+  max-width: 10rem;
+}
+.tiny-field {
+  width: 6rem;
+}
+.time-col {
+  flex: none;
+  width: 3.5rem;
+}
 .form-page {
   max-width: 42rem;
   margin-inline: auto;
@@ -473,8 +558,12 @@
     align-items: end;
   }
 }
-.row-pad { padding-block: 0.5rem; }
-.divided > * + * { border-top: 1px solid var(--line); }
+.row-pad {
+  padding-block: 0.5rem;
+}
+.divided > * + * {
+  border-top: 1px solid var(--line);
+}
 .legend {
   padding-inline: 0.25rem;
   font-size: 0.875rem;
@@ -485,22 +574,35 @@
   font-size: 0.875rem;
   font-weight: 600;
 }
-.cell-end { text-align: end; }
+.cell-end {
+  text-align: end;
+}
 .numbered {
   list-style: decimal;
   padding-left: 1.25rem;
 }
-.ok-text { color: var(--ok); }
-.crit-text { color: var(--crit); }
+.ok-text {
+  color: var(--ok);
+}
+.crit-text {
+  color: var(--crit);
+}
 /* A button that reads as a link (a form's submit inside running text). */
 .link-button {
   border: 0;
   padding: 0;
   background: none;
   cursor: pointer;
-  &:not(.crit-text, .cap-muted) { color: var(--accent-text); }
-  &:hover { text-decoration: underline; }
-  &:disabled { opacity: 0.6; cursor: default; }
+  &:not(.crit-text, .cap-muted) {
+    color: var(--accent-text);
+  }
+  &:hover {
+    text-decoration: underline;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
 }
 .logo-thumb {
   flex: none;
@@ -515,7 +617,9 @@
 
 /* The program builder's concurrent tracks: one column per track, scrolling
    sideways on a narrow screen rather than crushing. */
-.track-scroll { overflow-x: auto; }
+.track-scroll {
+  overflow-x: auto;
+}
 .track-grid {
   display: grid;
   gap: 1rem;
@@ -538,7 +642,9 @@
     background: var(--sunken);
     opacity: 0.6;
   }
-  &[data-draggable] { cursor: grab; }
+  &[data-draggable] {
+    cursor: grab;
+  }
 }
 
 /* The institution suggestions under their input. */
@@ -553,13 +659,17 @@
   background: var(--raised);
   box-shadow: var(--shadow-m);
 }
-.date-field { width: auto; }
+.date-field {
+  width: auto;
+}
 /* The rich editor's editable box: room for a title or a body. */
 .rich-input {
   min-height: 3rem;
   height: auto;
   padding-block: 0.5rem;
-  &[data-mode="body"] { min-height: 7rem; }
+  &[data-mode="body"] {
+    min-height: 7rem;
+  }
 }
 
 /* The admin page is a grid: its column must be able to shrink below a wide

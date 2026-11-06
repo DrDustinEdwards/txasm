@@ -22,7 +22,9 @@
     "import:meeting": "tsx scripts/import-meeting.ts",
     "import:awards": "tsx scripts/import-awards.ts",
     "load:documents": "tsx scripts/load-documents.ts",
-    "postinstall": "devkit-bootstrap"
+    "postinstall": "devkit-bootstrap",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "@better-auth/passkey": "1.7.17",
@@ -55,13 +57,14 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.64.0",
-    "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.23.0",
+    "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.24.0",
     "@react-router/dev": "8.5.1",
     "@types/node": "22.20.0",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "0.31.10",
     "miniflare": "4.20260730.0",
+    "oxfmt": "0.77.0",
     "oxlint": "1.92.0",
     "oxlint-tsgolint": "7.0.2006",
     "tsx": "4.22.5",

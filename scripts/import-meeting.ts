@@ -85,7 +85,10 @@ interface Dataset {
 // Last whitespace-separated token is the family name, the rest is given. The
 // schema stores firstName and lastName, so a single-token name goes to lastName.
 function splitName(full: string): { firstName: string; lastName: string } {
-  const parts = full.trim().split(/\s+/).filter((p) => p.length > 0);
+  const parts = full
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length > 0);
   if (parts.length === 0) return { firstName: "", lastName: "" };
   if (parts.length === 1) return { firstName: "", lastName: parts[0] };
   return {
@@ -120,9 +123,7 @@ async function main() {
   const raw = readFileSync(resolve(dataPath), "utf8");
   const data = JSON.parse(raw) as Dataset;
   if (!data.meeting || !Array.isArray(data.abstracts)) {
-    console.error(
-      "The dataset must have a meeting object and an abstracts array.",
-    );
+    console.error("The dataset must have a meeting object and an abstracts array.");
     exit(1);
   }
 
@@ -181,9 +182,7 @@ async function main() {
       name: data.meeting.name,
       season: data.meeting.season as Season,
       year: data.meeting.year,
-      status: data.meeting.status as Parameters<
-        typeof importer.createArchivedEdition
-      >[1]["status"],
+      status: data.meeting.status as Parameters<typeof importer.createArchivedEdition>[1]["status"],
       meetingStartsAt: parseDate(data.meeting.meetingStartsAt),
       meetingEndsAt: parseDate(data.meeting.meetingEndsAt),
       venueName: data.meeting.venueName ?? null,
@@ -215,8 +214,7 @@ async function main() {
         // which does not categorize oral presentations by topic). A non-empty
         // topic must map to a created category, otherwise it is a data error.
         let categoryId: string | null = null;
-        const topic =
-          abstract.topic != null ? String(abstract.topic).trim() : "";
+        const topic = abstract.topic != null ? String(abstract.topic).trim() : "";
         if (topic.length > 0) {
           const mapped = categoryByTopic.get(topic);
           if (!mapped) {
@@ -238,9 +236,7 @@ async function main() {
 
         // Affiliations first: ordinals are assigned by position (1..n). Map the
         // dataset affiliation numbers to those position ordinals for the links.
-        const affiliations = Array.isArray(abstract.affiliations)
-          ? abstract.affiliations
-          : [];
+        const affiliations = Array.isArray(abstract.affiliations) ? abstract.affiliations : [];
         const numToOrdinal = new Map<string, number>();
         affiliations.forEach((aff, index) => {
           if (aff.num != null && String(aff.num).trim().length > 0) {

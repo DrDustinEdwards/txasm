@@ -11,13 +11,7 @@
 //   npm run seed:abstract-book -- fall-2024
 
 import { execSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { argv, exit } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -31,7 +25,7 @@ interface SeedConfig {
   season: "spring" | "fall";
   year: number;
   meetingStartsAt: string; // YYYY-MM-DD
-  meetingEndsAt: string;   // YYYY-MM-DD
+  meetingEndsAt: string; // YYYY-MM-DD
   venueName: string;
   city: string;
   pdfPath: string; // relative to project root, or absolute
@@ -85,12 +79,7 @@ async function main() {
   const seedDataDir = resolve(ROOT, "scripts", "seed-data");
   const outPath = resolve(seedDataDir, `${slug}.json`);
   const tmpPath = resolve(seedDataDir, `${slug}.tmp.json`);
-  const parserPath = resolve(
-    ROOT,
-    "scripts",
-    "parsers",
-    "parse-abstract-book.py",
-  );
+  const parserPath = resolve(ROOT, "scripts", "parsers", "parse-abstract-book.py");
 
   mkdirSync(seedDataDir, { recursive: true });
 
@@ -102,9 +91,7 @@ async function main() {
       cwd: ROOT,
     });
   } catch {
-    console.error(
-      "Parser failed. Ensure PyMuPDF is installed: pip install pymupdf",
-    );
+    console.error("Parser failed. Ensure PyMuPDF is installed: pip install pymupdf");
     exit(1);
   }
 
@@ -133,10 +120,10 @@ async function main() {
   rmSync(tmpPath, { force: true });
 
   // Summary
-  const nTopics    = bundle.topics.length;
+  const nTopics = bundle.topics.length;
   const nAbstracts = bundle.abstracts.length;
   const nWithdrawn = bundle.withdrawn.length;
-  const nFlags     = bundle.parseFlags.length;
+  const nFlags = bundle.parseFlags.length;
 
   console.log("");
   console.log(`Output: scripts/seed-data/${slug}.json`);
@@ -161,12 +148,8 @@ async function main() {
   console.log("Next steps:");
   console.log(`  1. Open scripts/seed-data/${slug}.json`);
   console.log("     - Resolve any parse flags");
-  console.log(
-    "     - Set 'level' on poster abstracts (graduate, undergraduate, etc.)",
-  );
-  console.log(
-    `  2. npm run import:meeting -- scripts/seed-data/${slug}.json`,
-  );
+  console.log("     - Set 'level' on poster abstracts (graduate, undergraduate, etc.)");
+  console.log(`  2. npm run import:meeting -- scripts/seed-data/${slug}.json`);
 }
 
 main().catch((err) => {

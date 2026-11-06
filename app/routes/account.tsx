@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { isAPIError } from "better-auth/api";
-import { Form, redirect, useActionData, useFetcher, useNavigation, useRevalidator } from "react-router";
+import {
+  Form,
+  redirect,
+  useActionData,
+  useFetcher,
+  useNavigation,
+  useRevalidator,
+} from "react-router";
 import { Link } from "capsomer/react/link";
 import {
   FRESH_SECONDS,
@@ -14,7 +21,11 @@ import {
   sessionLookup,
   shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
-import { canOfferPasskey, signalPasskeys, signalUnknownCredential } from "@dustinedwards/site-runtime/sign-in-client";
+import {
+  canOfferPasskey,
+  signalPasskeys,
+  signalUnknownCredential,
+} from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "~/load-context";
@@ -40,7 +51,11 @@ const HISTORY_WORDS: Record<string, string> = {
   "email-changed": "Email address changed",
   recovery: "Signed in by email with no passkey left",
 };
-const SIGN_IN_VIA: Record<string, string> = { link: "Signed in with an email link", code: "Signed in with an email code", passkey: "Signed in with a passkey" };
+const SIGN_IN_VIA: Record<string, string> = {
+  link: "Signed in with an email link",
+  code: "Signed in with an email code",
+  passkey: "Signed in with a passkey",
+};
 function historyWords(kind: string, via: string | null): string {
   if (kind === "sign-in") return (via && SIGN_IN_VIA[via]) || "Signed in";
   return HISTORY_WORDS[kind] ?? "Account change";
@@ -59,7 +74,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (!current) throw redirect("/signin");
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");
-  if (welcome && !(await shouldOfferPasskey(env.DB, current.user.id, passkeys))) throw redirect("/");
+  if (welcome && !(await shouldOfferPasskey(env.DB, current.user.id, passkeys)))
+    throw redirect("/");
   const credentialIds = new Map(passkeys.map((p) => [p.id, p.credentialID]));
   // Named by the person, else by the password manager or device that holds it, with when each last signed the
   // person in (from auth_events, site-runtime passkeyLastUsed).
@@ -74,7 +90,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     email: current.user.email,
     // Changing the email and deleting the account need a sign-in in the last FRESH_SECONDS (site-runtime ./sign-in).
     fresh: Date.now() - new Date(current.session.createdAt).getTime() < FRESH_SECONDS * 1000,
-    deletionBlockers: welcome ? [] : await getDataAccess(env).account.deletionBlockers(current.user.id),
+    deletionBlockers: welcome
+      ? []
+      : await getDataAccess(env).account.deletionBlockers(current.user.id),
     // The relying party the passkeys belong to, for telling the password manager one is gone.
     rpId: new URL(env.BETTER_AUTH_URL).hostname,
     passkeys: rows,
@@ -120,7 +138,11 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
     if (value) headers.set(name, value);
   }
   const response = await auth.handler(
-    new Request(new URL("/api/auth/delete-user", request.url), { method: "POST", headers, body: "{}" }),
+    new Request(new URL("/api/auth/delete-user", request.url), {
+      method: "POST",
+      headers,
+      body: "{}",
+    }),
   );
   if (response.ok) {
     const cleared = new Headers();
@@ -128,13 +150,27 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
     throw redirect("/signin?deleted=1", { headers: cleared });
   }
   const { code } = (await response.json().catch(() => ({}))) as { code?: string };
-  if (code === "SESSION_EXPIRED") return { deleteError: "Your sign-in is too old to delete the account. Sign in again, then try." };
-  if (code === "ACCOUNT_HAS_ROLE") return { deleteError: "Your account holds a role in a Meeting, so it was not deleted." };
+  if (code === "SESSION_EXPIRED")
+    return {
+      deleteError: "Your sign-in is too old to delete the account. Sign in again, then try.",
+    };
+  if (code === "ACCOUNT_HAS_ROLE")
+    return { deleteError: "Your account holds a role in a Meeting, so it was not deleted." };
   return { deleteError: "The account was not deleted. Try again." };
 }
 
 export default function Account({ loaderData }: Route.ComponentProps) {
-  const { welcome, email, fresh, deletionBlockers, rpId, passkeys, secondPasskey, sessions, history } = loaderData;
+  const {
+    welcome,
+    email,
+    fresh,
+    deletionBlockers,
+    rpId,
+    passkeys,
+    secondPasskey,
+    sessions,
+    history,
+  } = loaderData;
   const revalidator = useRevalidator();
   const signOut = useFetcher<typeof action>();
   const deleted = useActionData<typeof action>();
@@ -157,7 +193,11 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   const credentialKey = passkeys.map((p) => p.credentialId).join(" ");
   useEffect(() => {
     if (welcome) return;
-    void signalPasskeys({ rpId, credentialIds: credentialKey ? credentialKey.split(" ") : [], name: email });
+    void signalPasskeys({
+      rpId,
+      credentialIds: credentialKey ? credentialKey.split(" ") : [],
+      name: email,
+    });
   }, [welcome, rpId, credentialKey, email]);
 
   // Better Auth mails the current address to approve, then the new one to confirm
@@ -177,7 +217,10 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       return;
     }
     if (result?.error) {
-      setEmailNote({ ok: false, text: "The change was not started. Check the address and try again." });
+      setEmailNote({
+        ok: false,
+        text: "The change was not started. Check the address and try again.",
+      });
       return;
     }
     form.reset();
@@ -242,8 +285,18 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   }
 
   const addButton = (
-    <button type="button" className="cap-btn" data-variant="primary" disabled={busy} onClick={() => void addPasskey()}>
-      {busy ? "Waiting for your device..." : passkeys.length > 0 ? "Add another passkey" : "Create a passkey"}
+    <button
+      type="button"
+      className="cap-btn"
+      data-variant="primary"
+      disabled={busy}
+      onClick={() => void addPasskey()}
+    >
+      {busy
+        ? "Waiting for your device..."
+        : passkeys.length > 0
+          ? "Add another passkey"
+          : "Create a passkey"}
     </button>
   );
 
@@ -254,8 +307,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           <h1 className="page-title">You are signed in</h1>
           {offerable ? (
             <p>
-              Next time, skip the email. A passkey signs you in with your face, fingerprint or device PIN, and only
-              works on this site, so it cannot be phished.
+              Next time, skip the email. A passkey signs you in with your face, fingerprint or
+              device PIN, and only works on this site, so it cannot be phished.
             </p>
           ) : null}
         </div>
@@ -267,7 +320,13 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         {offerable ? (
           <Form method="post" className="cluster">
             {addButton}
-            <button type="submit" name="intent" value="not-now" className="cap-btn" data-variant="quiet">
+            <button
+              type="submit"
+              name="intent"
+              value="not-now"
+              className="cap-btn"
+              data-variant="quiet"
+            >
               Not now
             </button>
           </Form>
@@ -282,8 +341,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       <div className="stack-2">
         <h2 className="subsection-title">Email address</h2>
         <p>
-          Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this address, then
-          confirm it from the new one. Your other devices are then signed out.
+          Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this
+          address, then confirm it from the new one. Your other devices are then signed out.
         </p>
       </div>
       {!fresh ? (
@@ -313,7 +372,11 @@ export default function Account({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
             {emailNote ? (
-              <p id="email-note" role={emailNote.ok ? "status" : "alert"} className={emailNote.ok ? undefined : "cap-field-error"}>
+              <p
+                id="email-note"
+                role={emailNote.ok ? "status" : "alert"}
+                className={emailNote.ok ? undefined : "cap-field-error"}
+              >
                 {emailNote.text}
               </p>
             ) : null}
@@ -327,7 +390,10 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       )}
       <div className="stack-2">
         <h2 className="subsection-title">Passkeys</h2>
-        <p>A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in with an email link.</p>
+        <p>
+          A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in
+          with an email link.
+        </p>
       </div>
       {passkeys.length === 0 ? (
         <p className="cap-muted">No passkeys yet.</p>
@@ -346,11 +412,23 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                   <label htmlFor={`name-${p.id}`} className="cap-sr-only">
                     New name for {p.name}
                   </label>
-                  <input id={`name-${p.id}`} name="name" defaultValue={p.name} maxLength={60} required className="cap-input" />
+                  <input
+                    id={`name-${p.id}`}
+                    name="name"
+                    defaultValue={p.name}
+                    maxLength={60}
+                    required
+                    className="cap-input"
+                  />
                   <button type="submit" className="cap-btn">
                     Save
                   </button>
-                  <button type="button" className="cap-btn" data-variant="quiet" onClick={() => setRenaming(null)}>
+                  <button
+                    type="button"
+                    className="cap-btn"
+                    data-variant="quiet"
+                    onClick={() => setRenaming(null)}
+                  >
                     Cancel
                   </button>
                 </form>
@@ -390,14 +468,16 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       )}
       {secondPasskey ? (
         <p>
-          You have one passkey. Add another on a second device, such as your phone or a security key, so you can still
-          sign in if you lose this one.
+          You have one passkey. Add another on a second device, such as your phone or a security
+          key, so you can still sign in if you lose this one.
         </p>
       ) : null}
       <div>{addButton}</div>
       <div className="stack-2">
         <h2 className="subsection-title">Signed-in devices</h2>
-        <p>Where you are signed in. Sign out of a device you do not know, or one you no longer use.</p>
+        <p>
+          Where you are signed in. Sign out of a device you do not know, or one you no longer use.
+        </p>
       </div>
       {sessions === null ? (
         <p>
@@ -446,7 +526,10 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       ) : null}
       <div className="stack-2">
         <h2 className="subsection-title">Recent security activity</h2>
-        <p>Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out of that device.</p>
+        <p>
+          Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out
+          of that device.
+        </p>
       </div>
       {history.length === 0 ? (
         <p className="cap-muted">Nothing yet.</p>
@@ -468,15 +551,16 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         <h2 className="subsection-title">Delete your account</h2>
         {deletionBlockers.length > 0 ? (
           <p>
-            Your account holds a role in a Meeting (admin, chair or reviewer). <Link to="/contact">Contact the branch</Link>{" "}
-            to hand it over, then you can delete your account here.
+            Your account holds a role in a Meeting (admin, chair or reviewer).{" "}
+            <Link to="/contact">Contact the branch</Link> to hand it over, then you can delete your
+            account here.
           </p>
         ) : (
           <p>
-            This deletes your account, its passkeys and its signed-in devices, and removes your email and name from it.
-            It cannot be undone. Your abstracts, reviews and registrations stay in the Meeting archive, with author
-            names as you submitted them, no longer connected to an account. You can make a new account later with any
-            email address.
+            This deletes your account, its passkeys and its signed-in devices, and removes your
+            email and name from it. It cannot be undone. Your abstracts, reviews and registrations
+            stay in the Meeting archive, with author names as you submitted them, no longer
+            connected to an account. You can make a new account later with any email address.
           </p>
         )}
       </div>
@@ -488,7 +572,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         <Form method="post" className="stack-3">
           <input type="hidden" name="intent" value="delete" />
           <label className="cap-check">
-            <input type="checkbox" name="confirm" required />I understand my account is deleted for good
+            <input type="checkbox" name="confirm" required />I understand my account is deleted for
+            good
           </label>
           {deleted && "deleteError" in deleted ? (
             <p role="alert" className="cap-field-error">

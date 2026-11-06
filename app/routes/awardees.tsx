@@ -59,15 +59,22 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       <header className="stack-3">
         <h1 className="page-title">Awardees</h1>
         <p className="lead">
-          The branch recognizes outstanding student, faculty, and service work
-          with named awards presented at its meetings. Search across every award,
-          or choose an award to see its recipients by year.
+          The branch recognizes outstanding student, faculty, and service work with named awards
+          presented at its meetings. Search across every award, or choose an award to see its
+          recipients by year.
         </p>
       </header>
 
       <Form method="get" role="search" aria-label="Search awardees" className="card stack-4">
         <Field label="Search term">
-          <input id="q" name="q" type="search" defaultValue={q} placeholder="Name, institution, or mentor" className="cap-input" />
+          <input
+            id="q"
+            name="q"
+            type="search"
+            defaultValue={q}
+            placeholder="Name, institution, or mentor"
+            className="cap-input"
+          />
         </Field>
         <div className="grid-3">
           <Field label="Award">
@@ -81,10 +88,23 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             </select>
           </Field>
           <Field label="Year">
-            <input id="year" name="year" type="text" defaultValue={year} placeholder="2025-26" className="cap-input" />
+            <input
+              id="year"
+              name="year"
+              type="text"
+              defaultValue={year}
+              placeholder="2025-26"
+              className="cap-input"
+            />
           </Field>
           <Field label="Institution">
-            <input id="institution" name="institution" type="text" defaultValue={institution} className="cap-input" />
+            <input
+              id="institution"
+              name="institution"
+              type="text"
+              defaultValue={institution}
+              className="cap-input"
+            />
           </Field>
         </div>
         <button type="submit" className="cap-btn" data-variant="primary">
@@ -105,7 +125,9 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
                 <li key={result.id}>
                   <p>
                     <span className="strong">{result.personName}</span>
-                    {result.institution ? <span className="cap-muted"> &middot; {result.institution}</span> : null}
+                    {result.institution ? (
+                      <span className="cap-muted"> &middot; {result.institution}</span>
+                    ) : null}
                   </p>
                   <p className="small cap-muted">
                     <Link to={`/awards/${result.awardSlug}`}>{result.awardName}</Link>
@@ -124,14 +146,22 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       <section aria-label="Awards" className="stack-4">
         <h2 className="subsection-title">All awards</h2>
         {awards.length === 0 ? (
-          <Empty kind="nothing-yet" title="The awards archive is being compiled and will appear here." />
+          <Empty
+            kind="nothing-yet"
+            title="The awards archive is being compiled and will appear here."
+          />
         ) : (
           <ul className="grid-2">
             {awards.map((a) => (
               <li key={a.slug}>
                 <Link to={`/awards/${a.slug}`} className="card card-link">
                   <h3 className="subsection-title">{a.name}</h3>
-                  {a.description ? <p className="small cap-muted" dangerouslySetInnerHTML={{ __html: a.description }} /> : null}
+                  {a.description ? (
+                    <p
+                      className="small cap-muted"
+                      dangerouslySetInnerHTML={{ __html: a.description }}
+                    />
+                  ) : null}
                 </Link>
               </li>
             ))}
