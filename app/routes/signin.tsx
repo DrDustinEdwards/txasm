@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
@@ -191,26 +191,34 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const error = actionData && !actionData.ok ? actionData.error : null;
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
 
-  // A passkey sign-in sets the session cookie, so a full load reads it.
-  async function signInWithPasskey(autoFill: boolean) {
+  // A passkey sign-in sets the session cookie, so a full load reads it. False
+  // when the passkey did not sign the person in.
+  async function signInWithPasskey(autoFill: boolean): Promise<boolean> {
     // site-runtime's call tells the password manager when the site no longer knows the passkey.
     const result = await passkeySignIn(authClient, { autoFill });
-    if (!result?.error) {
-      await signalAfterPasskeySignIn();
-      window.location.assign(next ?? "/");
-    } else if (!autoFill) {
+    if (result?.error) return false;
+    await signalAfterPasskeySignIn();
+    window.location.assign(next ?? "/");
+    return true;
+  }
+
+  async function signInWithPasskeyButton() {
+    if (!(await signInWithPasskey(false))) {
       setPasskeyError("That passkey did not sign you in. Try again, or get a link by email.");
     }
   }
 
   // Where the browser can, it offers saved passkeys in the email field's
-  // suggestions (autocomplete "webauthn"), so a returning person taps one.
+  // suggestions (autocomplete "webauthn"), so a returning person taps one. A
+  // refused autofill says nothing. Once, on mount (an effect event, so it reads
+  // the current `next`).
+  const offerSavedPasskeys = useEffectEvent(async () => {
+    if (await window.PublicKeyCredential?.isConditionalMediationAvailable?.()) {
+      await signInWithPasskey(true);
+    }
+  });
   useEffect(() => {
-    void (async () => {
-      if (await window.PublicKeyCredential?.isConditionalMediationAvailable?.()) {
-        await signInWithPasskey(true);
-      }
-    })();
+    void offerSavedPasskeys();
   }, []);
 
   useEffect(() => {
@@ -283,6 +291,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   return (
     <div className="narrow stack-6">
       {deleted ? (
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a role="status" message is the WCAG ARIA22 pattern; <output> is for the result of a calculation
         <p role="status">Your account was deleted.</p>
       ) : null}
       <div className="stack-2">
@@ -294,7 +303,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="stack-2">
-        <button type="button" className="cap-btn" data-variant="primary" onClick={() => void signInWithPasskey(false)}>
+        <button type="button" className="cap-btn" data-variant="primary" onClick={() => void signInWithPasskeyButton()}>
           Sign in with a passkey
         </button>
         {passkeyError ? (
@@ -317,6 +326,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
             id="email"
             name="email"
             type="email"
+            // oxlint-disable-next-line jsx-a11y/autocomplete-valid -- "username webauthn" is valid HTML autofill: the webauthn token offers saved passkeys
             autoComplete="username webauthn"
             required
             aria-invalid={error ? true : undefined}

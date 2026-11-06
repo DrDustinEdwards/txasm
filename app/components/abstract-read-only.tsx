@@ -18,6 +18,7 @@ export function DecisionPanel({
   const tone =
     decision.outcome === "accept" ? "ok" : decision.outcome === "reject" ? "crit" : "warn";
   return (
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a role="status" message is the WCAG ARIA22 pattern; <output> is for the result of a calculation
     <section role="status" className="cap-banner stack-2" data-tone={tone}>
       <h2 className="subsection-title">Decision</h2>
       <p className="small">

@@ -66,6 +66,7 @@ export function sanitizeRichText(
   // carriage return. These are invalid in stored text and, left in, break tools
   // that consume the value as SQL text (a NUL byte from a mangled paste or a bad
   // upstream parse would otherwise survive to the database).
+  // oxlint-disable-next-line no-control-regex -- matching the control characters is the point: they are stripped.
   const controlStripped = input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
   const allow = new Set(allowed);
   const tokens = tokenize(controlStripped);

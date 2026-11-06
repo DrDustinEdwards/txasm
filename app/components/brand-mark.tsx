@@ -12,6 +12,7 @@ export function BrandMark({ className, title = "TXASM" }: Props) {
     <svg
       className={className}
       viewBox={TXASM_MARK_VIEWBOX}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- an inline SVG takes role="img" with its title; an <img> cannot hold inline SVG
       role="img"
       aria-label={title}
       xmlns="http://www.w3.org/2000/svg"

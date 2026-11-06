@@ -40,6 +40,7 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
       ) : (
         // Season and year drop as the region narrows (Capsomer's data-drop), so on a phone the name,
         // status and Categories fit without scrolling; both are on each meeting's own page.
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/no-noninteractive-tabindex -- a scrolling table wrapper is a named, focusable region so a keyboard can scroll it (axe scrollable-region-focusable)
         <div className="cap-table-wrap" role="region" aria-label="Meetings" tabIndex={0}>
           <table className="cap-table">
             <thead>

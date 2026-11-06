@@ -1,6 +1,6 @@
 // The data-access layer is the security boundary (CLAUDE.md hard rule 1). Only
 // this file and the modules under ./data-access/ may import ./schema and the
-// Drizzle client; an eslint no-restricted-imports rule enforces it for every other
+// Drizzle client; an Oxlint no-restricted-imports rule enforces it for every other
 // module, so nothing queries Drizzle directly outside this layer. Each module
 // under ./data-access/ builds one area from the shared db handle; this file
 // assembles them and is the only entry point the rest of the app imports.

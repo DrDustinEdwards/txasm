@@ -118,6 +118,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
       </div>
 
       {reviewers.length === 0 ? (
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a role="status" message is the WCAG ARIA22 pattern; <output> is for the result of a calculation
         <p role="status" className="card card-s card-sunken small">
           No reviewers on this meeting yet. Add reviewers first under Chairs and reviewers.
         </p>

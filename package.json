@@ -7,7 +7,7 @@
     "headers": "site-runtime-headers --site txasm --out public/_headers --header \"tdm-reservation: 1\"",
     "dev": "react-router dev",
     "typecheck": "devkit-bootstrap --types-only && react-router typegen && tsc -b",
-    "lint": "eslint .",
+    "lint": "oxlint --type-aware --deny-warnings --report-unused-disable-directives-severity=error",
     "test": "tsx --test tests/*.test.ts",
     "check:console": "devkit-console",
     "check:migrations": "devkit-migrations drizzle",
@@ -61,11 +61,11 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "0.31.10",
-    "eslint": "10.6.0",
     "miniflare": "4.20260730.0",
+    "oxlint": "1.92.0",
+    "oxlint-tsgolint": "7.0.2006",
     "tsx": "4.22.5",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.62.0",
     "vite": "8.1.0",
     "wrangler": "^4.152.0"
   }

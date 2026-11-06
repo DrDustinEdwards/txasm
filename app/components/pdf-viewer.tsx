@@ -37,6 +37,7 @@ export function PdfViewer({
   return (
     <div
       ref={root}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- role="group" names a set of buttons; <fieldset> is for form fields
       role="group"
       aria-label={label}
       className="pdf-viewer stack-3"
@@ -44,6 +45,7 @@ export function PdfViewer({
       data-props={JSON.stringify({ url })}
     >
       <div className="cluster pdf-viewer-bar">
+        {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- role="group" names a set of buttons; <fieldset> is for form fields */}
         <div className="cap-btn-group" role="group" aria-label="Pages">
           <button type="button" disabled className="cap-btn" data-size="sm" aria-label="Previous page" data-pdf="prev">
             Previous
@@ -69,6 +71,7 @@ export function PdfViewer({
       </div>
 
       <div
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- the page canvas takes focus so the arrow and zoom keys reach it
         tabIndex={0}
         aria-label={`${label}. Use the arrow keys to change page and the plus and minus keys to zoom.`}
         className="pdf-viewer-page"

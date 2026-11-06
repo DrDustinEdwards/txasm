@@ -4,7 +4,7 @@ import { toDateTimeLocal } from "~/lib/format";
 import { extractPlainText } from "~/lib/richtext";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
-import { inputClass, KindSelect, type SpeakerOption } from "./shared";
+import { KindSelect, type SpeakerOption } from "./shared";
 
 export function ItemRow({
   session,

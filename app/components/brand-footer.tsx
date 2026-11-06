@@ -35,6 +35,7 @@ export function BrandFooter({ className, size = 36, tagline = true }: Props) {
         </span>
         <svg
           viewBox="0 0 200 190"
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- an inline SVG takes role="img" with its title; an <img> cannot hold inline SVG
           role="img"
           aria-label="Texas"
           style={{ height: size * 1.15, width: "auto", color: "var(--muted)" }}

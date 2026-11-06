@@ -4,7 +4,8 @@ import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandMark } from "~/lib/brand";
-import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
+import { initials, renderLink, useThemeCookie } from "~/components/site-chrome";
+import { THEME_PREF_KEY } from "~/lib/theme";
 
 // The admin and chair areas are apps: every route under this layout hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };

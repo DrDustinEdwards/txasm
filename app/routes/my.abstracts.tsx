@@ -48,6 +48,7 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
           You have not started any abstracts yet. Open the submission page for a meeting to begin.
         </p>
       ) : (
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/no-noninteractive-tabindex -- a scrolling table wrapper is a named, focusable region so a keyboard can scroll it (axe scrollable-region-focusable)
         <div className="cap-table-wrap" role="region" aria-label="Your abstracts" tabIndex={0}>
           <table className="cap-table">
             <thead>

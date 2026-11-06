@@ -30,15 +30,8 @@ import { formatDateTime } from "~/lib/format";
 import { countWords } from "~/lib/richtext";
 import { RichEditor } from "~/components/rich-editor";
 import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
-import {
-  AffiliationsFieldset,
-  type AffiliationState,
-  AuthorsFieldset,
-  type AuthorState,
-  emptyAffiliation,
-  emptyAuthor,
-  inputClass,
-} from "~/components/abstract-authors";
+import { AffiliationsFieldset, AuthorsFieldset } from "~/components/abstract-authors";
+import { type AffiliationState, type AuthorState, emptyAffiliation, emptyAuthor } from "~/lib/abstract-authors";
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
 import { readForm } from "~/lib/form.server";
 
@@ -297,6 +290,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           )}
         </h1>
         <DecisionPanel decision={decision} />
+        {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a role="status" message is the WCAG ARIA22 pattern; <output> is for the result of a calculation */}
         <p role="status" className="card card-s card-sunken cap-muted">
           The submission deadline has passed. This abstract can no longer be edited.
         </p>

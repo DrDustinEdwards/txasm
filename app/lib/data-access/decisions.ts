@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import { isEmptyRichText, sanitizeBody } from "../richtext";
 import {

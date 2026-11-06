@@ -236,14 +236,13 @@ export function createPublicAbstracts(db: DB) {
         // search for "50%" or "E_coli" is not a wildcard.
         const pattern = likeContains(term);
         const contains = (column: AnyColumn): SQL => sql`${column} LIKE ${pattern} ESCAPE '\\'`;
-        conditions.push(
-          or(
-            contains(schema.abstract.title),
-            contains(schema.abstractCategory.name),
-            contains(schema.author.firstName),
-            contains(schema.author.lastName),
-          )!,
+        const match = or(
+          contains(schema.abstract.title),
+          contains(schema.abstractCategory.name),
+          contains(schema.author.firstName),
+          contains(schema.author.lastName),
         );
+        if (match) conditions.push(match);
       }
       if (filters.level && ABSTRACT_LEVELS.includes(filters.level)) {
         conditions.push(eq(schema.abstract.level, filters.level));
@@ -301,10 +300,9 @@ export function createPublicAbstracts(db: DB) {
       );
 
       const results: PublicAbstractSearchResult[] = [];
-      for (const editionId of editionIds) {
+      for (const [editionId, matched] of matchedByEdition) {
         const meta = editionById.get(editionId);
         if (!meta) continue;
-        const matched = matchedByEdition.get(editionId)!;
         const items = await buildNumberedAbstracts(db, editionId);
         for (const { id, detail } of items) {
           if (!matched.has(id)) continue;

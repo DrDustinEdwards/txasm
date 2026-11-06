@@ -16,7 +16,7 @@ import { renderProgramBook } from "~/lib/program-book";
 import { renderBookPdf } from "~/lib/book-pdf.server";
 import { ProgramDocumentPanel } from "~/components/program-builder/document-panel";
 import { SessionFields, Slot } from "~/components/program-builder/sessions";
-import { buildDayKeys, dayTabLabel } from "~/components/program-builder/shared";
+import { buildDayKeys, dayTabLabel } from "~/components/program-builder/days";
 import { NO_DATE_KEY, PDF_MIME_TYPE } from "~/lib/vocab";
 import { readForm } from "~/lib/form.server";
 

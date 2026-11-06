@@ -2,42 +2,11 @@ import {
   InstitutionAutocomplete,
   type InstitutionSuggestion,
 } from "~/components/institution-autocomplete";
+import type { AffiliationState, AuthorState } from "~/lib/abstract-authors";
 
 // The author and affiliation editors of the abstract form. The form owns the
 // state (authors link to affiliations by ordinal); these render it.
-export interface AuthorState {
-  firstName: string;
-  lastName: string;
-  email: string;
-  isPresenting: boolean;
-  isCorresponding: boolean;
-  affiliationOrdinals: number[];
-}
-
-export interface AffiliationState {
-  institution: string;
-  department: string;
-  city: string;
-  region: string;
-  country: string;
-}
-
-export function emptyAuthor(): AuthorState {
-  return {
-    firstName: "",
-    lastName: "",
-    email: "",
-    isPresenting: false,
-    isCorresponding: false,
-    affiliationOrdinals: [],
-  };
-}
-
-export function emptyAffiliation(): AffiliationState {
-  return { institution: "", department: "", city: "", region: "", country: "" };
-}
-
-export const inputClass = "cap-input";
+const inputClass = "cap-input";
 
 export function AffiliationsFieldset({
   affiliations,

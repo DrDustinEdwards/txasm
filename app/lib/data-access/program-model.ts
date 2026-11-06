@@ -156,14 +156,13 @@ export function groupSessionsIntoDays(
     byDay.set(key, bucket);
   }
 
-  const keys = [...byDay.keys()].sort((a, b) => {
+  const days = [...byDay].sort(([a], [b]) => {
     if (a === NO_DATE_KEY) return 1;
     if (b === NO_DATE_KEY) return -1;
     return a < b ? -1 : a > b ? 1 : 0;
   });
 
-  return keys.map((key) => {
-    const day = byDay.get(key)!;
+  return days.map(([key, day]) => {
     const sorted = [...day.sessions].sort((a, b) => {
       const at = a.startsAt?.getTime() ?? Number.POSITIVE_INFINITY;
       const bt = b.startsAt?.getTime() ?? Number.POSITIVE_INFINITY;

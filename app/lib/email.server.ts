@@ -4,7 +4,7 @@
 // native send_email binding, env.SEND_EMAIL.
 //
 // Dormant until cutover: the binding is commented out in wrangler.jsonc and
-// EMAIL_ENABLED defaults off, so isEmailConfigured is false and sendEmail logs
+// EMAIL_ENABLED defaults off, so emailConfig is null and sendEmail logs
 // that a message would have gone instead of sending. It never throws for being
 // unconfigured.
 // Turning it on later is a config change (uncomment the binding, set
@@ -61,15 +61,13 @@ export interface SendResult {
 }
 
 // Configured only when the flag is on, the binding exists, and a from address is
-// set. All three are true only after cutover.
-function isEmailConfigured(env: Env): boolean {
+// set. All three are true only after cutover. Returns the binding and the
+// trimmed from address, or null while email is dormant.
+function emailConfig(env: Env): { send: SendEmailBinding; from: string; fromName?: string } | null {
   const e = emailEnv(env);
-  return (
-    flagOn(e.EMAIL_ENABLED) &&
-    !!e.SEND_EMAIL &&
-    typeof e.EMAIL_FROM === "string" &&
-    e.EMAIL_FROM.trim().length > 0
-  );
+  const from = e.EMAIL_FROM?.trim();
+  if (!flagOn(e.EMAIL_ENABLED) || !e.SEND_EMAIL || !from) return null;
+  return { send: e.SEND_EMAIL, from, fromName: e.EMAIL_FROM_NAME };
 }
 
 // Each secret (a sign-in link, its token, its code) cut out of a logged error.
@@ -82,10 +80,10 @@ export async function sendEmail(
   message: { to: string; subject: string; text: string; html?: string },
   options: { secrets?: readonly string[] } = {},
 ): Promise<SendResult> {
-  const e = emailEnv(env);
+  const config = emailConfig(env);
   const secrets = options.secrets ?? [];
 
-  if (!isEmailConfigured(env)) {
+  if (!config) {
     // Dormant: log only that a message would have gone, never its body, which
     // can hold a sign-in link and code (Workers Logs keep every line).
     console.log(`[email:dormant] not sent, mail is off: ${message.subject}`);
@@ -94,10 +92,10 @@ export async function sendEmail(
 
   try {
     const from = {
-      email: e.EMAIL_FROM!.trim(),
-      name: (e.EMAIL_FROM_NAME ?? "TXASM").trim() || "TXASM",
+      email: config.from,
+      name: (config.fromName ?? "TXASM").trim() || "TXASM",
     };
-    const result = await e.SEND_EMAIL!.send({
+    const result = await config.send.send({
       to: [{ email: message.to }],
       from,
       subject: message.subject,
