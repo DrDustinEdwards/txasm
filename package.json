@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@better-auth/passkey": "1.7.17",
-    "@cloudflare/puppeteer": "1.1.0",
+    "@cloudflare/puppeteer": "1.4.0",
     "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.34.0",
     "@dustinedwards/d1-dump": "github:DrDustinEdwards/d1-dump#v0.13.2",
     "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.27.0",
