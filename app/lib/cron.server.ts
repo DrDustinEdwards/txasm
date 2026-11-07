@@ -3,11 +3,12 @@
 // intervals only), so a job whose trigger never fires warns as "never ran".
 //
 // Every minute: the updates Carrel scheduled go live (handler.server.ts), with 50 seconds, so a hung run never runs
-// into the next minute's. Daily: the nightly D1 backup, the uploads copy beside it (a pass stops itself at three
-// minutes and goes on the next day), the 404 count's pruning and the auth event rows' (a year, or 30 days for one
-// with no user; site-runtime ./sign-in), eleven minutes in all, inside a scheduled invocation's 15. The deadline
-// jobs and reminders (submission and review deadline reminders, status transitions) join the daily list when they
-// are wired per edition.
+// into the next minute's. Daily, at 03:00 UTC like the other sites: the nightly D1 backup, the uploads copy beside it
+// (a pass stops itself at three minutes and goes on the next day), the 404 count's pruning and the auth event rows'
+// (a year, or 30 days for one with no user; site-runtime ./sign-in), eleven minutes in all, inside a scheduled
+// invocation's 15. The dump must land before capsid-backups' 11:23 UTC Amazon copy: at 13:00 the copy took the
+// day before's dump and aged past 30 hours (offaccount-late-txasm). The deadline jobs and reminders (submission and
+// review deadline reminders, status transitions) join the daily list when they are wired per edition.
 import type { CronJob } from "@dustinedwards/site-runtime/cron";
 import { pruneNotFound } from "@dustinedwards/site-runtime/not-found";
 import { pruneAuthEvents } from "@dustinedwards/site-runtime/sign-in";
@@ -15,7 +16,7 @@ import { backupUploads, runNightlyBackup } from "~/lib/backup.server";
 import { runCarrelSchedules } from "~/lib/carrel/handler.server";
 
 const SCHEDULES_CRON = "* * * * *";
-const DAILY_CRON = "0 13 * * *";
+const DAILY_CRON = "0 3 * * *";
 
 const MINUTE = 60_000;
 const DAY = 1440;
@@ -33,12 +34,14 @@ export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[
     [DAILY_CRON]: [
       {
         name: "backup",
+        backup: true,
         everyMinutes: DAY,
         timeoutMs: 5 * MINUTE,
         run: () => runNightlyBackup(env),
       },
       {
         name: "backup-uploads",
+        backup: true,
         everyMinutes: DAY,
         timeoutMs: 4 * MINUTE,
         run: () => backupUploads(env),
