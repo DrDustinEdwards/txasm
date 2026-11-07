@@ -1,10 +1,11 @@
+import { htmlToText } from "@drdustinedwards/site-helpers/text";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { joinParts } from "~/lib/format";
 import { ABSTRACT_FORMAT_LABELS, ABSTRACT_LEVEL_LABELS, SEASON_LABELS } from "~/lib/vocab";
-import { SITE_NAME, pageHead, plainText } from "~/lib/site-meta";
+import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
@@ -14,7 +15,7 @@ export const headers = () => publicPageHeaders();
 
 export function meta({ params, matches, location, loaderData }: Route.MetaArgs) {
   const abstract = loaderData?.abstract;
-  const title = abstract ? plainText(abstract.title) : `Abstract ${params.ref}`;
+  const title = abstract ? htmlToText(abstract.title) : `Abstract ${params.ref}`;
   const authors = abstract?.authors.map((a) => a.name).join(", ");
   return pageHead(matches, {
     path: location.pathname,

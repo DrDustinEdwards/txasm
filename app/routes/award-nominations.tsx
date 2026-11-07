@@ -1,7 +1,7 @@
 import type { Route } from "./+types/award-nominations";
 import { getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.

@@ -1,12 +1,14 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.officers";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
 import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
 import { privateMeta } from "~/lib/site-meta";
-import { parseSortOrder, readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Branch officers");
@@ -36,7 +38,7 @@ function readInput(form: FormData) {
 export async function action({ request, context }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const form = await readForm(request);
+  const form = await readForm(request, FORM_LIMIT);
   const intent = String(form.get("intent") ?? "");
 
   try {
@@ -184,11 +186,12 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
           <input type="hidden" name="id" value={row.id} />
           <button
             type="submit"
-            onClick={(e) => {
-              if (!window.confirm(`Remove ${row.name ?? "this entry"}?`)) {
-                e.preventDefault();
-              }
-            }}
+            onClick={(e) =>
+              confirmSubmit(e, {
+                title: `Remove ${row.name ?? "this entry"}?`,
+                action: "Remove entry",
+              })
+            }
             className="small strong"
           >
             Remove

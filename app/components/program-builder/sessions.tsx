@@ -3,6 +3,7 @@ import type { ProgramAbstractOption, ProgramDay, ProgramSessionResolved } from "
 import { toDateTimeLocal } from "~/lib/format";
 import { AddItemForms, ItemRow } from "./items";
 import { slotTimeLine, type SpeakerOption, toDateInput } from "./shared";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function SessionFields({
   session,
@@ -197,11 +198,12 @@ function SessionColumn({
             <button
               type="submit"
               disabled={busy}
-              onClick={(e) => {
-                if (!window.confirm("Delete this session and its items?")) {
-                  e.preventDefault();
-                }
-              }}
+              onClick={(e) =>
+                confirmSubmit(e, {
+                  title: "Delete this session and its items?",
+                  action: "Delete session",
+                })
+              }
               className="small strong"
             >
               Delete session

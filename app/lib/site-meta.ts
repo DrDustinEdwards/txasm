@@ -1,4 +1,4 @@
-import { articleDates, defineHead } from "@drdustinedwards/site-helpers/head";
+import { articleDates, defineHead, shareCard } from "@drdustinedwards/site-helpers/head";
 import { graph, thing, website } from "@drdustinedwards/site-helpers/schema";
 import type { PageSearch, PlatformSettings } from "./data-access";
 import { CATEGORY_PATHS } from "./document-nav";
@@ -50,12 +50,10 @@ export const SECURITY_CONTACT = "security@dustinedwards.info";
 export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
 /** The site's short name: og:site_name, and the error page's title when the settings are out of reach. */
 export const SITE_NAME = "Texas Branch ASM";
-const SITE_CARD = {
-  url: "/og-card.png",
-  width: 1200,
-  height: 630,
-  alt: "Texas Branch of the American Society for Microbiology",
-};
+const SITE_CARD = shareCard(
+  "/og-card.png",
+  "Texas Branch of the American Society for Microbiology",
+);
 
 /** Signed-in, admin and API paths, kept out of /robots.txt and /ai.txt alike. */
 export const ROBOTS_DISALLOW = [
@@ -77,20 +75,6 @@ export function isPrivatePath(pathname: string): boolean {
       ? pathname.startsWith(prefix)
       : pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
-}
-
-/** Text of a sanitized HTML fragment (an abstract title), for a meta tag. */
-export function plainText(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 /** The section pages a page's breadcrumb trail passes through. */

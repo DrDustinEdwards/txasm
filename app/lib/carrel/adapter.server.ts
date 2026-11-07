@@ -38,7 +38,8 @@ import {
   type SiteAdapter,
   type WriteResult,
 } from "@dustinedwards/site-api";
-import { readKey, SEARCH_FIELDS, splitSource } from "@dustinedwards/site-api/frontmatter";
+import { readKey, splitSource } from "@drdustinedwards/site-helpers/frontmatter";
+import { SEARCH_FIELDS } from "@dustinedwards/site-api/frontmatter";
 import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { notFoundReport } from "@dustinedwards/site-runtime/not-found";

@@ -25,6 +25,7 @@
 // nothing here reads or writes them.
 import { slugify } from "@drdustinedwards/site-helpers/slug";
 import {
+  pictureLimits,
   extensionFor,
   mediaLibrary,
   type MediaAdapter,
@@ -35,20 +36,6 @@ import { getCarrelMedia, getCarrelPages } from "../data-access";
 import { MEDIA_PREFIX, mediaKeysIn, mediaPath } from "../media/images";
 import { suggestFor } from "../media/suggest.server";
 import { rerenderUsing } from "./render.server";
-
-/** Pictures only, each one the Images binding reads and none able to carry script; HEIC and HEIF (an iPhone's photos) are stored as JPEG. */
-const LIMITS = {
-  maxBytes: 20 * 1024 * 1024,
-  types: [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/avif",
-    "image/gif",
-    "image/heic",
-    "image/heif",
-  ],
-};
 
 /** What an upload shrinks to unless it says resize=no: twice the reading column's width, and then some. */
 const RESIZE = { maxEdge: 2560, quality: 85 };
@@ -85,7 +72,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
     store: getCarrelMedia(env).library,
     bucket: env.UPLOADS,
     images: env.IMAGES,
-    limits: LIMITS,
+    limits: pictureLimits(),
     url: mediaPath,
     key: newKey,
     resize: RESIZE,
@@ -103,8 +90,5 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
         },
         picture,
       ),
-    // The package checks every address and each redirect before this fetch runs.
-    importFetch: ((input: RequestInfo | URL, init?: RequestInit) =>
-      fetch(input, init)) as typeof fetch,
   });
 }

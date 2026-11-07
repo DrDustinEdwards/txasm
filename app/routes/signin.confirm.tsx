@@ -7,7 +7,7 @@ import { Link } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
 import { privateMeta } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 
 // Where the emailed sign-in link opens (site-runtime ./sign-in, confirmPath). Its GET only shows

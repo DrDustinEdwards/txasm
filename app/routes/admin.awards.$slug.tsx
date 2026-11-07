@@ -1,7 +1,7 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.awards.$slug";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
   AlreadyExistsError,
@@ -11,7 +11,9 @@ import {
   type AwardRecipientView,
 } from "~/lib/data-access";
 import { privateMeta } from "~/lib/site-meta";
-import { parseSortOrder, readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Manage award");
@@ -46,7 +48,7 @@ function optionalId(value: FormDataEntryValue | null): string | null {
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const form = await readForm(request);
+  const form = await readForm(request, FORM_LIMIT);
   const intent = String(form.get("intent") ?? "");
   const back = `/admin/awards/${params.slug}`;
 
@@ -371,11 +373,12 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                     <input type="hidden" name="recipientId" value={recipient.id} />
                     <button
                       type="submit"
-                      onClick={(e) => {
-                        if (!window.confirm(`Remove ${recipient.personName}?`)) {
-                          e.preventDefault();
-                        }
-                      }}
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${recipient.personName}?`,
+                          action: "Remove recipient",
+                        })
+                      }
                       className="small strong"
                     >
                       Remove

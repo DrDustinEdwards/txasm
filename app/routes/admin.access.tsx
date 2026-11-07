@@ -3,7 +3,7 @@ import type { Route } from "./+types/admin.access";
 import { requireUser } from "~/lib/auth.server";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { adminAccessOk } from "~/lib/access.server";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 
 // The one path the Cloudflare Access application covers (access.server.ts).
 // Access signs the admin in before this runs and sets its cookie; this sends

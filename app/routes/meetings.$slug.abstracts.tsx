@@ -3,7 +3,7 @@ import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
 import type { Route } from "./+types/meetings.$slug.abstracts";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess, type PublicAbstractSummary } from "~/lib/data-access";
 import {
   ABSTRACT_FORMATS,

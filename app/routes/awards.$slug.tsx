@@ -1,11 +1,12 @@
+import { htmlToText } from "@drdustinedwards/site-helpers/text";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
-import { SITE_NAME, pageHead, plainText } from "~/lib/site-meta";
+import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
@@ -23,7 +24,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
       { name, path: location.pathname },
     ],
     description: award?.description
-      ? `${plainText(award.description)} ${name} recipients from the Texas Branch ASM, by year.`
+      ? `${htmlToText(award.description)} ${name} recipients from the Texas Branch ASM, by year.`
       : `The ${name} of the Texas Branch of the American Society for Microbiology and its recipients, by year.`,
   });
 }
