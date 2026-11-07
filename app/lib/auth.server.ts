@@ -229,7 +229,7 @@ export async function requireUser(request: Request): Promise<SessionUser> {
   return user;
 }
 
-// Require a platform admin: an address on ADMIN_EMAILS, read on every request
+// Require a platform admin: ADMIN_EMAIL or a CO_OWNER_EMAILS address, read on every request
 // (getActor), so someone taken off the list stops being admin at once. Signed-out
 // users go to sign-in; signed-in non-admins get a 403; an admin without
 // Cloudflare Access's cookie goes through Access first (access.server.ts).

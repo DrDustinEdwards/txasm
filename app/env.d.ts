@@ -9,9 +9,10 @@ interface TxasmSecrets {
   MAINTENANCE?: string;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
+  // The main admin; with CO_OWNER_EMAILS the whole admin roster (site-runtime ./access). Unset: nobody is admin.
   ADMIN_EMAIL: string;
-  // Comma-separated admin allowlist. Optional; falls back to ADMIN_EMAIL.
-  ADMIN_EMAILS?: string;
+  // Co-owners, comma-separated: full use, no say over who is admin. Optional.
+  CO_OWNER_EMAILS?: string;
   // Carrel's site API key (app/lib/carrel/handler.server.ts). Unset: the API refuses every call.
   CARREL_SITE_KEY?: string;
   // The bearer for the operator API (/api/operator, site-runtime ./operator): Capsid Admin's backups and run_job. The same value is Capsid's TXASM_OPERATOR_TOKEN. Unset, the route answers 503.

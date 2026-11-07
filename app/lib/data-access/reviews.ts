@@ -441,7 +441,7 @@ export function createReviews(db: DB) {
 }
 
 // Roles: admins grant and revoke chair and reviewer per meeting. admin itself
-// is not grantable here; it is the ADMIN_EMAILS list (getActor). Accounts are created
+// is not grantable here; it is the ADMIN_EMAIL and CO_OWNER_EMAILS roster (getActor). Accounts are created
 // on first sign-in, so a grant needs the person to have signed in once.
 export function createRoles(db: DB) {
   return {

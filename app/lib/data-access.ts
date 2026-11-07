@@ -115,7 +115,7 @@ export function getDataAccess(env: Env) {
 
 // Resolve the acting user's grants through the data-access layer. Used by the
 // auth helpers to decide admin access without touching the Drizzle client.
-// Platform admin is an address on ADMIN_EMAILS (else ADMIN_EMAIL), read on every
+// Platform admin is ADMIN_EMAIL or a CO_OWNER_EMAILS address, read on every
 // request as the other sites do; chair and reviewer are grants in D1.
 export function getActor(env: Env, user: { id: string; email: string }): Promise<Actor> {
   return loadActor(getDb(env), user.id, {

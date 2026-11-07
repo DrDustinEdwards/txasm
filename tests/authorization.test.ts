@@ -263,7 +263,7 @@ test("deleting an account keeps its meeting records and refuses only an active r
   assert.deepEqual(heir, { name: "Deleted account", email: "deleted-u-author@deleted.invalid" });
 });
 
-test("platform admin is the ADMIN_EMAILS list on every request, never an old admin grant", async () => {
+test("platform admin is the ADMIN_EMAIL and CO_OWNER_EMAILS roster on every request, never an old admin grant", async () => {
   await d1
     .prepare(
       "INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-former', 'former@example.com', 1, 1)",
@@ -276,9 +276,14 @@ test("platform admin is the ADMIN_EMAILS list on every request, never an old adm
     )
     .run();
   const user = { id: "u-former", email: "Former@example.com" };
-  const env = (list: string) => ({ DB: d1, ADMIN_EMAILS: list }) as unknown as Env;
+  const env = (admin: string, coOwners = "") =>
+    ({ DB: d1, ADMIN_EMAIL: admin, CO_OWNER_EMAILS: coOwners }) as unknown as Env;
   assert.equal(isAdmin(await getActor(env("someone@example.com"), user)), false);
-  assert.equal(isAdmin(await getActor(env("someone@example.com, former@example.com"), user)), true);
+  assert.equal(
+    isAdmin(await getActor(env("someone@example.com", "x@example.com, former@example.com"), user)),
+    true,
+  );
+  assert.equal(isAdmin(await getActor(env("", "former@example.com"), user)), false);
 });
 
 test("award search matches %, _ and backslash as typed, in the term and the institution filter", async () => {
