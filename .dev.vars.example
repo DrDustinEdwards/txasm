@@ -12,12 +12,11 @@ EMAIL_ENABLED=false
 EMAIL_FROM=no-reply@txasm.org
 EMAIL_FROM_NAME=TXASM
 
-# Platform admins. ADMIN_EMAILS is a comma-separated allowlist, read on every
-# request: an account whose email is on it is a platform admin, and one taken off
-# it is not. ADMIN_EMAIL is the older single-value form, still honored when
-# ADMIN_EMAILS is not set.
-ADMIN_EMAILS=
+# Platform admins, read on every request: ADMIN_EMAIL is the main admin and
+# CO_OWNER_EMAILS the comma-separated co-owners. An account whose email is on
+# either is a platform admin, and one taken off is not. ADMIN_EMAIL unset: nobody.
 ADMIN_EMAIL=
+CO_OWNER_EMAILS=
 
 # Cloudflare Turnstile on the sign-in link. The check is on only when both are set.
 # Cloudflare's test pair always passes: 1x00000000000000000000AA and

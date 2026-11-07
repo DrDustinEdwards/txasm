@@ -2,7 +2,7 @@ name: access-drift
 
 # The daily Access drift check (I2), devkit's reusable workflow: it reads the txasm-login Access application's policies
 # and compares who they let in with the site's platform admins, which it reads from the site itself (/admin/access/drift,
-# hashed, to an Access service token only; app/routes/admin.access-drift.ts), so no copy of ADMIN_EMAILS is kept here.
+# hashed, to an Access service token only; app/routes/admin.access-drift.ts), so no copy of the admin list is kept here.
 # Chairs and reviewers are not Access users and are not compared. It fails until all four secrets are set, by design.
 # The host moves to txasm.org at cutover.
 
