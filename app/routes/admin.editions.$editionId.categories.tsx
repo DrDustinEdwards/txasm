@@ -108,7 +108,6 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
           className="cap-table-wrap"
           role="region"
           aria-label="Registration categories"
-          // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling table wrapper is a named, focusable region so a keyboard can scroll it (axe scrollable-region-focusable)
           tabIndex={0}
         >
           <table className="cap-table">
