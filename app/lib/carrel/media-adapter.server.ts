@@ -25,6 +25,7 @@
 // nothing here reads or writes them.
 import { slugify } from "@drdustinedwards/site-helpers/slug";
 import {
+  PICTURE_RESIZE,
   pictureLimits,
   extensionFor,
   mediaLibrary,
@@ -36,9 +37,6 @@ import { getCarrelMedia, getCarrelPages } from "../data-access";
 import { MEDIA_PREFIX, mediaKeysIn, mediaPath } from "../media/images";
 import { suggestFor } from "../media/suggest.server";
 import { rerenderUsing } from "./render.server";
-
-/** What an upload shrinks to unless it says resize=no: twice the reading column's width, and then some. */
-const RESIZE = { maxEdge: 2560, quality: 85 };
 
 /** A new key: media/<year>/<random>-<name>.<ext>. Random, so a later upload never lands on an earlier file's key. */
 function newKey(file: MediaKeyInput): string {
@@ -75,7 +73,7 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
     limits: pictureLimits(),
     url: mediaPath,
     key: newKey,
-    resize: RESIZE,
+    resize: PICTURE_RESIZE,
     replaceKeepsSize: true,
     usage: () => pageUses(env),
     history: { prefix: "media-history/" },
