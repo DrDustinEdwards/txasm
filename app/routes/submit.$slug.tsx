@@ -106,7 +106,8 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         <p className="small cap-muted">
-          Your abstract and its author names stay in the Meeting archive for good. Deleting your account later does not remove them.
+          Your abstract and its author names stay in the Meeting archive for good. Deleting your
+          account later does not remove them.
         </p>
       </div>
 

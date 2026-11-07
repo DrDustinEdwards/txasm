@@ -28,7 +28,13 @@ export function createPages(db: DB) {
     async published(slug: string): Promise<PublishedPage | null> {
       const row = await db.query.page.findFirst({
         where: eq(schema.page.slug, slug),
-        columns: { title: true, description: true, searchFields: true, html: true, publishedAt: true },
+        columns: {
+          title: true,
+          description: true,
+          searchFields: true,
+          html: true,
+          publishedAt: true,
+        },
       });
       return row?.publishedAt ? row : null;
     },
@@ -36,9 +42,17 @@ export function createPages(db: DB) {
     /** The paths of the published pages marked noindex (home is "/"), which the sitemap and llms.txt leave out. */
     async noindexPaths(): Promise<Set<string>> {
       const rows = await db
-        .select({ slug: schema.page.slug, searchFields: schema.page.searchFields, publishedAt: schema.page.publishedAt })
+        .select({
+          slug: schema.page.slug,
+          searchFields: schema.page.searchFields,
+          publishedAt: schema.page.publishedAt,
+        })
         .from(schema.page);
-      return new Set(rows.filter((r) => r.publishedAt && r.searchFields?.noindex).map((r) => (r.slug === "home" ? "/" : `/${r.slug}`)));
+      return new Set(
+        rows
+          .filter((r) => r.publishedAt && r.searchFields?.noindex)
+          .map((r) => (r.slug === "home" ? "/" : `/${r.slug}`)),
+      );
     },
   };
 }
@@ -50,7 +64,12 @@ export interface PageWrite {
   /** The page's working source after the write, which its revision keeps. */
   source: string;
   /** The page row's change; none for a write to its schedule alone. */
-  fields?: Partial<Pick<Page, "source" | "title" | "description" | "searchFields" | "html" | "renderVersion" | "publishedAt">>;
+  fields?: Partial<
+    Pick<
+      Page,
+      "source" | "title" | "description" | "searchFields" | "html" | "renderVersion" | "publishedAt"
+    >
+  >;
   /** Stores an update to go live at publishAt, or drops the one waiting (only that one, when `drop` names it). */
   schedule?:
     | { put: { source: string; publishAt: string; changeId: string } }
@@ -85,7 +104,9 @@ export function createCarrelPages(db: DB, d1: D1Database) {
         await db
           .select({ source: schema.pageRevision.source })
           .from(schema.pageRevision)
-          .where(and(eq(schema.pageRevision.pageSlug, slug), eq(schema.pageRevision.event, "publish")))
+          .where(
+            and(eq(schema.pageRevision.pageSlug, slug), eq(schema.pageRevision.event, "publish")),
+          )
           .orderBy(desc(schema.pageRevision.createdAt), desc(schema.pageRevision.id))
           .limit(1)
       )[0]?.source ?? null,
@@ -94,7 +115,10 @@ export function createCarrelPages(db: DB, d1: D1Database) {
      * The published html and share image rendered again from the live source after a library file the page shows
      * changed (render.server.ts rerenderUsing). Not a Carrel write: the sources stay, and no revision is recorded.
      */
-    async rerendered(slug: string, fields: Pick<Page, "html" | "renderVersion" | "searchFields">): Promise<void> {
+    async rerendered(
+      slug: string,
+      fields: Pick<Page, "html" | "renderVersion" | "searchFields">,
+    ): Promise<void> {
       await db.update(schema.page).set(fields).where(eq(schema.page.slug, slug));
     },
 
@@ -108,10 +132,19 @@ export function createCarrelPages(db: DB, d1: D1Database) {
     async write(slug: string, w: PageWrite): Promise<void> {
       const { schedule } = w;
       await d1.batch([
-        ...(w.fields ? [statement(db.update(schema.page).set(w.fields).where(eq(schema.page.slug, slug)))] : []),
-        ...(schedule && "put" in schedule ? [updates.put(slug, schedule.put) as D1PreparedStatement] : []),
+        ...(w.fields
+          ? [statement(db.update(schema.page).set(w.fields).where(eq(schema.page.slug, slug)))]
+          : []),
+        ...(schedule && "put" in schedule
+          ? [updates.put(slug, schedule.put) as D1PreparedStatement]
+          : []),
         ...(schedule && "drop" in schedule
-          ? [updates.remove(slug, schedule.drop === true ? undefined : schedule.drop) as D1PreparedStatement]
+          ? [
+              updates.remove(
+                slug,
+                schedule.drop === true ? undefined : schedule.drop,
+              ) as D1PreparedStatement,
+            ]
           : []),
         statement(
           db.insert(schema.pageRevision).values({

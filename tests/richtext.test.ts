@@ -16,7 +16,7 @@ test("stored abstract HTML keeps em, sup and sub and nothing that can run", () =
     '<a href="&#106;avascript:alert(1)">x</a>',
     "<svg><script>alert(1)</script></svg>",
     "<svg/onload=alert(1)>",
-    '<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>',
+    "<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>",
     "<style>body{background:url(javascript:alert(1))}</style>",
     '<sup style="background:url(javascript:alert(1))">2</sup>',
     "<iframe srcdoc='<script>alert(1)</script>'></iframe>",
@@ -28,13 +28,18 @@ test("stored abstract HTML keeps em, sup and sub and nothing that can run", () =
   for (const input of hostile) {
     for (const out of [sanitizeBody(input), sanitizeTitle(input)]) {
       const tags = out.match(/<[^>]*>/g) ?? [];
-      assert.ok(tags.every((t) => /^<\/?(em|sup|sub)>$/.test(t)), `${input} -> ${out}`);
+      assert.ok(
+        tags.every((t) => /^<\/?(em|sup|sub)>$/.test(t)),
+        `${input} -> ${out}`,
+      );
       assert.ok(!/<[a-z!/]/i.test(out.replace(/<\/?(em|sup|sub)>/g, "")), `${input} -> ${out}`);
     }
   }
 
   assert.equal(
-    sanitizeBody("<p>E. coli<em>  K-12</em> grew 10<sup>6</sup> CFU in H<sub>2</sub>O &amp; <b>LB</b> &lt;5 h</p>"),
+    sanitizeBody(
+      "<p>E. coli<em>  K-12</em> grew 10<sup>6</sup> CFU in H<sub>2</sub>O &amp; <b>LB</b> &lt;5 h</p>",
+    ),
     "E. coli<em>  K-12</em> grew 10<sup>6</sup> CFU in H<sub>2</sub>O &amp; LB &lt;5 h",
   );
   assert.equal(sanitizeTitle("<EM>Bacillus</EM> <sup>1</sup>"), "<em>Bacillus</em> 1");

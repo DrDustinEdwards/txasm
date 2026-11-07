@@ -12,7 +12,10 @@ const FEED_ITEMS = 20;
 
 export async function loader({ context }: Route.LoaderArgs) {
   const da = getDataAccess(context.get(cloudflareContext).env);
-  const [settings, rows] = await Promise.all([da.settings.get(), da.documents.listRecent(FEED_CATEGORIES, FEED_ITEMS)]);
+  const [settings, rows] = await Promise.all([
+    da.settings.get(),
+    da.documents.listRecent(FEED_CATEGORIES, FEED_ITEMS),
+  ]);
   const posts = rows.map((doc) => {
     const section = CATEGORY_PATHS[doc.category];
     const subtitle = documentSubtitle(doc);
@@ -29,7 +32,8 @@ export async function loader({ context }: Route.LoaderArgs) {
   const body = rssDocument({
     title: settings.orgName || "Texas Branch of the American Society for Microbiology",
     link: `${SITE_ORIGIN}/`,
-    description: "New newsletters, abstract books and programs from the Texas Branch of the American Society for Microbiology.",
+    description:
+      "New newsletters, abstract books and programs from the Texas Branch of the American Society for Microbiology.",
     selfUrl: `${SITE_ORIGIN}${FEED_PATH}`,
     posts,
     origin: SITE_ORIGIN,
@@ -37,6 +41,9 @@ export async function loader({ context }: Route.LoaderArgs) {
     lastBuildDate: rows[0]?.createdAt,
   });
   return new Response(body, {
-    headers: { "Content-Type": "application/rss+xml; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+    headers: {
+      "Content-Type": "application/rss+xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    },
   });
 }

@@ -202,17 +202,11 @@
       "authors": [
         {
           "name": "Teresa Sullivan",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Anna Konovalova",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         }
       ],
       "affiliations": [
@@ -237,39 +231,27 @@
       "authors": [
         {
           "name": "Jose Resendiz",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Shreya Mekal",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Akhil Nelapolu",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jacob Hogins",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Philippe Zimmern",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Larry Reitzer",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         }
       ],
       "affiliations": [
@@ -294,23 +276,15 @@
       "authors": [
         {
           "name": "Michael Debrah",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Luis Carrillo",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jolene Ramsey",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         }
       ],
       "affiliations": [
@@ -571,48 +545,31 @@
       "authors": [
         {
           "name": "Jacob Alford",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Irvin Rivera",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Mariana Sainz Garcia",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Sara Koenig",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Felix Borregio",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Joseph Bosilevac",
-          "affil_refs": [
-            3
-          ]
+          "affil_refs": [3]
         },
         {
           "name": "Mark Eppinger",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         }
       ],
       "affiliations": [
@@ -898,27 +855,19 @@
       "authors": [
         {
           "name": "Robin Crane",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Johanna Saldana",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Camelia Maier",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Linda Handson",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -1001,45 +950,31 @@
       "authors": [
         {
           "name": "Shreya Mekala",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jose Resendiz",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Akhil Nelapolu",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jacob Hogins",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Sara Papp",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Philippe Zimmern",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Larry Reitzer",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         }
       ],
       "affiliations": [
@@ -1064,27 +999,19 @@
       "authors": [
         {
           "name": "Rylee King",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Anna Busbee",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Erin Van Schaik",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "James Samuel",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -1109,28 +1036,19 @@
       "authors": [
         {
           "name": "Cora Kosnik",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Raquel Luna",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Catherine Ambrose",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Heidi Kaplan",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -1279,22 +1197,15 @@
       "authors": [
         {
           "name": "Zainab Khan",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Chandni Praveen",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Suresh Pillai",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         }
       ],
       "affiliations": [
@@ -1369,42 +1280,27 @@
       "authors": [
         {
           "name": "Felix Borrego",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Irvin Rivera",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Sara Konig",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Joseph Bosilevac",
-          "affil_refs": [
-            3
-          ]
+          "affil_refs": [3]
         },
         {
           "name": "Jacob Alford",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Mark Eppinger",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         }
       ],
       "affiliations": [
@@ -1710,15 +1606,11 @@
       "authors": [
         {
           "name": "Linzee Pacheco Pacheco",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Candice Lumibao",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -1743,16 +1635,11 @@
       "authors": [
         {
           "name": "Kristen Waddell",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         },
         {
           "name": "Jeffrey Turner",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -1863,21 +1750,15 @@
       "authors": [
         {
           "name": "Jackson Rotello",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Josh McLoud",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Frederick Baliraine",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -1902,39 +1783,27 @@
       "authors": [
         {
           "name": "Jillian Childs",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Alana Mumphrey",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Cheyenne Aleman",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Mary Fortune",
-          "affil_refs": [
-            3
-          ]
+          "affil_refs": [3]
         },
         {
           "name": "Josh McLoud",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Frederick Baliraine",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         }
       ],
       "affiliations": [
@@ -1963,39 +1832,27 @@
       "authors": [
         {
           "name": "Kaili Kleszynski",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Peyton Chaney",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Octavio Jacquez",
-          "affil_refs": [
-            3
-          ]
+          "affil_refs": [3]
         },
         {
           "name": "Gersain Saenz",
-          "affil_refs": [
-            4
-          ]
+          "affil_refs": [4]
         },
         {
           "name": "Josh McLoud",
-          "affil_refs": [
-            3
-          ]
+          "affil_refs": [3]
         },
         {
           "name": "Frederick Baliraine",
-          "affil_refs": [
-            3
-          ]
+          "affil_refs": [3]
         }
       ],
       "affiliations": [
@@ -2073,28 +1930,19 @@
       "authors": [
         {
           "name": "Enya Hoxha",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Gillian Brown",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Kaylyn Niemiec",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jolene Ramsey",
-          "affil_refs": [
-            1,
-            2
-          ]
+          "affil_refs": [1, 2]
         }
       ],
       "affiliations": [
@@ -2633,21 +2481,15 @@
       "authors": [
         {
           "name": "Mani Dhakal",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Brajendra K Singh",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Rajeev K Azad",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         }
       ],
       "affiliations": [
@@ -2722,27 +2564,19 @@
       "authors": [
         {
           "name": "Raquel Luna",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Cora Kosnik",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Catherine Ambrose",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Heidi Kaplan",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         }
       ],
       "affiliations": [
@@ -2933,33 +2767,23 @@
       "authors": [
         {
           "name": "Amber Busboom",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Taylor Ranson",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Evan Ortiz",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jiseon Yang",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Robert McLean",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         }
       ],
       "affiliations": [
@@ -3042,21 +2866,15 @@
       "authors": [
         {
           "name": "Riley Johnson",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Jennifer Honda",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Adrian Hornby",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         }
       ],
       "affiliations": [
@@ -3148,28 +2966,19 @@
       "authors": [
         {
           "name": "Megan Carey",
-          "affil_refs": [
-            1
-          ]
+          "affil_refs": [1]
         },
         {
           "name": "Allyson Hidalgo",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Daniel Rehm",
-          "affil_refs": [
-            2
-          ]
+          "affil_refs": [2]
         },
         {
           "name": "Jennifer Clinton",
-          "affil_refs": [
-            2,
-            3
-          ]
+          "affil_refs": [2, 3]
         }
       ],
       "affiliations": [
@@ -3222,10 +3031,7 @@
       "body_html": "Shiga toxin-producing <em>Escherichia coli</em> (STEC), particularly the &quot;Big Six&quot; non-O157 strains (<em>E. coli</em> O26, O45, O103, O111, O121, and O145), pose significant public health risks through contaminated food, especially meat. Contamination primarily occurs during slaughtering and grinding, leading to Big six <em>E.coli</em> outbreaks that can result in severe complications such as Hemolytic Uremic Syndrome (HUS), which may cause kidney failure, particularly in children and the elderly. In the study conducted in our laboratory, we evaluated the efficacy of electron beam (eBeam) treatment on big six <em>E.coli </em>inoculated frozen beef samples. Bacterial survivors from treated samples were enumerated to assess inactivation kinetics. Results demonstrated that even at the lowest dose (3.2 kGy), STEC titers were reduced to below the detection limit (&lt;2.35 Log CFU/25g), achieving a &gt;5.2–6 log reduction at all tested doses (3.2 kGy, 5.2 kGy, 7.3 kGy, and 10.3 kGy). These findings indicate that an eBeam dose of approximately 3 kGy can effectively achieve a ≥5–6 log reduction in Big Six STEC. These findings highlight eBeam technology as a safe, effective, and scalable intervention for reducing pathogenic contamination in meat products. Its implementation could significantly mitigate foodborne illness risks and enhance food safety, particularly in light of emerging H5N1 in cattle. Integrating eBeam technology into meat processing could be a crucial step toward ensuring public health and food safety."
     }
   ],
-  "withdrawn": [
-    "UP37",
-    "UP44"
-  ],
+  "withdrawn": ["UP37", "UP44"],
   "parseFlags": [
     {
       "code": "CAREER",

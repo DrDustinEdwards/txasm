@@ -75,9 +75,7 @@ function itemBlock(item: ProgramSessionResolved["items"][number]): string {
   const time = item.startsAt
     ? `<span class="item-time">${escapeHtml(timeLabel(item.startsAt))}</span>`
     : "";
-  const note = item.note
-    ? `<p class="item-note">${escapeHtml(item.note)}</p>`
-    : "";
+  const note = item.note ? `<p class="item-note">${escapeHtml(item.note)}</p>` : "";
   return `<li class="item">${time}${kind}${body}${note}</li>`;
 }
 
@@ -105,17 +103,12 @@ function slotBlock(group: ProgramDay["groups"][number]): string {
   const heading =
     time || trackCount > 1
       ? `<p class="slot-heading">${escapeHtml(time)}${
-          trackCount > 1
-            ? `<span class="slot-tracks"> ${trackCount} parallel tracks</span>`
-            : ""
+          trackCount > 1 ? `<span class="slot-tracks"> ${trackCount} parallel tracks</span>` : ""
         }</p>`
       : "";
   const sessions = group.sessions.map(sessionBlock).join("");
   // One session renders full width; several render as side-by-side tracks.
-  const body =
-    trackCount > 1
-      ? `<div class="tracks">${sessions}</div>`
-      : sessions;
+  const body = trackCount > 1 ? `<div class="tracks">${sessions}</div>` : sessions;
   return `<section class="slot">${heading}${body}</section>`;
 }
 
@@ -139,9 +132,7 @@ function speakersSection(speakers: SpeakerPublic[]): string {
         ? `<p class="speaker-talk">${escapeHtml(speaker.talkTitle)}</p>`
         : "";
       // bio is stored sanitized HTML; place it verbatim.
-      const bio = speaker.bio
-        ? `<div class="speaker-bio">${speaker.bio}</div>`
-        : "";
+      const bio = speaker.bio ? `<div class="speaker-bio">${speaker.bio}</div>` : "";
       return `<li class="speaker">
     <p class="speaker-name">${escapeHtml(speaker.name)}</p>
     ${line ? `<p class="speaker-line">${escapeHtml(line)}</p>` : ""}
@@ -175,10 +166,7 @@ function sponsorsSection(sponsors: SponsorPublic[]): string {
 function titlePage(data: ProgramBookData): string {
   return coverArt({
     meetingName: data.meeting.name,
-    dates: formatMeetingDates(
-      data.meeting.meetingStartsAt,
-      data.meeting.meetingEndsAt,
-    ),
+    dates: formatMeetingDates(data.meeting.meetingStartsAt, data.meeting.meetingEndsAt),
     title: "Program",
   });
 }
@@ -260,9 +248,7 @@ function emptyState(data: ProgramBookData): string {
 
 export function renderProgramBook(data: ProgramBookData): string {
   const hasSchedule = data.days.some((day) => day.groups.length > 0);
-  const schedule = hasSchedule
-    ? data.days.map(daySection).join("")
-    : "";
+  const schedule = hasSchedule ? data.days.map(daySection).join("") : "";
   const body = hasSchedule
     ? `${titlePage(data)}<section class="schedule">${schedule}</section>${speakersSection(
         data.speakers,

@@ -13,7 +13,9 @@ export async function loader() {
 // the browser drops this site's cookies, storage and cache too; both go onto the redirect.
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
-  const response = await (await getAuth(env)).api.signOut({
+  const response = await (
+    await getAuth(env)
+  ).api.signOut({
     headers: request.headers,
     asResponse: true,
   });

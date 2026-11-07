@@ -18,7 +18,11 @@ const HEADER_LIMIT = 16 * 1024;
 function indexOf(haystack: Uint8Array, needle: Uint8Array): number {
   const last = haystack.length - needle.length;
   // The native indexOf jumps to each candidate first byte, so a 50 MB file is scanned at native speed.
-  for (let i = haystack.indexOf(needle[0]); i !== -1 && i <= last; i = haystack.indexOf(needle[0], i + 1)) {
+  for (
+    let i = haystack.indexOf(needle[0]);
+    i !== -1 && i <= last;
+    i = haystack.indexOf(needle[0], i + 1)
+  ) {
     let j = 1;
     while (j < needle.length && haystack[i + j] === needle[j]) j++;
     if (j === needle.length) return i;
@@ -60,7 +64,10 @@ export async function* multipartParts(
     total += value.length;
     if (total > maxBytes) {
       await reader.cancel();
-      throw new Response("Payload Too Large", { status: 413, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+      throw new Response("Payload Too Large", {
+        status: 413,
+        headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+      });
     }
     buf = buf.length ? concat(buf, value) : value;
   }

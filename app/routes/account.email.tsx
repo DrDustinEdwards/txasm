@@ -1,5 +1,9 @@
 import { Link } from "capsomer/react/link";
-import { confirmEmailLink, emailLinkResult, type EmailLinkProblem } from "@dustinedwards/site-runtime/sign-in";
+import {
+  confirmEmailLink,
+  emailLinkResult,
+  type EmailLinkProblem,
+} from "@dustinedwards/site-runtime/sign-in";
 import { signalCurrentUserDetails } from "@dustinedwards/site-runtime/sign-in-client";
 import { useEffect } from "react";
 import { data } from "react-router";
@@ -78,7 +82,9 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
     return (
       <div className="narrow stack-6">
         <div className="stack-2">
-          <h1 className="page-title">{done === "approved" ? "Change approved" : "Your email address changed"}</h1>
+          <h1 className="page-title">
+            {done === "approved" ? "Change approved" : "Your email address changed"}
+          </h1>
           <p>
             {done === "approved"
               ? "Now open the email we sent to the new address and confirm it there. The change is made when you do."

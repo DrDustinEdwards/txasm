@@ -75,7 +75,11 @@ export interface Actor {
 // `admin` comes from the env's admin list (getActor in ../data-access.ts), never
 // from D1: role_grant rows with role "admin", seeded once at sign-up before
 // 2026-10-31, are read past, so taking an address off the list ends its admin.
-export async function loadActor(db: DB, userId: string, { admin }: { admin: boolean }): Promise<Actor> {
+export async function loadActor(
+  db: DB,
+  userId: string,
+  { admin }: { admin: boolean },
+): Promise<Actor> {
   const rows = await db
     .select({ role: schema.roleGrant.role, editionId: schema.roleGrant.editionId })
     .from(schema.roleGrant)
@@ -96,15 +100,12 @@ export function isAdmin(actor: Actor): boolean {
 
 export function isChair(actor: Actor, editionId: string): boolean {
   return (
-    isAdmin(actor) ||
-    actor.grants.some((g) => g.role === "chair" && g.editionId === editionId)
+    isAdmin(actor) || actor.grants.some((g) => g.role === "chair" && g.editionId === editionId)
   );
 }
 
 export function isReviewer(actor: Actor, editionId: string): boolean {
-  return actor.grants.some(
-    (g) => g.role === "reviewer" && g.editionId === editionId,
-  );
+  return actor.grants.some((g) => g.role === "reviewer" && g.editionId === editionId);
 }
 
 // True when the actor holds a reviewer grant in any edition. Used only to decide
@@ -141,6 +142,9 @@ export function chunk<T>(items: T[], size: number): T[][] {
 // Every `inArray` over abstract ids goes through this: a meeting has more
 // abstracts than D1 binds in one query. Rows for one id all come from one run,
 // so an order the query sets (author ordinal, say) holds within each id.
-export async function byIdChunks<T>(ids: string[], query: (part: string[]) => Promise<T[]>): Promise<T[]> {
+export async function byIdChunks<T>(
+  ids: string[],
+  query: (part: string[]) => Promise<T[]>,
+): Promise<T[]> {
   return (await Promise.all(chunk(ids, ID_CHUNK_SIZE).map(query))).flat();
 }

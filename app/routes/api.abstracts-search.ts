@@ -11,12 +11,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const q = url.searchParams.get("q") ?? "";
   const filters = {
-    level: (url.searchParams.get("level") || undefined) as
-      | AbstractLevel
-      | undefined,
-    format: (url.searchParams.get("format") || undefined) as
-      | AbstractFormat
-      | undefined,
+    level: (url.searchParams.get("level") || undefined) as AbstractLevel | undefined,
+    format: (url.searchParams.get("format") || undefined) as AbstractFormat | undefined,
     meeting: url.searchParams.get("meeting") || undefined,
   };
   const da = getDataAccess(context.get(cloudflareContext).env);

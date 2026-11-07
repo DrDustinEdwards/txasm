@@ -11,7 +11,10 @@ export const authClient = createAuthClient({ plugins: signInClientPlugins() });
 // stops the sign-in.
 export async function signalAfterPasskeySignIn(): Promise<void> {
   try {
-    const [passkeys, session] = await Promise.all([authClient.passkey.listUserPasskeys(), authClient.getSession()]);
+    const [passkeys, session] = await Promise.all([
+      authClient.passkey.listUserPasskeys(),
+      authClient.getSession(),
+    ]);
     const email = session.data?.user.email;
     if (!passkeys.data || !email) return;
     await signalPasskeys({ credentialIds: passkeys.data.map((p) => p.credentialID), name: email });

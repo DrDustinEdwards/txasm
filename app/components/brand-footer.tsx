@@ -30,7 +30,15 @@ export function BrandFooter({ className, size = 36, tagline = true }: Props) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: Math.round(size * 0.38) }}>
-        <span style={{ fontSize: size, fontWeight: 600, letterSpacing: "-0.01em", lineHeight: 1, color: blue }}>
+        <span
+          style={{
+            fontSize: size,
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            lineHeight: 1,
+            color: blue,
+          }}
+        >
           Texas
         </span>
         <svg
@@ -41,7 +49,15 @@ export function BrandFooter({ className, size = 36, tagline = true }: Props) {
         >
           <path d={TEXAS_STATE_PATH} fill="currentColor" />
         </svg>
-        <span style={{ fontSize: size, fontWeight: 600, letterSpacing: "-0.01em", lineHeight: 1, color: red }}>
+        <span
+          style={{
+            fontSize: size,
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            lineHeight: 1,
+            color: red,
+          }}
+        >
           Branch
         </span>
       </div>

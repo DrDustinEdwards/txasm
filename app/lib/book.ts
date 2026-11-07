@@ -8,12 +8,7 @@
 // numbers are handled by Paged.js in the browser. Browser Rendering runs this
 // same HTML to produce the stored PDF (see book-pdf.server.ts).
 
-import type {
-  BookAffiliation,
-  BookAuthor,
-  BookRenderData,
-  BookRenderEntry,
-} from "./data-access";
+import type { BookAffiliation, BookAuthor, BookRenderData, BookRenderEntry } from "./data-access";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { PAGED_JS_SCRIPTS } from "./paged";
@@ -65,9 +60,7 @@ function bodyBlock(abstract: BookBodyFields): string {
     ["Results", abstract.results],
     ["Conclusions", abstract.conclusions],
   ];
-  const filled = sections.filter(
-    ([, html]) => html && !isEmptyRichText(html),
-  );
+  const filled = sections.filter(([, html]) => html && !isEmptyRichText(html));
   if (filled.length > 0) {
     return filled
       .map(
@@ -91,22 +84,15 @@ function bodyBlock(abstract: BookBodyFields): string {
 function arrangedCover(data: BookRenderData): string {
   return coverArt({
     meetingName: data.edition.name,
-    dates: formatMeetingDates(
-      data.edition.meetingStartsAt,
-      data.edition.meetingEndsAt,
-    ),
+    dates: formatMeetingDates(data.edition.meetingStartsAt, data.edition.meetingEndsAt),
     title: "Abstract Book",
   });
 }
 
 function arrangedEntryArticle(entry: BookRenderEntry, anchorId: string): string {
-  const code = entry.code
-    ? `<span class="abstract-number">${escapeHtml(entry.code)}</span> `
-    : "";
+  const code = entry.code ? `<span class="abstract-number">${escapeHtml(entry.code)}</span> ` : "";
   const presentation = entry.presentationType
-    ? `<span class="presentation">${
-        entry.presentationType === "oral" ? "Oral" : "Poster"
-      }</span>`
+    ? `<span class="presentation">${entry.presentationType === "oral" ? "Oral" : "Poster"}</span>`
     : "";
   return `<article class="abstract" id="${anchorId}">
   <header class="abstract-header">

@@ -15,7 +15,8 @@ import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
 import { parseSource } from "./source";
 
 /** A library file's address, versioned: the original with no width, else the size a use asks for. */
-export const versionedPath = (row: Pick<MediaRow, "key" | "sha256">) => images.url(mediaPath(row.key), { version: row.sha256 });
+export const versionedPath = (row: Pick<MediaRow, "key" | "sha256">) =>
+  images.url(mediaPath(row.key), { version: row.sha256 });
 
 /**
  * The library pictures a page body names, sized for the reading column: Prelum's image resolver (the width, height
@@ -23,24 +24,41 @@ export const versionedPath = (row: Pick<MediaRow, "key" | "sha256">) => images.u
  * original). A src that is not a library file is refused, which refuses the render.
  */
 async function libraryImages(env: Env, body: string) {
-  const rows = new Map((await getCarrelMedia(env).many([...mediaKeysIn(body)])).map((row) => [row.key, row]));
+  const rows = new Map(
+    (await getCarrelMedia(env).many([...mediaKeysIn(body)])).map((row) => [row.key, row]),
+  );
   const rowOf = (src: string) => {
     const key = mediaKeyOf(src);
     return key ? rows.get(key) : undefined;
   };
   const attributesOf = (row: MediaRow) =>
     images.attributes(
-      { src: mediaPath(row.key), width: row.width, height: row.height, focus: row.focus, version: row.sha256, placeholder: row.placeholder, color: row.color },
+      {
+        src: mediaPath(row.key),
+        width: row.width,
+        height: row.height,
+        focus: row.focus,
+        version: row.sha256,
+        placeholder: row.placeholder,
+        color: row.color,
+      },
       "content",
     );
   return {
     async resolveImage(src: string) {
       const row = rowOf(src);
-      if (!row) throw new Error(`${src} is not in the media library. Pages show library pictures only: upload it in Carrel first.`);
+      if (!row)
+        throw new Error(
+          `${src} is not in the media library. Pages show library pictures only: upload it in Carrel first.`,
+        );
       const attrs = attributesOf(row);
       if (!attrs.width || !attrs.height) return null;
       // Only where site-runtime would show one (a JPEG, WebP or AVIF): a PNG or GIF may be clear in places.
-      return { width: attrs.width, height: attrs.height, ...(attrs.background && row.placeholder ? { placeholder: row.placeholder } : {}) };
+      return {
+        width: attrs.width,
+        height: attrs.height,
+        ...(attrs.background && row.placeholder ? { placeholder: row.placeholder } : {}),
+      };
     },
     media: {
       keyOf: mediaKeyOf,
@@ -60,11 +78,19 @@ async function libraryImages(env: Env, body: string) {
 }
 
 /** Prelum's render without math (`$` is text, so no KaTeX in the upload), loaded on first use so the public routes never parse it. */
-export async function renderBody(env: Env, body: string): Promise<{ html: string; renderVersion: string }> {
+export async function renderBody(
+  env: Env,
+  body: string,
+): Promise<{ html: string; renderVersion: string }> {
   const { render } = await import("@drdustinedwards/site-helpers/render/nomath");
   try {
     const { resolveImage, media } = await libraryImages(env, body);
-    const out = await render({ file: "page.md", body, resolveImage, options: { assertSafe: true, media } });
+    const out = await render({
+      file: "page.md",
+      body,
+      resolveImage,
+      options: { assertSafe: true, media },
+    });
     return { html: String(out.html), renderVersion: out.renderVersion };
   } catch (err) {
     throw new RefusedError(err instanceof Error ? err.message : "The page could not be rendered.");
@@ -85,19 +111,31 @@ export async function rerenderUsing(env: Env, key: string): Promise<number> {
   const named = (text: string) => path.test(text);
   let done = 0;
   for (const page of await pages.list()) {
-    if (!page.publishedAt || !named(`${page.html}\n${page.searchFields?.image?.url ?? ""}`)) continue;
+    if (!page.publishedAt || !named(`${page.html}\n${page.searchFields?.image?.url ?? ""}`))
+      continue;
     try {
       const published = await pages.publishedSource(page.slug);
       if (published === null) throw new Error("no publish revision holds its live source");
       const { html, renderVersion } = await renderBody(env, parseSource(published).body);
       const image = page.searchFields?.image;
-      const [row] = image && mediaKeyOf(image.url) === key ? await getCarrelMedia(env).many([key]) : [];
+      const [row] =
+        image && mediaKeyOf(image.url) === key ? await getCarrelMedia(env).many([key]) : [];
       // A shrink changes the size as well as the version, so the share image takes both.
-      const searchFields = image && row ? { ...page.searchFields, image: { ...image, url: versionedPath(row), width: row.width, height: row.height } } : page.searchFields;
+      const searchFields =
+        image && row
+          ? {
+              ...page.searchFields,
+              image: { ...image, url: versionedPath(row), width: row.width, height: row.height },
+            }
+          : page.searchFields;
       await pages.rerendered(page.slug, { html, renderVersion, searchFields });
       done += 1;
     } catch (err) {
-      logEvent("render.media-failed", { page: page.slug, key, error: err instanceof Error ? err.message : String(err) }, { level: "error" });
+      logEvent(
+        "render.media-failed",
+        { page: page.slug, key, error: err instanceof Error ? err.message : String(err) },
+        { level: "error" },
+      );
     }
   }
   return done;

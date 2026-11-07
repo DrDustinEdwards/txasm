@@ -143,10 +143,7 @@ export function createInvitedSpeakers(db: DB) {
       if (patch.sortOrder !== undefined) set.sortOrder = patch.sortOrder;
 
       if (Object.keys(set).length > 0) {
-        await db
-          .update(schema.invitedSpeaker)
-          .set(set)
-          .where(eq(schema.invitedSpeaker.id, id));
+        await db.update(schema.invitedSpeaker).set(set).where(eq(schema.invitedSpeaker.id, id));
       }
       return db.query.invitedSpeaker.findFirst({
         where: eq(schema.invitedSpeaker.id, id),
@@ -161,9 +158,7 @@ export function createInvitedSpeakers(db: DB) {
       if (!isChair(actor, row.editionId)) throw new ForbiddenError();
       // program_item.speaker_id is ON DELETE SET NULL, so any item pointing here
       // keeps its slot and falls back to its kind label.
-      await db
-        .delete(schema.invitedSpeaker)
-        .where(eq(schema.invitedSpeaker.id, id));
+      await db.delete(schema.invitedSpeaker).where(eq(schema.invitedSpeaker.id, id));
       return { id };
     },
   };

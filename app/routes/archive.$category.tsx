@@ -50,8 +50,8 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
       <header className="stack-3">
         <h1 className="page-title">{title}</h1>
         <p className="lead">
-          The branch's archive of {title.toLowerCase()} from past meetings. Open
-          one to read it in the viewer or download the PDF.
+          The branch's archive of {title.toLowerCase()} from past meetings. Open one to read it in
+          the viewer or download the PDF.
         </p>
       </header>
 

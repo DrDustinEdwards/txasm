@@ -87,14 +87,23 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
         <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
         {item.abstractId ? (
           <p>
-            {item.abstractCode ? <span className="strong cap-muted">{item.abstractCode} </span> : null}
-            <span className="strong" dangerouslySetInnerHTML={{ __html: item.abstractTitle ?? "" }} />
-            {item.presentingAuthorName ? <span className="cap-muted"> . {item.presentingAuthorName}</span> : null}
+            {item.abstractCode ? (
+              <span className="strong cap-muted">{item.abstractCode} </span>
+            ) : null}
+            <span
+              className="strong"
+              dangerouslySetInnerHTML={{ __html: item.abstractTitle ?? "" }}
+            />
+            {item.presentingAuthorName ? (
+              <span className="cap-muted"> . {item.presentingAuthorName}</span>
+            ) : null}
           </p>
         ) : item.speakerId ? (
           <p>
             <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-            {item.speakerTalkTitle ? <span className="cap-muted"> . {item.speakerTalkTitle}</span> : null}
+            {item.speakerTalkTitle ? (
+              <span className="cap-muted"> . {item.speakerTalkTitle}</span>
+            ) : null}
           </p>
         ) : (
           <p className="strong">{item.customTitle}</p>
@@ -113,7 +122,9 @@ function SessionBlock({ session }: { session: ProgramSessionResolved }) {
       <div>
         <h3 className="subsection-title">{session.title}</h3>
         {timeLine ? <p className="small cap-muted">{timeLine}</p> : null}
-        {session.moderator ? <p className="small cap-muted">Moderated by {session.moderator}</p> : null}
+        {session.moderator ? (
+          <p className="small cap-muted">Moderated by {session.moderator}</p>
+        ) : null}
       </div>
       {session.items.length === 0 ? (
         <p className="small cap-muted">No items listed.</p>
@@ -158,10 +169,17 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
           <li key={speaker.id} className="card">
             <p className="strong">{speaker.name}</p>
             <p className="small cap-muted">
-              {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""].filter((part) => part.length > 0).join(" . ")}
+              {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
+                .filter((part) => part.length > 0)
+                .join(" . ")}
             </p>
             {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
-            {speaker.bio ? <div className="small speaker-bio" dangerouslySetInnerHTML={{ __html: speaker.bio }} /> : null}
+            {speaker.bio ? (
+              <div
+                className="small speaker-bio"
+                dangerouslySetInnerHTML={{ __html: speaker.bio }}
+              />
+            ) : null}
           </li>
         ))}
       </ul>
@@ -193,10 +211,7 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
 
 export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const { edition, program } = loaderData;
-  const dateLine = formatMeetingDates(
-    edition.meetingStartsAt,
-    edition.meetingEndsAt,
-  );
+  const dateLine = formatMeetingDates(edition.meetingStartsAt, edition.meetingEndsAt);
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (
@@ -217,7 +232,10 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
       </div>
 
       {program === null ? (
-        <Empty kind="nothing-yet" title="The program is not published yet. Check back closer to the meeting." />
+        <Empty
+          kind="nothing-yet"
+          title="The program is not published yet. Check back closer to the meeting."
+        />
       ) : program.days.length === 0 ? (
         <p>The program has no sessions listed yet.</p>
       ) : (

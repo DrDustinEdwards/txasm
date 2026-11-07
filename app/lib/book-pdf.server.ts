@@ -25,11 +25,7 @@ type BrowserBinding = Parameters<typeof puppeteer.launch>[0];
 
 // `origin` is the site's: the book names Paged.js and its fonts by path, and the page the
 // browser opens has no address of its own, so a <base> resolves them against the site.
-export async function renderBookPdf(
-  html: string,
-  env: Env,
-  origin: string,
-): Promise<Uint8Array> {
+export async function renderBookPdf(html: string, env: Env, origin: string): Promise<Uint8Array> {
   const browser = await puppeteer.launch(env.BROWSER as unknown as BrowserBinding);
   try {
     const based = html.replace(/<head>/i, `<head>\n<base href="${origin}/" />`);
@@ -76,10 +72,7 @@ async function renderWithBrowser(
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error("The book render timed out.")),
-      ms,
-    );
+    const timer = setTimeout(() => reject(new Error("The book render timed out.")), ms);
     promise.then(
       (value) => {
         clearTimeout(timer);
@@ -117,11 +110,7 @@ export async function publishArrangedBook(
   await da.books.publish(actor, editionId, html);
 
   // Best-effort arranged PDF through the same delivery path the archive reads.
-  const prior = await da.documents.getGeneratedForEdition(
-    actor,
-    editionId,
-    "abstract_book",
-  );
+  const prior = await da.documents.getGeneratedForEdition(actor, editionId, "abstract_book");
   let claimId: string;
   try {
     const claim = await da.documents.recordGenerating(actor, {

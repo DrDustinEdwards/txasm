@@ -27,7 +27,11 @@ export function DocumentDetail({
       <header className="stack-3">
         <Breadcrumb
           renderLink={renderLink}
-          items={[{ label: "Home", href: "/" }, { label: backTitle, href: basePath }, { label: doc.title }]}
+          items={[
+            { label: "Home", href: "/" },
+            { label: backTitle, href: basePath },
+            { label: doc.title },
+          ]}
         />
         <h1 className="page-title">{doc.title}</h1>
         {subtitle ? <p className="cap-muted">{subtitle}</p> : null}

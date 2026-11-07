@@ -30,9 +30,7 @@ export interface ArchiveDoc {
 // A human subtitle for a document: "Fall 1991" plus the editor when present.
 export function documentSubtitle(doc: ArchiveDoc): string {
   const season = doc.season ? SEASON_LABELS[doc.season] : "";
-  const when = [season, doc.year ? String(doc.year) : ""]
-    .filter(Boolean)
-    .join(" ");
+  const when = [season, doc.year ? String(doc.year) : ""].filter(Boolean).join(" ");
   const parts: string[] = [];
   if (when) parts.push(when);
   if (doc.editor) parts.push(`Editor: ${doc.editor}`);

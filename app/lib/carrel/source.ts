@@ -11,9 +11,19 @@
 //   Recognizing Faculty and Students ...
 //
 // description and the other search fields (searchTitle, image, imageAlt, canonical, noindex) are site-api's.
-import { readKey, searchFieldsOf, splitSource, type SearchValues } from "@dustinedwards/site-api/frontmatter";
+import {
+  readKey,
+  searchFieldsOf,
+  splitSource,
+  type SearchValues,
+} from "@dustinedwards/site-api/frontmatter";
 
-export type PageSource = { title: string; description: string | null; search: Omit<SearchValues, "description">; body: string };
+export type PageSource = {
+  title: string;
+  description: string | null;
+  search: Omit<SearchValues, "description">;
+  body: string;
+};
 
 /** Throws when the source has no title: every page route shows one. */
 export function parseSource(source: string): PageSource {

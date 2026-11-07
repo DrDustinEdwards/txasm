@@ -60,7 +60,13 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { book };
     }
     if (intent === "publish") {
-      const outcome = await publishArrangedBook(env, da, actor, editionId, new URL(request.url).origin);
+      const outcome = await publishArrangedBook(
+        env,
+        da,
+        actor,
+        editionId,
+        new URL(request.url).origin,
+      );
       const book = await da.books.get(actor, editionId);
       const note =
         outcome === "ready"
@@ -136,7 +142,10 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   const [adoptedData, setAdoptedData] = useState(fetcher.data);
   if (fetcher.state === "idle" && fetcher.data !== adoptedData) {
     setAdoptedData(fetcher.data);
-    const next = fetcher.data && "book" in fetcher.data ? (fetcher.data as { book?: BookView }).book : undefined;
+    const next =
+      fetcher.data && "book" in fetcher.data
+        ? (fetcher.data as { book?: BookView }).book
+        : undefined;
     if (next) setBook(next);
   }
 

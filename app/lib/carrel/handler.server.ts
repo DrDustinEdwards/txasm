@@ -20,11 +20,16 @@ import { createCarrelAdapter } from "./adapter.server";
  * is announced as an "update"; a publish, and the update the cron puts live, are what move the page.
  */
 function liveChanges(hook: PublishHook): PublishHook {
-  return { ...hook, run: (event) => (event.action === "update" && event.trigger === "request" ? true : hook.run(event)) };
+  return {
+    ...hook,
+    run: (event) =>
+      event.action === "update" && event.trigger === "request" ? true : hook.run(event),
+  };
 }
 
 /** A request the site API or a preview link answers (or refuses): the only ones that load it. */
-export const isCarrelRequest = (url: URL) => insidePrefix(url.pathname) || url.pathname.startsWith(PREVIEW_LINK_PATH);
+export const isCarrelRequest = (url: URL) =>
+  insidePrefix(url.pathname) || url.pathname.startsWith(PREVIEW_LINK_PATH);
 
 /**
  * site-api's log lines through site-runtime's logger (scrubbed). A refused request is named in the OWASP vocabulary:
@@ -34,14 +39,21 @@ function siteApiLog(entry: Record<string, unknown>): void {
   if (entry.siteApi === "refused") {
     const limited = entry.reason === "rate-limited";
     const denied = entry.reason === "wrong-key" || entry.reason === "no-key";
-    const event = limited ? OWASP_EVENTS.rateLimitExceeded : denied ? OWASP_EVENTS.authorizationFailure : "site_api_refused";
+    const event = limited
+      ? OWASP_EVENTS.rateLimitExceeded
+      : denied
+        ? OWASP_EVENTS.authorizationFailure
+        : "site_api_refused";
     logEvent(event, entry, { level: "warn" });
     return;
   }
   logEvent(`site_api_${String(entry.siteApi ?? "log")}`, entry);
 }
 
-export function carrelApi(env: Env, options: { renderVersion?: string; stylesheets?: string[] } = {}) {
+export function carrelApi(
+  env: Env,
+  options: { renderVersion?: string; stylesheets?: string[] } = {},
+) {
   // The replay store (safe retries by change id), preview links, failed hooks' retries and the webmentions sent
   // (drizzle/0027_site_api_tables.sql).
   const store = d1SiteApiStore(env.DB);

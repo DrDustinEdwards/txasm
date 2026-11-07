@@ -12,7 +12,14 @@
 //
 // `sha` is the deployed commit, which CI's deploy passes as DEPLOY_SHA (devkit's worker-deploy.yml; a manual deploy has
 // none). No table names, counts or keys.
-import { aiCheck, authSpikeCheck, durableObjectCheck, healthResponse, imagesCheck, r2Check } from "@dustinedwards/site-runtime/health";
+import {
+  aiCheck,
+  authSpikeCheck,
+  durableObjectCheck,
+  healthResponse,
+  imagesCheck,
+  r2Check,
+} from "@dustinedwards/site-runtime/health";
 import { cronCheck } from "@dustinedwards/site-runtime/cron";
 import type { Route } from "./+types/health";
 import { backupStatus } from "~/lib/backup.server";
@@ -34,9 +41,15 @@ export function loader({ context }: Route.LoaderArgs) {
       {
         name: "browser",
         level: "warn",
-        run: async () => (typeof env.BROWSER?.fetch === "function" ? true : { ok: false, detail: "binding missing" }),
+        run: async () =>
+          typeof env.BROWSER?.fetch === "function"
+            ? true
+            : { ok: false, detail: "binding missing" },
       },
-      cronCheck(env.DB, { jobs: allCronJobs(env), deployedAt: new Date(env.CF_VERSION_METADATA.timestamp) }),
+      cronCheck(env.DB, {
+        jobs: allCronJobs(env),
+        deployedAt: new Date(env.CF_VERSION_METADATA.timestamp),
+      }),
       // A run of failed sign-ins or sign-in mails in the last hour (auth_events), warn only.
       authSpikeCheck(env.DB),
     ],

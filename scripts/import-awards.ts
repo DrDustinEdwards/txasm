@@ -83,9 +83,7 @@ function toText(html: string): string {
 // A year heading looks like "2024-25", "2024-2025", or "1971". Categories are any
 // other h3 text. Return the year string when the heading is a year, else null.
 function asYear(text: string): string | null {
-  return /^\d{4}(\s*[-–]\s*\d{2,4})?$/.test(text)
-    ? text.replace(/\s*[-–]\s*/, "-")
-    : null;
+  return /^\d{4}(\s*[-–]\s*\d{2,4})?$/.test(text) ? text.replace(/\s*[-–]\s*/, "-") : null;
 }
 
 // Pull placement, name, institution, and mentor out of one entry line. Handles
@@ -111,9 +109,7 @@ function parseEntryLine(line: string): DatasetRecipient | null {
   }
 
   let mentor: string | null = null;
-  const mentorMatch = text.match(
-    /\(?\s*(?:mentor|advisor|pi)\s*:?\s*([^)]+?)\s*\)?\s*$/i,
-  );
+  const mentorMatch = text.match(/\(?\s*(?:mentor|advisor|pi)\s*:?\s*([^)]+?)\s*\)?\s*$/i);
   if (mentorMatch) {
     mentor = mentorMatch[1].trim();
     text = text.slice(0, text.length - mentorMatch[0].length).trim();
@@ -155,8 +151,7 @@ export function parseRecipientsFromHtml(html: string): DatasetRecipient[] {
   let currentYear: string | null = null;
   let currentCategory: string | null = null;
 
-  const blockRe =
-    /<(h2|h3|li|p)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  const blockRe = /<(h2|h3|li|p)\b[^>]*>([\s\S]*?)<\/\1>/gi;
   let match: RegExpExecArray | null;
   while ((match = blockRe.exec(html)) !== null) {
     const tag = match[1].toLowerCase();
@@ -271,9 +266,7 @@ async function runSeed(dataPath: string): Promise<void> {
         summary.awardsCreated += 1;
 
         let recipientCount = 0;
-        const recipients = Array.isArray(award.recipients)
-          ? award.recipients
-          : [];
+        const recipients = Array.isArray(award.recipients) ? award.recipients : [];
         for (let r = 0; r < recipients.length; r += 1) {
           const recipient = recipients[r];
           await da.awardRecipients.create(actor, {
@@ -325,9 +318,7 @@ async function main() {
     exit(1);
   }
   const parse = args.includes("--parse");
-  const dataPath = resolve(
-    args.find((a) => !a.startsWith("--")) ?? DEFAULT_DATA_PATH,
-  );
+  const dataPath = resolve(args.find((a) => !a.startsWith("--")) ?? DEFAULT_DATA_PATH);
 
   if (parse) {
     await runParse(dataPath);

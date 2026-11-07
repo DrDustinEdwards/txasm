@@ -28,7 +28,9 @@ export function mediaKeyOf(raw: string): string | null {
   if (path.startsWith(SITE_ORIGIN)) path = path.slice(SITE_ORIGIN.length);
   if (!path.startsWith(`/${MEDIA_PREFIX}`)) return null;
   const key = path.slice(1).split(/[?#]/)[0] ?? "";
-  return KEY.test(key) && !key.split("/").some((part) => part === "." || part === "..") ? key : null;
+  return KEY.test(key) && !key.split("/").some((part) => part === "." || part === "..")
+    ? key
+    : null;
 }
 
 /** Every library key a page's source or html names, by its /media/ paths (over-detection only refuses a delete). */

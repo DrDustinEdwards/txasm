@@ -1,5 +1,10 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
-import type { MediaLibraryStore, MediaRecord, MediaRecordFields, MediaRevisionRecord } from "@dustinedwards/site-api";
+import type {
+  MediaLibraryStore,
+  MediaRecord,
+  MediaRecordFields,
+  MediaRevisionRecord,
+} from "@dustinedwards/site-api";
 import * as schema from "../../db/schema";
 import type { DB } from "./core";
 
@@ -53,12 +58,24 @@ function recordOf(row: MediaRow): MediaRecord {
 
 /** A record's fields as this table's columns; the fields the table has no column for are dropped. */
 function columnsOf(fields: MediaRecordFields): Partial<typeof schema.media.$inferInsert> {
-  const { tags, uploadedAt, trashedAt, sha256, decorative: _d, copyright: _c, licenseUrl: _l, acquireLicenseUrl: _a, ...rest } = fields;
+  const {
+    tags,
+    uploadedAt,
+    trashedAt,
+    sha256,
+    decorative: _d,
+    copyright: _c,
+    licenseUrl: _l,
+    acquireLicenseUrl: _a,
+    ...rest
+  } = fields;
   return {
     ...rest,
     ...(tags !== undefined ? { tags: JSON.stringify(tags) } : {}),
     ...(uploadedAt !== undefined ? { uploadedAt: new Date(uploadedAt) } : {}),
-    ...(trashedAt !== undefined ? { trashedAt: trashedAt === null ? null : new Date(trashedAt) } : {}),
+    ...(trashedAt !== undefined
+      ? { trashedAt: trashedAt === null ? null : new Date(trashedAt) }
+      : {}),
     // The column is NOT NULL; the library sets a hash on every write that names one.
     ...(sha256 ? { sha256 } : {}),
   };
@@ -80,7 +97,8 @@ function revisionOf(row: MediaRevisionRow): MediaRevisionRecord {
 export function createCarrelMedia(db: DB) {
   const media = schema.media;
   const revisions = schema.mediaRevision;
-  const one = async (key: string) => (await db.query.media.findFirst({ where: eq(media.key, key) })) ?? null;
+  const one = async (key: string) =>
+    (await db.query.media.findFirst({ where: eq(media.key, key) })) ?? null;
 
   const library: MediaLibraryStore = {
     record: async (key) => {
@@ -88,12 +106,19 @@ export function createCarrelMedia(db: DB) {
       return row ? recordOf(row) : null;
     },
 
-    records: async (keys) => (keys.length === 0 ? [] : (await db.select().from(media).where(inArray(media.key, keys))).map(recordOf)),
+    records: async (keys) =>
+      keys.length === 0
+        ? []
+        : (await db.select().from(media).where(inArray(media.key, keys))).map(recordOf),
 
-    all: async () => (await db.select().from(media).orderBy(desc(media.uploadedAt), asc(media.key))).map(recordOf),
+    all: async () =>
+      (await db.select().from(media).orderBy(desc(media.uploadedAt), asc(media.key))).map(recordOf),
 
     async byHash(sha256) {
-      const current = await db.query.media.findFirst({ where: eq(media.sha256, sha256), orderBy: [asc(media.uploadedAt), asc(media.key)] });
+      const current = await db.query.media.findFirst({
+        where: eq(media.sha256, sha256),
+        orderBy: [asc(media.uploadedAt), asc(media.key)],
+      });
       if (current) return recordOf(current);
       const [first] = await db
         .select({ key: revisions.mediaKey })
@@ -106,7 +131,14 @@ export function createCarrelMedia(db: DB) {
     },
 
     async insert(record) {
-      await db.insert(media).values({ ...columnsOf(record), key: record.key, contentType: record.contentType, bytes: record.bytes, sha256: record.sha256 ?? "", uploadedAt: new Date(record.uploadedAt) });
+      await db.insert(media).values({
+        ...columnsOf(record),
+        key: record.key,
+        contentType: record.contentType,
+        bytes: record.bytes,
+        sha256: record.sha256 ?? "",
+        uploadedAt: new Date(record.uploadedAt),
+      });
     },
 
     async writeAtRev(key, fields, expectedRev) {
@@ -122,7 +154,10 @@ export function createCarrelMedia(db: DB) {
 
     async follow(key, fields) {
       const columns = columnsOf(fields);
-      const [row] = Object.keys(columns).length > 0 ? await db.update(media).set(columns).where(eq(media.key, key)).returning() : [await one(key)];
+      const [row] =
+        Object.keys(columns).length > 0
+          ? await db.update(media).set(columns).where(eq(media.key, key)).returning()
+          : [await one(key)];
       if (!row) throw new Error(`${key} changed its bytes, but its row is gone`);
       return recordOf(row);
     },
@@ -146,7 +181,14 @@ export function createCarrelMedia(db: DB) {
     },
 
     revisions: async (key, limit = 100) =>
-      (await db.select().from(revisions).where(eq(revisions.mediaKey, key)).orderBy(desc(revisions.id)).limit(limit)).map(revisionOf),
+      (
+        await db
+          .select()
+          .from(revisions)
+          .where(eq(revisions.mediaKey, key))
+          .orderBy(desc(revisions.id))
+          .limit(limit)
+      ).map(revisionOf),
 
     async keepCopy(revisionId, copyKey) {
       await db.update(revisions).set({ backupKey: copyKey }).where(eq(revisions.id, revisionId));
@@ -156,15 +198,27 @@ export function createCarrelMedia(db: DB) {
     // batch with the row, and only once the row is gone.
     async remove(key, rev) {
       const [deleted] = await db.batch([
-        db.delete(media).where(and(eq(media.key, key), eq(media.rev, rev))).returning({ key: media.key }),
-        db.delete(revisions).where(and(eq(revisions.mediaKey, key), sql`NOT EXISTS (SELECT 1 FROM ${media} WHERE ${media.key} = ${key})`)),
+        db
+          .delete(media)
+          .where(and(eq(media.key, key), eq(media.rev, rev)))
+          .returning({ key: media.key }),
+        db
+          .delete(revisions)
+          .where(
+            and(
+              eq(revisions.mediaKey, key),
+              sql`NOT EXISTS (SELECT 1 FROM ${media} WHERE ${media.key} = ${key})`,
+            ),
+          ),
       ]);
       if (deleted.length > 0) return "removed";
       return (await one(key)) ? "stale" : "missing";
     },
 
     async changeCursor() {
-      const [row] = await db.select({ seq: sql<number | null>`max(${schema.mediaChange.seq})` }).from(schema.mediaChange);
+      const [row] = await db
+        .select({ seq: sql<number | null>`max(${schema.mediaChange.seq})` })
+        .from(schema.mediaChange);
       return Number(row?.seq ?? 0);
     },
 
@@ -183,6 +237,7 @@ export function createCarrelMedia(db: DB) {
 
   return {
     library,
-    many: async (keys: string[]): Promise<MediaRow[]> => (keys.length === 0 ? [] : db.select().from(media).where(inArray(media.key, keys))),
+    many: async (keys: string[]): Promise<MediaRow[]> =>
+      keys.length === 0 ? [] : db.select().from(media).where(inArray(media.key, keys)),
   };
 }

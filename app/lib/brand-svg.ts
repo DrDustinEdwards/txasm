@@ -30,8 +30,5 @@ export const TXASM_MARK_VIEWBOX = "22.1 22.4 290.3 358.2";
 // The mark's paths as an SVG string with a fixed fill, for embedding in the
 // print cover (where the mark is a nested svg drawn white on the red stripe).
 export function txasmMarkPaths(fill: string): string {
-  return TXASM_MARK_PATHS.map(
-    (d) => `<path style="fill:${fill}" d="${d}" />`,
-  ).join("");
+  return TXASM_MARK_PATHS.map((d) => `<path style="fill:${fill}" d="${d}" />`).join("");
 }
-

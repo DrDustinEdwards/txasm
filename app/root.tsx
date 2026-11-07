@@ -39,9 +39,7 @@ export function meta({ error, loaderData }: Route.MetaArgs) {
 // layout routes) read these from the root loader data.
 export async function loader({ request, context }: Route.LoaderArgs) {
   const theme = readThemeCookie(request, THEME_COOKIE);
-  const settings = await getDataAccess(
-    context.get(cloudflareContext).env,
-  ).settings.get();
+  const settings = await getDataAccess(context.get(cloudflareContext).env).settings.get();
   // The origin this page was served from, for the share card's address (pageHead).
   return { theme, settings, origin: new URL(request.url).origin };
 }
@@ -61,7 +59,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // account, the admin and chair areas) hydrate. Every other page is read-only and sends no React: its header, theme
   // button, tabs and PDF viewer run from /site.js (app/site.ts) and its islands, and its forms are plain GETs and
   // POSTs that React Router's loaders and actions answer as documents.
-  const hydrates = useMatches().some((m) => (m.handle as { hydrate?: boolean } | undefined)?.hydrate === true);
+  const hydrates = useMatches().some(
+    (m) => (m.handle as { hydrate?: boolean } | undefined)?.hydrate === true,
+  );
   return (
     <html lang="en" data-theme={theme} data-family="navy" data-cap-site="txasm">
       <head>

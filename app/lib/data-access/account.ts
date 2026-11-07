@@ -54,7 +54,10 @@ export function createAccount(db: DB) {
       const repoint = ACCOUNT_REFERENCES.map(([table, column]) => {
         const key = Object.entries(getTableColumns(table)).find(([, c]) => c === column)?.[0];
         if (!key) throw new Error(`no column ${column.name} in its table`);
-        return db.update(table).set({ [key]: heir } as never).where(eq(column, userId));
+        return db
+          .update(table)
+          .set({ [key]: heir } as never)
+          .where(eq(column, userId));
       });
       await db.batch([
         db

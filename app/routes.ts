@@ -36,10 +36,7 @@ export default [
     route("meetings", "routes/meetings.tsx"),
     route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
     route("meetings/:slug/abstracts", "routes/meetings.$slug.abstracts.tsx"),
-    route(
-      "meetings/:slug/abstracts/:ref",
-      "routes/meetings.$slug.abstracts.$ref.tsx",
-    ),
+    route("meetings/:slug/abstracts/:ref", "routes/meetings.$slug.abstracts.$ref.tsx"),
   ]),
   layout("routes/admin.layout.tsx", [
     route("admin", "routes/admin.tsx"),
@@ -62,38 +59,17 @@ export default [
       "admin/editions/:editionId/abstract-categories",
       "routes/admin.editions.$editionId.abstract-categories.tsx",
     ),
-    route(
-      "admin/editions/:editionId/roles",
-      "routes/admin.editions.$editionId.roles.tsx",
-    ),
-    route(
-      "admin/editions/:editionId/review",
-      "routes/admin.editions.$editionId.review.tsx",
-    ),
+    route("admin/editions/:editionId/roles", "routes/admin.editions.$editionId.roles.tsx"),
+    route("admin/editions/:editionId/review", "routes/admin.editions.$editionId.review.tsx"),
     route(
       "admin/editions/:editionId/review/:abstractId",
       "routes/admin.editions.$editionId.review.$abstractId.tsx",
     ),
-    route(
-      "admin/editions/:editionId/decisions",
-      "routes/admin.editions.$editionId.decisions.tsx",
-    ),
-    route(
-      "admin/editions/:editionId/book",
-      "routes/admin.editions.$editionId.book.tsx",
-    ),
-    route(
-      "admin/editions/:editionId/program",
-      "routes/admin.editions.$editionId.program.tsx",
-    ),
-    route(
-      "admin/editions/:editionId/speakers",
-      "routes/admin.editions.$editionId.speakers.tsx",
-    ),
-    route(
-      "admin/editions/:editionId/sponsors",
-      "routes/admin.editions.$editionId.sponsors.tsx",
-    ),
+    route("admin/editions/:editionId/decisions", "routes/admin.editions.$editionId.decisions.tsx"),
+    route("admin/editions/:editionId/book", "routes/admin.editions.$editionId.book.tsx"),
+    route("admin/editions/:editionId/program", "routes/admin.editions.$editionId.program.tsx"),
+    route("admin/editions/:editionId/speakers", "routes/admin.editions.$editionId.speakers.tsx"),
+    route("admin/editions/:editionId/sponsors", "routes/admin.editions.$editionId.sponsors.tsx"),
   ]),
   // Where Cloudflare Access sends a platform admin back from (app/lib/access.server.ts).
   route("admin/access", "routes/admin.access.tsx"),

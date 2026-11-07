@@ -1,11 +1,6 @@
 import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
 import { forbidden, getSessionUser } from "./auth.server";
-import {
-  ForbiddenError,
-  NotFoundError,
-  getActor,
-  getDataAccess,
-} from "./data-access";
+import { ForbiddenError, NotFoundError, getActor, getDataAccess } from "./data-access";
 import { extensionForMime, PDF_MIME_TYPE } from "./vocab";
 
 // Stream a document's stored file from R2 for the inline viewer or a download.
@@ -50,13 +45,7 @@ export async function serveDocument(
   const contentType = doc.mimeType || PDF_MIME_TYPE;
   // The fallback filename's extension matches the stored type.
   const defaultFileName = `${slug}.${extensionForMime(contentType)}`;
-  const response = fileResponse(
-    object,
-    doc.fileName,
-    defaultFileName,
-    disposition,
-    contentType,
-  );
+  const response = fileResponse(object, doc.fileName, defaultFileName, disposition, contentType);
 
   // An uploaded SVG opened on its own would run its script: images get UPLOAD_HEADERS
   // (nosniff and a sandboxed load-nothing policy, hard rule 5). PDFs are left as they
@@ -76,8 +65,7 @@ export function fileResponse(
   contentType: string = PDF_MIME_TYPE,
 ): Response {
   const safeName =
-    (fileName ?? defaultFileName).replace(/[^\w .()-]/g, "_").trim() ||
-    defaultFileName;
+    (fileName ?? defaultFileName).replace(/[^\w .()-]/g, "_").trim() || defaultFileName;
 
   const headers = new Headers();
   headers.set("Content-Type", contentType);

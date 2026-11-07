@@ -41,6 +41,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Test
         run: npm test
 
@@ -75,7 +78,7 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@e2914d9fdd2b2ef4eb7d393db739c3bb2a808583 # v0.23.0
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@562daa2dbfb23f2987f81caeac34f9e054b3d03b # v0.26.4
     with:
       worker-name: txasm
       # site-runtime withAdminIdle's key, minted once by the deploy and never shown (devkit "generated-secrets").

@@ -12,13 +12,19 @@ const ROOT = join(import.meta.dirname, "..");
 
 /** The restricted-import findings for one file, by the help message the config gives each pattern. */
 function restricted(file: string): string[] {
-  const run = spawnSync(process.execPath, [join(ROOT, "node_modules", "oxlint", "bin", "oxlint"), "-f", "json", file], {
-    cwd: ROOT,
-    encoding: "utf8",
-    timeout: 120_000,
-  });
+  const run = spawnSync(
+    process.execPath,
+    [join(ROOT, "node_modules", "oxlint", "bin", "oxlint"), "-f", "json", file],
+    {
+      cwd: ROOT,
+      encoding: "utf8",
+      timeout: 120_000,
+    },
+  );
   const report = JSON.parse(run.stdout) as { diagnostics: Array<{ code: string; help?: string }> };
-  return report.diagnostics.filter((d) => d.code === "eslint(no-restricted-imports)").map((d) => d.help ?? "");
+  return report.diagnostics
+    .filter((d) => d.code === "eslint(no-restricted-imports)")
+    .map((d) => d.help ?? "");
 }
 
 test("an import of the schema or a Drizzle client from outside the data-access layer fails lint", () => {
@@ -41,7 +47,10 @@ test("an import of the schema or a Drizzle client from outside the data-access l
       /^Do not import the Drizzle client factory directly/,
       /^Do not construct a Drizzle client outside the data-access layer/,
     ]) {
-      assert.ok(found.some((help) => message.test(help)), `${message} not among:\n${found.join("\n")}`);
+      assert.ok(
+        found.some((help) => message.test(help)),
+        `${message} not among:\n${found.join("\n")}`,
+      );
     }
   } finally {
     rmSync(join(ROOT, fixture), { force: true });
