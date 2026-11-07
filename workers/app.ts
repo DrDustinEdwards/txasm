@@ -28,6 +28,7 @@ import {
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "@dustinedwards/site-runtime/context";
+import { routeNamer } from "./route-name";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
@@ -253,17 +254,35 @@ const site = {
   },
 } satisfies ExportedHandler<Env>;
 
+// The paths the gateway answers itself, named for the request log; every other path by its React Router route.
+const routes = routeNamer(serverBuild);
+function gatewayRoute(path: string): string | undefined {
+  if (path === CSP_REPORT_PATH || path === SPECULATION_RULES_PATH) return path;
+  if (path.startsWith("/preview/")) return "/preview/:token";
+  if (path.startsWith("/api/carrel/")) return "/api/carrel/*";
+  return undefined;
+}
+
 // An admin idle for an hour is signed out of Access (site-runtime ./access). Every request writes one `request` line
-// (site-runtime ./log: path, status, ms and the deployed commit), a preview link's token cut from its path.
+// (site-runtime ./log: its route, path, status, ms and the deployed commit), a preview link's token cut from its path.
 type IncomingRequest = Parameters<typeof site.fetch>[0];
 export default {
   ...site,
   fetch: withRequestLog(
-    (request: Request, env: Env, ctx: ExecutionContext) =>
-      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), {
-        secret: env.ADMIN_IDLE_SECRET,
-      }),
-    { sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA, tokenPath: PREVIEW_TOKEN },
+    async (request: Request, env: Env, ctx: ExecutionContext) =>
+      (
+        await Promise.all([
+          withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), {
+            secret: env.ADMIN_IDLE_SECRET,
+          }),
+          routes.ready(),
+        ])
+      )[0],
+    {
+      sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA,
+      tokenPath: PREVIEW_TOKEN,
+      route: (request) => gatewayRoute(new URL(request.url).pathname) ?? routes.name(request),
+    },
   ),
 } satisfies ExportedHandler<Env>;
 
