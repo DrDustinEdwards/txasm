@@ -49,13 +49,24 @@ import {
   type Page,
   type PageSearch,
   type PageWrite,
+  type PublishedPage,
 } from "../data-access";
 import { mediaKeyOf } from "../media/images";
+import { publicOrigin } from "../site-meta";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { renderBody, versionedPath } from "./render.server";
 import { parseSource, type PageSource } from "./source";
 
 const KIND = "page";
+
+/**
+ * The site's own render of one page route (workers/app.ts), with `preview` in place of the published row: the page as
+ * a reader would see it, in the site layout, with nothing stored or cached.
+ */
+export type RenderPage = (
+  path: string,
+  preview: { slug: string; page: PublishedPage },
+) => Promise<Response>;
 
 /** What waits on a page, as the contract shows it beside the live version. */
 type Waiting = Pick<ScheduledUpdate, "publishAt" | "changeId"> | null;
@@ -138,10 +149,10 @@ async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<
 
 export function createCarrelAdapter(
   env: Env,
-  options: { renderVersion?: string; stylesheets?: string[] } = {},
+  options: { renderVersion?: string; stylesheets?: string[]; renderPage?: RenderPage } = {},
 ): SiteAdapter {
   const pages = getCarrelPages(env);
-  const origin = () => new URL(env.BETTER_AUTH_URL).origin;
+  const origin = () => publicOrigin(env);
 
   type Change = Pick<PageWrite, "fields" | "schedule">;
 
@@ -299,7 +310,8 @@ export function createCarrelAdapter(
       return (await pages.revisions(id)).map((r) => ({
         version: r.version,
         at: r.createdAt.toISOString(),
-        author: "carrel",
+        // The person behind Carrel's writes, until site-api names the actor of each change.
+        author: "Dustin Edwards",
         message: `${REVISION_MESSAGES[r.event]} (${r.changeId})`,
       }));
     },
@@ -308,7 +320,7 @@ export function createCarrelAdapter(
       const p = await pages.get(id);
       if (!p) return null;
       if ((await versionOf(p, waitingOf(await pages.scheduled(id)))) === version) return p.source;
-      return (await pages.revisions(id)).find((r) => r.version === version)?.source ?? null;
+      return pages.revisionSource(id, version);
     },
   };
 
@@ -370,13 +382,31 @@ export function createCarrelAdapter(
     // requests; handler.server.ts loads it with the renderer.
     ...(options.renderVersion ? { renderVersion: options.renderVersion } : {}),
 
-    // The body as the route shows it, in the site's own stylesheet: an unsaved source has no row to load. A source
-    // with no title still previews (site-api's conformance asks it to); a save still refuses it.
+    // A page's preview is its own route in the site layout (header, navigation, footer), rendered in-process by
+    // renderPage with the source in place of the published row, and marked noindex. Without a page to put it in (no
+    // id, or no renderPage, as in the tests), the body alone in the site's stylesheet. A source with no title still
+    // previews (site-api's conformance asks it to); a save still refuses it.
     preview: {
-      async render({ source }) {
+      async render({ id, source }) {
         const { front, body } = splitSource(source);
         const { html } = await renderBody(env, body);
         const title = readKey(front, "title").trim();
+        if (id && options.renderPage && (await pages.get(id))) {
+          const description = readKey(front, "description").trim() || null;
+          const page: PublishedPage = {
+            title: title || "Untitled",
+            description,
+            searchFields: { noindex: true },
+            html,
+          };
+          const response = await options.renderPage(pathOf(id), { slug: id, page });
+          if (!response.ok) {
+            throw new RefusedError(
+              `The page did not render: its route answered ${response.status}.`,
+            );
+          }
+          return response.text();
+        }
         return previewDocument({
           title: title || "Preview",
           body: `<main>${title ? `<h1>${escapeHtml(title)}</h1>` : ""}<div class="page-prose">${html}</div></main>`,

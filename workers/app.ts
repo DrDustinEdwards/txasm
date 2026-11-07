@@ -15,7 +15,7 @@ import {
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
 import { maintenanceOn, maintenanceResponse } from "@dustinedwards/site-runtime/maintenance";
-import { logEvent, withRequestLog } from "@dustinedwards/site-runtime/log";
+import { logEvent, routeNamer, withRequestLog } from "@dustinedwards/site-runtime/log";
 import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
 import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
@@ -31,6 +31,8 @@ import { cloudflareContext, cspNonceContext } from "@dustinedwards/site-runtime/
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
+import type { PublishedPage } from "../app/lib/data-access";
+import { pagePreviewContext } from "../app/lib/preview-context";
 import { cronJobs } from "../app/lib/cron.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
@@ -61,16 +63,19 @@ const isWrite = (request: Request) => request.method !== "GET" && request.method
 
 // Runs the React Router handler with the Cloudflare env and execution context, so loaders and actions reach
 // bindings through context.get(cloudflareContext), never ambiently. `nonce` goes to the render (app/entry.server.tsx);
-// without one, the page is rendered for the edge cache. Its time goes in Server-Timing.
+// without one, the page is rendered for the edge cache. Its time goes in Server-Timing. `preview` is Carrel's preview
+// of a site page, which that page's route shows in place of the published row.
 async function render(
   request: Request,
   env: Env,
   ctx: ExecutionContext,
   nonce: string | undefined,
+  preview?: { slug: string; page: PublishedPage },
 ) {
   const context = new RouterContextProvider();
   context.set(cloudflareContext, { env, ctx });
   context.set(cspNonceContext, nonce ?? null);
+  context.set(pagePreviewContext, preview);
   return timedRender(() => requestHandler(request, context));
 }
 
@@ -172,9 +177,18 @@ const site = {
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
     if (isSiteApiRequest(url)) {
+      // A preview renders the page's own route in-process, never through the edge cache.
       const carrel = await carrelRequestApi(
         env,
         rootStylesheets(await serverBuild()).map((s) => s.href),
+        (path, preview) =>
+          render(
+            new Request(new URL(path, url.origin), { headers: { Accept: "text/html" } }),
+            env,
+            ctx,
+            undefined,
+            preview,
+          ),
       );
       // A preview link Carrel made (/preview/<token>, no key): the page's current source in the site's stylesheet,
       // noindex and never stored. The package's no-referrer stays (the set does not overwrite), so the token, which is
@@ -253,17 +267,49 @@ const site = {
   },
 } satisfies ExportedHandler<Env>;
 
+// The paths the gateway answers itself, named for the request log; every other path by its React Router route.
+// The matched route's pattern for withRequestLog's `route` (site-runtime ./log routeNamer), read from the server build's
+// route table, which `ready` loads inside the request (a promise left over from a finished request never settles in
+// workerd). A build that failed to load names nothing, and the next request tries again.
+let nameRoute: ((request: Request) => string | undefined) | undefined;
+const routes = {
+  ready: async (): Promise<void> => {
+    if (nameRoute) return;
+    try {
+      nameRoute = routeNamer((await serverBuild()).routes);
+    } catch {
+      // Unnamed lines for this request.
+    }
+  },
+  name: (request: Request): string | undefined => nameRoute?.(request),
+};
+function gatewayRoute(path: string): string | undefined {
+  if (path === CSP_REPORT_PATH || path === SPECULATION_RULES_PATH) return path;
+  if (path.startsWith("/preview/")) return "/preview/:token";
+  if (path.startsWith("/api/carrel/")) return "/api/carrel/*";
+  return undefined;
+}
+
 // An admin idle for an hour is signed out of Access (site-runtime ./access). Every request writes one `request` line
-// (site-runtime ./log: path, status, ms and the deployed commit), a preview link's token cut from its path.
+// (site-runtime ./log: its route, path, status, ms and the deployed commit), a preview link's token cut from its path.
 type IncomingRequest = Parameters<typeof site.fetch>[0];
 export default {
   ...site,
   fetch: withRequestLog(
-    (request: Request, env: Env, ctx: ExecutionContext) =>
-      withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), {
-        secret: env.ADMIN_IDLE_SECRET,
-      }),
-    { sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA, tokenPath: PREVIEW_TOKEN },
+    async (request: Request, env: Env, ctx: ExecutionContext) =>
+      (
+        await Promise.all([
+          withAdminIdle(request, () => site.fetch(request as IncomingRequest, env, ctx), {
+            secret: env.ADMIN_IDLE_SECRET,
+          }),
+          routes.ready(),
+        ])
+      )[0],
+    {
+      sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA,
+      tokenPath: PREVIEW_TOKEN,
+      route: (request) => gatewayRoute(new URL(request.url).pathname) ?? routes.name(request),
+    },
   ),
 } satisfies ExportedHandler<Env>;
 
