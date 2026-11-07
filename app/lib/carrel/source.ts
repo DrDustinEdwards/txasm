@@ -11,12 +11,8 @@
 //   Recognizing Faculty and Students ...
 //
 // description and the other search fields (searchTitle, image, imageAlt, canonical, noindex) are site-api's.
-import {
-  readKey,
-  searchFieldsOf,
-  splitSource,
-  type SearchValues,
-} from "@dustinedwards/site-api/frontmatter";
+import { readKey, splitSource } from "@drdustinedwards/site-helpers/frontmatter";
+import { searchFieldsOf, type SearchValues } from "@dustinedwards/site-api/frontmatter";
 
 export type PageSource = {
   title: string;
