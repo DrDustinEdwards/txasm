@@ -4,14 +4,11 @@ import { submitIndexNow } from "@drdustinedwards/site-helpers/indexnow";
 import {
   createSiteApi,
   indexNowHook,
-  insidePrefix,
-  PREVIEW_LINK_PATH,
   webmentionHook,
   type PublishHook,
 } from "@dustinedwards/site-api";
 import { d1SiteApiStore } from "@dustinedwards/site-api/store";
 import { schedulePurgeHook } from "@dustinedwards/site-runtime/edge-cache";
-import { OWASP_EVENTS, logEvent } from "@dustinedwards/site-runtime/log";
 import { INDEXNOW_KEY, SITE_ORIGIN } from "~/lib/site-meta";
 import { createCarrelAdapter } from "./adapter.server";
 
@@ -27,29 +24,6 @@ function liveChanges(hook: PublishHook): PublishHook {
   };
 }
 
-/** A request the site API or a preview link answers (or refuses): the only ones that load it. */
-export const isCarrelRequest = (url: URL) =>
-  insidePrefix(url.pathname) || url.pathname.startsWith(PREVIEW_LINK_PATH);
-
-/**
- * site-api's log lines through site-runtime's logger (scrubbed). A refused request is named in the OWASP vocabulary:
- * a missing or wrong key is `authz_fail`, a rate-limited one `excess_rate_limit_exceeded`; the reason stays a field.
- */
-function siteApiLog(entry: Record<string, unknown>): void {
-  if (entry.siteApi === "refused") {
-    const limited = entry.reason === "rate-limited";
-    const denied = entry.reason === "wrong-key" || entry.reason === "no-key";
-    const event = limited
-      ? OWASP_EVENTS.rateLimitExceeded
-      : denied
-        ? OWASP_EVENTS.authorizationFailure
-        : "site_api_refused";
-    logEvent(event, entry, { level: "warn" });
-    return;
-  }
-  logEvent(`site_api_${String(entry.siteApi ?? "log")}`, entry);
-}
-
 export function carrelApi(
   env: Env,
   options: { renderVersion?: string; stylesheets?: string[] } = {},
@@ -61,7 +35,6 @@ export function carrelApi(
     adapter: createCarrelAdapter(env, options),
     key: env.CARREL_SITE_KEY,
     limiter: env.CARREL_RATE_LIMIT,
-    log: siteApiLog,
     store,
     // A changed live page tells IndexNow and the pages it links to, under ctx.waitUntil (workers/app.ts passes ctx);
     // IndexNow sends nothing for a request from another origin (workers.dev, a preview). A schedule the cron puts live
@@ -85,6 +58,5 @@ export async function carrelRequestApi(env: Env, stylesheets: string[]) {
  * runs, and hooks that failed earlier are tried again. One that fails fails the job, and is tried next minute.
  */
 export async function runCarrelSchedules(env: Env, now: Date): Promise<void> {
-  const run = await carrelApi(env).runSchedules({ now });
-  if (run.failed > 0) throw new Error(`${run.failed} Carrel schedule(s) failed`);
+  await carrelApi(env).runSchedulesOrThrow({ now });
 }

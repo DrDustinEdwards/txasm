@@ -1,3 +1,4 @@
+import { isSiteApiRequest } from "@dustinedwards/site-api";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { createRequestHandler, RouterContextProvider, type ServerBuild } from "react-router";
 import { withAdminIdle } from "@dustinedwards/site-runtime/access";
@@ -29,7 +30,7 @@ import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "../app/load-context";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
-import { carrelRequestApi, isCarrelRequest } from "../app/lib/carrel/handler.server";
+import { carrelRequestApi } from "../app/lib/carrel/handler.server";
 import { cronJobs } from "../app/lib/cron.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
@@ -170,7 +171,7 @@ const site = {
 
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
-    if (isCarrelRequest(url)) {
+    if (isSiteApiRequest(url)) {
       const carrel = await carrelRequestApi(
         env,
         rootStylesheets(await serverBuild()).map((s) => s.href),
