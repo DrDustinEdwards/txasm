@@ -12,6 +12,7 @@ import {
 import { privateMeta } from "~/lib/site-meta";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Awards");
@@ -119,11 +120,12 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                   <input type="hidden" name="awardId" value={award.id} />
                   <button
                     type="submit"
-                    onClick={(e) => {
-                      if (!window.confirm(`Remove ${award.name} and all its recipients?`)) {
-                        e.preventDefault();
-                      }
-                    }}
+                    onClick={(e) =>
+                      confirmSubmit(e, {
+                        title: `Remove ${award.name} and all its recipients?`,
+                        action: "Remove award",
+                      })
+                    }
                     className="small strong"
                   >
                     Remove

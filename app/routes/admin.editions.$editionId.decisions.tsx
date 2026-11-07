@@ -19,6 +19,7 @@ import { RichEditor } from "~/components/rich-editor";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Decisions");
@@ -309,9 +310,9 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           <button
             type="submit"
             disabled={submitting}
-            onClick={(e) => {
-              if (!window.confirm("Clear this decision?")) e.preventDefault();
-            }}
+            onClick={(e) =>
+              confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
+            }
             className="small strong link-button"
           >
             Clear decision

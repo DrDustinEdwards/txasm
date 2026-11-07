@@ -8,6 +8,7 @@ import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~
 import { privateMeta } from "~/lib/site-meta";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Branch officers");
@@ -185,11 +186,12 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
           <input type="hidden" name="id" value={row.id} />
           <button
             type="submit"
-            onClick={(e) => {
-              if (!window.confirm(`Remove ${row.name ?? "this entry"}?`)) {
-                e.preventDefault();
-              }
-            }}
+            onClick={(e) =>
+              confirmSubmit(e, {
+                title: `Remove ${row.name ?? "this entry"}?`,
+                action: "Remove entry",
+              })
+            }
             className="small strong"
           >
             Remove

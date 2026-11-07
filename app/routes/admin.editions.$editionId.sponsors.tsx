@@ -8,6 +8,7 @@ import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access
 import { SPONSOR_TIERS } from "~/lib/vocab";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Sponsors");
@@ -181,11 +182,12 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                   <input type="hidden" name="sponsorId" value={sponsor.id} />
                   <button
                     type="submit"
-                    onClick={(e) => {
-                      if (!window.confirm(`Remove ${sponsor.name}?`)) {
-                        e.preventDefault();
-                      }
-                    }}
+                    onClick={(e) =>
+                      confirmSubmit(e, {
+                        title: `Remove ${sponsor.name}?`,
+                        action: "Remove sponsor",
+                      })
+                    }
                     className="small strong"
                   >
                     Remove

@@ -16,6 +16,7 @@ import { publishArrangedBook } from "~/lib/book-pdf.server";
 import { formatDateTime } from "~/lib/format";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Abstract book builder");
@@ -303,15 +304,13 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               )}
               <fetcher.Form
                 method="post"
-                onSubmit={(e) => {
-                  if (
-                    !confirm(
-                      "Regenerate rebuilds the arrangement from the accepted abstracts and discards manual ordering. Continue?",
-                    )
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
+                onSubmit={(e) =>
+                  confirmSubmit(e, {
+                    title: "Regenerate the book?",
+                    lead: "This rebuilds the arrangement from the accepted abstracts and discards manual ordering.",
+                    action: "Regenerate",
+                  })
+                }
               >
                 <input type="hidden" name="intent" value="generate" />
                 <button

@@ -13,6 +13,7 @@ import {
 import { privateMeta } from "~/lib/site-meta";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Manage award");
@@ -372,11 +373,12 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                     <input type="hidden" name="recipientId" value={recipient.id} />
                     <button
                       type="submit"
-                      onClick={(e) => {
-                        if (!window.confirm(`Remove ${recipient.personName}?`)) {
-                          e.preventDefault();
-                        }
-                      }}
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${recipient.personName}?`,
+                          action: "Remove recipient",
+                        })
+                      }
                       className="small strong"
                     >
                       Remove
