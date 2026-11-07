@@ -17,6 +17,7 @@ import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // An app: the review form and its rich-text comment. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -268,11 +269,12 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         <Form
           method="post"
           className="stack-3"
-          onSubmit={(e) => {
-            if (!window.confirm("Declare a conflict and remove this assignment?")) {
-              e.preventDefault();
-            }
-          }}
+          onSubmit={(e) =>
+            confirmSubmit(e, {
+              title: "Declare a conflict and remove this assignment?",
+              action: "Declare conflict",
+            })
+          }
         >
           <input type="hidden" name="intent" value="conflict" />
           <input type="hidden" name="abstractId" value={abstract.id} />

@@ -33,6 +33,7 @@ import {
   multipartParts,
   partText,
 } from "~/lib/multipart.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // File picker hint: allow every accepted type so images are selectable for the
 // brand_image category. The real gate is the per-category MIME check in the
@@ -537,11 +538,12 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     <input type="hidden" name="documentId" value={doc.id} />
                     <button
                       type="submit"
-                      onClick={(e) => {
-                        if (!window.confirm(`Remove ${doc.title}?`)) {
-                          e.preventDefault();
-                        }
-                      }}
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${doc.title}?`,
+                          action: "Remove document",
+                        })
+                      }
                       className="small strong"
                     >
                       Remove

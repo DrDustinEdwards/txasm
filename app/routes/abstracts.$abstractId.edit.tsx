@@ -41,6 +41,7 @@ import {
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -459,9 +460,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             name="intent"
             value="withdraw"
             disabled={submitting}
-            onClick={(e) => {
-              if (!window.confirm("Withdraw this abstract?")) e.preventDefault();
-            }}
+            onClick={(e) =>
+              confirmSubmit(e, { title: "Withdraw this abstract?", action: "Withdraw abstract" })
+            }
             className="small strong crit-text"
           >
             Withdraw

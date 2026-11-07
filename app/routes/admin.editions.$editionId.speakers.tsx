@@ -9,6 +9,7 @@ import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichEditor } from "~/components/rich-editor";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Invited speakers");
@@ -213,11 +214,12 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                   <input type="hidden" name="speakerId" value={speaker.id} />
                   <button
                     type="submit"
-                    onClick={(e) => {
-                      if (!window.confirm(`Remove ${speaker.name}?`)) {
-                        e.preventDefault();
-                      }
-                    }}
+                    onClick={(e) =>
+                      confirmSubmit(e, {
+                        title: `Remove ${speaker.name}?`,
+                        action: "Remove speaker",
+                      })
+                    }
                     className="small strong"
                   >
                     Remove
