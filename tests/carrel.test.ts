@@ -177,7 +177,7 @@ before(async () => {
     UPLOADS: uploads,
     IMAGES: fakeImages,
     AI: fakeAi,
-    BETTER_AUTH_URL: BASE,
+    PUBLIC_ORIGIN: BASE,
   } as unknown as Env;
   api = createSiteApi({
     adapter: createCarrelAdapter(env),
@@ -238,6 +238,16 @@ test("a draft stays off the live page, a publish puts it there, and each write i
     { event: "save", change_id: "chg_save" },
     { event: "publish", change_id: "chg_publish" },
   ]);
+  // Each revision names the person, and the oldest one still opens.
+  const revisions = (await json(await call("/api/carrel/v1/content/award-nominations/revisions")))
+    .items as Array<{ version: string; author: string }>;
+  assert.deepEqual([...new Set(revisions.map((r) => r.author))], ["Dustin Edwards"]);
+  const oldest = await json(
+    await call(
+      `/api/carrel/v1/content/award-nominations/revisions/${encodeURIComponent(revisions.at(-1)!.version)}`,
+    ),
+  );
+  assert.equal(oldest.source, source);
 
   const unpublish = await call("/api/carrel/v1/content/award-nominations/unpublish", {
     method: "POST",

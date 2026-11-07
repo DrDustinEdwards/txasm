@@ -4,10 +4,12 @@ import { renderLink } from "~/components/site-chrome";
 import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { goneResponse, renameRedirect } from "@dustinedwards/site-runtime/url";
+import { GONE } from "~/lib/site-meta";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -29,7 +31,7 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   });
 }
 
-export async function loader({ context, params }: Route.LoaderArgs) {
+export async function loader({ context, params, request }: Route.LoaderArgs) {
   const da = getDataAccess(context.get(cloudflareContext).env);
   try {
     const { award, years } = await da.awards.getBySlug(params.slug);
@@ -42,8 +44,17 @@ export async function loader({ context, params }: Route.LoaderArgs) {
       years,
     };
   } catch (error) {
+    // No award at this slug: 410 for one on GONE, a permanent redirect for a slug an award was renamed from (a chain
+    // followed to its end), else 404. The root ErrorBoundary draws the 410 and the 404.
     if (error instanceof NotFoundError) {
-      throw new Response("Award not found", { status: 404 });
+      throw (
+        goneResponse(request, GONE) ??
+        (await renameRedirect(request, {
+          prefix: "/awards/",
+          renames: (slug) => da.awards.renamedSlug(slug),
+        })) ??
+        new Response("Award not found", { status: 404 })
+      );
     }
     throw error;
   }

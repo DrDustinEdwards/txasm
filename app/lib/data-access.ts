@@ -67,7 +67,7 @@ export type { SponsorPublic, SpeakerPublic } from "./data-access/speakers-sponso
 export type { AwardRecipientView } from "./data-access/awards";
 export type { Officer, PastOfficer, PastOfficerTab } from "./data-access/officers";
 export type { FooterLink, PlatformSettings, PlatformSettingsPatch } from "./data-access/settings";
-export type { Page, PageSearch, PageWrite } from "./data-access/pages";
+export type { Page, PageSearch, PageWrite, PublishedPage } from "./data-access/pages";
 export type { MediaRow } from "./data-access/media";
 
 // The controlled-vocabulary types live in ./vocab (client-safe, one source).

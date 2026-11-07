@@ -2,7 +2,7 @@ import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { prepareUpload, RefusedError } from "@dustinedwards/site-api";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.documents";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
   AlreadyExistsError,
@@ -25,13 +25,15 @@ import {
   type DocumentCategory,
 } from "~/lib/vocab";
 import { privateMeta } from "~/lib/site-meta";
-import { parseYear, readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
   type MultipartPart,
   multipartBoundary,
   multipartParts,
   partText,
 } from "~/lib/multipart.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // File picker hint: allow every accepted type so images are selectable for the
 // brand_image category. The real gate is the per-category MIME check in the
@@ -288,7 +290,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     const boundary = multipartBoundary(request.headers.get("Content-Type"));
     if (boundary) return await createDocument(request, boundary, env, da, actor);
 
-    const form = await readForm(request);
+    const form = await readForm(request, FORM_LIMIT);
     const intent = String(form.get("intent") ?? "");
     if (intent === "remove") {
       const id = String(form.get("documentId") ?? "");
@@ -536,11 +538,12 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     <input type="hidden" name="documentId" value={doc.id} />
                     <button
                       type="submit"
-                      onClick={(e) => {
-                        if (!window.confirm(`Remove ${doc.title}?`)) {
-                          e.preventDefault();
-                        }
-                      }}
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${doc.title}?`,
+                          action: "Remove document",
+                        })
+                      }
                       className="small strong"
                     >
                       Remove

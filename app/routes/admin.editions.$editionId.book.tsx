@@ -3,7 +3,7 @@ import { Form, useFetcher } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.book";
 import { privateMeta } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import {
   ValidationError,
@@ -14,7 +14,9 @@ import {
 } from "~/lib/data-access";
 import { publishArrangedBook } from "~/lib/book-pdf.server";
 import { formatDateTime } from "~/lib/format";
-import { readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Abstract book builder");
@@ -38,7 +40,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
   const editionId = params.editionId;
-  const form = await readForm(request);
+  const form = await readForm(request, FORM_LIMIT);
   const intent = String(form.get("intent") ?? "");
 
   try {
@@ -302,15 +304,13 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               )}
               <fetcher.Form
                 method="post"
-                onSubmit={(e) => {
-                  if (
-                    !confirm(
-                      "Regenerate rebuilds the arrangement from the accepted abstracts and discards manual ordering. Continue?",
-                    )
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
+                onSubmit={(e) =>
+                  confirmSubmit(e, {
+                    title: "Regenerate the book?",
+                    lead: "This rebuilds the arrangement from the accepted abstracts and discards manual ordering.",
+                    action: "Regenerate",
+                  })
+                }
               >
                 <input type="hidden" name="intent" value="generate" />
                 <button

@@ -4,7 +4,7 @@
 import { aiTxtResponse } from "@drdustinedwards/site-helpers/robots";
 import { getDataAccess } from "~/lib/data-access";
 import { ROBOTS_DISALLOW, SITE_ORIGIN } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import type { Route } from "./+types/ai-txt";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

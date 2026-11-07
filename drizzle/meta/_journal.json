@@ -239,6 +239,13 @@
       "when": 1793925738316,
       "tag": "0033_site_api_store_v0_22",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1794040792132,
+      "tag": "0034_award_slug_redirect",
+      "breakpoints": true
     }
   ]
 }
