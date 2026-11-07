@@ -14,6 +14,8 @@ interface TxasmSecrets {
   ADMIN_EMAILS?: string;
   // Carrel's site API key (app/lib/carrel/handler.server.ts). Unset: the API refuses every call.
   CARREL_SITE_KEY?: string;
+  // The bearer for the operator API (/api/operator, site-runtime ./operator): Capsid Admin's backups and run_job. The same value is Capsid's TXASM_OPERATOR_TOKEN. Unset, the route answers 503.
+  OPERATOR_TOKEN?: string;
   // Keys site-runtime's admin idle cookie (withAdminIdle `secret`). Minted by the deploy (devkit worker-deploy `generated-secrets`), never shown; unset, the admin paths fail (site-runtime 0.82 requires it).
   ADMIN_IDLE_SECRET: string;
   // Cloudflare Turnstile on the sign-in link (app/lib/auth.server.ts). The check is on only

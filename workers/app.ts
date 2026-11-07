@@ -15,6 +15,7 @@ import {
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
 import { maintenanceOn, maintenanceResponse } from "@dustinedwards/site-runtime/maintenance";
+import { operatorResponse } from "@dustinedwards/site-runtime/operator";
 import { logEvent, routeNamer, withRequestLog } from "@dustinedwards/site-runtime/log";
 import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
@@ -33,7 +34,8 @@ import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-header
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
 import type { PublishedPage } from "../app/lib/data-access";
 import { pagePreviewContext } from "../app/lib/preview-context";
-import { cronJobs } from "../app/lib/cron.server";
+import { allCronJobs, cronJobs } from "../app/lib/cron.server";
+import { operatorTools } from "../app/lib/operator.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
 
@@ -173,6 +175,14 @@ const site = {
         request,
       );
     }
+
+    // The operator API (site-runtime ./operator): Capsid Admin's backups and run_job, behind the OPERATOR_TOKEN bearer.
+    if (url.pathname === "/api/operator")
+      return operatorResponse(request, {
+        token: env.OPERATOR_TOKEN,
+        limiter: env.RATE_LIMITER,
+        tools: operatorTools(env, () => allCronJobs(env)),
+      });
 
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
