@@ -15,7 +15,7 @@ import {
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
 import { maintenanceOn, maintenanceResponse } from "@dustinedwards/site-runtime/maintenance";
-import { logEvent, withRequestLog } from "@dustinedwards/site-runtime/log";
+import { logEvent, routeNamer, withRequestLog } from "@dustinedwards/site-runtime/log";
 import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
 import { refuseCrossSite } from "@dustinedwards/site-runtime/origin";
@@ -28,7 +28,6 @@ import {
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "@dustinedwards/site-runtime/context";
-import { routeNamer } from "./route-name";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
@@ -269,7 +268,21 @@ const site = {
 } satisfies ExportedHandler<Env>;
 
 // The paths the gateway answers itself, named for the request log; every other path by its React Router route.
-const routes = routeNamer(serverBuild);
+// The matched route's pattern for withRequestLog's `route` (site-runtime ./log routeNamer), read from the server build's
+// route table, which `ready` loads inside the request (a promise left over from a finished request never settles in
+// workerd). A build that failed to load names nothing, and the next request tries again.
+let nameRoute: ((request: Request) => string | undefined) | undefined;
+const routes = {
+  ready: async (): Promise<void> => {
+    if (nameRoute) return;
+    try {
+      nameRoute = routeNamer((await serverBuild()).routes);
+    } catch {
+      // Unnamed lines for this request.
+    }
+  },
+  name: (request: Request): string | undefined => nameRoute?.(request),
+};
 function gatewayRoute(path: string): string | undefined {
   if (path === CSP_REPORT_PATH || path === SPECULATION_RULES_PATH) return path;
   if (path.startsWith("/preview/")) return "/preview/:token";
