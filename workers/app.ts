@@ -32,6 +32,8 @@ import { routeNamer } from "./route-name";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
+import type { PublishedPage } from "../app/lib/data-access";
+import { pagePreviewContext } from "../app/lib/preview-context";
 import { cronJobs } from "../app/lib/cron.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
@@ -62,16 +64,19 @@ const isWrite = (request: Request) => request.method !== "GET" && request.method
 
 // Runs the React Router handler with the Cloudflare env and execution context, so loaders and actions reach
 // bindings through context.get(cloudflareContext), never ambiently. `nonce` goes to the render (app/entry.server.tsx);
-// without one, the page is rendered for the edge cache. Its time goes in Server-Timing.
+// without one, the page is rendered for the edge cache. Its time goes in Server-Timing. `preview` is Carrel's preview
+// of a site page, which that page's route shows in place of the published row.
 async function render(
   request: Request,
   env: Env,
   ctx: ExecutionContext,
   nonce: string | undefined,
+  preview?: { slug: string; page: PublishedPage },
 ) {
   const context = new RouterContextProvider();
   context.set(cloudflareContext, { env, ctx });
   context.set(cspNonceContext, nonce ?? null);
+  context.set(pagePreviewContext, preview);
   return timedRender(() => requestHandler(request, context));
 }
 
@@ -173,9 +178,18 @@ const site = {
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers
     // everything under /api/carrel/v1; nothing else is served by it. A write it accepts (a page, a picture) purges.
     if (isSiteApiRequest(url)) {
+      // A preview renders the page's own route in-process, never through the edge cache.
       const carrel = await carrelRequestApi(
         env,
         rootStylesheets(await serverBuild()).map((s) => s.href),
+        (path, preview) =>
+          render(
+            new Request(new URL(path, url.origin), { headers: { Accept: "text/html" } }),
+            env,
+            ctx,
+            undefined,
+            preview,
+          ),
       );
       // A preview link Carrel made (/preview/<token>, no key): the page's current source in the site's stylesheet,
       // noindex and never stored. The package's no-referrer stays (the set does not overwrite), so the token, which is
