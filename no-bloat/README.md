@@ -1,6 +1,6 @@
 # Routine no-bloat checks (warn only)
 
-Three checks run on every pull request in `.github/workflows/no-bloat.yml`. **They report and never block a merge**: defaults, not laws. Removal happens in the cleanup phases, not here.
+Three checks run on every pull request: Knip and jscpd in `checks / Repo checks` (`.github/workflows/checks.yml`, devkit's pr.yml with `no-bloat-warn-only`), where **they report and never block a merge** (defaults, not laws), and route weight in `.github/workflows/route-weight.yml`, a gate against `.route-weight.json`. Removal happens in the cleanup phases, not here.
 
 | Check                               | Tool                                      | Command                                    | Reads                                |
 | ----------------------------------- | ----------------------------------------- | ------------------------------------------ | ------------------------------------ |
