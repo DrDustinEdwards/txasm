@@ -27,7 +27,7 @@ import {
 } from "@dustinedwards/site-runtime/prefetch";
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
-import { cloudflareContext, cspNonceContext } from "../app/load-context";
+import { cloudflareContext, cspNonceContext } from "@dustinedwards/site-runtime/context";
 import { SECURITY_HEADERS } from "../app/lib/header-set";
 import { CSP_REPORT_PATH, withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
@@ -70,7 +70,7 @@ async function render(
 ) {
   const context = new RouterContextProvider();
   context.set(cloudflareContext, { env, ctx });
-  context.set(cspNonceContext, nonce);
+  context.set(cspNonceContext, nonce ?? null);
   return timedRender(() => requestHandler(request, context));
 }
 

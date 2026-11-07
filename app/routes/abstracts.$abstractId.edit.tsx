@@ -3,7 +3,7 @@ import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { privateMeta } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
   type AffiliationInput,
@@ -39,7 +39,9 @@ import {
   emptyAuthor,
 } from "~/components/abstract-authors";
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
-import { readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -120,7 +122,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const actor = await getActor(env, user);
   const da = getDataAccess(env);
-  const form = await readForm(request);
+  const form = await readForm(request, FORM_LIMIT);
   const intent = String(form.get("intent") ?? "save");
 
   try {
@@ -458,9 +460,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             name="intent"
             value="withdraw"
             disabled={submitting}
-            onClick={(e) => {
-              if (!window.confirm("Withdraw this abstract?")) e.preventDefault();
-            }}
+            onClick={(e) =>
+              confirmSubmit(e, { title: "Withdraw this abstract?", action: "Withdraw abstract" })
+            }
             className="small strong crit-text"
           >
             Withdraw

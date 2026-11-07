@@ -3,7 +3,7 @@ import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
 import { privateMeta } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
   DeadlinePassedError,
@@ -15,7 +15,9 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { RichEditor } from "~/components/rich-editor";
-import { readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { FORM_LIMIT } from "~/lib/form.server";
+import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // An app: the review form and its rich-text comment. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -49,7 +51,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const actor = await getActor(env, user);
   const da = getDataAccess(env);
-  const form = await readForm(request);
+  const form = await readForm(request, FORM_LIMIT);
   const intent = String(form.get("intent") ?? "submit");
 
   try {
@@ -267,11 +269,12 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         <Form
           method="post"
           className="stack-3"
-          onSubmit={(e) => {
-            if (!window.confirm("Declare a conflict and remove this assignment?")) {
-              e.preventDefault();
-            }
-          }}
+          onSubmit={(e) =>
+            confirmSubmit(e, {
+              title: "Declare a conflict and remove this assignment?",
+              action: "Declare conflict",
+            })
+          }
         >
           <input type="hidden" name="intent" value="conflict" />
           <input type="hidden" name="abstractId" value={abstract.id} />

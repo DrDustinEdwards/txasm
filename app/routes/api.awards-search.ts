@@ -1,5 +1,5 @@
 import type { Route } from "./+types/api.awards-search";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 
 // Public JSON search endpoint over award recipients. Every value is passed to the
