@@ -13,6 +13,7 @@ import {
   withPurgePages,
 } from "@dustinedwards/site-runtime/edge-cache";
 import { runJobs } from "@dustinedwards/site-runtime/cron";
+import { maintenanceOn, maintenanceResponse } from "@dustinedwards/site-runtime/maintenance";
 import { logEvent, withRequestLog } from "@dustinedwards/site-runtime/log";
 import { countNotFound } from "@dustinedwards/site-runtime/not-found";
 import { generateNonce, renewNonce } from "@dustinedwards/site-runtime/csp";
@@ -140,6 +141,10 @@ const site = {
         redirect,
         new Request(redirect.headers.get("Location") ?? request.url),
       );
+
+    // The maintenance page (site-runtime ./maintenance): every path but /health answers 503 while the MAINTENANCE var is on.
+    if (maintenanceOn(env) && url.pathname !== "/health")
+      return withSecurityHeaders(maintenanceResponse({ siteName: "Texas Branch ASM" }), request);
 
     // CSP violation reports: site-runtime's receiver logs each one as a trimmed JSON
     // line (origin and path only, no address or user agent) and stores nothing. Per

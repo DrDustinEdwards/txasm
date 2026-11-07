@@ -5,6 +5,8 @@
 // the auth helpers read stays assignable to the Env those functions expect.
 // Resend and Cloudflare Email Service vars are deferred and intentionally absent.
 interface TxasmSecrets {
+  /** "1" or "true" puts the site in maintenance: every path but /health answers the 503 page (site-runtime ./maintenance). Set in the dashboard. */
+  MAINTENANCE?: string;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   ADMIN_EMAIL: string;
