@@ -3,7 +3,7 @@
 import { llmsResponse } from "@drdustinedwards/site-helpers/llms";
 import { getDataAccess } from "~/lib/data-access";
 import { FEED_PATH, SITE_ORIGIN } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import type { Route } from "./+types/llms";
 
 const HUBS = [

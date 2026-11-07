@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.settings";
 import { privateMeta } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
   ValidationError,
@@ -10,7 +10,8 @@ import {
   type FooterLink,
   type PlatformSettingsPatch,
 } from "~/lib/data-access";
-import { parseYear, readForm } from "~/lib/form.server";
+import { readForm } from "@dustinedwards/site-runtime/body";
+import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Platform settings");
@@ -50,7 +51,7 @@ function parseFooterLinks(value: FormDataEntryValue | null): FooterLink[] {
 export async function action({ request, context }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const { env } = context.get(cloudflareContext);
-  const form = await readForm(request);
+  const form = await readForm(request, FORM_LIMIT);
 
   try {
     const patch: PlatformSettingsPatch = {

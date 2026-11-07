@@ -1,5 +1,5 @@
 import type { Route } from "./+types/documents.$slug.inline";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { serveDocument } from "~/lib/serve-document.server";
 
 // Streams a document's PDF inline (Content-Disposition inline) so the shared

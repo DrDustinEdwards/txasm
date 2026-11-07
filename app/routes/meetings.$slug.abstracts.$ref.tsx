@@ -1,7 +1,7 @@
 import { htmlToText } from "@drdustinedwards/site-helpers/text";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { joinParts } from "~/lib/format";
 import { ABSTRACT_FORMAT_LABELS, ABSTRACT_LEVEL_LABELS, SEASON_LABELS } from "~/lib/vocab";
