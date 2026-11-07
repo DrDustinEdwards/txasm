@@ -70,7 +70,7 @@ async function render(
 ) {
   const context = new RouterContextProvider();
   context.set(cloudflareContext, { env, ctx });
-  context.set(cspNonceContext, nonce);
+  context.set(cspNonceContext, nonce ?? null);
   return timedRender(() => requestHandler(request, context));
 }
 
