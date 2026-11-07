@@ -4,7 +4,7 @@ import { rssDocument } from "@drdustinedwards/site-helpers/feeds";
 import { getDataAccess } from "~/lib/data-access";
 import { CATEGORY_PATHS, documentSubtitle } from "~/lib/document-nav";
 import { FEED_PATH, SITE_ORIGIN } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import type { Route } from "./+types/rss";
 
 const FEED_CATEGORIES = ["newsletter", "abstract_book", "program"] as const;

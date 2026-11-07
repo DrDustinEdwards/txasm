@@ -1,5 +1,5 @@
 import type { Route } from "./+types/api.auth.$";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth } from "~/lib/auth.server";
 
 // Better Auth owns every method under /api/auth/*. Both reads (session, magic

@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/signout";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth } from "~/lib/auth.server";
 
 // A stray GET (or a click without JS landing here) just goes home.

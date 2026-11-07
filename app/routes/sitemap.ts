@@ -5,7 +5,7 @@ import { sitemapDocument } from "@drdustinedwards/site-helpers/sitemap";
 import { getDataAccess } from "~/lib/data-access";
 import { CATEGORY_PATHS } from "~/lib/document-nav";
 import { SITE_ORIGIN } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import type { Route } from "./+types/sitemap";
 
 const STATIC_PATHS = [

@@ -1,7 +1,7 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin";
 import { privateMeta } from "~/lib/site-meta";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
 

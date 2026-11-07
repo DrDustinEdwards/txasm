@@ -4,7 +4,7 @@ import { renderLink } from "~/components/site-chrome";
 import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
-import { cloudflareContext } from "~/load-context";
+import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";

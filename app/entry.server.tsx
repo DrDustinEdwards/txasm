@@ -2,7 +2,7 @@ import type { EntryContext, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
-import { cspNonceContext } from "./load-context";
+import { cspNonceContext } from "@dustinedwards/site-runtime/context";
 
 export default async function handleRequest(
   request: Request,
