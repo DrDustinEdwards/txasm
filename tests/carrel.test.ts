@@ -135,14 +135,27 @@ const fakeImages = {
   },
 };
 
-const fakeAi = {
-  run: async () => ({
-    response: {
-      alt: "A poster session in a hotel ballroom.",
-      tags: ["Posters", "ballroom", "ballroom"],
-    },
-  }),
-};
+// Anthropic's answer, as structured outputs return it: one JSON text block (site-api 0.32 calls Claude straight at Anthropic).
+const anthropic = async () =>
+  new Response(
+    JSON.stringify({
+      id: "msg_1",
+      type: "message",
+      role: "assistant",
+      stop_reason: "end_turn",
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            alt: "A poster session in a hotel ballroom.",
+            tags: ["Posters", "ballroom", "ballroom"],
+          }),
+        },
+      ],
+      usage: { input_tokens: 10, output_tokens: 20 },
+    }),
+    { headers: { "content-type": "application/json" } },
+  );
 
 async function upload(bytes: Uint8Array, name: string, extra: Record<string, string> = {}) {
   // site-api 0.19+ refuses an upload with neither alt nor decorative: no alt is the decorative choice.
@@ -163,6 +176,7 @@ const objectBytes = async (key: string) =>
   new Uint8Array(await (await uploads.get(key))!.arrayBuffer());
 
 before(async () => {
+  globalThis.fetch = anthropic as unknown as typeof fetch;
   mf = new Miniflare({
     modules: true,
     script: "export default { fetch() { return new Response('ok') } }",
@@ -176,7 +190,7 @@ before(async () => {
     DB: db,
     UPLOADS: uploads,
     IMAGES: fakeImages,
-    AI: fakeAi,
+    ANTHROPIC_API_KEY: "sk-ant-test",
     PUBLIC_ORIGIN: BASE,
   } as unknown as Env;
   api = createSiteApi({
