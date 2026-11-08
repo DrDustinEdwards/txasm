@@ -13,7 +13,6 @@
 // `sha` is the deployed commit, which CI's deploy passes as DEPLOY_SHA (devkit's worker-deploy.yml; a manual deploy has
 // none). No table names, counts or keys.
 import {
-  aiCheck,
   authSpikeCheck,
   durableObjectCheck,
   healthResponse,
@@ -36,7 +35,6 @@ export function loader({ context }: Route.LoaderArgs) {
       { ...r2Check("uploads", env.UPLOADS), level: "warn" },
       { ...r2Check("books", env.BOOKS), level: "warn" },
       imagesCheck("images", env.IMAGES),
-      aiCheck("ai", env.AI),
       durableObjectCheck("rate-limiter", env.RATE_LIMITER),
       {
         name: "browser",

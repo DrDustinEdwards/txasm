@@ -15,6 +15,8 @@ interface TxasmSecrets {
   CO_OWNER_EMAILS?: string;
   // Carrel's site API key (app/lib/carrel/handler.server.ts). Unset: the API refuses every call.
   CARREL_SITE_KEY?: string;
+  // The Anthropic key for the library's suggested tags and alt text (Claude Haiku 5.5, straight at Anthropic). Unset: no suggestions.
+  ANTHROPIC_API_KEY?: string;
   // The bearer for the operator API (/api/operator, site-runtime ./operator): Capsid Admin's backups and run_job. The same value is Capsid's TXASM_OPERATOR_TOKEN. Unset, the route answers 503.
   OPERATOR_TOKEN?: string;
   // Keys site-runtime's admin idle cookie (withAdminIdle `secret`). Minted by the deploy (devkit worker-deploy `generated-secrets`), never shown; unset, the admin paths fail (site-runtime 0.82 requires it).

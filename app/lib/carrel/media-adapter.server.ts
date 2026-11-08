@@ -80,13 +80,6 @@ export function createCarrelMediaAdapter(env: Env): MediaAdapter {
     afterBytes: async (key) => {
       await rerenderUsing(env, key);
     },
-    suggest: (picture) =>
-      suggestFor(
-        {
-          ...env,
-          AI_GATEWAY_BASE_URL: (env as { AI_GATEWAY_BASE_URL?: string }).AI_GATEWAY_BASE_URL,
-        },
-        picture,
-      ),
+    suggest: (picture) => suggestFor(env, picture),
   });
 }
