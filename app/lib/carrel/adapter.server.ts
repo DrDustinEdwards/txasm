@@ -306,14 +306,28 @@ export function createCarrelAdapter(
       ),
 
     async revisions(id) {
-      if (!(await pages.get(id))) return null;
-      return (await pages.revisions(id)).map((r) => ({
+      const page = await pages.get(id);
+      if (!page) return null;
+      const kept = (await pages.revisions(id)).map((r) => ({
         version: r.version,
         at: r.createdAt.toISOString(),
         // The person behind Carrel's writes, until site-api names the actor of each change.
         author: "Dustin Edwards",
         message: `${REVISION_MESSAGES[r.event]} (${r.changeId})`,
       }));
+      // The page as it stands is always the newest revision. A page nobody has saved through Carrel yet has no
+      // revision rows, and a scheduled update moves the version without one.
+      const current = await versionOf(page, waitingOf(await pages.scheduled(id)));
+      if (kept[0]?.version === current) return kept;
+      return [
+        {
+          version: current,
+          at: page.updatedAt.toISOString(),
+          author: "Dustin Edwards",
+          message: "The page as it stands now",
+        },
+        ...kept,
+      ];
     },
 
     async revisionSource(id, version) {
