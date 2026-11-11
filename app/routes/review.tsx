@@ -1,16 +1,18 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Review");
+  return privateMeta(pageTitle(matches, "Review"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -57,7 +59,7 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
                 <tr key={assignment.assignmentId}>
                   <td>
                     {assignment.title ? (
-                      <span dangerouslySetInnerHTML={{ __html: assignment.title }} />
+                      <span dangerouslySetInnerHTML={markup(assignment.title)} />
                     ) : (
                       <span className="cap-muted">Untitled</span>
                     )}

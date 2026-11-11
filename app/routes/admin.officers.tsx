@@ -5,13 +5,14 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
 import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Branch officers");
+  return privateMeta(pageTitle(matches, "Branch officers"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

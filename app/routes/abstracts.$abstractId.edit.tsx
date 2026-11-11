@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
@@ -42,12 +43,13 @@ import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Edit abstract");
+  return privateMeta(pageTitle(matches, "Edit abstract"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -292,7 +294,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       <div className="form-page stack-6">
         <h1 className="page-title">
           {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+            <span dangerouslySetInnerHTML={markup(abstract.title)} />
           ) : (
             "Untitled abstract"
           )}

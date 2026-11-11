@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
@@ -18,12 +19,13 @@ import { RichEditor } from "~/components/rich-editor";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // An app: the review form and its rich-text comment. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Review abstract");
+  return privateMeta(pageTitle(matches, "Review abstract"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -123,7 +125,7 @@ function AbstractSections({
       {filled.map(([label, html]) => (
         <section key={label} className="stack-1">
           <h3 className="small strong">{label}</h3>
-          <div className="small" dangerouslySetInnerHTML={{ __html: html }} />
+          <div className="small" dangerouslySetInnerHTML={markup(html)} />
         </section>
       ))}
     </div>
@@ -153,7 +155,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
       <div className="stack-1">
         <h1 className="page-title">
           {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+            <span dangerouslySetInnerHTML={markup(abstract.title)} />
           ) : (
             "Untitled abstract"
           )}
@@ -246,10 +248,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
               {review.overallComment ? (
                 <div className="stack-1">
                   <h3 className="small strong">Overall comment</h3>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{ __html: review.overallComment }}
-                  />
+                  <div className="small" dangerouslySetInnerHTML={markup(review.overallComment)} />
                 </div>
               ) : null}
             </section>

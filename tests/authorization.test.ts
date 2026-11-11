@@ -2,6 +2,7 @@ import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
 import {
+  AlreadyExistsError,
   ConflictOfInterestError,
   ForbiddenError,
   ValidationError,
@@ -158,6 +159,27 @@ test("a meeting's lists hold all of its abstracts and none of another's", async 
   await assert.rejects(dataAccess.abstracts.listForEdition(chairOfA, "ed-b"), ForbiddenError);
 });
 
+test("an author's decisions come back in one read, theirs only", async () => {
+  await d1
+    .prepare(
+      "INSERT INTO decision (id, edition_id, abstract_id, outcome, presentation_type, decided_by_id, decided_at, created_at, updated_at) VALUES ('d-a-1', 'ed-a', 'a-1', 'accept', 'poster', 'u-chair', 1, 1, 1)",
+    )
+    .run();
+  try {
+    const mine = await dataAccess.decisions.listForMine(author);
+    assert.deepEqual([...mine.keys()], ["a-1"]);
+    assert.equal(mine.get("a-1")?.outcome, "accept");
+    assert.deepEqual(
+      await dataAccess.decisions.getForAbstract(author, "a-1"),
+      mine.get("a-1"),
+      "the same fields getForAbstract gives",
+    );
+    assert.equal((await dataAccess.decisions.listForMine(stranger)).size, 0);
+  } finally {
+    await d1.prepare("DELETE FROM decision WHERE id = 'd-a-1'").run();
+  }
+});
+
 // Saving an abstract's authors replaces them, its affiliations and their links together: one bad field refuses the
 // save before anything is deleted, so the abstract keeps the lists it had.
 test("an abstract's authors and affiliations are replaced together or not at all", async () => {
@@ -311,4 +333,25 @@ test("award search matches %, _ and backslash as typed, in the term and the inst
   assert.deepEqual(await ids("50%"), ["ar-1"]);
   assert.deepEqual(await ids("", "Sample_Lab"), ["ar-1"]);
   assert.deepEqual(await ids("50"), ["ar-1", "ar-2"]);
+});
+
+// Two chairs adding the same abstract at once: the check alone lets both through, the unique index on
+// program_item.abstract_id lets exactly one row land.
+test("an abstract can be placed in the program only once, even when added concurrently", async () => {
+  await d1
+    .prepare(
+      "INSERT INTO program_session (id, edition_id, title, sort_order, created_at, updated_at) VALUES ('s-1', 'ed-a', 'Sample session', 0, 1, 1), ('s-2', 'ed-a', 'Other session', 1, 1, 1)",
+    )
+    .run();
+  const results = await Promise.allSettled([
+    dataAccess.programItems.addAbstract(chairOfA, { sessionId: "s-1", abstractId: "a-1" }),
+    dataAccess.programItems.addAbstract(chairOfA, { sessionId: "s-2", abstractId: "a-1" }),
+  ]);
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  const lost = results.find((r) => r.status === "rejected");
+  assert.ok(lost && lost.status === "rejected" && lost.reason instanceof AlreadyExistsError);
+  const rows = await d1
+    .prepare("SELECT COUNT(*) AS n FROM program_item WHERE abstract_id = 'a-1'")
+    .first<{ n: number }>();
+  assert.equal(rows?.n, 1);
 });

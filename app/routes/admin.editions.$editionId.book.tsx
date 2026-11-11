@@ -2,7 +2,8 @@ import { type DragEvent, useEffect, useRef, useState } from "react";
 import { Form, useFetcher } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.book";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -17,9 +18,10 @@ import { formatDateTime } from "~/lib/format";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Abstract book builder");
+  return privateMeta(pageTitle(matches, "Abstract book builder"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -367,7 +369,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                           <span
                             className="strong"
                             // Title is stored sanitized (em/sup/sub only).
-                            dangerouslySetInnerHTML={{ __html: entry.title }}
+                            dangerouslySetInnerHTML={markup(entry.title)}
                           />
                           <span className="tiny cap-muted block">
                             {entry.presentingAuthorName ?? "No presenter"}

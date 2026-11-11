@@ -1,6 +1,7 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/my.abstracts";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
@@ -11,12 +12,13 @@ import {
   type DecisionOutcome,
   type PresentationType,
 } from "~/lib/vocab";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // A signed-in author's page, the way into submission and editing. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "My abstracts");
+  return privateMeta(pageTitle(matches, "My abstracts"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -24,16 +26,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const actor = await getActor(env, user);
   const da = getDataAccess(env);
-  const abstracts = await da.abstracts.listMineAll(actor);
-  // Read each decision through getForAbstract so the author-visibility rule is
-  // enforced in the data layer, not the UI. These are the actor's own abstracts.
-  const withDecision = await Promise.all(
-    abstracts.map(async (abstract) => ({
+  // Two queries for any number of abstracts; the data layer limits both to the actor's own.
+  const [abstracts, decisions] = await Promise.all([
+    da.abstracts.listMineAll(actor),
+    da.decisions.listForMine(actor),
+  ]);
+  return {
+    abstracts: abstracts.map((abstract) => ({
       ...abstract,
-      decision: await da.decisions.getForAbstract(actor, abstract.id),
+      decision: decisions.get(abstract.id) ?? null,
     })),
-  );
-  return { abstracts: withDecision };
+  };
 }
 
 export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
@@ -66,7 +69,7 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                 <tr key={abstract.id}>
                   <td>
                     {abstract.title ? (
-                      <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                      <span dangerouslySetInnerHTML={markup(abstract.title)} />
                     ) : (
                       <span className="cap-muted">Untitled</span>
                     )}
