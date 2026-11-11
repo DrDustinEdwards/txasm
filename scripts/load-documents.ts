@@ -1,13 +1,11 @@
-// Back-catalog document loader. Reads PDFs from a local folder (the Downloads
-// folder by default), parses the season and year from each filename, uploads the
+// Back-catalog document loader. Reads PDFs from the local folder named by --dir, parses the season and year from each filename, uploads the
 // file to R2, and records it through the data-access layer as an uploaded,
 // published document. Built for the eight branch newsletters first, but the
 // category is a flag so abstract books and programs can be loaded the same way
 // later.
 //
 // Run (LOCAL D1 and R2 only, the default):
-//   npm run load:documents
-//   npm run load:documents -- --dir "C:\\Users\\email\\Downloads" --category newsletter
+//   npm run load:documents -- --dir <folder of PDFs> --category newsletter
 //
 // Idempotent per slug: an existing document with the same slug is removed (and
 // its R2 object deleted) before the file is loaded again, so a re-run converges.
@@ -35,8 +33,6 @@ import {
   type DocumentCategory,
   type Season,
 } from "../app/lib/vocab";
-
-const DEFAULT_DIR = "C:\\Users\\email\\Downloads";
 
 // Per-category filename shape and the slug/title suffix used for the archive.
 const CATEGORY_META: Record<
@@ -82,7 +78,11 @@ async function main() {
 
   const dirArg = args.find((_, i) => args[i - 1] === "--dir");
   const categoryArg = args.find((_, i) => args[i - 1] === "--category");
-  const dir = resolve(dirArg ?? DEFAULT_DIR);
+  if (!dirArg) {
+    console.error("Name the folder of PDFs: npm run load:documents -- --dir <folder>");
+    exit(1);
+  }
+  const dir = resolve(dirArg);
   const category = (categoryArg ?? "newsletter") as DocumentCategory;
   if (!DOCUMENT_CATEGORIES.includes(category)) {
     console.error(`Unknown category "${category}".`);

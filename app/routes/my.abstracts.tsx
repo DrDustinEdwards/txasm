@@ -24,16 +24,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const actor = await getActor(env, user);
   const da = getDataAccess(env);
-  const abstracts = await da.abstracts.listMineAll(actor);
-  // Read each decision through getForAbstract so the author-visibility rule is
-  // enforced in the data layer, not the UI. These are the actor's own abstracts.
-  const withDecision = await Promise.all(
-    abstracts.map(async (abstract) => ({
+  // Two queries for any number of abstracts; the data layer limits both to the actor's own.
+  const [abstracts, decisions] = await Promise.all([
+    da.abstracts.listMineAll(actor),
+    da.decisions.listForMine(actor),
+  ]);
+  return {
+    abstracts: abstracts.map((abstract) => ({
       ...abstract,
-      decision: await da.decisions.getForAbstract(actor, abstract.id),
+      decision: decisions.get(abstract.id) ?? null,
     })),
-  );
-  return { abstracts: withDecision };
+  };
 }
 
 export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
