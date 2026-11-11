@@ -50,6 +50,9 @@ export function SessionItems({
   return (
     <SortableList
       aria-label={`Items in ${session.title}`}
+      className="sort-rows"
+      steps="labeled"
+      grip={false}
       items={items}
       getId={(item) => item.id}
       getLabel={itemLabel}

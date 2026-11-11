@@ -281,6 +281,10 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           ) : (
             <SortableBoard
               aria-label="Abstract book sections"
+              className="sort-book"
+              steps="bordered"
+              grip={false}
+              itemClassName={(entry) => (entry.included ? undefined : "book-excluded")}
               lanes={book.sections.map((section) => ({
                 id: section.sectionId,
                 label: section.title,
@@ -295,8 +299,21 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               empty="Empty. Drag an abstract here."
               onMove={submitReorder}
               renderLaneHead={(lane) => <h2 className="subsection-title">{lane.label}</h2>}
+              renderControls={(entry) =>
+                editable ? (
+                  <label className="cap-cluster tiny" data-gap="2">
+                    <input
+                      type="checkbox"
+                      checked={entry.included}
+                      disabled={busy}
+                      onChange={(e) => toggleIncluded(entry.entryId, e.target.checked)}
+                    />
+                    In
+                  </label>
+                ) : null
+              }
               renderItem={(entry) => (
-                <span className="book-entry" data-excluded={entry.included ? undefined : ""}>
+                <span className="book-entry">
                   <span className="tiny cap-muted cap-num time-col">{entry.code ?? "-"}</span>
                   <span className="grow">
                     {/* Title is stored sanitized (em/sup/sub only). */}
@@ -307,17 +324,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                       {entry.formatLabel ? ` . ${entry.formatLabel}` : ""}
                     </span>
                   </span>
-                  {editable ? (
-                    <label className="cap-cluster tiny" data-gap="2">
-                      <input
-                        type="checkbox"
-                        checked={entry.included}
-                        disabled={busy}
-                        onChange={(e) => toggleIncluded(entry.entryId, e.target.checked)}
-                      />
-                      In
-                    </label>
-                  ) : (
+                  {editable ? null : (
                     <span className="tiny cap-muted">{entry.included ? "" : "Excluded"}</span>
                   )}
                 </span>

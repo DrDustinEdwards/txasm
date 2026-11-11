@@ -387,7 +387,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                     </button>
                   </Form>
                 </div>
-                <Disclosure summary="Edit recipient" variant="card" size="sm">
+                <Disclosure summary="Edit recipient" variant="card" size="sm" marker="triangle">
                   <Form method="post" className="cap-stack" data-gap="4" noValidate>
                     <input type="hidden" name="intent" value="recipient-update" />
                     <input type="hidden" name="recipientId" value={recipient.id} />

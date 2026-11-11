@@ -90,6 +90,9 @@ export function AffiliationsFieldset({
       <SortableList
         aria-label="Affiliations"
         layout="stack"
+        className="sort-plain"
+        steps="labeled"
+        grip={false}
         items={rows.items}
         getId={rows.getId}
         getLabel={(row) => row.value.institution.trim() || `Affiliation ${row.index + 1}`}
@@ -186,6 +189,9 @@ export function AuthorsFieldset({
       <SortableList
         aria-label="Authors"
         layout="stack"
+        className="sort-card"
+        steps="labeled"
+        grip={false}
         items={rows.items}
         getId={rows.getId}
         getLabel={(row) => authorName(row.value) || `Author ${row.index + 1}`}

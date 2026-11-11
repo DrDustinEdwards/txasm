@@ -200,7 +200,7 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
           </button>
         </Form>
       </div>
-      <Disclosure summary="Edit" variant="card" size="sm">
+      <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
         <Form method="post" className="cap-stack" data-gap="4" noValidate>
           <input type="hidden" name="intent" value="update" />
           <input type="hidden" name="id" value={row.id} />
@@ -230,6 +230,7 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
           summary={`${office} (${officeRows.length})`}
           variant="card"
           size="sm"
+          marker="triangle"
         >
           <ul className="cap-stack" data-gap="4">
             {officeRows.map((row) => (

@@ -557,7 +557,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                 </div>
               </div>
 
-              <Disclosure summary="Edit details" variant="card" size="sm">
+              <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
                 <Form method="post" className="cap-stack" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="documentId" value={doc.id} />

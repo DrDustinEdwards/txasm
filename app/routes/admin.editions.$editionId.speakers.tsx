@@ -236,7 +236,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                 </Form>
               </div>
 
-              <Disclosure summary="Edit speaker" variant="card" size="sm">
+              <Disclosure summary="Edit speaker" variant="card" size="sm" marker="triangle">
                 <Form method="post" className="cap-stack" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="speakerId" value={speaker.id} />

@@ -168,11 +168,11 @@ export function SessionCard({
         <SessionItems session={session} busy={busy} />
       </div>
 
-      <Disclosure summary="Add an item" variant="card" size="sm">
+      <Disclosure summary="Add an item" variant="card" size="sm" marker="triangle">
         <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
       </Disclosure>
 
-      <Disclosure summary="Edit or delete session" variant="card" size="sm">
+      <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
         <div className="cap-stack" data-gap="4">
           <Form method="post" className="cap-stack" data-gap="4" noValidate>
             <input type="hidden" name="intent" value="session-update" />
