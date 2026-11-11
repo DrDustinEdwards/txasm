@@ -1,11 +1,8 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
-import { EMAIL_CONFIRM_PATH, FEED_PATH, INDEXNOW_KEY, SIGN_IN_CONFIRM_PATH } from "./lib/site-meta";
+import { EMAIL_CONFIRM_PATH, FEED_PATH, SIGN_IN_CONFIRM_PATH } from "./lib/site-meta";
 
 export default [
-  route("robots.txt", "routes/robots.ts"),
-  route("site.webmanifest", "routes/site-webmanifest.ts"),
   route("sitemap.xml", "routes/sitemap.ts"),
-  route("ai.txt", "routes/ai-txt.ts"),
   route("llms.txt", "routes/llms.ts"),
   route(FEED_PATH.slice(1), "routes/rss.ts"),
   layout("routes/public.layout.tsx", [
@@ -98,8 +95,6 @@ export default [
   route("api/abstracts-search", "routes/api.abstracts-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
   route("health", "routes/health.ts"),
-  route(".well-known/security.txt", "routes/security-txt.ts"),
-  route(`${INDEXNOW_KEY}.txt`, "routes/indexnow-key.ts"),
   // Every other path: 410 for a page removed on purpose, else 404, drawn by the root ErrorBoundary.
   route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;

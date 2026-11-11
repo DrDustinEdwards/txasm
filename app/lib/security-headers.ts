@@ -5,6 +5,7 @@ import { applyHeaderSet } from "@dustinedwards/site-runtime/headers";
 import {
   buildContentSecurityPolicy,
   buildStagedPolicy,
+  CSP_REPORT_PATH,
   reportingEndpoints,
   scriptHash,
 } from "@dustinedwards/site-runtime/csp";
@@ -13,8 +14,7 @@ import { PAGED_JS_CONFIG } from "./paged";
 import { SECURITY_HEADERS } from "./header-set";
 import { isPrivatePath } from "./site-meta";
 
-/** Where browsers send violation reports (report-uri), and the Reporting API name for it (report-to). */
-export const CSP_REPORT_PATH = "/csp-report";
+/** The Reporting API name for the report sink (report-to); report-uri is site-runtime's CSP_REPORT_PATH. */
 const CSP_ENDPOINT = "csp-endpoint";
 const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 
