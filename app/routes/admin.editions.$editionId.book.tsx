@@ -20,10 +20,18 @@ import {
 import { publishArrangedBook } from "~/lib/book-pdf.server";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
-import { extractPlainText } from "~/lib/richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { GeneratedFile } from "capsomer/react/generated-file";
+import { Status } from "capsomer/react/status";
+import { Time } from "capsomer/react/time";
+import { RichText } from "capsomer/react/trusted-html";
+import generatedFile from "~/styles/generated-file.css?url";
+
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: generatedFile }];
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Abstract book builder"));
@@ -280,7 +288,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               }))}
               getId={(entry) => entry.entryId}
               getLabel={(entry) =>
-                [entry.code, extractPlainText(entry.title)].filter(Boolean).join(" ")
+                [entry.code, richTextPlain(entry.title)].filter(Boolean).join(" ")
               }
               readOnly={published}
               busy={boardBusy}
@@ -291,11 +299,8 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                 <span className="book-entry" data-excluded={entry.included ? undefined : ""}>
                   <span className="tiny cap-muted cap-num time-col">{entry.code ?? "-"}</span>
                   <span className="grow">
-                    <span
-                      className="strong"
-                      // Title is stored sanitized (em/sup/sub only).
-                      dangerouslySetInnerHTML={{ __html: entry.title }}
-                    />
+                    {/* Title is stored sanitized (em/sup/sub only). */}
+                    <RichText as="span" className="strong" html={entry.title} />
                     <span className="tiny cap-muted block">
                       {entry.presentingAuthorName ?? "No presenter"}
                       {entry.levelLabel ? ` . ${entry.levelLabel}` : ""}
@@ -323,50 +328,45 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
       )}
 
       {/* The published book's PDF, produced on publish via Browser Rendering and
-          delivered through the document/R2 path. Publish it to the public archive. */}
-      <section className="card stack-3">
-        <h2 className="subsection-title">Book PDF</h2>
-        <p className="small cap-muted">
-          The PDF is produced from the arranged book when you publish, via Browser Rendering.
-          Publish it to the archive to make it public.
-        </p>
-        {!pdf ? (
-          <p className="small">No PDF yet. Publish the book to produce it.</p>
-        ) : pdf.genStatus === "ready" ? (
-          <div className="stack-1 small">
-            <p>
-              <span className="strong ok-text">Ready</span>
-              {pdf.generatedAt ? ` . ${formatDate(pdf.generatedAt, DATE_TIME)}` : ""}
-              {typeof pdf.abstractCount === "number" ? ` . ${pdf.abstractCount} abstracts` : ""}
-            </p>
-            <p>
-              <a href={`/admin/editions/${edition.id}/book/download`} className="strong">
-                Download the PDF
-              </a>
-            </p>
-            <p>
-              {pdf.status === "published" ? (
-                <span className="strong ok-text">Published to the archive</span>
-              ) : (
-                <Form method="post" className="inline">
-                  <input type="hidden" name="intent" value="pdf-publish" />
-                  <input type="hidden" name="documentId" value={pdf.id} />
-                  <button type="submit" className="cap-btn" data-size="sm">
-                    Publish to archive
-                  </button>
-                </Form>
-              )}
-            </p>
-          </div>
-        ) : pdf.genStatus === "generating" ? (
-          <p className="small">The PDF is rendering. Refresh in a minute.</p>
-        ) : (
-          <p className="small">
-            The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML
-            preview is available above.
-          </p>
-        )}
-      </section>
+          delivered through the document/R2 path. Publishing the book is what makes
+          it, so the panel has no Generate button. Publish it to the public archive. */}
+      <GeneratedFile
+        title="Book PDF"
+        description="The PDF is produced from the arranged book when you publish, via Browser Rendering. Publish it to the archive to make it public."
+        record={pdf?.record}
+        downloadHref={`/admin/editions/${edition.id}/book/download`}
+        generate={false}
+        messages={{
+          none: "Publish the book to produce it.",
+          generating: "The PDF is rendering. Refresh in a minute.",
+          failed:
+            "The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML preview is available above.",
+          ...(pdf?.generatedAt && typeof pdf.abstractCount === "number"
+            ? {
+                ready: (
+                  <>
+                    Made <Time at={pdf.generatedAt} format="exact" />, {pdf.abstractCount}{" "}
+                    abstracts.
+                  </>
+                ),
+              }
+            : {}),
+        }}
+      >
+        {pdf?.record.generatedAt ? (
+          pdf.status === "published" ? (
+            <Status tone="ok">Published to the archive</Status>
+          ) : (
+            <Form method="post">
+              <input type="hidden" name="intent" value="pdf-publish" />
+              <input type="hidden" name="documentId" value={pdf.id} />
+              <button type="submit" className="cap-btn">
+                Publish to archive
+              </button>
+            </Form>
+          )
+        ) : null}
+      </GeneratedFile>
     </div>
   );
 }

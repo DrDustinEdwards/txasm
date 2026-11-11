@@ -12,7 +12,7 @@ import type { BookAffiliation, BookAuthor, BookRenderData, BookRenderEntry } fro
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { PAGED_JS_SCRIPTS } from "./paged";
-import { isEmptyRichText } from "./richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
 import { escapeCssString, joinParts } from "./format";
 import { dateRange } from "capsomer/behavior/time";
 

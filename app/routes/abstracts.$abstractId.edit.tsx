@@ -30,8 +30,9 @@ import {
 } from "~/lib/vocab";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
-import { countWords } from "~/lib/richtext";
-import { RichEditor } from "~/components/rich-editor";
+import { richTextWords } from "capsomer/behavior/rich-text-field";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS, TITLE_TAGS } from "~/lib/richtext";
 import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
 import {
   AffiliationsFieldset,
@@ -44,6 +45,7 @@ import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { RichText } from "capsomer/react/trusted-html";
 
 // An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -218,7 +220,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const [affiliations, setAffiliations] = useState<AffiliationState[]>(
     () => loaderData.affiliations,
   );
-  const [bodyWords, setBodyWords] = useState(() => countWords(abstract.bodyText));
+  const [bodyWords, setBodyWords] = useState(() => richTextWords(abstract.bodyText));
   const overLimit = bodyWords > edition.wordLimit;
 
   function updateAuthor(index: number, patch: Partial<AuthorState>) {
@@ -268,11 +270,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
     return (
       <div className="form-page stack-6">
         <h1 className="page-title">
-          {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-          ) : (
-            "Untitled abstract"
-          )}
+          <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
         <DecisionPanel decision={decision} />
         <p role="status" className="card card-s card-sunken cap-muted">
@@ -307,16 +305,17 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       <ActionResult data={actionData} />
 
       <Form method="post" className="stack-6">
-        <RichEditor name="title" label="Title" mode="title" initialHTML={abstract.title} />
+        <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
         <div className="stack-1">
-          <RichEditor
+          <RichTextField
             name="bodyText"
             label="Abstract body"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={abstract.bodyText}
-            describedById="body-count"
-            onValueChange={(value) => setBodyWords(countWords(value))}
+            describedBy="body-count"
+            onValueChange={(value) => setBodyWords(richTextWords(value))}
           />
           <p
             id="body-count"

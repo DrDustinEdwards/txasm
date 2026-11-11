@@ -18,11 +18,13 @@ import {
 } from "~/lib/vocab";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
-import { RichEditor } from "~/components/rich-editor";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Decisions"));
@@ -167,11 +169,11 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
       <div className="spread">
         <div className="stack-1">
           <h2 className="strong">
-            {abstract.title ? (
-              <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-            ) : (
-              <span className="cap-muted">Untitled</span>
-            )}
+            <RichText
+              as="span"
+              html={abstract.title}
+              fallback={<span className="cap-muted">Untitled</span>}
+            />
           </h2>
           <p className="small cap-muted">
             {abstract.authorNames.length > 0
@@ -274,16 +276,14 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           </div>
         ) : null}
 
-        <RichEditor
+        <RichTextField
           name="decisionMessage"
           label="Message to the author (optional)"
-          mode="body"
+          tags={BODY_TAGS}
+          lines="multi"
           initialHTML={decision?.decisionMessage ?? ""}
-          describedById={`decision-help-${abstract.id}`}
+          help="Shown to the author with the decision."
         />
-        <p id={`decision-help-${abstract.id}`} className="small cap-muted">
-          Shown to the author with the decision.
-        </p>
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {decision ? "Update decision" : "Save decision"}

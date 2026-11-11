@@ -4,18 +4,17 @@ import { SortableList } from "capsomer/react/sortable-list";
 import "capsomer/sortable-list.css";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { utcInputValue } from "capsomer/behavior/time";
-import { extractPlainText } from "~/lib/richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
+import { RichText } from "capsomer/react/trusted-html";
 
 type Item = ProgramSessionResolved["items"][number];
 
 const itemLabel = (item: Item) =>
   item.abstractId
-    ? [item.abstractCode, extractPlainText(item.abstractTitle ?? "Abstract")]
-        .filter(Boolean)
-        .join(" ")
+    ? [item.abstractCode, richTextPlain(item.abstractTitle ?? "Abstract")].filter(Boolean).join(" ")
     : item.speakerId
       ? (item.speakerName ?? "Invited speaker")
       : (item.customTitle ?? programKindLabel(item.kind));
@@ -83,11 +82,7 @@ function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
         {item.abstractId ? (
           <p>
             {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-            <span
-              dangerouslySetInnerHTML={{
-                __html: item.abstractTitle ?? "Abstract",
-              }}
-            />
+            <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
             {item.presentingAuthorName ? (
               <span className="cap-muted"> . {item.presentingAuthorName}</span>
             ) : null}
@@ -197,7 +192,7 @@ export function AddItemForms({
               {unplaced.map((option) => (
                 <option key={option.abstractId} value={option.abstractId}>
                   {option.code ? `${option.code} ` : ""}
-                  {extractPlainText(option.title)}
+                  {richTextPlain(option.title)}
                   {option.presentingAuthorName ? ` (${option.presentingAuthorName})` : ""}
                 </option>
               ))}

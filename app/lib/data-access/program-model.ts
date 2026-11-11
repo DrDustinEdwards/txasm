@@ -1,12 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
-import {
-  type EditionStatus,
-  NO_DATE_KEY,
-  PROGRAM_ITEM_KINDS,
-  type ProgramItemKind,
-} from "../vocab";
+import { groupByDay, type ScheduleDay } from "capsomer/behavior/schedule";
+import { type EditionStatus, PROGRAM_ITEM_KINDS, type ProgramItemKind } from "../vocab";
 import { inBookOrder, presentingAuthorNames } from "./book-model";
 import { type DB, ValidationError } from "./core";
 import type { SpeakerPublic, SponsorPublic } from "./speakers-sponsors";
@@ -88,19 +84,10 @@ export interface ProgramAbstractOption {
   presentingAuthorName: string | null;
 }
 
-// A concurrent group of sessions: one session on its own, or several running at
-// the same time as parallel tracks. The public program renders each group as a
-// row of tracks so overlapping sessions are not flattened into one timeline.
-interface ProgramTrackGroup {
-  concurrent: boolean;
-  sessions: ProgramSessionResolved[];
-}
-
-export interface ProgramDay {
-  key: string; // yyyy-mm-dd, or NO_DATE_KEY for sessions with no date
-  date: Date | null;
-  groups: ProgramTrackGroup[];
-}
+// One day of the program: its key (yyyy-mm-dd, or capsomer's NO_DATE for
+// sessions with no date) and its time slots, each one session or several that
+// overlap in time as parallel tracks (Capsomer's Schedule).
+export type ProgramDay = ScheduleDay<ProgramSessionResolved>;
 
 export interface PublicProgram {
   days: ProgramDay[];
@@ -138,61 +125,22 @@ export interface ProgramBookData {
   sponsors: SponsorPublic[];
 }
 
-// Group resolved sessions by day, then within a day into concurrent track
-// groups. Sessions with overlapping [startsAt, endsAt) run in parallel; sessions
-// with no time each stand alone. Days are chronological with the no-date bucket
-// last, and parallel tracks within a group are ordered by location.
-export function groupSessionsIntoDays(sessions: ProgramSessionResolved[]): ProgramDay[] {
-  const byDay = new Map<string, { date: Date | null; sessions: ProgramSessionResolved[] }>();
-  for (const s of sessions) {
-    const d = s.sessionDate ?? s.startsAt ?? null;
-    const key = d ? d.toISOString().slice(0, 10) : NO_DATE_KEY;
-    const bucket = byDay.get(key) ?? { date: d, sessions: [] };
-    bucket.sessions.push(s);
-    byDay.set(key, bucket);
-  }
-
-  const keys = [...byDay.keys()].sort((a, b) => {
-    if (a === NO_DATE_KEY) return 1;
-    if (b === NO_DATE_KEY) return -1;
-    return a < b ? -1 : a > b ? 1 : 0;
-  });
-
-  return keys.map((key) => {
-    const day = byDay.get(key)!;
-    const sorted = [...day.sessions].sort((a, b) => {
-      const at = a.startsAt?.getTime() ?? Number.POSITIVE_INFINITY;
-      const bt = b.startsAt?.getTime() ?? Number.POSITIVE_INFINITY;
-      return at - bt || a.sortOrder - b.sortOrder;
-    });
-
-    const groups: ProgramTrackGroup[] = [];
-    let current: ProgramSessionResolved[] | null = null;
-    let groupEnd = Number.NEGATIVE_INFINITY;
-    for (const s of sorted) {
-      const start = s.startsAt?.getTime() ?? null;
-      const end = s.endsAt?.getTime() ?? start;
-      if (current && start !== null && start < groupEnd) {
-        current.push(s);
-        if (end !== null && end > groupEnd) groupEnd = end;
-      } else {
-        current = [s];
-        groups.push({ concurrent: false, sessions: current });
-        groupEnd = end ?? Number.NEGATIVE_INFINITY;
-      }
-    }
-
-    for (const g of groups) {
-      g.concurrent = g.sessions.length > 1;
-      if (g.concurrent) {
-        g.sessions.sort(
-          (a, b) => (a.location ?? "").localeCompare(b.location ?? "") || a.sortOrder - b.sortOrder,
-        );
-      }
-    }
-
-    return { key, date: day.date, groups };
-  });
+// Group resolved sessions by day (the session date, else its start's UTC day),
+// then within a day into slots: overlapping [startsAt, endsAt) run in parallel,
+// ordered by location; sessions with no time each stand alone. The no-date
+// bucket is last.
+export function programDays(sessions: ProgramSessionResolved[]): ProgramDay[] {
+  return groupByDay(
+    sessions,
+    (s) => ({
+      start: s.startsAt,
+      end: s.endsAt,
+      day: s.sessionDate?.toISOString().slice(0, 10) ?? null,
+      track: s.location,
+      order: s.sortOrder,
+    }),
+    "UTC",
+  );
 }
 
 // Edition stages at which the program is public. scheduled and complete are the

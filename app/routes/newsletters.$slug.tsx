@@ -1,12 +1,16 @@
 import type { Route } from "./+types/newsletters.$slug";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
-import { DocumentDetail } from "~/components/document-detail";
-import { adjacentSlugs } from "~/lib/document-nav";
+import { ArchiveDocument } from "~/components/archive-document";
+import { neighbors } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import documentPage from "~/styles/document-page.css?url";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: documentPage }];
+
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location, loaderData }: Route.MetaArgs) {
@@ -28,7 +32,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw new Response("Newsletter not found.", { status: 404 });
   }
   const list = await da.documents.listByCategory("newsletter");
-  const { prevSlug, nextSlug } = adjacentSlugs(list, doc.slug);
+  const { prev, next } = neighbors(list, doc.slug, "/newsletters");
   return {
     doc: {
       slug: doc.slug,
@@ -37,20 +41,20 @@ export async function loader({ context, params }: Route.LoaderArgs) {
       year: doc.year,
       editor: doc.editor,
     },
-    prevSlug,
-    nextSlug,
+    prev,
+    next,
   };
 }
 
 export default function NewsletterPage({ loaderData }: Route.ComponentProps) {
-  const { doc, prevSlug, nextSlug } = loaderData;
+  const { doc, prev, next } = loaderData;
   return (
-    <DocumentDetail
+    <ArchiveDocument
       doc={doc}
       basePath="/newsletters"
       backTitle="Newsletters"
-      prevSlug={prevSlug}
-      nextSlug={nextSlug}
+      prev={prev}
+      next={next}
     />
   );
 }

@@ -14,6 +14,8 @@
 @import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
+@import "capsomer/toolbar.css";
+@import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
 @import "capsomer/tabs.css";
 @import "capsomer/banner.css";
@@ -23,6 +25,7 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
+@import "capsomer/trusted-html.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,
@@ -276,11 +279,6 @@
   }
 }
 
-.doc-pager {
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
-
 .tier-benefits {
   margin-top: 0.75rem;
 }
@@ -330,59 +328,11 @@
   align-items: baseline;
   gap: 0.5rem;
 }
-.tracks {
-  overflow-x: auto;
-  & > div {
-    display: grid;
-    gap: 1rem;
-  }
-}
 .speaker-bio {
   margin-top: 0.5rem;
 }
 .sponsor {
   padding: 0.5rem 0.75rem;
-}
-
-/* The PDF viewer's frame; pdf.js paints the canvas. */
-.pdf-viewer {
-  padding: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--raised);
-}
-.pdf-viewer-bar {
-  gap: 0.5rem;
-}
-.pdf-viewer-zoom {
-  gap: 0.25rem;
-  margin-left: auto;
-  & > span {
-    width: 3rem;
-    text-align: center;
-  }
-}
-.pdf-viewer-page {
-  max-height: 80vh;
-  overflow: auto;
-  padding: 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-  & canvas {
-    display: block;
-    max-width: 100%;
-    margin-inline: auto;
-  }
-  /* Until its first page is drawn, the canvas holds a US Letter page at the viewer's scale (1.2), the size most
-     documents draw at, so the page below does not jump when it arrives (Lighthouse CLS). */
-  & canvas:not([data-sized]) {
-    width: 734px;
-    aspect-ratio: 612 / 792;
-  }
-}
-.pdf-viewer-error {
-  padding: 1.5rem;
 }
 
 /* A card, and a list of rows in one card. */
@@ -615,16 +565,6 @@
   object-fit: contain;
 }
 
-/* The program builder's concurrent tracks: one column per track, scrolling
-   sideways on a narrow screen rather than crushing. */
-.track-scroll {
-  overflow-x: auto;
-}
-.track-grid {
-  display: grid;
-  gap: 1rem;
-}
-
 /* An entry of the abstract book's running order, inside Capsomer's SortableBoard item: an
    excluded entry is faded. */
 .book-entry {
@@ -653,16 +593,6 @@
 .date-field {
   width: auto;
 }
-/* The rich editor's editable box: room for a title or a body. */
-.rich-input {
-  min-height: 3rem;
-  height: auto;
-  padding-block: 0.5rem;
-  &[data-mode="body"] {
-    min-height: 7rem;
-  }
-}
-
 /* The admin page is a grid: its column must be able to shrink below a wide
    table, so the table's own region scrolls instead of the page. */
 .cap-admin-page > * {

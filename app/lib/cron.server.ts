@@ -9,55 +9,28 @@
 // invocation's 15. The dump must land before capsid-backups' 11:23 UTC Amazon copy: at 13:00 the copy took the
 // day before's dump and aged past 30 hours (offaccount-late-txasm). The deadline jobs and reminders (submission and
 // review deadline reminders, status transitions) join the daily list when they are wired per edition.
-import type { CronJob } from "@dustinedwards/site-runtime/cron";
-import { pruneNotFound } from "@dustinedwards/site-runtime/not-found";
-import { pruneAuthEvents } from "@dustinedwards/site-runtime/sign-in";
+import { backupJob, carrelSchedulesJob, type CronJob } from "@dustinedwards/site-runtime/cron";
+import { pruneNotFoundJob } from "@dustinedwards/site-runtime/not-found";
+import { pruneAuthEventsJob } from "@dustinedwards/site-runtime/sign-in";
 import { backupUploads, runNightlyBackup } from "~/lib/backup.server";
 import { runCarrelSchedules } from "~/lib/carrel/handler.server";
 
 const SCHEDULES_CRON = "* * * * *";
 const DAILY_CRON = "0 3 * * *";
 
-const MINUTE = 60_000;
-const DAY = 1440;
+const FOUR_MINUTES = 4 * 60_000;
 
 export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[]> {
   return {
-    [SCHEDULES_CRON]: [
-      {
-        name: "carrel-schedules",
-        everyMinutes: 1,
-        timeoutMs: 50_000,
-        run: () => runCarrelSchedules(env, scheduledTime),
-      },
-    ],
+    [SCHEDULES_CRON]: [carrelSchedulesJob(() => runCarrelSchedules(env, scheduledTime))],
     [DAILY_CRON]: [
-      {
-        name: "backup",
-        backup: true,
-        everyMinutes: DAY,
-        timeoutMs: 5 * MINUTE,
-        run: () => runNightlyBackup(env),
-      },
-      {
+      backupJob(() => runNightlyBackup(env)),
+      backupJob(() => backupUploads(env), {
         name: "backup-uploads",
-        backup: true,
-        everyMinutes: DAY,
-        timeoutMs: 4 * MINUTE,
-        run: () => backupUploads(env),
-      },
-      {
-        name: "prune-404",
-        everyMinutes: DAY,
-        timeoutMs: MINUTE,
-        run: () => pruneNotFound(env.DB, { days: 90 }),
-      },
-      {
-        name: "prune-auth-events",
-        everyMinutes: DAY,
-        timeoutMs: MINUTE,
-        run: () => pruneAuthEvents(env.DB),
-      },
+        timeoutMs: FOUR_MINUTES,
+      }),
+      pruneNotFoundJob(env.DB),
+      pruneAuthEventsJob(env.DB),
     ],
   };
 }
