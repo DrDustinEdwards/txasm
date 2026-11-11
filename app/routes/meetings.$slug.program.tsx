@@ -60,6 +60,8 @@ export async function loader({ context, params }: Route.LoaderArgs) {
       meetingEndsAt: edition.meetingEndsAt,
       venueName: edition.venueName,
       city: edition.city,
+      // A past meeting's program says each day with its year.
+      past: edition.status === "complete" || edition.status === "archived",
     },
     program,
   };
@@ -201,12 +203,14 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
               hrefFor={(key) => `#day-${key}`}
               label="Meeting days"
               noDate="To be scheduled"
+              year={edition.past}
             />
           ) : null}
           <Schedule
             days={program.days}
             zone="UTC"
             idPrefix="day-"
+            year={edition.past}
             keyOf={(s) => s.id}
             trackOf={(s) => s.location}
             noDate="To be scheduled"

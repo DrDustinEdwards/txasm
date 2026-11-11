@@ -451,7 +451,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         description="The PDF is produced from the arranged book when you publish, via Browser Rendering. Publish it to the archive to make it public."
         record={pdf?.record}
         downloadHref={`/admin/editions/${edition.id}/book/download`}
-        renderForm={() => null}
+        generate={false}
         messages={{
           none: "Publish the book to produce it.",
           generating: "The PDF is rendering. Refresh in a minute.",

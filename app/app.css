@@ -23,6 +23,7 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
+@import "capsomer/link-file.css";
 @import "capsomer/panel.css";
 @import "capsomer/row-list.css";
 @import "capsomer/time.css";
@@ -157,10 +158,7 @@
 
 /* Page type: one title per page, section and subsection headings, the lead
    paragraph under a title, and smaller lines. */
-/* Capsomer's document page title has no size of its own (document-archive.css),
-   so it takes the site's page title. */
-.page-title,
-.cap-docview-title {
+.page-title {
   font-size: 1.875rem;
   line-height: 1.2;
   font-weight: 600;

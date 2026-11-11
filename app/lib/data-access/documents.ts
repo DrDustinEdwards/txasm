@@ -214,7 +214,7 @@ export function createDocuments(db: DB) {
         // updatedAt; the file is offered only when ready, since the download
         // routes serve a ready file only.
         record: {
-          status: row.genStatus === "pending" ? null : row.genStatus,
+          status: row.genStatus,
           startedAt: row.updatedAt,
           generatedAt: row.genStatus === "ready" ? row.generatedAt : null,
         } satisfies GeneratedRecord,

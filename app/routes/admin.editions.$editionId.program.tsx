@@ -315,7 +315,8 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </p>
         <p className="cap-muted">
           Build the meeting day by day. Sessions that overlap in time on the same day become
-          parallel tracks automatically, one column per session.
+          parallel tracks automatically: side by side where they fit, one under another where they
+          do not.
         </p>
       </div>
 
