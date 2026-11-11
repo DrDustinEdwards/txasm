@@ -15,8 +15,8 @@ const PDFJS_ICC_URL = "/pdfjs/iccs/";
 const PDFJS_FONT_URL = "/pdfjs/standard_fonts/";
 const PDFJS_CMAP_URL = "/pdfjs/cmaps/";
 
-export const MIN_SCALE = 0.5;
-export const MAX_SCALE = 3;
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 3;
 const SCALE_STEP = 0.25;
 export const DEFAULT_SCALE = 1.2;
 

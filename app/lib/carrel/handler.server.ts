@@ -17,7 +17,7 @@ function liveChanges(hook: PublishHook): PublishHook {
   };
 }
 
-export function carrelApi(
+function carrelApi(
   env: Env,
   options: { renderVersion?: string; stylesheets?: string[]; renderPage?: RenderPage } = {},
 ) {

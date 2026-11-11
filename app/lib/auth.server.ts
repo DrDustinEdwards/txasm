@@ -150,7 +150,7 @@ async function buildAuth(env: Env) {
 }
 
 // How long each email-change link works: an hour, Better Auth's default, said in the mail.
-export const EMAIL_CHANGE_EXPIRES_IN_SECONDS = 60 * 60;
+const EMAIL_CHANGE_EXPIRES_IN_SECONDS = 60 * 60;
 const EMAIL_CHANGE_EXPIRES_IN_WORDS = "1 hour";
 
 type AuthInstance = Awaited<ReturnType<typeof buildAuth>>;

@@ -18,7 +18,7 @@ function titleSuffix(matches: ReadonlyArray<{ id: string } | undefined>): string
   return shortName ? ` | ${shortName}` : "";
 }
 
-export function pageTitle(
+function pageTitle(
   matches: ReadonlyArray<{ id: string } | undefined>,
   pageName: string,
 ): string {

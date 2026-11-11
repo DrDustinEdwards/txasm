@@ -4,24 +4,21 @@
     "jscpd": "jscpd@4.3.0"
   },
   "baseline": {
-    "measured_at": "d280a09",
-    "knip": {
-      "Unused exports": 1,
-      "Unused exported types": 1
-    },
+    "measured_at": "b41e7ee",
+    "knip": {},
     "jscpd": {
-      "clones": 44,
-      "lines": 491,
-      "percentage": 1.74
+      "clones": 47,
+      "lines": 518,
+      "percentage": 1.66
     },
     "tests": {
-      "files": 6,
-      "cases": 26
+      "files": 8,
+      "cases": 32
     },
     "comments": {
-      "lines": 1921,
-      "code": 21215,
-      "percentage": 8.3
+      "lines": 4200,
+      "code": 50957,
+      "percentage": 7.61
     }
   }
 }

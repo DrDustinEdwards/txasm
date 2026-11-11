@@ -37,7 +37,7 @@ export function emptyAffiliation(): AffiliationState {
   return { institution: "", department: "", city: "", region: "", country: "" };
 }
 
-export const inputClass = "cap-input";
+const inputClass = "cap-input";
 
 export function AffiliationsFieldset({
   affiliations,

@@ -13,7 +13,7 @@ import type { DB } from "./core";
 // (d1ScheduledUpdates), stored, applied or dropped in that same batch.
 
 export type Page = typeof schema.page.$inferSelect;
-export type PageRevision = typeof schema.pageRevision.$inferSelect;
+type PageRevision = typeof schema.pageRevision.$inferSelect;
 /** A revision as the list shows it: everything but the source, which revisionSource reads one at a time. */
 export type PageRevisionSummary = Omit<PageRevision, "source">;
 export type PageSearch = schema.PageSearch;

@@ -10,8 +10,6 @@ import { NO_DATE_KEY, PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
 // meeting date range into day tabs.
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export const inputClass = "cap-input";
-
 const DAY_FMT = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
   month: "long",
