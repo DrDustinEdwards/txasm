@@ -857,7 +857,12 @@ export const programItem = sqliteTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("ix_program_item_session").on(t.sessionId)],
+  (t) => [
+    index("ix_program_item_session").on(t.sessionId),
+    // One placement per abstract (NULLs, i.e. custom and speaker items, are
+    // distinct in SQLite). Closes the check-then-insert race in addAbstractItem.
+    unique("uq_program_item_abstract").on(t.abstractId),
+  ],
 );
 
 // ---------------------------------------------------------------------------
