@@ -3,6 +3,7 @@ import { WorkerEntrypoint } from "cloudflare:workers";
 import { createRequestHandler, RouterContextProvider, type ServerBuild } from "react-router";
 import { withAdminIdle } from "@dustinedwards/site-runtime/access";
 import { receiveCspReport } from "@dustinedwards/site-runtime/csp-report";
+import { deployedSha } from "@dustinedwards/site-runtime/deploy";
 import {
   SHARED_CACHE_CONTROL,
   cacheKey,
@@ -315,7 +316,7 @@ export default {
         ])
       )[0],
     {
-      sha: (env) => (env as { DEPLOY_SHA?: string }).DEPLOY_SHA,
+      sha: (env) => deployedSha(env),
       tokenPath: PREVIEW_TOKEN,
       route: (request) => gatewayRoute(new URL(request.url).pathname) ?? routes.name(request),
     },

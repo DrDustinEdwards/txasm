@@ -1,3 +1,4 @@
+import { attachmentResponse } from "@dustinedwards/site-runtime/r2-object";
 import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
 import { forbidden, getSessionUser } from "./auth.server";
 import { ForbiddenError, NotFoundError, getActor, getDataAccess } from "./data-access";
@@ -55,8 +56,8 @@ export async function serveDocument(
   return response;
 }
 
-// Stream a stored R2 object as a file (a PDF download unless told otherwise),
-// with an ASCII-safe Content-Disposition filename that falls back to defaultFileName.
+// A stored R2 object as a file (a PDF download unless told otherwise), with site-runtime's Content-Disposition
+// (an ASCII filename, and filename* for the rest) that falls back to defaultFileName.
 export function fileResponse(
   object: R2ObjectBody,
   fileName: string | null,
@@ -64,16 +65,12 @@ export function fileResponse(
   disposition: "inline" | "attachment" = "attachment",
   contentType: string = PDF_MIME_TYPE,
 ): Response {
-  const safeName =
-    (fileName ?? defaultFileName).replace(/[^\w .()-]/g, "_").trim() || defaultFileName;
-
-  const headers = new Headers();
-  headers.set("Content-Type", contentType);
-  headers.set("Content-Disposition", `${disposition}; filename="${safeName}"`);
-  if (typeof object.size === "number") {
-    headers.set("Content-Length", String(object.size));
-  }
-  if (object.httpEtag) headers.set("ETag", object.httpEtag);
-
-  return new Response(object.body, { headers });
+  const response = attachmentResponse(object.body, {
+    filename: fileName?.trim() || defaultFileName,
+    type: contentType,
+    disposition,
+  });
+  if (typeof object.size === "number") response.headers.set("Content-Length", String(object.size));
+  if (object.httpEtag) response.headers.set("ETag", object.httpEtag);
+  return response;
 }
