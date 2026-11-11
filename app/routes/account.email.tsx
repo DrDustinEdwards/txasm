@@ -8,7 +8,8 @@ import { signalCurrentUserDetails } from "@dustinedwards/site-runtime/sign-in-cl
 import { useEffect } from "react";
 import { data } from "react-router";
 import type { Route } from "./+types/account.email";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 
@@ -22,7 +23,7 @@ import { getAuth, getSessionUser } from "~/lib/auth.server";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Email change");
+  return privateMeta(pageTitle(matches, "Email change"));
 }
 
 // The page's URL holds the token.

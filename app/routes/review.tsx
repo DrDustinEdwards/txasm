@@ -1,6 +1,7 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
@@ -10,7 +11,7 @@ import { formatDateTime } from "~/lib/format";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Review");
+  return privateMeta(pageTitle(matches, "Review"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

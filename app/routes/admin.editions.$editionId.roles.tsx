@@ -1,7 +1,8 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.roles";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -14,7 +15,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Chairs and reviewers");
+  return privateMeta(pageTitle(matches, "Chairs and reviewers"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

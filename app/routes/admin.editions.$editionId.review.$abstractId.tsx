@@ -1,13 +1,14 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review.$abstractId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Reviews");
+  return privateMeta(pageTitle(matches, "Reviews"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

@@ -1,7 +1,8 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -10,12 +11,12 @@ import {
   REGISTRATION_CATEGORY_KEY_LABELS,
   type RegistrationCategoryKey,
 } from "~/lib/vocab";
-import { formatMoney, parseDollarsToCents } from "~/lib/format";
+import { formatMoney, parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Registration categories");
+  return privateMeta(pageTitle(matches, "Registration categories"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -44,7 +45,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const label = String(form.get("label") ?? "").trim();
     const currency = String(form.get("currency") ?? "usd");
     const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
-    const amountCents = parseDollarsToCents(String(form.get("fee") ?? ""));
+    const amountCents = parseMoneyInput(String(form.get("fee") ?? ""), currency);
 
     if (!(REGISTRATION_CATEGORY_KEYS as readonly string[]).includes(key)) {
       return { error: "Choose a category type." };

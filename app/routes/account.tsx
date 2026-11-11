@@ -27,7 +27,8 @@ import {
   signalUnknownCredential,
 } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
@@ -39,7 +40,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Account");
+  return privateMeta(pageTitle(matches, "Account"));
 }
 
 // A security history row's kind (site-runtime securityHistory), in words; a sign-in says how.

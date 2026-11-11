@@ -1,4 +1,5 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   type EditionStatus,
@@ -7,7 +8,7 @@ import {
   type ProgramItemKind,
 } from "../vocab";
 import { inBookOrder, presentingAuthorNames } from "./book-model";
-import { byIdChunks, type DB, ValidationError } from "./core";
+import { type DB, ValidationError } from "./core";
 import type { SpeakerPublic, SponsorPublic } from "./speakers-sponsors";
 
 // ---------------------------------------------------------------------------
@@ -306,7 +307,7 @@ async function resolveProgram(
         talkTitle: schema.invitedSpeaker.talkTitle,
       })
       .from(schema.invitedSpeaker)
-      .where(inArray(schema.invitedSpeaker.id, speakerRefIds));
+      .where(inList(schema.invitedSpeaker.id, speakerRefIds));
     for (const s of speakerRows) {
       speakerNameById.set(s.id, s.name);
       speakerTalkById.set(s.id, s.talkTitle);
@@ -316,12 +317,10 @@ async function resolveProgram(
   const refIds = [
     ...new Set(items.map((i) => i.abstractId).filter((x): x is string => x !== null)),
   ];
-  const absRows = await byIdChunks(refIds, (part) =>
-    db
-      .select({ id: schema.abstract.id, title: schema.abstract.title })
-      .from(schema.abstract)
-      .where(inArray(schema.abstract.id, part)),
-  );
+  const absRows = await db
+    .select({ id: schema.abstract.id, title: schema.abstract.title })
+    .from(schema.abstract)
+    .where(inList(schema.abstract.id, refIds));
   const titleById = new Map(absRows.map((a) => [a.id, a.title]));
   const presentingById = await presentingAuthorNames(db, refIds);
 
@@ -382,7 +381,7 @@ export async function loadResolvedProgram(
     .select()
     .from(schema.programItem)
     .where(
-      inArray(
+      inList(
         schema.programItem.sessionId,
         sessions.map((s) => s.id),
       ),

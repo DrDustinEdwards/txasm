@@ -1,5 +1,6 @@
 import { likeContains } from "@drdustinedwards/site-helpers/search";
 import { and, type AnyColumn, eq, inArray, or, type SQL, sql } from "drizzle-orm";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   ABSTRACT_FORMATS,
@@ -282,7 +283,7 @@ export function createPublicAbstracts(db: DB) {
           meetingStartsAt: schema.edition.meetingStartsAt,
         })
         .from(schema.edition)
-        .where(inArray(schema.edition.id, editionIds));
+        .where(inList(schema.edition.id, editionIds));
       const editionById = new Map(editionRows.map((e) => [e.id, e]));
       const startsBySlug = new Map(editionRows.map((e) => [e.slug, e.meetingStartsAt]));
 

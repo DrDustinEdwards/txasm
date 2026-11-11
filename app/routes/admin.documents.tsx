@@ -24,7 +24,8 @@ import {
   maxUploadBytesForKind,
   type DocumentCategory,
 } from "~/lib/vocab";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
@@ -41,7 +42,7 @@ import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 const UPLOAD_ACCEPT = [PDF_MIME_TYPE, ...IMAGE_MIME_TYPES].join(",");
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Documents");
+  return privateMeta(pageTitle(matches, "Documents"));
 }
 
 function toCategory(value: string | null): DocumentCategory | undefined {
