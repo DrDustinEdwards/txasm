@@ -1,11 +1,12 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { dollarsToCents } from "capsomer/behavior/field";
+import { MoneyField } from "capsomer/react/field";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories.$categoryId";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
-import { centsToDollarsInput, parseDollarsToCents } from "~/lib/format";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
@@ -31,7 +32,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const currency = String(form.get("currency") ?? "usd");
   const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
   const active = form.get("active") != null;
-  const amountCents = parseDollarsToCents(String(form.get("fee") ?? ""));
+  const amountCents = dollarsToCents(form.get("fee"));
 
   if (amountCents === null) {
     return { error: "Enter a fee of zero or more dollars." };
@@ -95,22 +96,13 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="stack-1">
-          <label htmlFor="fee" className="cap-field-label">
-            Fee (dollars)
-          </label>
-          <input
-            id="fee"
-            name="fee"
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="0.01"
-            required
-            defaultValue={centsToDollarsInput(category.amountCents)}
-            className="cap-input"
-          />
-        </div>
+        <MoneyField
+          id="fee"
+          name="fee"
+          label="Fee (dollars)"
+          required
+          defaultCents={category.amountCents}
+        />
         <div className="stack-1">
           <label htmlFor="currency" className="cap-field-label">
             Currency

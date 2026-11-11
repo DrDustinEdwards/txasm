@@ -29,13 +29,11 @@ import {
 import { formatDateTime } from "~/lib/format";
 import { countWords } from "~/lib/richtext";
 import { RichEditor } from "~/components/rich-editor";
-import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
 import {
   AffiliationsFieldset,
   type AffiliationState,
   AuthorsFieldset,
   type AuthorState,
-  emptyAffiliation,
   emptyAuthor,
 } from "~/components/abstract-authors";
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
@@ -227,64 +225,22 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
     if (actionData) statusRef.current?.focus();
   }, [actionData]);
 
-  function updateAuthor(index: number, patch: Partial<AuthorState>) {
-    setAuthors((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
-  }
-  function addAuthor() {
-    setAuthors((prev) => [...prev, emptyAuthor()]);
-  }
-  function removeAuthor(index: number) {
-    setAuthors((prev) => prev.filter((_, i) => i !== index));
-  }
-  function moveAuthor(index: number, direction: -1 | 1) {
-    setAuthors((prev) => {
-      const next = [...prev];
-      const target = index + direction;
-      if (target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-  }
-  function toggleAffiliationForAuthor(index: number, ordinal: number) {
-    setAuthors((prev) =>
-      prev.map((a, i) => {
-        if (i !== index) return a;
-        const has = a.affiliationOrdinals.includes(ordinal);
-        return {
-          ...a,
-          affiliationOrdinals: has
-            ? a.affiliationOrdinals.filter((o) => o !== ordinal)
-            : [...a.affiliationOrdinals, ordinal].sort((x, y) => x - y),
-        };
-      }),
-    );
-  }
-
-  function updateAffiliation(index: number, patch: Partial<AffiliationState>) {
-    setAffiliations((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
-  }
-  function selectInstitution(index: number, suggestion: InstitutionSuggestion) {
-    updateAffiliation(index, {
-      institution: suggestion.name,
-      city: suggestion.city ?? "",
-      region: suggestion.region ?? "",
-      country: suggestion.country ?? "USA",
-    });
-  }
-  function addAffiliation() {
-    setAffiliations((prev) => [...prev, emptyAffiliation()]);
-  }
-  function removeAffiliation(index: number) {
-    const removedOrdinal = index + 1;
-    setAffiliations((prev) => prev.filter((_, i) => i !== index));
-    setAuthors((prev) =>
-      prev.map((a) => ({
-        ...a,
-        affiliationOrdinals: a.affiliationOrdinals
-          .filter((o) => o !== removedOrdinal)
-          .map((o) => (o > removedOrdinal ? o - 1 : o)),
-      })),
-    );
+  // A removed affiliation renumbers the ordinals authors point at.
+  function changeAffiliations(next: AffiliationState[]) {
+    if (next.length < affiliations.length) {
+      const removedOrdinal = affiliations.findIndex((a) => !next.includes(a)) + 1;
+      if (removedOrdinal > 0) {
+        setAuthors((prev) =>
+          prev.map((a) => ({
+            ...a,
+            affiliationOrdinals: a.affiliationOrdinals
+              .filter((o) => o !== removedOrdinal)
+              .map((o) => (o > removedOrdinal ? o - 1 : o)),
+          })),
+        );
+      }
+    }
+    setAffiliations(next);
   }
 
   if (!editable) {
@@ -414,23 +370,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <AffiliationsFieldset
-          affiliations={affiliations}
-          updateAffiliation={updateAffiliation}
-          selectInstitution={selectInstitution}
-          addAffiliation={addAffiliation}
-          removeAffiliation={removeAffiliation}
-        />
+        <AffiliationsFieldset affiliations={affiliations} onChange={changeAffiliations} />
 
-        <AuthorsFieldset
-          authors={authors}
-          affiliations={affiliations}
-          updateAuthor={updateAuthor}
-          addAuthor={addAuthor}
-          removeAuthor={removeAuthor}
-          moveAuthor={moveAuthor}
-          toggleAffiliationForAuthor={toggleAffiliationForAuthor}
-        />
+        <AuthorsFieldset authors={authors} affiliations={affiliations} onChange={setAuthors} />
 
         <input type="hidden" name="authors" value={JSON.stringify(authors)} />
         <input type="hidden" name="affiliations" value={JSON.stringify(affiliations)} />

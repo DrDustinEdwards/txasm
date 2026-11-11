@@ -1,6 +1,6 @@
 import { Form } from "react-router";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { toDateTimeLocal } from "~/lib/format";
+import { DateTimeField } from "capsomer/react/field";
 import { extractPlainText } from "~/lib/richtext";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
@@ -96,18 +96,12 @@ export function ItemRow({
           <input type="hidden" name="intent" value="item-update" />
           <input type="hidden" name="itemId" value={item.id} />
           <KindSelect id={`itemkind-${item.id}`} defaultValue={item.kind} />
-          <div className="stack-1">
-            <label htmlFor={`itemtime-${item.id}`} className="cap-field-label">
-              Time
-            </label>
-            <input
-              id={`itemtime-${item.id}`}
-              name="startsAt"
-              type="datetime-local"
-              defaultValue={toDateTimeLocal(item.startsAt)}
-              className="cap-input"
-            />
-          </div>
+          <DateTimeField
+            id={`itemtime-${item.id}`}
+            name="startsAt"
+            label="Time"
+            defaultDate={item.startsAt}
+          />
           {isCustom ? (
             <div className="stack-1 span-2">
               <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">

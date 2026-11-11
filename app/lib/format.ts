@@ -9,26 +9,6 @@ export function formatMoney(amountCents: number, currency: string) {
   }).format(amountCents / 100);
 }
 
-// Cents to a plain dollars string for a number input value, e.g. 4500 to "45.00".
-export function centsToDollarsInput(amountCents: number): string {
-  return (amountCents / 100).toFixed(2);
-}
-
-// A dollars string from a form back to integer cents. Returns null when the
-// value is not a non-negative number.
-export function parseDollarsToCents(value: string): number | null {
-  const dollars = Number(value.trim());
-  if (!Number.isFinite(dollars) || dollars < 0) return null;
-  return Math.round(dollars * 100);
-}
-
-// A timestamp to the value a datetime-local input expects, in UTC. The Worker
-// runtime is UTC, so this round-trips with new Date(value) in actions.
-export function toDateTimeLocal(date: Date | null | undefined): string {
-  if (!date) return "";
-  return date.toISOString().slice(0, 16);
-}
-
 // A timestamp for display, in UTC so it matches what admins entered.
 export function formatDateTime(date: Date | null | undefined): string {
   if (!date) return "";

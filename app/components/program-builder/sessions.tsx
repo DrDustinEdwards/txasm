@@ -1,6 +1,6 @@
 import { Form } from "react-router";
 import type { ProgramAbstractOption, ProgramDay, ProgramSessionResolved } from "~/lib/data-access";
-import { toDateTimeLocal } from "~/lib/format";
+import { DateTimeField } from "capsomer/react/field";
 import { AddItemForms, ItemRow } from "./items";
 import { slotTimeLine, type SpeakerOption, toDateInput } from "./shared";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
@@ -54,30 +54,18 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
-        <label htmlFor={`start-${idBase}`} className="cap-field-label">
-          Starts
-        </label>
-        <input
-          id={`start-${idBase}`}
-          name="startsAt"
-          type="datetime-local"
-          defaultValue={toDateTimeLocal(session?.startsAt ?? null)}
-          className="cap-input"
-        />
-      </div>
-      <div className="stack-1">
-        <label htmlFor={`end-${idBase}`} className="cap-field-label">
-          Ends
-        </label>
-        <input
-          id={`end-${idBase}`}
-          name="endsAt"
-          type="datetime-local"
-          defaultValue={toDateTimeLocal(session?.endsAt ?? null)}
-          className="cap-input"
-        />
-      </div>
+      <DateTimeField
+        id={`start-${idBase}`}
+        name="startsAt"
+        label="Starts"
+        defaultDate={session?.startsAt ?? null}
+      />
+      <DateTimeField
+        id={`end-${idBase}`}
+        name="endsAt"
+        label="Ends"
+        defaultDate={session?.endsAt ?? null}
+      />
       <div className="stack-1 span-2">
         <label htmlFor={`mod-${idBase}`} className="cap-field-label">
           Moderator (optional)
