@@ -103,6 +103,8 @@ export function createProgramItems(db: DB) {
       const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
       // One-of rule: an abstract item sets abstractId only, leaving speakerId and
       // customTitle null.
+      // The unique index on abstract_id settles a race with another chair: the
+      // loser inserts nothing and gets the same error as the check above.
       const [created] = await db
         .insert(schema.programItem)
         .values({
@@ -111,7 +113,13 @@ export function createProgramItems(db: DB) {
           kind,
           sortOrder: nextOrder,
         })
+        .onConflictDoNothing({ target: schema.programItem.abstractId })
         .returning();
+      if (!created) {
+        throw new AlreadyExistsError(
+          "That abstract is already in the program. Remove it from its current session first.",
+        );
+      }
       return created;
     },
 
@@ -251,14 +259,17 @@ export function createProgramItems(db: DB) {
         .from(schema.programItem)
         .where(eq(schema.programItem.sessionId, sessionId));
       const validIds = new Set(existing.map((i) => i.id));
-      let order = 0;
-      for (const id of orderedItemIds) {
-        if (!validIds.has(id)) continue;
-        await db
-          .update(schema.programItem)
-          .set({ sortOrder: order })
-          .where(eq(schema.programItem.id, id));
-        order += 1;
+      const updates = orderedItemIds
+        .filter((id) => validIds.has(id))
+        .map((id, order) =>
+          db
+            .update(schema.programItem)
+            .set({ sortOrder: order })
+            .where(eq(schema.programItem.id, id)),
+        );
+      // One D1 batch: all rows reorder together or not at all.
+      if (updates.length > 0) {
+        await db.batch(updates as [(typeof updates)[number], ...typeof updates]);
       }
       return { sessionId };
     },

@@ -19,7 +19,6 @@ import {
   createEditions,
   createInstitutions,
   createRegistrationCategories,
-  createRegistrations,
 } from "./data-access/editions";
 import { createInvitedSpeakers, createSponsors } from "./data-access/speakers-sponsors";
 import { createAwardRecipients, createAwards } from "./data-access/awards";
@@ -93,7 +92,6 @@ function createDataAccess(db: DB) {
     branchOfficers: createBranchOfficers(db),
     publicAbstracts: createPublicAbstracts(db),
     institutions: createInstitutions(db),
-    registrations: createRegistrations(db),
     editions: createEditions(db),
     registrationCategories: createRegistrationCategories(db),
     abstractCategories: createAbstractCategories(db),
