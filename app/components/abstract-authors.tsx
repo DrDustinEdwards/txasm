@@ -1,3 +1,4 @@
+import { EmailInput } from "capsomer/react/field";
 import {
   InstitutionAutocomplete,
   type InstitutionSuggestion,
@@ -212,15 +213,15 @@ export function AuthorsFieldset({
                   className="cap-input"
                 />
               </label>
-              <label className="stack-1 span-2">
-                <span className="cap-field-label">Email</span>
-                <input
-                  type="email"
+              {/* A co-author's address, not the person filling the form: no autofill of their own. */}
+              <div className="span-2">
+                <EmailInput
+                  label="Email"
+                  someoneElse
                   value={author.email}
                   onChange={(e) => updateAuthor(index, { email: e.target.value })}
-                  className="cap-input"
                 />
-              </label>
+              </div>
             </div>
             <div className="cluster">
               <label className="cap-check">

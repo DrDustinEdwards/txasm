@@ -1,5 +1,6 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
+import { EmailInput } from "capsomer/react/field";
 import type { Route } from "./+types/admin.editions.$editionId.roles";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -113,20 +114,13 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
         <h2 className="subsection-title">Add a chair or reviewer</h2>
         <Form method="post" className="stack-4" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <div className="stack-1">
-            <label htmlFor="email" className="cap-field-label">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="off"
-              placeholder="person@university.edu"
-              className="cap-input"
-            />
-          </div>
+          <EmailInput
+            label="Email"
+            name="email"
+            required
+            someoneElse
+            placeholder="person@university.edu"
+          />
           <div className="stack-1">
             <label htmlFor="role" className="cap-field-label">
               Role

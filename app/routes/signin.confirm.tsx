@@ -1,9 +1,5 @@
-import {
-  SIGN_IN_LINK_WORDS,
-  confirmSignInLink,
-  signInLinkProblem,
-} from "@dustinedwards/site-runtime/sign-in";
-import { Link } from "capsomer/react/link";
+import { confirmSignInLink, signInLinkProblem } from "@dustinedwards/site-runtime/sign-in";
+import { SignInConfirm as ConfirmScreen } from "capsomer/react/sign-in";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
 import { privateMeta } from "~/lib/site-meta";
@@ -44,47 +40,13 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function SignInConfirm({ loaderData, actionData }: Route.ComponentProps) {
-  const { problem } = loaderData;
-
-  if (problem) {
-    const words = SIGN_IN_LINK_WORDS[problem];
-    return (
-      <div className="narrow stack-6">
-        <div className="stack-2">
-          <h1 className="page-title">{words.title}</h1>
-          <p>{words.text}</p>
-        </div>
-        <div>
-          {problem === "signed-in" ? (
-            <Link to="/" className="cap-btn" data-variant="primary">
-              Continue
-            </Link>
-          ) : (
-            <Link to="/signin" className="cap-btn" data-variant="primary">
-              Get a new link
-            </Link>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="narrow stack-6">
-      <h1 className="page-title">Sign in to TXASM</h1>
-      {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
-      <form method="post" className="stack-4">
-        {actionData?.limited ? (
-          <p role="alert" className="cap-field-error">
-            Too many tries. Wait a minute, then try again.
-          </p>
-        ) : null}
-        <div>
-          <button type="submit" className="cap-btn" data-variant="primary">
-            Sign in
-          </button>
-        </div>
-      </form>
-    </div>
+    <ConfirmScreen
+      siteName="TXASM"
+      problem={loaderData.problem}
+      limited={actionData?.limited}
+      signInPath="/signin"
+      continuePath="/"
+    />
   );
 }

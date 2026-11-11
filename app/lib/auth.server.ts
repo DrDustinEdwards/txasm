@@ -5,7 +5,8 @@ import { redirect } from "react-router";
 import { env, waitUntil } from "cloudflare:workers";
 import { accessSignInUrl } from "@dustinedwards/site-runtime/access";
 import { OWASP_EVENTS, logEvent, requestFields } from "@dustinedwards/site-runtime/log";
-import { emailConfirmURL, sessionLookup, signInOptions } from "@dustinedwards/site-runtime/sign-in";
+import { sessionLookup, signInOptions } from "@dustinedwards/site-runtime/sign-in";
+import { accountOptions } from "@dustinedwards/site-runtime/sign-in-form";
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
@@ -65,73 +66,40 @@ async function buildAuth(env: Env) {
     },
   });
 
-  // Better Auth's /verify-email link acts on a GET, so a mail scanner would confirm for the
-  // person. Both mails carry the site's own page instead (EMAIL_CONFIRM_PATH), whose button posts.
-  const emailConfirmUrl = (url: string) => emailConfirmURL(url, EMAIL_CONFIRM_PATH);
+  // The email change and deletion, the same on every site (site-runtime ./sign-in-form, accountOptions): two links,
+  // the current address first, each opening the site's own page whose button posts (EMAIL_CONFIRM_PATH), and
+  // deletion only from /account's action (accountFormAction). What the person put into a Meeting stays:
+  // handOverRecords gives those rows to a "Deleted account" user first (data-access/account.ts). An active admin,
+  // chair or reviewer grant is handed over before deleting, so such an account is refused (ACCOUNT_HAS_ROLE), with
+  // the message /account shows.
+  const account = accountOptions({
+    confirmPath: EMAIL_CONFIRM_PATH,
+    sendEmailChange: async ({ to, link, token, step, newEmail, expiresIn }) => {
+      await sendEmail(
+        env,
+        { to, ...emailChangeEmail(to, link, step, newEmail, expiresIn) },
+        { secrets: [link, token] },
+      );
+    },
+    beforeDelete: async (user) => {
+      const records = getDataAccess(env).account;
+      if ((await records.deletionBlockers(user.id)).length > 0) {
+        throw new APIError("BAD_REQUEST", {
+          code: "ACCOUNT_HAS_ROLE",
+          message: "Your account holds a role in a Meeting, so it was not deleted.",
+        });
+      }
+      await records.handOverRecords(user.id);
+    },
+  });
 
   return betterAuth({
     ...signIn,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    // Only the email change mails a verification link; nothing mails one on request.
-    disabledPaths: [...signIn.disabledPaths, "/send-verification-email"],
-    user: {
-      // An email change is confirmed from the current address first, then from the new one;
-      // the change is made on the second, and site-runtime's notice goes to both addresses.
-      changeEmail: {
-        enabled: true,
-        sendChangeEmailConfirmation: async ({ user, newEmail, url, token }) => {
-          const link = emailConfirmUrl(url);
-          await sendEmail(
-            env,
-            {
-              to: user.email,
-              ...emailChangeEmail(
-                user.email,
-                link,
-                "current",
-                newEmail,
-                EMAIL_CHANGE_EXPIRES_IN_WORDS,
-              ),
-            },
-            { secrets: [link, token] },
-          );
-        },
-      },
-      // Self-service deletion from /account. Better Auth asks for a sign-in in the last
-      // FRESH_SECONDS and removes the sessions, linked accounts and (by cascade) passkeys.
-      // What the person put into a Meeting stays: handOverRecords gives those rows to a
-      // "Deleted account" user first (data-access/account.ts). An active admin, chair or
-      // reviewer grant is handed over before deleting.
-      deleteUser: {
-        enabled: true,
-        beforeDelete: async (user) => {
-          const account = getDataAccess(env).account;
-          if ((await account.deletionBlockers(user.id)).length > 0) {
-            throw new APIError("BAD_REQUEST", {
-              code: "ACCOUNT_HAS_ROLE",
-              message: "The account holds a role in a Meeting.",
-            });
-          }
-          await account.handOverRecords(user.id);
-        },
-      },
-    },
-    emailVerification: {
-      expiresIn: EMAIL_CHANGE_EXPIRES_IN_SECONDS,
-      // The second step of an email change: the link to the new address (user.email is it here).
-      sendVerificationEmail: async ({ user, url, token }) => {
-        const link = emailConfirmUrl(url);
-        await sendEmail(
-          env,
-          {
-            to: user.email,
-            ...emailChangeEmail(user.email, link, "new", undefined, EMAIL_CHANGE_EXPIRES_IN_WORDS),
-          },
-          { secrets: [link, token] },
-        );
-      },
-    },
+    disabledPaths: [...signIn.disabledPaths, ...account.disabledPaths],
+    user: account.user,
+    emailVerification: account.emailVerification,
     // A notice is mailed after the answer, not before it. The instance is kept per isolate, so it
     // has no request's ctx; cloudflare:workers' waitUntil is the same call for the current request.
     advanced: { ...signIn.advanced, backgroundTasks: { handler: (promise) => waitUntil(promise) } },
@@ -148,10 +116,6 @@ async function buildAuth(env: Env) {
     }),
   });
 }
-
-// How long each email-change link works: an hour, Better Auth's default, said in the mail.
-export const EMAIL_CHANGE_EXPIRES_IN_SECONDS = 60 * 60;
-const EMAIL_CHANGE_EXPIRES_IN_WORDS = "1 hour";
 
 type AuthInstance = Awaited<ReturnType<typeof buildAuth>>;
 
