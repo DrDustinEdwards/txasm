@@ -9,7 +9,8 @@ import {
 } from "@dustinedwards/site-api";
 import { d1SiteApiStore } from "@dustinedwards/site-api/store";
 import { schedulePurgeHook } from "@dustinedwards/site-runtime/edge-cache";
-import { INDEXNOW_KEY, publicOrigin } from "~/lib/site-meta";
+import { INDEXNOW_KEY, SITE_ORIGIN } from "~/lib/site-meta";
+import { publicOrigin } from "@dustinedwards/site-runtime/http";
 import { createCarrelAdapter, type RenderPage } from "./adapter.server";
 
 /**
@@ -41,7 +42,11 @@ export function carrelApi(
     // purges the stored pages, as the gateway does after a Carrel write.
     hooks: [
       liveChanges(
-        indexNowHook({ submit: submitIndexNow, origin: publicOrigin(env), key: INDEXNOW_KEY }),
+        indexNowHook({
+          submit: submitIndexNow,
+          origin: publicOrigin(env, SITE_ORIGIN),
+          key: INDEXNOW_KEY,
+        }),
       ),
       schedulePurgeHook(),
       liveChanges(webmentionHook({ store })),

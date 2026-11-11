@@ -1,4 +1,5 @@
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
+import { inList, chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { countWords, isEmptyRichText, sanitizeBody, sanitizeTitle } from "../richtext";
 import {
@@ -10,12 +11,9 @@ import {
 } from "../vocab";
 import {
   type Actor,
-  byIdChunks,
-  chunk,
   type DB,
   DeadlinePassedError,
   ForbiddenError,
-  insertChunkSize,
   isChair,
   isReviewer,
   NotFoundError,
@@ -189,7 +187,7 @@ export function createAbstracts(db: DB) {
           .select()
           .from(schema.authorAffiliation)
           .where(
-            inArray(
+            inList(
               schema.authorAffiliation.authorId,
               authors.map((a) => a.id),
             ),
@@ -359,11 +357,11 @@ export function createAbstracts(db: DB) {
       await db.batch([
         db.delete(schema.author).where(eq(schema.author.abstractId, abstractId)),
         db.delete(schema.affiliation).where(eq(schema.affiliation.abstractId, abstractId)),
-        ...chunk(affiliations, insertChunkSize(7)).map((part) =>
+        ...chunked(affiliations, rowsPerInsert(7)).map((part) =>
           db.insert(schema.affiliation).values(part),
         ),
-        ...chunk(authors, insertChunkSize(10)).map((part) => db.insert(schema.author).values(part)),
-        ...chunk(links, insertChunkSize(2)).map((part) =>
+        ...chunked(authors, rowsPerInsert(10)).map((part) => db.insert(schema.author).values(part)),
+        ...chunked(links, rowsPerInsert(2)).map((part) =>
           db.insert(schema.authorAffiliation).values(part),
         ),
       ]);
@@ -443,20 +441,14 @@ export function createAbstracts(db: DB) {
       const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);
       if (rows.length === 0) return [];
 
-      const assignments = await byIdChunks(ids, (part) =>
-        db
-          .select({ abstractId: schema.reviewAssignment.abstractId })
-          .from(schema.reviewAssignment)
-          .where(inArray(schema.reviewAssignment.abstractId, part)),
-      );
-      const submittedReviews = await byIdChunks(ids, (part) =>
-        db
-          .select({ abstractId: schema.review.abstractId })
-          .from(schema.review)
-          .where(
-            and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted")),
-          ),
-      );
+      const assignments = await db
+        .select({ abstractId: schema.reviewAssignment.abstractId })
+        .from(schema.reviewAssignment)
+        .where(inList(schema.reviewAssignment.abstractId, ids));
+      const submittedReviews = await db
+        .select({ abstractId: schema.review.abstractId })
+        .from(schema.review)
+        .where(and(inList(schema.review.abstractId, ids), eq(schema.review.status, "submitted")));
 
       const assignmentCount = new Map<string, number>();
       for (const a of assignments) {
@@ -490,17 +482,15 @@ export async function submittedAbstracts(db: DB, editionId: string) {
     .where(and(eq(schema.abstract.editionId, editionId), ne(schema.abstract.status, "draft")))
     .orderBy(desc(schema.abstract.submittedAt), desc(schema.abstract.createdAt));
   const ids = rows.map((r) => r.id);
-  const authors = await byIdChunks(ids, (part) =>
-    db
-      .select({
-        abstractId: schema.author.abstractId,
-        firstName: schema.author.firstName,
-        lastName: schema.author.lastName,
-      })
-      .from(schema.author)
-      .where(inArray(schema.author.abstractId, part))
-      .orderBy(schema.author.ordinal),
-  );
+  const authors = await db
+    .select({
+      abstractId: schema.author.abstractId,
+      firstName: schema.author.firstName,
+      lastName: schema.author.lastName,
+    })
+    .from(schema.author)
+    .where(inList(schema.author.abstractId, ids))
+    .orderBy(schema.author.ordinal);
   const namesByAbstract = new Map<string, string[]>();
   for (const a of authors) {
     const name = `${a.firstName} ${a.lastName}`.trim();
