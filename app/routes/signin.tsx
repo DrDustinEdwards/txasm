@@ -5,7 +5,8 @@ import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import {
   SIGN_IN_CODE_PATH,
@@ -22,7 +23,7 @@ import { FORM_LIMIT } from "~/lib/form.server";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Sign in");
+  return privateMeta(pageTitle(matches, "Sign in"));
 }
 
 // `next` is the page to return to after signing in again: adding a passkey needs a sign-in from
