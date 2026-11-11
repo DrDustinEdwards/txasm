@@ -5,6 +5,7 @@ import type {
   MediaRecordFields,
   MediaRevisionRecord,
 } from "@dustinedwards/site-api";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import type { DB } from "./core";
 
@@ -109,7 +110,7 @@ export function createCarrelMedia(db: DB) {
     records: async (keys) =>
       keys.length === 0
         ? []
-        : (await db.select().from(media).where(inArray(media.key, keys))).map(recordOf),
+        : (await db.select().from(media).where(inList(media.key, keys))).map(recordOf),
 
     all: async () =>
       (await db.select().from(media).orderBy(desc(media.uploadedAt), asc(media.key))).map(recordOf),
@@ -238,6 +239,6 @@ export function createCarrelMedia(db: DB) {
   return {
     library,
     many: async (keys: string[]): Promise<MediaRow[]> =>
-      keys.length === 0 ? [] : db.select().from(media).where(inArray(media.key, keys)),
+      keys.length === 0 ? [] : db.select().from(media).where(inList(media.key, keys)),
   };
 }

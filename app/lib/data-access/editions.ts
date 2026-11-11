@@ -1,4 +1,5 @@
 import { and, count, desc, eq, inArray, like } from "drizzle-orm";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   DEFAULT_CURRENCY,
@@ -252,7 +253,7 @@ export function createEditions(db: DB) {
         .from(schema.abstract)
         .where(
           and(
-            inArray(
+            inList(
               schema.abstract.editionId,
               rows.map((r) => r.id),
             ),
