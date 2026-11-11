@@ -1,17 +1,12 @@
-import {
-  Outlet,
-  useLocation,
-  useMatches,
-  useParams,
-  useRouteLoaderData,
-  useSubmit,
-} from "react-router";
+import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandMark } from "~/lib/brand";
-import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
+import { initialsOf } from "capsomer/react/site-header";
+import { renderLink } from "~/components/site-chrome";
+import { THEME_COOKIE, THEME_PREF_KEY } from "~/lib/theme";
 
 // The admin and chair areas are apps: every route under this layout hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -146,11 +141,9 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   const { email, isAdmin, isReviewer } = loaderData;
   const { editionId } = useParams();
   const { pathname } = useLocation();
-  const submit = useSubmit();
   const meetingName = useActiveMeetingName();
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
   const wordmark = rootData?.settings?.shortName || "TXASM";
-  useThemeCookie(rootData?.theme ?? null);
   const nav = adminNav(isAdmin, isReviewer, editionId).map(({ end, ...entry }) => ({
     ...entry,
     current: pathname === entry.href || (!end && pathname.startsWith(`${entry.href}/`)),
@@ -173,14 +166,16 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
       }}
       status={meetingName ? <span className="txasm-meeting">{meetingName}</span> : undefined}
       themePrefKey={THEME_PREF_KEY}
+      themeCookie={THEME_COOKIE}
+      themeInitial={rootData?.theme ?? undefined}
       renderLink={renderLink}
       viewSite="/"
       account={
         email
           ? {
               name: email,
-              initials: initials(email),
-              onSignOut: () => void submit(null, { method: "post", action: "/signout" }),
+              initials: initialsOf(null, email),
+              signOutAction: "/signout",
             }
           : undefined
       }
