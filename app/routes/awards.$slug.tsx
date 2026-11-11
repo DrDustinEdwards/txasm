@@ -1,6 +1,6 @@
+import { routerRenderLink } from "capsomer/react/link";
 import { htmlToText } from "@drdustinedwards/site-helpers/text";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
-import { renderLink } from "~/components/site-chrome";
 import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import type { Route } from "./+types/awards.$slug";
@@ -64,10 +64,10 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
   const { award, years } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <Breadcrumb
-          renderLink={renderLink}
+          renderLink={routerRenderLink}
           items={[
             { label: "Home", href: "/" },
             { label: "Awardees", href: "/awardees" },
@@ -91,17 +91,21 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
           />
         </section>
       ) : (
-        <div className="stack-8">
+        <div className="cap-stack" data-gap="7">
           {years.map((group) => (
-            <section key={group.year} aria-label={`Recipients ${group.year}`} className="stack-4">
+            <section key={group.year} aria-label={`Recipients ${group.year}`} className="cap-stack">
               <h2 className="section-title">{group.year}</h2>
               {group.categories.map((bucket, index) => (
-                <div key={bucket.category ?? `uncategorized-${index}`} className="stack-2">
+                <div
+                  key={bucket.category ?? `uncategorized-${index}`}
+                  className="cap-stack"
+                  data-gap="3"
+                >
                   {bucket.category ? <h3 className="cap-label">{bucket.category}</h3> : null}
                   <ul className="card-list">
                     {bucket.recipients.map((recipient) => (
                       <li key={recipient.id}>
-                        <p className="cluster recipient">
+                        <p className="cap-cluster recipient">
                           {recipient.placement ? (
                             <Pill variant="secondary">{recipient.placement}</Pill>
                           ) : null}

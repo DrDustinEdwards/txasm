@@ -1,3 +1,4 @@
+import { routerRenderLink } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.program";
 import { jsonLd } from "@drdustinedwards/site-helpers/schema";
 import { meetingLd, pageHead } from "~/lib/site-meta";
@@ -15,7 +16,6 @@ import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
-import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
@@ -82,8 +82,8 @@ function sessionTimeLine(session: ProgramSessionResolved): string {
 
 function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][number] }) {
   return (
-    <li className="stack-1">
-      <div className="cluster program-item">
+    <li className="cap-stack" data-gap="2">
+      <div className="cap-cluster program-item">
         <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
         {item.abstractId ? (
           <p>
@@ -118,7 +118,7 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
 function SessionBlock({ session }: { session: ProgramSessionResolved }) {
   const timeLine = sessionTimeLine(session);
   return (
-    <div className="card stack-3">
+    <div className="card cap-stack" data-gap="4">
       <div>
         <h3 className="subsection-title">{session.title}</h3>
         {timeLine ? <p className="small cap-muted">{timeLine}</p> : null}
@@ -129,7 +129,7 @@ function SessionBlock({ session }: { session: ProgramSessionResolved }) {
       {session.items.length === 0 ? (
         <p className="small cap-muted">No items listed.</p>
       ) : (
-        <ol className="stack-3">
+        <ol className="cap-stack" data-gap="4">
           {session.items.map((item) => (
             <ProgramItemView key={item.id} item={item} />
           ))}
@@ -145,7 +145,7 @@ function TrackGroup({ group }: { group: ProgramDay["groups"][number] }) {
   }
   const trackCount = group.sessions.length;
   return (
-    <div className="stack-2">
+    <div className="cap-stack" data-gap="3">
       <p className="small strong cap-muted">{trackCount} parallel tracks</p>
       {/* N dynamic columns, one per concurrent track (never a fixed two). minmax
           keeps each track readable and lets the row scroll on narrow screens. */}
@@ -162,9 +162,9 @@ function TrackGroup({ group }: { group: ProgramDay["groups"][number] }) {
 
 function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
   return (
-    <section className="stack-3">
+    <section className="cap-stack" data-gap="4">
       <h2 className="section-title">Invited speakers</h2>
-      <ul className="stack-4">
+      <ul className="cap-stack">
         {speakers.map((speaker) => (
           <li key={speaker.id} className="card">
             <p className="strong">{speaker.name}</p>
@@ -189,9 +189,9 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
 
 function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
   return (
-    <section className="stack-3">
+    <section className="cap-stack" data-gap="4">
       <h2 className="section-title">Sponsors</h2>
-      <ul className="cluster">
+      <ul className="cap-cluster">
         {sponsors.map((sponsor) => (
           <li key={sponsor.id} className="card small sponsor">
             {sponsor.url && /^https?:\/\//i.test(sponsor.url) ? (
@@ -215,16 +215,16 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (
-    <div className="stack-8">
+    <div className="cap-stack" data-gap="7">
       <Breadcrumb
-        renderLink={renderLink}
+        renderLink={routerRenderLink}
         items={[
           { label: "Home", href: "/" },
           { label: "Meetings", href: "/meetings" },
           { label: `${edition.name} program` },
         ]}
       />
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">{edition.name}</h1>
         <p className="home-tagline">Program</p>
         {dateLine ? <p className="cap-muted">{dateLine}</p> : null}
@@ -239,11 +239,11 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
       ) : program.days.length === 0 ? (
         <p>The program has no sessions listed yet.</p>
       ) : (
-        <div className="stack-10">
+        <div className="cap-stack" data-gap="8">
           {program.days.map((day) => (
-            <section key={day.key} className="stack-4">
+            <section key={day.key} className="cap-stack">
               <h2 className="section-title rule-below">{dayLabel(day.date)}</h2>
-              <div className="stack-6">
+              <div className="cap-stack" data-gap="6">
                 {day.groups.map((group, index) => (
                   <TrackGroup key={group.sessions[0]?.id ?? index} group={group} />
                 ))}

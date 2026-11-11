@@ -29,12 +29,12 @@ export function meta({ matches }: Route.MetaArgs) {
 
 export default function Accessibility() {
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">{STATEMENT.title}</h1>
       </header>
       <div
-        className="stack-4"
+        className="cap-stack"
         style={{ maxWidth: "65ch" }}
         dangerouslySetInnerHTML={{ __html: STATEMENT.html }}
       />

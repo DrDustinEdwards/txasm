@@ -12,7 +12,7 @@ export function ProgramDocumentPanel({
   busy: boolean;
 }) {
   return (
-    <section className="card stack-3">
+    <section className="card cap-stack" data-gap="4">
       <h2 className="subsection-title">Program document</h2>
       <p className="small cap-muted">
         Generate the printable program PDF from this schedule. It runs Browser Rendering and can
@@ -21,7 +21,7 @@ export function ProgramDocumentPanel({
       {!document ? (
         <p className="small">No program PDF generated yet.</p>
       ) : document.genStatus === "ready" ? (
-        <div className="stack-1 small">
+        <div className="cap-stack small" data-gap="2">
           <p>
             <span className="strong ok-text">Ready</span>
             {document.generatedAt ? ` . Generated ${formatDateTime(document.generatedAt)}` : ""}
@@ -35,7 +35,7 @@ export function ProgramDocumentPanel({
             {document.status === "published" ? (
               <span className="strong ok-text">Published</span>
             ) : (
-              <span className="cluster">
+              <span className="cap-cluster">
                 <span className="cap-muted">Draft.</span>
                 <Form method="post">
                   <input type="hidden" name="intent" value="document-publish" />

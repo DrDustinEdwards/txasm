@@ -69,8 +69,8 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-1">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="2">
         <h1 className="page-title">Edit category</h1>
         <p>Type: {category.key}</p>
       </div>
@@ -81,8 +81,8 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="stack-4" noValidate>
-        <div className="stack-1">
+      <Form method="post" className="cap-stack" noValidate>
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="label" className="cap-field-label">
             Label
           </label>
@@ -95,7 +95,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="fee" className="cap-field-label">
             Fee (dollars)
           </label>
@@ -111,7 +111,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="currency" className="cap-field-label">
             Currency
           </label>
@@ -123,7 +123,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="sortOrder" className="cap-field-label">
             Sort order
           </label>
@@ -136,14 +136,14 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="cluster">
+        <div className="cap-cluster">
           <input id="active" name="active" type="checkbox" defaultChecked={category.active} />
           <label htmlFor="active" className="small strong">
             Active
           </label>
         </div>
 
-        <div className="cluster">
+        <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>

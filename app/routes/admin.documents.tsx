@@ -338,8 +338,8 @@ type Edition = Route.ComponentProps["loaderData"]["editions"][number];
 function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
   const base = doc ? doc.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`title-${base}`} className="cap-field-label">
           Title
         </label>
@@ -352,7 +352,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
@@ -369,7 +369,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
@@ -382,7 +382,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`season-${base}`} className="cap-field-label">
           Season
         </label>
@@ -400,7 +400,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`editor-${base}`} className="cap-field-label">
           Editor
         </label>
@@ -412,7 +412,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
@@ -430,7 +430,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug
         </label>
@@ -456,8 +456,8 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <header className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="3">
         <h1 className="page-title">Documents</h1>
         <p className="cap-muted">
           Upload and manage the branch's files: newsletters, archived abstract books and programs,
@@ -472,7 +472,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <nav aria-label="Filter by category" className="cluster">
+      <nav aria-label="Filter by category" className="cap-cluster">
         <Link
           to="/admin/documents"
           className="cap-btn"
@@ -499,11 +499,11 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       {documents.length === 0 ? (
         <p className="cap-muted">No documents yet. Upload the first below.</p>
       ) : (
-        <ul className="stack-3">
+        <ul className="cap-stack" data-gap="4">
           {documents.map((doc) => (
-            <li key={doc.id} className="card stack-3">
-              <div className="spread">
-                <div className="cluster cluster-start shrink">
+            <li key={doc.id} className="card cap-stack" data-gap="4">
+              <div className="cap-spread">
+                <div className="cap-cluster shrink" data-align="start">
                   {doc.fileKind === "image" && doc.hasFile ? (
                     <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
                   ) : null}
@@ -521,7 +521,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     </p>
                   </div>
                 </div>
-                <div className="cluster">
+                <div className="cap-cluster">
                   {doc.status === "published" ? (
                     <a
                       href={`/documents/${doc.slug}/inline`}
@@ -554,7 +554,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
 
               <details className="card card-s">
                 <summary className="summary">Edit details</summary>
-                <Form method="post" className="stack-3 mt-3" noValidate>
+                <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="documentId" value={doc.id} />
                   <MetaFields doc={doc} editions={editions} />
@@ -576,14 +576,14 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section aria-labelledby="upload-heading" className="card stack-4">
+      <section aria-labelledby="upload-heading" className="card cap-stack">
         <h2 id="upload-heading" className="subsection-title">
           Upload a document
         </h2>
-        <Form method="post" encType="multipart/form-data" className="stack-4" noValidate>
+        <Form method="post" encType="multipart/form-data" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="file" className="cap-field-label">
               File
             </label>

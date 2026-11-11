@@ -55,8 +55,8 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
   const { awards, q, award, year, institution, results } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Awardees</h1>
         <p className="lead">
           The branch recognizes outstanding student, faculty, and service work with named awards
@@ -65,7 +65,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" role="search" aria-label="Search awardees" className="card stack-4">
+      <Form method="get" role="search" aria-label="Search awardees" className="card cap-stack">
         <Field label="Search term">
           <input
             id="q"
@@ -76,7 +76,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </Field>
-        <div className="grid-3">
+        <div className="cap-grid">
           <Field label="Award">
             <select id="award" name="award" defaultValue={award} className="cap-select">
               <option value="">All awards</option>
@@ -113,7 +113,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       </Form>
 
       {results ? (
-        <section aria-label="Search results" className="stack-4">
+        <section aria-label="Search results" className="cap-stack">
           <h2 className="subsection-title">
             {results.length} {results.length === 1 ? "result" : "results"}
           </h2>
@@ -143,7 +143,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         </section>
       ) : null}
 
-      <section aria-label="Awards" className="stack-4">
+      <section aria-label="Awards" className="cap-stack">
         <h2 className="subsection-title">All awards</h2>
         {awards.length === 0 ? (
           <Empty
@@ -151,17 +151,16 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             title="The awards archive is being compiled and will appear here."
           />
         ) : (
-          <ul className="grid-2">
+          <ul className="cap-card-grid">
             {awards.map((a) => (
               <li key={a.slug}>
-                <Link to={`/awards/${a.slug}`} className="card card-link">
-                  <h3 className="subsection-title">{a.name}</h3>
-                  {a.description ? (
-                    <p
-                      className="small cap-muted"
-                      dangerouslySetInnerHTML={{ __html: a.description }}
-                    />
-                  ) : null}
+                <Link to={`/awards/${a.slug}`}>
+                  <article className="cap-card">
+                    <h3>{a.name}</h3>
+                    {a.description ? (
+                      <p className="small" dangerouslySetInnerHTML={{ __html: a.description }} />
+                    ) : null}
+                  </article>
                 </Link>
               </li>
             ))}

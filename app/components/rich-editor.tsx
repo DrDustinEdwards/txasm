@@ -106,11 +106,11 @@ export function RichEditor({
   }
 
   return (
-    <div className="stack-1">
+    <div className="cap-stack" data-gap="2">
       <span id={labelId} className="cap-field-label">
         {label}
       </span>
-      <div className="cluster" role="toolbar" aria-label={`${label} formatting`}>
+      <div className="cap-cluster" role="toolbar" aria-label={`${label} formatting`}>
         <button
           type="button"
           className="cap-btn"

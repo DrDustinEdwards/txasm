@@ -35,8 +35,8 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
   const { documents } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Newsletters</h1>
         <p className="lead">
           The branch newsletter shares meeting recaps, award announcements, and news from member

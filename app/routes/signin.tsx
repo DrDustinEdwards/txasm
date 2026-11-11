@@ -270,7 +270,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   if (sent) {
     return (
-      <div className="narrow stack-4">
+      <div className="narrow cap-stack">
         <h1 ref={confirmRef} tabIndex={-1} className="page-title">
           Check your inbox
         </h1>
@@ -278,7 +278,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           A sign-in link and code are on their way. Open the link, or type the code here. Both
           expire in {SIGN_IN_EXPIRES_IN_WORDS}.
         </p>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="code" />
           {next ? <input type="hidden" name="next" value={next} /> : null}
           <input type="hidden" name="email" value={actionData.email} />
@@ -321,9 +321,9 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="narrow stack-6">
+    <div className="narrow cap-stack" data-gap="6">
       {deleted ? <p role="status">Your account was deleted.</p> : null}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
         <p>
           {next
@@ -333,7 +333,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <button
           type="button"
           className="cap-btn"
@@ -351,7 +351,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
       <p className="cap-muted">Or get a link by email</p>
 
-      <Form method="post" className="stack-4" noValidate>
+      <Form method="post" className="cap-stack" noValidate>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <div className="cap-field">
           <label htmlFor="email" className="cap-field-label">

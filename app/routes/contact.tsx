@@ -25,8 +25,8 @@ export default function Contact() {
   const facebookUrl = settings?.facebookUrl ?? null;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Contact</h1>
         <p className="lead">
           Questions about meetings, registration, abstracts, or the awards program are welcome.
@@ -34,13 +34,13 @@ export default function Contact() {
         </p>
       </header>
 
-      <section aria-labelledby="reach-heading" className="stack-4">
+      <section aria-labelledby="reach-heading" className="cap-stack">
         <h2 id="reach-heading" className="section-title">
           Reach the branch
         </h2>
-        <dl className="stack-4">
+        <dl className="cap-stack">
           {contactEmail ? (
-            <div className="stack-1">
+            <div className="cap-stack" data-gap="2">
               <dt className="cap-label">Email</dt>
               <dd>
                 <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
@@ -48,7 +48,7 @@ export default function Contact() {
             </div>
           ) : null}
           {facebookUrl ? (
-            <div className="stack-1">
+            <div className="cap-stack" data-gap="2">
               <dt className="cap-label">Facebook group</dt>
               <dd>
                 <a href={facebookUrl}>Join the member group</a>

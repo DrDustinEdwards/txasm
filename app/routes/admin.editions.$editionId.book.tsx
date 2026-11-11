@@ -226,8 +226,8 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Abstract book builder</h1>
         <p>
           {edition.name}.{" "}
@@ -252,7 +252,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
       </p>
 
       {!book ? (
-        <section className="card stack-3">
+        <section className="card cap-stack" data-gap="4">
           <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
           <fetcher.Form method="post">
             <input type="hidden" name="intent" value="generate" />
@@ -263,7 +263,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         </section>
       ) : (
         <>
-          <div className="card card-s cluster">
+          <div className="card card-s cap-cluster">
             <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
               {published ? "Published" : "Draft"}
             </span>
@@ -271,7 +271,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               {book.includedCount} included
               {book.publishedAt ? ` . published ${formatDateTime(book.publishedAt)}` : ""}
             </span>
-            <span className="cluster push-end">
+            <span className="cap-cluster cap-push">
               <a
                 href={`/admin/editions/${edition.id}/book/preview`}
                 target="_blank"
@@ -332,7 +332,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
             </p>
           ) : null}
 
-          <div className="stack-4">
+          <div className="cap-stack">
             {book.sections.length === 0 ? (
               <p>No sections. There may be no accepted abstracts for this meeting yet.</p>
             ) : (
@@ -346,7 +346,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                   className="card card-s"
                 >
                   <h2 className="subsection-title">{section.title}</h2>
-                  <ul className="stack-2">
+                  <ul className="cap-stack" data-gap="3">
                     {section.entries.map((entry, index) => (
                       // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- drag to reorder is the pointer path; the Move up and Move down buttons are the keyboard one
                       <li
@@ -376,7 +376,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                           </span>
                         </span>
                         {editable ? (
-                          <span className="cluster cluster-tight">
+                          <span className="cap-cluster" data-gap="2">
                             <button
                               type="button"
                               aria-label="Move up"
@@ -414,7 +414,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                                 </option>
                               ))}
                             </select>
-                            <label className="cluster cluster-tight tiny">
+                            <label className="cap-cluster tiny" data-gap="2">
                               <input
                                 type="checkbox"
                                 checked={entry.included}
@@ -444,7 +444,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
 
       {/* The published book's PDF, produced on publish via Browser Rendering and
           delivered through the document/R2 path. Publish it to the public archive. */}
-      <section className="card stack-3">
+      <section className="card cap-stack" data-gap="4">
         <h2 className="subsection-title">Book PDF</h2>
         <p className="small cap-muted">
           The PDF is produced from the arranged book when you publish, via Browser Rendering.
@@ -453,7 +453,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         {!pdf ? (
           <p className="small">No PDF yet. Publish the book to produce it.</p>
         ) : pdf.genStatus === "ready" ? (
-          <div className="stack-1 small">
+          <div className="cap-stack small" data-gap="2">
             <p>
               <span className="strong ok-text">Ready</span>
               {pdf.generatedAt ? ` . ${formatDateTime(pdf.generatedAt)}` : ""}

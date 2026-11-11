@@ -83,7 +83,7 @@ function Field({
   hint?: string;
 }) {
   return (
-    <div className="stack-1">
+    <div className="cap-stack" data-gap="2">
       <label htmlFor={id} className="cap-field-label">
         {label}
       </label>
@@ -103,8 +103,8 @@ function Field({
 function OfficerFields({ row, section }: { row?: Row; section: OfficerSection }) {
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`${p}-section`} className="cap-field-label">
           Section
         </label>
@@ -175,8 +175,8 @@ function summary(row: Row): string {
 function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
   const section = row.section;
   return (
-    <li className="card stack-3">
-      <div className="spread">
+    <li className="card cap-stack" data-gap="4">
+      <div className="cap-spread">
         <div className="shrink">
           {row.role ? <p className="cap-label">{row.role}</p> : null}
           <p className="small">{summary(row)}</p>
@@ -200,7 +200,7 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
       </div>
       <details className="card card-s">
         <summary className="summary">Edit</summary>
-        <Form method="post" className="stack-3 mt-3" noValidate>
+        <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
           <input type="hidden" name="intent" value="update" />
           <input type="hidden" name="id" value={row.id} />
           <OfficerFields row={row} section={section} />
@@ -222,13 +222,13 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
     groups.set(office, [...(groups.get(office) ?? []), row]);
   }
   return (
-    <div className="stack-3">
+    <div className="cap-stack" data-gap="4">
       {[...groups].map(([office, officeRows]) => (
         <details key={office} className="card card-s">
           <summary className="summary">
             {office} ({officeRows.length})
           </summary>
-          <ul className="stack-3 mt-3">
+          <ul className="cap-stack mt-3" data-gap="4">
             {officeRows.map((row) => (
               <OfficerRow key={row.id} row={row} submitting={submitting} />
             ))}
@@ -247,8 +247,8 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-8">
-      <header className="stack-2">
+    <div className="form-page cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="3">
         <h1 className="page-title">Branch officers</h1>
         <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
@@ -265,7 +265,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
       {OFFICER_SECTIONS.map((section) => {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
-          <section key={section} aria-labelledby={`${section}-heading`} className="stack-4">
+          <section key={section} aria-labelledby={`${section}-heading`} className="cap-stack">
             <h2 id={`${section}-heading`} className="subsection-title">
               {OFFICER_SECTION_LABELS[section]}
             </h2>
@@ -274,7 +274,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
             ) : section === "past" ? (
               <PastGroups rows={sectionRows} submitting={submitting} />
             ) : (
-              <ul className="stack-3">
+              <ul className="cap-stack" data-gap="4">
                 {sectionRows.map((row) => (
                   <OfficerRow key={row.id} row={row} submitting={submitting} />
                 ))}
@@ -284,11 +284,11 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
         );
       })}
 
-      <section aria-labelledby="add-officer-heading" className="card stack-4">
+      <section aria-labelledby="add-officer-heading" className="card cap-stack">
         <h2 id="add-officer-heading" className="subsection-title">
           Add a person
         </h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <OfficerFields section="officer" />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

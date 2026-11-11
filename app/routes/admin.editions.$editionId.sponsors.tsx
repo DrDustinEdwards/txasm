@@ -72,8 +72,8 @@ type Sponsor = Route.ComponentProps["loaderData"]["sponsors"][number];
 function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
   const idBase = sponsor ? sponsor.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1 span-2">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
@@ -87,7 +87,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`tier-${idBase}`} className="cap-field-label">
           Tier
         </label>
@@ -106,7 +106,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           ))}
         </datalist>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`sort-${idBase}`} className="cap-field-label">
           Sort order
         </label>
@@ -119,7 +119,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`url-${idBase}`} className="cap-field-label">
           Website
         </label>
@@ -144,8 +144,8 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Sponsors</h1>
         <p>
           {edition.name}.{" "}
@@ -165,10 +165,10 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       {sponsors.length === 0 ? (
         <p>No sponsors yet. Add the first below.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {sponsors.map((sponsor) => (
-            <li key={sponsor.id} className="card stack-3">
-              <div className="spread">
+            <li key={sponsor.id} className="card cap-stack" data-gap="4">
+              <div className="cap-spread">
                 <div>
                   <p className="strong">{sponsor.name}</p>
                   <p className="small cap-muted">
@@ -197,7 +197,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
 
               <details className="card card-s">
                 <summary className="summary">Edit sponsor</summary>
-                <Form method="post" className="stack-3 mt-3" noValidate>
+                <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="sponsorId" value={sponsor.id} />
                   <SponsorFields sponsor={sponsor} />
@@ -211,9 +211,9 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section className="card stack-4">
+      <section className="card cap-stack">
         <h2 className="subsection-title">Add a sponsor</h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SponsorFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

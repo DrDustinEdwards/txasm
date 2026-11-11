@@ -84,8 +84,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">{edition.name}</h1>
         <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
@@ -133,8 +133,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="stack-4" noValidate>
-        <div className="stack-1">
+      <Form method="post" className="cap-stack" noValidate>
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -147,9 +147,9 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <fieldset className="card stack-4">
+        <fieldset className="card cap-stack">
           <legend className="legend">Meeting dates and venue</legend>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="meetingStartsAt" className="cap-field-label">
               Starts
             </label>
@@ -161,7 +161,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="meetingEndsAt" className="cap-field-label">
               Ends
             </label>
@@ -173,7 +173,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="venueName" className="cap-field-label">
               Venue
             </label>
@@ -186,7 +186,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="venueAddress" className="cap-field-label">
               Address
             </label>
@@ -198,7 +198,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="city" className="cap-field-label">
               City
             </label>
@@ -212,9 +212,9 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </div>
         </fieldset>
 
-        <fieldset className="card stack-4">
+        <fieldset className="card cap-stack">
           <legend className="legend">Registration window</legend>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="registrationOpensAt" className="cap-field-label">
               Opens
             </label>
@@ -226,7 +226,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="registrationClosesAt" className="cap-field-label">
               Deadline
             </label>
@@ -240,9 +240,9 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </div>
         </fieldset>
 
-        <fieldset className="card stack-4">
+        <fieldset className="card cap-stack">
           <legend className="legend">Submission window</legend>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="submissionOpensAt" className="cap-field-label">
               Opens
             </label>
@@ -254,7 +254,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="submissionDeadline" className="cap-field-label">
               Deadline
             </label>
@@ -268,7 +268,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </div>
         </fieldset>
 
-        <div className="cluster">
+        <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>

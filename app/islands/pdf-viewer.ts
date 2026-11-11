@@ -91,7 +91,8 @@ export default function start(root: HTMLElement, props: { url: string }): void {
   // In place of the page when loading fails, so the raw PDF is still reachable (the link under the viewer stays too).
   function fail() {
     const error = document.createElement("div");
-    error.className = "stack-2 pdf-viewer-error";
+    error.className = "cap-stack pdf-viewer-error";
+    error.dataset.gap = "3";
     const message = document.createElement("p");
     message.className = "small";
     message.textContent = "The viewer could not load this PDF.";

@@ -27,8 +27,8 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
   const { editions } = loaderData;
 
   return (
-    <div className="stack-6">
-      <div className="spread">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-spread">
         <h1 className="page-title">Meetings</h1>
         <Link to="/admin/editions/new" className="cap-btn" data-variant="primary">
           Create meeting

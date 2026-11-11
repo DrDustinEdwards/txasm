@@ -31,11 +31,12 @@ export function PdfViewer({ url, title }: { url: string; title?: string }) {
       ref={root}
       role="group"
       aria-label={label}
-      className="pdf-viewer stack-3"
+      className="pdf-viewer cap-stack"
+      data-gap="4"
       data-island="pdf-viewer"
       data-props={JSON.stringify({ url })}
     >
-      <div className="cluster pdf-viewer-bar">
+      <div className="cap-cluster pdf-viewer-bar">
         <div className="cap-btn-group" role="group" aria-label="Pages">
           <button
             type="button"
@@ -61,7 +62,7 @@ export function PdfViewer({ url, title }: { url: string; title?: string }) {
         <p className="small cap-muted" aria-live="polite" data-pdf="status">
           Loading
         </p>
-        <div className="cluster pdf-viewer-zoom">
+        <div className="cap-cluster pdf-viewer-zoom">
           <button
             type="button"
             disabled

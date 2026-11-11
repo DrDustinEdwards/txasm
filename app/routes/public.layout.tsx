@@ -1,3 +1,4 @@
+import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useRouteLoaderData, useSubmit } from "react-router";
 import { SiteHeader, type HeaderGroup, type HeaderSection } from "capsomer/react/site-header";
 import type { Route } from "./+types/public.layout";
@@ -5,7 +6,7 @@ import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
-import { initials, renderLink, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
+import { initials, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
 import { FEED_PATH } from "~/lib/site-meta";
 
 // Public shell: Capsomer's site header and txasm's footer around every public
@@ -118,7 +119,7 @@ function PublicHeader({
       signIn={email ? undefined : { href: "/signin" }}
       skipTo="#main"
       sheetTitle="Menu"
-      renderLink={renderLink}
+      renderLink={routerRenderLink}
     />
   );
 }
@@ -128,7 +129,7 @@ function FooterLink({ label, url }: { label: string; url: string }) {
   if (/^https?:/i.test(url)) {
     return <a href={url}>{label}</a>;
   }
-  return renderLink({ href: url, children: label });
+  return routerRenderLink({ href: url, children: label });
 }
 
 function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) {

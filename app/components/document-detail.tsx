@@ -1,6 +1,5 @@
-import { Link } from "capsomer/react/link";
+import { Link, routerRenderLink } from "capsomer/react/link";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
-import { renderLink } from "~/components/site-chrome";
 import { PdfViewer } from "./pdf-viewer";
 import { documentSubtitle, type ArchiveDoc } from "~/lib/document-nav";
 
@@ -23,10 +22,10 @@ export function DocumentDetail({
   const subtitle = documentSubtitle(doc);
 
   return (
-    <div className="stack-6">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="6">
+      <header className="cap-stack" data-gap="4">
         <Breadcrumb
-          renderLink={renderLink}
+          renderLink={routerRenderLink}
           items={[
             { label: "Home", href: "/" },
             { label: backTitle, href: basePath },
@@ -44,7 +43,7 @@ export function DocumentDetail({
 
       <PdfViewer url={`/documents/${doc.slug}/inline`} title={doc.title} />
 
-      <nav aria-label={`More in ${backTitle}`} className="spread doc-pager">
+      <nav aria-label={`More in ${backTitle}`} className="cap-spread doc-pager">
         {prevSlug ? (
           <Link to={`${basePath}/${prevSlug}`} rel="prev">
             Previous

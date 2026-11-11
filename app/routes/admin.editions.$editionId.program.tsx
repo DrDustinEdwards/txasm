@@ -299,8 +299,8 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Schedule</h1>
         <p>
           {edition.name}.{" "}
@@ -324,8 +324,8 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
       </p>
 
-      <div className="cluster">
-        <nav aria-label="Meeting days" className="cluster">
+      <div className="cap-cluster">
+        <nav aria-label="Meeting days" className="cap-cluster">
           {dayKeys.map((key) => (
             <button
               key={key}
@@ -339,7 +339,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             </button>
           ))}
         </nav>
-        <label className="cluster small cap-muted">
+        <label className="cap-cluster small cap-muted">
           <span>Add day</span>
           <input
             type="date"
@@ -360,10 +360,10 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           below.
         </p>
       ) : (
-        <div className="stack-8">
+        <div className="cap-stack" data-gap="7">
           <h2 className="subsection-title">{dayTabLabel(selectedDay)}</h2>
           {day && day.groups.length > 0 ? (
-            <div className="stack-8">
+            <div className="cap-stack" data-gap="7">
               {day.groups.map((group, gi) => (
                 <Slot
                   key={group.sessions[0]?.id ?? gi}
@@ -380,9 +380,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             <p>Nothing scheduled on this day yet.</p>
           )}
 
-          <section className="card stack-4">
+          <section className="card cap-stack">
             <h3 className="strong">Add a session to this day</h3>
-            <Form method="post" className="stack-3" noValidate>
+            <Form method="post" className="cap-stack" data-gap="4" noValidate>
               <input type="hidden" name="intent" value="session-create" />
               {/* Keyed by day so the date prefill remounts when the tab changes;
                   an unkeyed defaultValue would keep the previous day's date. */}

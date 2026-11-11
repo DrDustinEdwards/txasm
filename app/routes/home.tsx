@@ -38,7 +38,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const settings = rootData?.settings;
 
   return (
-    <div className="stack-6">
+    <div className="cap-stack" data-gap="6">
       <h1 className="page-title">{settings?.orgFullName ?? ""}</h1>
       {settings?.tagline ? <p className="lead home-tagline">{settings.tagline}</p> : null}
       {loaderData ? (

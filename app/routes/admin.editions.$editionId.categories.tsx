@@ -85,8 +85,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Registration categories</h1>
         <p>
           {edition.name}.{" "}
@@ -131,7 +131,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                   <td>{formatMoney(category.amountCents, category.currency)}</td>
                   <td>{category.active ? "Yes" : "No"}</td>
                   <td className="cell-end">
-                    <div className="cluster cluster-right">
+                    <div className="cap-cluster" data-justify="end">
                       <Link
                         to={`/admin/editions/${edition.id}/categories/${category.id}`}
                         className="strong"
@@ -156,11 +156,11 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
         </div>
       )}
 
-      <section className="card stack-4">
+      <section className="card cap-stack">
         <h2 className="subsection-title">Add a category</h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="key" className="cap-field-label">
               Type
             </label>
@@ -172,7 +172,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               ))}
             </select>
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="label" className="cap-field-label">
               Label
             </label>
@@ -185,7 +185,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="fee" className="cap-field-label">
               Fee (dollars)
             </label>
@@ -201,7 +201,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="currency" className="cap-field-label">
               Currency
             </label>
@@ -213,7 +213,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
