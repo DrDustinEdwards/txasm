@@ -1,4 +1,5 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { type GeneratedRecord, mayStart } from "capsomer/behavior/generated-file";
 import * as schema from "../../db/schema";
 import {
   DOCUMENT_CATEGORIES,
@@ -209,6 +210,14 @@ export function createDocuments(db: DB) {
         abstractCount: row.abstractCount,
         generatedAt: row.generatedAt,
         updatedAt: row.updatedAt,
+        // What Capsomer's generated-file panel reads. A run's start is the row's
+        // updatedAt; the file is offered only when ready, since the download
+        // routes serve a ready file only.
+        record: {
+          status: row.genStatus === "pending" ? null : row.genStatus,
+          startedAt: row.updatedAt,
+          generatedAt: row.genStatus === "ready" ? row.generatedAt : null,
+        } satisfies GeneratedRecord,
       };
     },
 
@@ -326,15 +335,16 @@ export function createDocuments(db: DB) {
       });
       if (!ed) throw new NotFoundError("meeting not found");
 
-      const STALE_MS = 5 * 60 * 1000;
       const existing = await findGeneratedDoc(db, editionId, category);
-      if (existing && existing.genStatus === "generating") {
-        const age = Date.now() - existing.updatedAt.getTime();
-        if (age < STALE_MS) {
-          throw new ValidationError(
-            "A document is already being generated for this meeting. Give it a minute, then refresh.",
-          );
-        }
+      // Capsomer's generated-file lock: a run marked generating holds it for 5
+      // minutes from its start (updatedAt), after which it is taken to have died.
+      if (
+        existing?.genStatus === "generating" &&
+        !mayStart({ status: "generating", startedAt: existing.updatedAt })
+      ) {
+        throw new ValidationError(
+          "A document is already being generated for this meeting. Give it a minute, then refresh.",
+        );
       }
       if (existing) {
         await db

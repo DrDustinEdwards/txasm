@@ -14,10 +14,16 @@ import {
 } from "~/lib/data-access";
 import { renderProgramBook } from "~/lib/program-book";
 import { renderBookPdf } from "~/lib/book-pdf.server";
-import { ProgramDocumentPanel } from "~/components/program-builder/document-panel";
-import { SessionFields, Slot } from "~/components/program-builder/sessions";
-import { buildDayKeys, dayTabLabel } from "~/components/program-builder/shared";
-import { NO_DATE_KEY, PDF_MIME_TYPE } from "~/lib/vocab";
+import {
+  ConcurrentSessionForm,
+  SessionCard,
+  SessionFields,
+} from "~/components/program-builder/sessions";
+import { PDF_MIME_TYPE } from "~/lib/vocab";
+import { dayKeys, dayLabel, dayRange, NO_DATE, pickDay } from "capsomer/behavior/schedule";
+import { Schedule, ScheduleDayNav } from "capsomer/react/schedule";
+import { GeneratedFile } from "capsomer/react/generated-file";
+import { Status } from "capsomer/react/status";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
@@ -168,9 +174,9 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       const direction = String(form.get("direction") ?? "");
       const schedule = await da.programSessions.getScheduleForEdition(actor, editionId);
       const day = schedule.days.find((d) =>
-        d.groups.some((g) => g.sessions.some((s) => s.id === sessionId)),
+        d.slots.some((slot) => slot.items.some((s) => s.id === sessionId)),
       );
-      const dayOrder = day ? day.groups.flatMap((g) => g.sessions).map((s) => s.id) : [];
+      const dayOrder = day ? day.slots.flatMap((slot) => slot.items).map((s) => s.id) : [];
       const idx = dayOrder.indexOf(sessionId);
       const swap = direction === "up" ? idx - 1 : idx + 1;
       if (idx !== -1 && swap >= 0 && swap < dayOrder.length) {
@@ -281,15 +287,14 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   }, [actionData]);
 
   const dayParam = searchParams.get("day");
-  const dayKeys = buildDayKeys(
+  const keys = dayKeys(
     schedule.days,
-    schedule.meetingStartsAt,
-    schedule.meetingEndsAt,
+    dayRange(schedule.meetingStartsAt, schedule.meetingEndsAt, "UTC"),
     dayParam,
   );
-  const selectedDay = dayParam && dayKeys.includes(dayParam) ? dayParam : (dayKeys[0] ?? null);
+  const selectedDay = pickDay(keys, dayParam);
   const day = schedule.days.find((d) => d.key === selectedDay) ?? null;
-  const flatOrder = day ? day.groups.flatMap((g) => g.sessions).map((s) => s.id) : [];
+  const flatOrder = day ? day.slots.flatMap((slot) => slot.items).map((s) => s.id) : [];
   const flatIndexOf = (id: string) => flatOrder.indexOf(id);
 
   function selectDay(key: string) {
@@ -324,21 +329,18 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
       </p>
 
-      <div className="cluster">
-        <nav aria-label="Meeting days" className="cluster">
-          {dayKeys.map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => selectDay(key)}
-              aria-current={key === selectedDay ? "page" : undefined}
-              className="cap-btn"
-              data-variant={key === selectedDay ? "primary" : undefined}
-            >
-              {dayTabLabel(key)}
-            </button>
-          ))}
-        </nav>
+      <ScheduleDayNav
+        days={keys}
+        current={selectedDay}
+        hrefFor={(key) => `?day=${key}`}
+        label="Meeting days"
+        noDate="No date"
+        renderLink={({ href, children, ...rest }) => (
+          <Link to={href} replace preventScrollReset {...rest}>
+            {children}
+          </Link>
+        )}
+      >
         <label className="cluster small cap-muted">
           <span>Add day</span>
           <input
@@ -352,7 +354,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             data-size="sm"
           />
         </label>
-      </div>
+      </ScheduleDayNav>
 
       {selectedDay === null ? (
         <p>
@@ -361,24 +363,28 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </p>
       ) : (
         <div className="stack-8">
-          <h2 className="subsection-title">{dayTabLabel(selectedDay)}</h2>
-          {day && day.groups.length > 0 ? (
-            <div className="stack-8">
-              {day.groups.map((group, gi) => (
-                <Slot
-                  key={group.sessions[0]?.id ?? gi}
-                  group={group}
-                  flatIndexOf={flatIndexOf}
-                  dayCount={flatOrder.length}
-                  busy={busy}
-                  unplaced={unplaced}
-                  speakers={speakers}
-                />
-              ))}
-            </div>
-          ) : (
-            <p>Nothing scheduled on this day yet.</p>
-          )}
+          <h2 className="subsection-title">{dayLabel(selectedDay, { noDate: "No date" })}</h2>
+          <Schedule
+            days={[day ?? { key: selectedDay, slots: [] }]}
+            level={3}
+            dayHeadings={false}
+            keyOf={(s) => s.id}
+            trackOf={(s) => s.location}
+            noDate="No date"
+            empty="Nothing scheduled on this day yet."
+            renderItem={(session, level) => (
+              <SessionCard
+                session={session}
+                level={level as 4 | 5}
+                dayIndex={flatIndexOf(session.id)}
+                dayCount={flatOrder.length}
+                busy={busy}
+                unplaced={unplaced}
+                speakers={speakers}
+              />
+            )}
+            slotFooter={(slot) => <ConcurrentSessionForm slot={slot} busy={busy} />}
+          />
 
           <section className="card stack-4">
             <h3 className="strong">Add a session to this day</h3>
@@ -388,7 +394,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
                   an unkeyed defaultValue would keep the previous day's date. */}
               <SessionFields
                 key={selectedDay}
-                defaultDate={selectedDay === NO_DATE_KEY ? "" : (selectedDay ?? "")}
+                defaultDate={selectedDay === NO_DATE ? "" : (selectedDay ?? "")}
               />
               <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
                 Add session
@@ -398,7 +404,38 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <ProgramDocumentPanel document={document} editionId={edition.id} busy={busy} />
+      <GeneratedFile
+        title="Program document"
+        description="Generate the printable program PDF from this schedule. It runs Browser Rendering and can take up to a minute."
+        record={document?.record}
+        downloadHref={`/admin/editions/${edition.id}/program-document/download`}
+        generateLabel="Generate program PDF"
+        regenerateLabel="Regenerate program PDF"
+        fields={{ intent: "document-generate" }}
+        busy={busy}
+        renderForm={({ className, children }) => (
+          <Form method="post" className={className}>
+            {children}
+          </Form>
+        )}
+      >
+        {document?.record.generatedAt ? (
+          document.status === "published" ? (
+            <Status tone="ok">Published</Status>
+          ) : (
+            <span className="cluster">
+              <span className="cap-muted">Draft.</span>
+              <Form method="post">
+                <input type="hidden" name="intent" value="document-publish" />
+                <input type="hidden" name="documentId" value={document.id} />
+                <button type="submit" disabled={busy} className="cap-btn">
+                  Publish
+                </button>
+              </Form>
+            </span>
+          )
+        ) : null}
+      </GeneratedFile>
     </div>
   );
 }

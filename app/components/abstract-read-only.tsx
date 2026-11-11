@@ -4,6 +4,7 @@ import {
   PRESENTATION_TYPE_LABELS,
   type PresentationType,
 } from "~/lib/vocab";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function DecisionPanel({
   decision,
@@ -33,7 +34,7 @@ export function DecisionPanel({
       {decision.decisionMessage ? (
         <div className="stack-1">
           <h3 className="small strong">Message from the organizers</h3>
-          <div className="small" dangerouslySetInnerHTML={{ __html: decision.decisionMessage }} />
+          <RichText className="small" html={decision.decisionMessage} />
         </div>
       ) : null}
     </section>
@@ -54,7 +55,7 @@ export function ReadOnlyAbstract({
       {bodyText.trim().length > 0 ? (
         <section className="stack-1">
           <h2 className="small strong">Abstract</h2>
-          <div dangerouslySetInnerHTML={{ __html: bodyText }} />
+          <RichText html={bodyText} />
         </section>
       ) : null}
       {authors.length > 0 ? (

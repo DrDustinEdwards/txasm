@@ -23,6 +23,13 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
+@import "capsomer/panel.css";
+@import "capsomer/row-list.css";
+@import "capsomer/time.css";
+@import "capsomer/trusted-html.css";
+@import "capsomer/schedule.css";
+@import "capsomer/generated-file.css";
+@import "capsomer/document-archive.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,
@@ -150,7 +157,10 @@
 
 /* Page type: one title per page, section and subsection headings, the lead
    paragraph under a title, and smaller lines. */
-.page-title {
+/* Capsomer's document page title has no size of its own (document-archive.css),
+   so it takes the site's page title. */
+.page-title,
+.cap-docview-title {
   font-size: 1.875rem;
   line-height: 1.2;
   font-weight: 600;
@@ -276,11 +286,6 @@
   }
 }
 
-.doc-pager {
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
-
 .tier-benefits {
   margin-top: 0.75rem;
 }
@@ -329,13 +334,6 @@
 .program-item {
   align-items: baseline;
   gap: 0.5rem;
-}
-.tracks {
-  overflow-x: auto;
-  & > div {
-    display: grid;
-    gap: 1rem;
-  }
 }
 .speaker-bio {
   margin-top: 0.5rem;
@@ -613,16 +611,6 @@
   border-radius: var(--radius-s);
   background: var(--surface);
   object-fit: contain;
-}
-
-/* The program builder's concurrent tracks: one column per track, scrolling
-   sideways on a narrow screen rather than crushing. */
-.track-scroll {
-  overflow-x: auto;
-}
-.track-grid {
-  display: grid;
-  gap: 1rem;
 }
 
 /* The abstract book's running order: a dashed, faded row is left out; a

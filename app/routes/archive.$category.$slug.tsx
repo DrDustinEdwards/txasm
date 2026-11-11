@@ -1,8 +1,8 @@
 import type { Route } from "./+types/archive.$category.$slug";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
-import { DocumentDetail } from "~/components/document-detail";
-import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, adjacentSlugs } from "~/lib/document-nav";
+import { ArchiveDocument } from "~/components/archive-document";
+import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, neighbors } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -31,8 +31,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw new Response("Document not found.", { status: 404 });
   }
   const list = await da.documents.listByCategory(category);
-  const { prevSlug, nextSlug } = adjacentSlugs(list, doc.slug);
   const config = CATEGORY_PATHS[category];
+  const basePath = config?.basePath ?? `/archive/${params.category}`;
+  const { prev, next } = neighbors(list, doc.slug, basePath);
   return {
     doc: {
       slug: doc.slug,
@@ -41,22 +42,16 @@ export async function loader({ context, params }: Route.LoaderArgs) {
       year: doc.year,
       editor: doc.editor,
     },
-    basePath: config?.basePath ?? `/archive/${params.category}`,
+    basePath,
     backTitle: config?.title ?? "Archive",
-    prevSlug,
-    nextSlug,
+    prev,
+    next,
   };
 }
 
 export default function ArchiveDocumentPage({ loaderData }: Route.ComponentProps) {
-  const { doc, basePath, backTitle, prevSlug, nextSlug } = loaderData;
+  const { doc, basePath, backTitle, prev, next } = loaderData;
   return (
-    <DocumentDetail
-      doc={doc}
-      basePath={basePath}
-      backTitle={backTitle}
-      prevSlug={prevSlug}
-      nextSlug={nextSlug}
-    />
+    <ArchiveDocument doc={doc} basePath={basePath} backTitle={backTitle} prev={prev} next={next} />
   );
 }

@@ -9,6 +9,7 @@ import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -72,10 +73,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         <p className="small cap-muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract {codeLabel}
         </p>
-        <h1
-          className="page-title abstract-title"
-          dangerouslySetInnerHTML={{ __html: abstract.title }}
-        />
+        <RichText as="h1" className="page-title abstract-title" html={abstract.title} />
         {abstract.authors.length > 0 ? (
           <p>
             {abstract.authors.map((author, i) => (
@@ -116,10 +114,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
       </header>
 
       {abstract.bodyText ? (
-        <div
-          className="stack-3 abstract-body"
-          dangerouslySetInnerHTML={{ __html: abstract.bodyText }}
-        />
+        <RichText className="stack-3 abstract-body" html={abstract.bodyText} />
       ) : (
         <p className="cap-muted">No abstract body on record.</p>
       )}

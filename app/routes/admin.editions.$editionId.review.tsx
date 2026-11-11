@@ -12,6 +12,7 @@ import {
 } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Assign reviewers");
@@ -140,11 +141,11 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                 <div className="spread">
                   <div className="stack-1">
                     <h2 className="strong">
-                      {abstract.title ? (
-                        <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-                      ) : (
-                        <span className="cap-muted">Untitled</span>
-                      )}
+                      <RichText
+                        as="span"
+                        html={abstract.title}
+                        fallback={<span className="cap-muted">Untitled</span>}
+                      />
                     </h2>
                     <p className="small cap-muted">
                       {abstract.authorNames.length > 0

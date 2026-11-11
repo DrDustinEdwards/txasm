@@ -2,7 +2,9 @@ import type { Route } from "./+types/newsletters";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { Empty } from "capsomer/react/empty";
-import { DocumentList } from "~/components/document-list";
+import { DocumentList } from "capsomer/react/document-archive";
+import { renderLink } from "~/components/site-chrome";
+import { documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -50,7 +52,16 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
         </section>
       ) : (
         <section aria-label="Newsletter archive">
-          <DocumentList documents={documents} basePath="/newsletters" />
+          <DocumentList
+            docs={documents.map((d) => ({
+              key: d.slug,
+              title: d.title,
+              href: `/newsletters/${d.slug}`,
+              detail: documentSubtitle(d) || undefined,
+            }))}
+            label="Newsletter archive"
+            renderLink={renderLink}
+          />
         </section>
       )}
     </div>

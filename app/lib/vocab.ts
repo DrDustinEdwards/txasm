@@ -170,9 +170,6 @@ export const DECISION_OUTCOME_LABELS: Record<DecisionOutcome, string> = {
 // Program items and invited speakers.
 // ---------------------------------------------------------------------------
 
-// The program day key for sessions with no date; the others are yyyy-mm-dd.
-export const NO_DATE_KEY = "no-date";
-
 export const PROGRAM_ITEM_KINDS = [
   "talk",
   "poster",

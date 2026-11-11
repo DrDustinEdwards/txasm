@@ -5,7 +5,6 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import {
   NotFoundError,
   getDataAccess,
-  type ProgramDay,
   type ProgramSessionResolved,
   type SpeakerPublic,
   type SponsorPublic,
@@ -15,6 +14,8 @@ import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
+import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedule";
+import { RichText } from "capsomer/react/trusted-html";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -64,22 +65,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   };
 }
 
-const DAY_FMT = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "full",
-  timeZone: "UTC",
-});
-
-function dayLabel(date: Date | null): string {
-  return date ? `${DAY_FMT.format(date)} UTC` : "To be scheduled";
-}
-
-function sessionTimeLine(session: ProgramSessionResolved): string {
-  const start = session.startsAt ? formatDateTime(session.startsAt) : "";
-  const end = session.endsAt ? formatDateTime(session.endsAt) : "";
-  const time = start && end ? `${start} to ${end}` : start || end;
-  return joinParts([time || null, session.location]);
-}
-
 function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][number] }) {
   return (
     <li className="stack-1">
@@ -90,10 +75,7 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
             {item.abstractCode ? (
               <span className="strong cap-muted">{item.abstractCode} </span>
             ) : null}
-            <span
-              className="strong"
-              dangerouslySetInnerHTML={{ __html: item.abstractTitle ?? "" }}
-            />
+            <RichText as="span" className="strong" html={item.abstractTitle} />
             {item.presentingAuthorName ? (
               <span className="cap-muted"> . {item.presentingAuthorName}</span>
             ) : null}
@@ -115,17 +97,15 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
   );
 }
 
-function SessionBlock({ session }: { session: ProgramSessionResolved }) {
-  const timeLine = sessionTimeLine(session);
+// One session in its slot: the slot gives the time and the room; the session
+// says who moderates and lists its items.
+function SessionBlock({ session, level }: { session: ProgramSessionResolved; level: 3 | 4 | 5 }) {
   return (
-    <div className="card stack-3">
-      <div>
-        <h3 className="subsection-title">{session.title}</h3>
-        {timeLine ? <p className="small cap-muted">{timeLine}</p> : null}
-        {session.moderator ? (
-          <p className="small cap-muted">Moderated by {session.moderator}</p>
-        ) : null}
-      </div>
+    <ScheduleSession
+      title={session.title}
+      level={level}
+      meta={session.moderator ? <p>Moderated by {session.moderator}</p> : undefined}
+    >
       {session.items.length === 0 ? (
         <p className="small cap-muted">No items listed.</p>
       ) : (
@@ -135,28 +115,7 @@ function SessionBlock({ session }: { session: ProgramSessionResolved }) {
           ))}
         </ol>
       )}
-    </div>
-  );
-}
-
-function TrackGroup({ group }: { group: ProgramDay["groups"][number] }) {
-  if (!group.concurrent) {
-    return <SessionBlock session={group.sessions[0]} />;
-  }
-  const trackCount = group.sessions.length;
-  return (
-    <div className="stack-2">
-      <p className="small strong cap-muted">{trackCount} parallel tracks</p>
-      {/* N dynamic columns, one per concurrent track (never a fixed two). minmax
-          keeps each track readable and lets the row scroll on narrow screens. */}
-      <div className="tracks">
-        <div style={{ gridTemplateColumns: `repeat(${trackCount}, minmax(16rem, 1fr))` }}>
-          {group.sessions.map((session) => (
-            <SessionBlock key={session.id} session={session} />
-          ))}
-        </div>
-      </div>
-    </div>
+    </ScheduleSession>
   );
 }
 
@@ -174,12 +133,7 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
                 .join(" . ")}
             </p>
             {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
-            {speaker.bio ? (
-              <div
-                className="small speaker-bio"
-                dangerouslySetInnerHTML={{ __html: speaker.bio }}
-              />
-            ) : null}
+            <RichText className="small speaker-bio" html={speaker.bio} />
           </li>
         ))}
       </ul>
@@ -239,17 +193,27 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
       ) : program.days.length === 0 ? (
         <p>The program has no sessions listed yet.</p>
       ) : (
-        <div className="stack-10">
-          {program.days.map((day) => (
-            <section key={day.key} className="stack-4">
-              <h2 className="section-title rule-below">{dayLabel(day.date)}</h2>
-              <div className="stack-6">
-                {day.groups.map((group, index) => (
-                  <TrackGroup key={group.sessions[0]?.id ?? index} group={group} />
-                ))}
-              </div>
-            </section>
-          ))}
+        <div className="stack-6">
+          {program.days.length > 1 ? (
+            <ScheduleDayNav
+              days={program.days.map((d) => d.key)}
+              current={null}
+              hrefFor={(key) => `#day-${key}`}
+              label="Meeting days"
+              noDate="To be scheduled"
+            />
+          ) : null}
+          <Schedule
+            days={program.days}
+            zone="UTC"
+            idPrefix="day-"
+            keyOf={(s) => s.id}
+            trackOf={(s) => s.location}
+            noDate="To be scheduled"
+            renderItem={(session, level) => (
+              <SessionBlock session={session} level={level as 3 | 4 | 5} />
+            )}
+          />
         </div>
       )}
 

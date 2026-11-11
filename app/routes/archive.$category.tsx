@@ -2,8 +2,9 @@ import { Empty } from "capsomer/react/empty";
 import type { Route } from "./+types/archive.$category";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
-import { DocumentList } from "~/components/document-list";
-import { ARCHIVE_SEGMENTS, CATEGORY_PATHS } from "~/lib/document-nav";
+import { DocumentList } from "capsomer/react/document-archive";
+import { renderLink } from "~/components/site-chrome";
+import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -59,7 +60,16 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
         {documents.length === 0 ? (
           <Empty kind="nothing-yet" title="Documents are being added and will be listed here." />
         ) : (
-          <DocumentList documents={documents} basePath={basePath} />
+          <DocumentList
+            docs={documents.map((d) => ({
+              key: d.slug,
+              title: d.title,
+              href: `${basePath}/${d.slug}`,
+              detail: documentSubtitle(d) || undefined,
+            }))}
+            label={title}
+            renderLink={renderLink}
+          />
         )}
       </section>
     </div>

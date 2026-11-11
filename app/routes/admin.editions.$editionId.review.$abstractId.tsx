@@ -5,6 +5,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Reviews");
@@ -47,12 +48,7 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
     <div className="form-page stack-6">
       <div className="stack-2">
         <h1 className="page-title">
-          Reviews for{" "}
-          {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-          ) : (
-            "an untitled abstract"
-          )}
+          Reviews for <RichText as="span" html={abstract.title} fallback="an untitled abstract" />
         </h1>
         <p>
           <Link to={`/admin/editions/${editionId}/review`} className="strong">
@@ -80,21 +76,13 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
               {review.overallComment ? (
                 <div className="stack-1">
                   <h2 className="small strong">Overall comment</h2>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{ __html: review.overallComment }}
-                  />
+                  <RichText className="small" html={review.overallComment} />
                 </div>
               ) : null}
               {review.confidentialComment ? (
                 <div className="cap-banner stack-1" data-tone="warn">
                   <h2 className="small strong">Confidential comment to chairs</h2>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{
-                      __html: review.confidentialComment,
-                    }}
-                  />
+                  <RichText className="small" html={review.confidentialComment} />
                 </div>
               ) : null}
             </li>

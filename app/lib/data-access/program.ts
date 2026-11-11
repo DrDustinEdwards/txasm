@@ -9,7 +9,7 @@ import {
   ValidationError,
 } from "./core";
 import {
-  groupSessionsIntoDays,
+  programDays,
   PROGRAM_PUBLIC_STATUSES,
   type ProgramBookData,
   type ProgramSchedule,
@@ -138,7 +138,7 @@ export function createProgramSessions(db: DB) {
       const speakerRows = await listEditionSpeakers(db, editionId);
 
       return {
-        days: groupSessionsIntoDays(resolved),
+        days: programDays(resolved),
         sponsors: sponsorRows,
         speakers: speakerRows,
       };
@@ -156,7 +156,7 @@ export function createProgramSessions(db: DB) {
       if (!ed) throw new NotFoundError("meeting not found");
       const resolved = await loadResolvedProgram(db, editionId);
       return {
-        days: groupSessionsIntoDays(resolved),
+        days: programDays(resolved),
         meetingStartsAt: ed.meetingStartsAt,
         meetingEndsAt: ed.meetingEndsAt,
       };
@@ -236,7 +236,7 @@ export function createProgram(db: DB) {
           orgFullName: identity?.orgFullName ?? "",
           shortName: identity?.shortName ?? "",
         },
-        days: groupSessionsIntoDays(resolved),
+        days: programDays(resolved),
         speakers,
         sponsors,
       };
