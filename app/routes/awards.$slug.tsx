@@ -10,7 +10,7 @@ import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { goneResponse, renameRedirect } from "@dustinedwards/site-runtime/url";
 import { GONE } from "~/lib/site-meta";
-import { markup } from "capsomer/behavior/trusted-html";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -76,12 +76,8 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
           ]}
         />
         <h1 className="page-title">{award.name}</h1>
-        {award.description ? (
-          <p className="lead" dangerouslySetInnerHTML={markup(award.description)} />
-        ) : null}
-        {award.namesakeBio ? (
-          <p className="lead small" dangerouslySetInnerHTML={markup(award.namesakeBio)} />
-        ) : null}
+        <RichText as="p" className="lead" html={award.description} />
+        <RichText as="p" className="lead small" html={award.namesakeBio} />
       </header>
 
       {years.length === 0 ? (

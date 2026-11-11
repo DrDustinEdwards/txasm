@@ -7,7 +7,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
-import { markup } from "capsomer/behavior/trusted-html";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -157,12 +157,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
               <li key={a.slug}>
                 <Link to={`/awards/${a.slug}`} className="card card-link">
                   <h3 className="subsection-title">{a.name}</h3>
-                  {a.description ? (
-                    <p
-                      className="small cap-muted"
-                      dangerouslySetInnerHTML={markup(a.description)}
-                    />
-                  ) : null}
+                  <RichText as="p" className="small cap-muted" html={a.description} />
                 </Link>
               </li>
             ))}

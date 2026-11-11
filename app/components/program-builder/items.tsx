@@ -5,7 +5,7 @@ import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
-import { markup } from "capsomer/behavior/trusted-html";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function ItemRow({
   session,
@@ -29,7 +29,7 @@ export function ItemRow({
           {item.abstractId ? (
             <p>
               {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-              <span dangerouslySetInnerHTML={markup(item.abstractTitle ?? "Abstract")} />
+              <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
               {item.presentingAuthorName ? (
                 <span className="cap-muted"> . {item.presentingAuthorName}</span>
               ) : null}

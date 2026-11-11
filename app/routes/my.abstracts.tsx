@@ -12,7 +12,7 @@ import {
   type DecisionOutcome,
   type PresentationType,
 } from "~/lib/vocab";
-import { markup } from "capsomer/behavior/trusted-html";
+import { RichText } from "capsomer/react/trusted-html";
 
 // A signed-in author's page, the way into submission and editing. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -68,11 +68,11 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
               {abstracts.map((abstract) => (
                 <tr key={abstract.id}>
                   <td>
-                    {abstract.title ? (
-                      <span dangerouslySetInnerHTML={markup(abstract.title)} />
-                    ) : (
-                      <span className="cap-muted">Untitled</span>
-                    )}
+                    <RichText
+                      as="span"
+                      html={abstract.title}
+                      fallback={<span className="cap-muted">Untitled</span>}
+                    />
                   </td>
                   <td>{abstract.editionName}</td>
                   <td>{ABSTRACT_STATUS_LABELS[abstract.status]}</td>

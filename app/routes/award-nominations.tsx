@@ -4,7 +4,7 @@ import { pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { pagePreviewContext } from "~/lib/preview-context";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
-import { markup } from "capsomer/behavior/trusted-html";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -34,7 +34,7 @@ export default function AwardNominations({ loaderData }: Route.ComponentProps) {
   return (
     <div className="reading stack-3">
       <h1 className="page-title">{loaderData.title}</h1>
-      <div className="page-prose" dangerouslySetInnerHTML={markup(loaderData.html)} />
+      <RichText className="page-prose" html={loaderData.html} />
     </div>
   );
 }

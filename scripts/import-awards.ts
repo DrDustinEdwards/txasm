@@ -198,6 +198,12 @@ async function runParse(dataPath: string): Promise<void> {
       }
       const html = await response.text();
       const parsed = parseRecipientsFromHtml(html);
+      // A 200 that parses to nothing (changed markup, an error page served as
+      // 200) must not wipe the reviewed recipients.
+      if (parsed.length === 0) {
+        console.log(`  ${award.slug}: 0 recipients parsed, kept existing`);
+        continue;
+      }
       award.recipients = parsed;
       console.log(`  ${award.slug}: ${parsed.length} recipients parsed`);
     } catch (error) {
