@@ -1,7 +1,29 @@
-import {
-  InstitutionAutocomplete,
-  type InstitutionSuggestion,
-} from "~/components/institution-autocomplete";
+import { ComboboxFreeText, type ComboboxOption } from "capsomer/react/combobox";
+
+// A suggestion from the institution master list (/api/institutions).
+export interface InstitutionSuggestion {
+  id: string;
+  name: string;
+  city: string | null;
+  region: string | null;
+  country: string | null;
+}
+
+// The suggestions as combobox options: the label is the name and the hint is the place; the value
+// carries the whole suggestion, so picking one can fill the city, region and country.
+async function findInstitutions(query: string, signal: AbortSignal): Promise<ComboboxOption[]> {
+  const res = await fetch(`/api/institutions?q=${encodeURIComponent(query)}`, {
+    headers: { Accept: "application/json" },
+    signal,
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { results?: InstitutionSuggestion[] };
+  return (data.results ?? []).map((i) => ({
+    value: JSON.stringify(i),
+    label: i.name,
+    hint: [i.city, i.region].filter(Boolean).join(", ") || undefined,
+  }));
+}
 
 // The author and affiliation editors of the abstract form. The form owns the
 // state (authors link to affiliations by ordinal); these render it.
@@ -37,8 +59,6 @@ export function emptyAffiliation(): AffiliationState {
   return { institution: "", department: "", city: "", region: "", country: "" };
 }
 
-export const inputClass = "cap-input";
-
 export function AffiliationsFieldset({
   affiliations,
   updateAffiliation,
@@ -53,7 +73,7 @@ export function AffiliationsFieldset({
   removeAffiliation: (index: number) => void;
 }) {
   return (
-    <fieldset className="card stack-4">
+    <fieldset className="card cap-stack">
       <legend className="legend">Affiliations</legend>
       <p className="small cap-muted">
         Number each affiliation once, then attach it to authors below. Start typing to pick a known
@@ -62,10 +82,10 @@ export function AffiliationsFieldset({
       {affiliations.length === 0 ? (
         <p className="small cap-muted">No affiliations added.</p>
       ) : (
-        <ol className="stack-4">
+        <ol className="cap-stack">
           {affiliations.map((affiliation, index) => (
-            <li key={index} className="stack-2">
-              <div className="spread">
+            <li key={index} className="cap-stack" data-gap="3">
+              <div className="cap-spread">
                 <span className="small strong">Affiliation {index + 1}</span>
                 <button
                   type="button"
@@ -75,18 +95,21 @@ export function AffiliationsFieldset({
                   Remove
                 </button>
               </div>
-              <div className="grid-2">
+              <div className="cap-grid" data-cols="2">
                 <div className="span-2">
-                  <InstitutionAutocomplete
+                  <ComboboxFreeText
                     id={`institution-${index}`}
                     label="Institution"
                     value={affiliation.institution}
-                    onChange={(name) => updateAffiliation(index, { institution: name })}
-                    onSelect={(suggestion) => selectInstitution(index, suggestion)}
-                    inputClassName={inputClass}
+                    onValueChange={(name) => updateAffiliation(index, { institution: name })}
+                    onPick={(option) =>
+                      selectInstitution(index, JSON.parse(option.value) as InstitutionSuggestion)
+                    }
+                    search={findInstitutions}
+                    minSearchLength={2}
                   />
                 </div>
-                <label className="stack-1">
+                <label className="cap-stack" data-gap="2">
                   <span className="cap-field-label">Department</span>
                   <input
                     type="text"
@@ -99,7 +122,7 @@ export function AffiliationsFieldset({
                     className="cap-input"
                   />
                 </label>
-                <label className="stack-1">
+                <label className="cap-stack" data-gap="2">
                   <span className="cap-field-label">City</span>
                   <input
                     type="text"
@@ -108,7 +131,7 @@ export function AffiliationsFieldset({
                     className="cap-input"
                   />
                 </label>
-                <label className="stack-1">
+                <label className="cap-stack" data-gap="2">
                   <span className="cap-field-label">State or province</span>
                   <input
                     type="text"
@@ -117,7 +140,7 @@ export function AffiliationsFieldset({
                     className="cap-input"
                   />
                 </label>
-                <label className="stack-1">
+                <label className="cap-stack" data-gap="2">
                   <span className="cap-field-label">Country</span>
                   <input
                     type="text"
@@ -156,14 +179,14 @@ export function AuthorsFieldset({
   toggleAffiliationForAuthor: (index: number, ordinal: number) => void;
 }) {
   return (
-    <fieldset className="card stack-4">
+    <fieldset className="card cap-stack">
       <legend className="legend">Authors</legend>
-      <ol className="stack-4">
+      <ol className="cap-stack">
         {authors.map((author, index) => (
-          <li key={index} className="card card-s stack-3">
-            <div className="spread">
+          <li key={index} className="card card-s cap-stack" data-gap="4">
+            <div className="cap-spread">
               <span className="small strong">Author {index + 1}</span>
-              <div className="cluster">
+              <div className="cap-cluster">
                 <button
                   type="button"
                   onClick={() => moveAuthor(index, -1)}
@@ -193,8 +216,8 @@ export function AuthorsFieldset({
                 </button>
               </div>
             </div>
-            <div className="grid-2">
-              <label className="stack-1">
+            <div className="cap-grid" data-cols="2">
+              <label className="cap-stack" data-gap="2">
                 <span className="cap-field-label">First name</span>
                 <input
                   type="text"
@@ -203,7 +226,7 @@ export function AuthorsFieldset({
                   className="cap-input"
                 />
               </label>
-              <label className="stack-1">
+              <label className="cap-stack" data-gap="2">
                 <span className="cap-field-label">Last name</span>
                 <input
                   type="text"
@@ -212,7 +235,7 @@ export function AuthorsFieldset({
                   className="cap-input"
                 />
               </label>
-              <label className="stack-1 span-2">
+              <label className="cap-stack span-2" data-gap="2">
                 <span className="cap-field-label">Email</span>
                 <input
                   type="email"
@@ -222,7 +245,7 @@ export function AuthorsFieldset({
                 />
               </label>
             </div>
-            <div className="cluster">
+            <div className="cap-cluster">
               <label className="cap-check">
                 <input
                   type="checkbox"
@@ -245,13 +268,13 @@ export function AuthorsFieldset({
               </label>
             </div>
             {affiliations.length > 0 ? (
-              <fieldset className="stack-1">
+              <fieldset className="cap-stack" data-gap="2">
                 <legend className="small">Affiliations</legend>
-                <div className="cluster">
+                <div className="cap-cluster">
                   {affiliations.map((_, affIndex) => {
                     const ordinal = affIndex + 1;
                     return (
-                      <label key={affIndex} className="cluster small">
+                      <label key={affIndex} className="cap-cluster small">
                         <input
                           type="checkbox"
                           checked={author.affiliationOrdinals.includes(ordinal)}

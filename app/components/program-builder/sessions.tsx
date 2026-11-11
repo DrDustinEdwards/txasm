@@ -15,8 +15,8 @@ export function SessionFields({
 }) {
   const idBase = session ? session.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1 span-2">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`title-${idBase}`} className="cap-field-label">
           Title
         </label>
@@ -30,7 +30,7 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`date-${idBase}`} className="cap-field-label">
           Date
         </label>
@@ -42,7 +42,7 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`loc-${idBase}`} className="cap-field-label">
           Room
         </label>
@@ -55,7 +55,7 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`start-${idBase}`} className="cap-field-label">
           Starts
         </label>
@@ -67,7 +67,7 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`end-${idBase}`} className="cap-field-label">
           Ends
         </label>
@@ -79,7 +79,7 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`mod-${idBase}`} className="cap-field-label">
           Moderator (optional)
         </label>
@@ -118,8 +118,8 @@ export function SessionCard({
   const H = `h${level}` as "h3" | "h4" | "h5";
   const Sub = `h${level + 1}` as "h4" | "h5" | "h6";
   return (
-    <div className="card stack-4">
-      <div className="spread">
+    <div className="card cap-stack">
+      <div className="cap-spread">
         <div>
           <H className="strong">{session.title}</H>
           <p className="small cap-muted">
@@ -130,7 +130,7 @@ export function SessionCard({
             <p className="small cap-muted">Moderated by {session.moderator}</p>
           ) : null}
         </div>
-        <div className="cluster">
+        <div className="cap-cluster">
           <Form method="post">
             <input type="hidden" name="intent" value="session-move" />
             <input type="hidden" name="sessionId" value={session.id} />
@@ -162,12 +162,12 @@ export function SessionCard({
         </div>
       </div>
 
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <Sub className="small strong">Items</Sub>
         {session.items.length === 0 ? (
           <p className="small cap-muted">No items in this session yet.</p>
         ) : (
-          <ol className="stack-2">
+          <ol className="cap-stack" data-gap="3">
             {session.items.map((item, itemIndex) => (
               <ItemRow
                 key={item.id}
@@ -191,8 +191,8 @@ export function SessionCard({
 
       <details className="card card-s">
         <summary className="summary">Edit or delete session</summary>
-        <div className="stack-3 mt-3">
-          <Form method="post" className="stack-3" noValidate>
+        <div className="cap-stack mt-3" data-gap="4">
+          <Form method="post" className="cap-stack" data-gap="4" noValidate>
             <input type="hidden" name="intent" value="session-update" />
             <input type="hidden" name="sessionId" value={session.id} />
             <SessionFields session={session} />
@@ -235,10 +235,10 @@ export function ConcurrentSessionForm({
   const source = slot.items[0];
   if (!source) return null;
   return (
-    <Form method="post" className="card card-s card-dashed cluster cluster-end">
+    <Form method="post" className="card card-s card-dashed cap-cluster" data-align="end">
       <input type="hidden" name="intent" value="session-add-concurrent" />
       <input type="hidden" name="sessionId" value={source.id} />
-      <div className="grow stack-1">
+      <div className="grow cap-stack" data-gap="2">
         <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
           Add a concurrent session (parallel track)
         </label>
@@ -251,7 +251,7 @@ export function ConcurrentSessionForm({
           className="cap-input"
         />
       </div>
-      <div className="grow stack-1">
+      <div className="grow cap-stack" data-gap="2">
         <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
           Room
         </label>

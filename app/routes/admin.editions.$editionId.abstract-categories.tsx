@@ -78,8 +78,8 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Abstract categories</h1>
         <p>
           {edition.name}.{" "}
@@ -99,13 +99,13 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       {categories.length === 0 ? (
         <p>No categories yet. Add the first below.</p>
       ) : (
-        <ul className="stack-3">
+        <ul className="cap-stack" data-gap="4">
           {categories.map((category) => (
             <li key={category.id} className="card card-s">
-              <Form method="post" className="cluster cluster-end">
+              <Form method="post" className="cap-cluster" data-align="end">
                 <input type="hidden" name="intent" value="update" />
                 <input type="hidden" name="categoryId" value={category.id} />
-                <div className="grow stack-1">
+                <div className="grow cap-stack" data-gap="2">
                   <label htmlFor={`name-${category.id}`} className="cap-field-label">
                     Name
                   </label>
@@ -118,7 +118,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                     className="cap-input"
                   />
                 </div>
-                <div className="stack-1 tiny-field">
+                <div className="cap-stack tiny-field" data-gap="2">
                   <label htmlFor={`sort-${category.id}`} className="cap-field-label">
                     Sort
                   </label>
@@ -147,11 +147,11 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
         </ul>
       )}
 
-      <section className="card stack-4">
+      <section className="card cap-stack">
         <h2 className="subsection-title">Add a category</h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="name" className="cap-field-label">
               Name
             </label>
@@ -164,7 +164,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>

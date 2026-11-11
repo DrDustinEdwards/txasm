@@ -1,32 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "capsomer/react/link";
-import type { LinkProps } from "capsomer/react/site-header";
 import { themeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";
 
 // What the public and admin shells share around Capsomer's site header and
-// AdminShell: router links, the avatar's letters, and the theme's memory.
+// AdminShell: the avatar's letters, and the theme's memory.
 
 export { THEME_PREF_KEY } from "~/lib/theme";
-
-// /signout is a POST action and /documents serve files: a full load for both.
-const DOCUMENT_HREF = /^(\/(signout|documents)(\/|$)|https?:|mailto:)/;
-
-/** Capsomer's links as React Router's. */
-export function renderLink({ href, children, ...rest }: LinkProps) {
-  if (DOCUMENT_HREF.test(href)) {
-    return (
-      <a href={href} {...rest}>
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link to={href} {...rest}>
-      {children}
-    </Link>
-  );
-}
 
 /** The avatar's letter: the email's first. */
 export const initials = (email: string) => (email[0] ?? "?").toUpperCase();

@@ -1,3 +1,4 @@
+import { routerRenderLink } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.program";
 import { jsonLd } from "@drdustinedwards/site-helpers/schema";
 import { meetingLd, pageHead } from "~/lib/site-meta";
@@ -16,7 +17,6 @@ import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedule";
 import { RichText } from "capsomer/react/trusted-html";
-import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import schedule from "capsomer/schedule.css?url";
 
@@ -73,8 +73,8 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][number] }) {
   return (
-    <li className="stack-1">
-      <div className="cluster program-item">
+    <li className="cap-stack" data-gap="2">
+      <div className="cap-cluster program-item">
         <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
         {item.abstractId ? (
           <p>
@@ -115,7 +115,7 @@ function SessionBlock({ session, level }: { session: ProgramSessionResolved; lev
       {session.items.length === 0 ? (
         <p className="small cap-muted">No items listed.</p>
       ) : (
-        <ol className="stack-3">
+        <ol className="cap-stack" data-gap="4">
           {session.items.map((item) => (
             <ProgramItemView key={item.id} item={item} />
           ))}
@@ -127,9 +127,9 @@ function SessionBlock({ session, level }: { session: ProgramSessionResolved; lev
 
 function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
   return (
-    <section className="stack-3">
+    <section className="cap-stack" data-gap="4">
       <h2 className="section-title">Invited speakers</h2>
-      <ul className="stack-4">
+      <ul className="cap-stack">
         {speakers.map((speaker) => (
           <li key={speaker.id} className="card">
             <p className="strong">{speaker.name}</p>
@@ -149,9 +149,9 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
 
 function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
   return (
-    <section className="stack-3">
+    <section className="cap-stack" data-gap="4">
       <h2 className="section-title">Sponsors</h2>
-      <ul className="cluster">
+      <ul className="cap-cluster">
         {sponsors.map((sponsor) => (
           <li key={sponsor.id} className="card small sponsor">
             {sponsor.url && /^https?:\/\//i.test(sponsor.url) ? (
@@ -175,16 +175,16 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (
-    <div className="stack-8">
+    <div className="cap-stack" data-gap="7">
       <Breadcrumb
-        renderLink={renderLink}
+        renderLink={routerRenderLink}
         items={[
           { label: "Home", href: "/" },
           { label: "Meetings", href: "/meetings" },
           { label: `${edition.name} program` },
         ]}
       />
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">{edition.name}</h1>
         <p className="home-tagline">Program</p>
         {dateLine ? <p className="cap-muted">{dateLine}</p> : null}
@@ -199,7 +199,7 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
       ) : program.days.length === 0 ? (
         <p>The program has no sessions listed yet.</p>
       ) : (
-        <div className="stack-6">
+        <div className="cap-stack" data-gap="6">
           {program.days.length > 1 ? (
             <ScheduleDayNav
               days={program.days.map((d) => d.key)}

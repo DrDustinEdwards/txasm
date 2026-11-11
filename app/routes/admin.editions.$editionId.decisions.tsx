@@ -121,8 +121,8 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   }, [actionData]);
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Decisions</h1>
         <p>
           {edition.name}.{" "}
@@ -153,7 +153,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="stack-6">
+        <ul className="cap-stack" data-gap="6">
           {abstracts.map((abstract) => (
             <DecisionRow key={abstract.id} editionId={edition.id} abstract={abstract} />
           ))}
@@ -179,9 +179,9 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
   const summary = abstract.recommendationSummary;
 
   return (
-    <li className="card stack-4">
-      <div className="spread">
-        <div className="stack-1">
+    <li className="card cap-stack">
+      <div className="cap-spread">
+        <div className="cap-stack" data-gap="2">
           <h2 className="strong">
             <RichText
               as="span"
@@ -222,8 +222,8 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
       ) : null}
 
       {decision ? (
-        <div className="stack-1">
-          <div className="cluster">
+        <div className="cap-stack" data-gap="2">
+          <div className="cap-cluster">
             <Form method="post">
               <input type="hidden" name="intent" value="notify" />
               <input type="hidden" name="abstractId" value={abstract.id} />
@@ -246,13 +246,13 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
         </div>
       ) : null}
 
-      <Form method="post" className="stack-4">
+      <Form method="post" className="cap-stack">
         <input type="hidden" name="intent" value="decide" />
         <input type="hidden" name="abstractId" value={abstract.id} />
 
-        <fieldset className="stack-2">
+        <fieldset className="cap-stack" data-gap="3">
           <legend className="small strong">Outcome</legend>
-          <div className="cluster">
+          <div className="cap-cluster">
             {OUTCOME_OPTIONS.map((option) => (
               <label key={option.value} className="cap-check">
                 <input
@@ -270,7 +270,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
         </fieldset>
 
         {outcome === "accept" ? (
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
               Presentation type
             </label>

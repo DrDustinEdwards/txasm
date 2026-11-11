@@ -81,8 +81,8 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
 
   if (done) {
     return (
-      <div className="narrow stack-6">
-        <div className="stack-2">
+      <div className="narrow cap-stack" data-gap="6">
+        <div className="cap-stack" data-gap="3">
           <h1 className="page-title">
             {done === "approved" ? "Change approved" : "Your email address changed"}
           </h1>
@@ -104,8 +104,8 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
   if (problem) {
     const words = PROBLEM_WORDS[problem];
     return (
-      <div className="narrow stack-6">
-        <div className="stack-2">
+      <div className="narrow cap-stack" data-gap="6">
+        <div className="cap-stack" data-gap="3">
           <h1 className="page-title">{words.title}</h1>
           <p>{words.text}</p>
         </div>
@@ -119,13 +119,13 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
   }
 
   return (
-    <div className="narrow stack-6">
-      <div className="stack-2">
+    <div className="narrow cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Confirm the email change</h1>
         <p>This changes the email address your TXASM account signs in with.</p>
       </div>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
-      <form method="post" className="stack-4">
+      <form method="post" className="cap-stack">
         {actionData?.limited ? (
           <p role="alert" className="cap-field-error">
             Too many tries. Wait a minute, then try again.

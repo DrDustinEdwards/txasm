@@ -313,8 +313,8 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Schedule</h1>
         <p>
           {edition.name}.{" "}
@@ -351,7 +351,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           </Link>
         )}
       >
-        <label className="cluster small cap-muted">
+        <label className="cap-cluster small cap-muted">
           <span>Add day</span>
           <input
             type="date"
@@ -372,7 +372,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           below.
         </p>
       ) : (
-        <div className="stack-8">
+        <div className="cap-stack" data-gap="7">
           <h2 className="subsection-title">{dayLabel(selectedDay, { noDate: "No date" })}</h2>
           <Schedule
             days={[day ?? { key: selectedDay, slots: [] }]}
@@ -396,9 +396,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             slotFooter={(slot) => <ConcurrentSessionForm slot={slot} busy={busy} />}
           />
 
-          <section className="card stack-4">
+          <section className="card cap-stack">
             <h3 className="strong">Add a session to this day</h3>
-            <Form method="post" className="stack-3" noValidate>
+            <Form method="post" className="cap-stack" data-gap="4" noValidate>
               <input type="hidden" name="intent" value="session-create" />
               {/* Keyed by day so the date prefill remounts when the tab changes;
                   an unkeyed defaultValue would keep the previous day's date. */}
@@ -433,7 +433,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           document.status === "published" ? (
             <Status tone="ok">Published</Status>
           ) : (
-            <span className="cluster">
+            <span className="cap-cluster">
               <span className="cap-muted">Draft.</span>
               <Form method="post">
                 <input type="hidden" name="intent" value="document-publish" />

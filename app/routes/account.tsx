@@ -303,8 +303,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   if (welcome) {
     return (
-      <div className="narrow stack-6">
-        <div className="stack-2">
+      <div className="narrow cap-stack" data-gap="6">
+        <div className="cap-stack" data-gap="3">
           <h1 className="page-title">You are signed in</h1>
           {offerable ? (
             <p>
@@ -319,7 +319,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         {offerable ? (
-          <Form method="post" className="cluster">
+          <Form method="post" className="cap-cluster">
             {addButton}
             <button
               type="submit"
@@ -337,9 +337,9 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="narrow stack-6">
+    <div className="narrow cap-stack" data-gap="6">
       <h1 className="page-title">Account</h1>
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Email address</h2>
         <p>
           Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this
@@ -352,7 +352,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : (
         <form
-          className="stack-3"
+          className="cap-stack"
+          data-gap="4"
           onSubmit={(event) => {
             event.preventDefault();
             void changeEmail(event.currentTarget);
@@ -389,7 +390,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           </div>
         </form>
       )}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Passkeys</h2>
         <p>
           A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in
@@ -399,12 +400,12 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       {passkeys.length === 0 ? (
         <p className="cap-muted">No passkeys yet.</p>
       ) : (
-        <ul className="stack-3" aria-label="Your passkeys">
+        <ul className="cap-stack" data-gap="4" aria-label="Your passkeys">
           {passkeys.map((p) =>
             renaming === p.id ? (
               <li key={p.id}>
                 <form
-                  className="cluster"
+                  className="cap-cluster"
                   onSubmit={(event) => {
                     event.preventDefault();
                     void renamePasskey(p.id, event.currentTarget);
@@ -435,7 +436,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                 </form>
               </li>
             ) : (
-              <li key={p.id} className="cluster">
+              <li key={p.id} className="cap-cluster">
                 <span>
                   {p.name}
                   <span className="small cap-muted">
@@ -474,7 +475,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
       <div>{addButton}</div>
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Signed-in devices</h2>
         <p>
           Where you are signed in. Sign out of a device you do not know, or one you no longer use.
@@ -486,9 +487,9 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : (
         <>
-          <ul className="stack-3" aria-label="Your signed-in devices">
+          <ul className="cap-stack" data-gap="4" aria-label="Your signed-in devices">
             {sessions.map((s) => (
-              <li key={s.id} className="cluster">
+              <li key={s.id} className="cap-cluster">
                 <span>
                   {s.device ?? "Unknown device"}
                   <span className="small cap-muted">
@@ -525,7 +526,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           {error ?? "That device was not signed out. Try again."}
         </p>
       ) : null}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Recent security activity</h2>
         <p>
           Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out
@@ -535,7 +536,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       {history.length === 0 ? (
         <p className="cap-muted">Nothing yet.</p>
       ) : (
-        <ul className="stack-3" aria-label="Your recent security activity">
+        <ul className="cap-stack" data-gap="4" aria-label="Your recent security activity">
           {history.map((h, i) => (
             <li key={`${new Date(h.at).getTime()}-${i}`}>
               {historyWords(h.kind, h.via)}
@@ -548,7 +549,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           ))}
         </ul>
       )}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Delete your account</h2>
         {deletionBlockers.length > 0 ? (
           <p>
@@ -570,7 +571,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           <Link to="/signin?next=/account">Sign in again to delete your account</Link>
         </p>
       ) : (
-        <Form method="post" className="stack-3">
+        <Form method="post" className="cap-stack" data-gap="4">
           <input type="hidden" name="intent" value="delete" />
           <label className="cap-check">
             <input type="checkbox" name="confirm" required />I understand my account is deleted for

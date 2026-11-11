@@ -92,7 +92,7 @@ function TextField({
   placeholder?: string;
 }) {
   return (
-    <div className="stack-1">
+    <div className="cap-stack" data-gap="2">
       <label htmlFor={name} className="cap-field-label">
         {label}
       </label>
@@ -134,8 +134,8 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
   }
 
   return (
-    <div className="form-page stack-8">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Platform settings</h1>
         <p className="cap-muted">
           Organization identity and tunable defaults. These drive the site header, footer, and home
@@ -153,10 +153,10 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
       </p>
 
-      <Form method="post" className="stack-8" noValidate>
-        <fieldset className="card stack-4">
+      <Form method="post" className="cap-stack" data-gap="7" noValidate>
+        <fieldset className="card cap-stack">
           <legend className="legend">Identity</legend>
-          <div className="grid-2">
+          <div className="cap-grid" data-cols="2">
             <TextField
               name="shortName"
               label="Wordmark (short name)"
@@ -176,7 +176,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
             defaultValue={settings.orgFullName}
           />
           <TextField name="tagline" label="Tagline" defaultValue={settings.tagline} />
-          <div className="grid-2">
+          <div className="cap-grid" data-cols="2">
             <TextField
               name="foundingYear"
               label="Founding year"
@@ -199,15 +199,15 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
           />
         </fieldset>
 
-        <fieldset className="card stack-4">
+        <fieldset className="card cap-stack">
           <legend className="legend">Footer links</legend>
           {footerLinks.length === 0 ? (
             <p className="small cap-muted">No footer links. Add one below.</p>
           ) : (
-            <ol className="stack-3">
+            <ol className="cap-stack" data-gap="4">
               {footerLinks.map((link, index) => (
                 <li key={index} className="grid-pair-action">
-                  <label className="stack-1">
+                  <label className="cap-stack" data-gap="2">
                     <span className="cap-field-label">Label</span>
                     <input
                       type="text"
@@ -216,7 +216,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
                       className="cap-input"
                     />
                   </label>
-                  <label className="stack-1">
+                  <label className="cap-stack" data-gap="2">
                     <span className="cap-field-label">URL or path</span>
                     <input
                       type="text"
@@ -239,9 +239,9 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
           <input type="hidden" name="footerLinks" value={JSON.stringify(footerLinks)} />
         </fieldset>
 
-        <fieldset className="card stack-4">
+        <fieldset className="card cap-stack">
           <legend className="legend">Defaults</legend>
-          <div className="grid-2">
+          <div className="cap-grid" data-cols="2">
             <TextField
               name="defaultCurrency"
               label="Default currency"

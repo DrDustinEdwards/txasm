@@ -122,9 +122,9 @@ function AbstractSections({
     return <p className="small cap-muted">This abstract has no section content.</p>;
   }
   return (
-    <div className="stack-4">
+    <div className="cap-stack">
       {filled.map(([label, html]) => (
-        <section key={label} className="stack-1">
+        <section key={label} className="cap-stack" data-gap="2">
           <h3 className="small strong">{label}</h3>
           <RichText className="small" html={html} />
         </section>
@@ -152,8 +152,8 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const editable = !edition.deadlinePassed;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-1">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="2">
         <h1 className="page-title">
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
@@ -164,7 +164,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <section className="card stack-3">
+      <section className="card cap-stack" data-gap="4">
         <h2 className="subsection-title">Abstract</h2>
         <AbstractSections abstract={abstract} />
       </section>
@@ -179,12 +179,12 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
       </p>
 
       {editable ? (
-        <Form method="post" className="stack-6">
+        <Form method="post" className="cap-stack" data-gap="6">
           <input type="hidden" name="intent" value="submit" />
 
-          <fieldset className="stack-2">
+          <fieldset className="cap-stack" data-gap="3">
             <legend className="small strong">Recommendation</legend>
-            <div className="cluster">
+            <div className="cap-cluster">
               {RECOMMENDATION_OPTIONS.map((option) => (
                 <label key={option.value} className="cap-check">
                   <input
@@ -218,7 +218,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             help="Seen only by chairs and admins, never by the authors. Optional."
           />
 
-          <div className="cluster">
+          <div className="cap-cluster">
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
               {review?.status === "submitted" ? "Update review" : "Submit review"}
             </button>
@@ -228,18 +228,18 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
           </div>
         </Form>
       ) : (
-        <div className="stack-4">
+        <div className="cap-stack">
           <p role="status" className="card card-s card-sunken small">
             The review deadline has passed. This review can no longer be edited.
           </p>
           {review ? (
-            <section className="card stack-2">
+            <section className="card cap-stack" data-gap="3">
               <h2 className="subsection-title">Your review</h2>
               <p className="small">
                 <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
               </p>
               {review.overallComment ? (
-                <div className="stack-1">
+                <div className="cap-stack" data-gap="2">
                   <h3 className="small strong">Overall comment</h3>
                   <RichText className="small" html={review.overallComment} />
                 </div>
@@ -252,7 +252,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <section className="card card-warn stack-3">
+      <section className="card card-warn cap-stack" data-gap="4">
         <h2 className="subsection-title">Have a conflict of interest?</h2>
         <p className="small cap-muted">
           If you should not review this abstract, declare a conflict. This removes the assignment
@@ -260,7 +260,8 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </p>
         <Form
           method="post"
-          className="stack-3"
+          className="cap-stack"
+          data-gap="4"
           onSubmit={(e) =>
             confirmSubmit(e, {
               title: "Declare a conflict and remove this assignment?",
@@ -270,7 +271,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         >
           <input type="hidden" name="intent" value="conflict" />
           <input type="hidden" name="abstractId" value={abstract.id} />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="reason" className="cap-field-label">
               Reason
             </label>
@@ -281,7 +282,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
               <option value="other">Other</option>
             </select>
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="note" className="cap-field-label">
               Note (optional)
             </label>

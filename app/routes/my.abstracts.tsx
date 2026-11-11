@@ -43,7 +43,7 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
   const { abstracts } = loaderData;
 
   return (
-    <div className="stack-6">
+    <div className="cap-stack" data-gap="6">
       <h1 className="page-title">My abstracts</h1>
 
       {abstracts.length === 0 ? (

@@ -105,8 +105,8 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Assign reviewers</h1>
         <p>
           {edition.name}.{" "}
@@ -129,7 +129,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {abstracts.map((abstract) => {
             const assigned = byAbstract.get(abstract.id) ?? [];
             const assignedIds = new Set(assigned.map((a) => a.reviewerId));
@@ -138,9 +138,9 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
               rowError && "abstractId" in rowError ? rowError.abstractId === abstract.id : false;
 
             return (
-              <li key={abstract.id} className="card stack-3">
-                <div className="spread">
-                  <div className="stack-1">
+              <li key={abstract.id} className="card cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div className="cap-stack" data-gap="2">
                     <h2 className="strong">
                       <RichText
                         as="span"
@@ -165,14 +165,14 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                   </p>
                 ) : null}
 
-                <div className="stack-2">
+                <div className="cap-stack" data-gap="3">
                   <h3 className="small strong">Reviewers</h3>
                   {assigned.length === 0 ? (
                     <p className="small cap-muted">None assigned yet.</p>
                   ) : (
-                    <ul className="stack-1">
+                    <ul className="cap-stack" data-gap="2">
                       {assigned.map((a) => (
-                        <li key={a.assignmentId} className="spread small">
+                        <li key={a.assignmentId} className="cap-spread small">
                           <span>
                             {a.reviewerName || a.reviewerEmail}{" "}
                             <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
@@ -198,10 +198,10 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 {available.length > 0 ? (
-                  <Form method="post" className="cluster cluster-end">
+                  <Form method="post" className="cap-cluster" data-align="end">
                     <input type="hidden" name="intent" value="assign" />
                     <input type="hidden" name="abstractId" value={abstract.id} />
-                    <div className="stack-1">
+                    <div className="cap-stack" data-gap="2">
                       <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
                         Add a reviewer
                       </label>

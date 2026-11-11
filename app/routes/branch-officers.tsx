@@ -34,7 +34,7 @@ function OfficerCard({ officer }: { officer: Officer }) {
       <h3 className="subsection-title">{officer.name}</h3>
       <p className="small cap-muted">{officer.affiliation}</p>
       <p className="small cap-muted">{officer.location}</p>
-      <div className="stack-1 small officer-contact">
+      <div className="cap-stack small officer-contact" data-gap="2">
         {officer.phone ? (
           <p>
             <a href={`tel:${officer.phone}`}>{officer.phone}</a>
@@ -99,8 +99,8 @@ function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
 export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
   const { officers, board, pastTabs } = loaderData;
   return (
-    <div className="stack-10">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="8">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Branch officers</h1>
         <p className="lead">
           The branch is run by elected officers and volunteers from member institutions across
@@ -109,11 +109,11 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <section aria-labelledby="current-officers-heading" className="stack-4">
+      <section aria-labelledby="current-officers-heading" className="cap-stack">
         <h2 id="current-officers-heading" className="section-title">
           Current officers
         </h2>
-        <ul className="grid-2">
+        <ul className="cap-grid" data-cols="2">
           {officers.map((officer) => (
             <li key={`${officer.role}-${officer.name}`}>
               <OfficerCard officer={officer} />
@@ -122,11 +122,11 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
         </ul>
       </section>
 
-      <section aria-labelledby="advisory-board-heading" className="stack-4">
+      <section aria-labelledby="advisory-board-heading" className="cap-stack">
         <h2 id="advisory-board-heading" className="section-title">
           Advisory board
         </h2>
-        <ul className="grid-2">
+        <ul className="cap-grid" data-cols="2">
           {board.map((member) => (
             <li key={member.name} className="card">
               <p className="strong">{member.name}</p>
@@ -136,8 +136,8 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
         </ul>
       </section>
 
-      <section aria-labelledby="past-officers-heading" className="stack-4">
-        <div className="stack-2">
+      <section aria-labelledby="past-officers-heading" className="cap-stack">
+        <div className="cap-stack" data-gap="3">
           <h2 id="past-officers-heading" className="section-title">
             Past branch officers
           </h2>

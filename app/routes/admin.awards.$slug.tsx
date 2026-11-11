@@ -126,8 +126,8 @@ function RecipientFields({
 }) {
   const base = recipient ? recipient.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`person-${base}`} className="cap-field-label">
           Recipient name
         </label>
@@ -140,7 +140,7 @@ function RecipientFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
@@ -154,7 +154,7 @@ function RecipientFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`institution-${base}`} className="cap-field-label">
           Institution
         </label>
@@ -166,7 +166,7 @@ function RecipientFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`mentor-${base}`} className="cap-field-label">
           Mentor
         </label>
@@ -178,7 +178,7 @@ function RecipientFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
@@ -191,7 +191,7 @@ function RecipientFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`placement-${base}`} className="cap-field-label">
           Placement
         </label>
@@ -204,7 +204,7 @@ function RecipientFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
@@ -222,7 +222,7 @@ function RecipientFields({
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`sort-${base}`} className="cap-field-label">
           Sort order
         </label>
@@ -247,8 +247,8 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-8">
-      <header className="stack-2">
+    <div className="form-page cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="3">
         <p className="small">
           <Link to="/admin/awards">All awards</Link>
         </p>
@@ -264,14 +264,14 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <section aria-labelledby="definition-heading" className="card stack-4">
+      <section aria-labelledby="definition-heading" className="card cap-stack">
         <h2 id="definition-heading" className="subsection-title">
           Award definition
         </h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="award-update" />
-          <div className="grid-2">
-            <div className="stack-1">
+          <div className="cap-grid" data-cols="2">
+            <div className="cap-stack" data-gap="2">
               <label htmlFor="name" className="cap-field-label">
                 Name
               </label>
@@ -284,7 +284,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 className="cap-input"
               />
             </div>
-            <div className="stack-1">
+            <div className="cap-stack" data-gap="2">
               <label htmlFor="slug" className="cap-field-label">
                 Slug
               </label>
@@ -297,7 +297,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               />
             </div>
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="namesakeBio" className="cap-field-label">
               Namesake bio
             </label>
@@ -309,7 +309,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="description" className="cap-field-label">
               Description
             </label>
@@ -324,7 +324,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               Bio and description support italics, superscript, and subscript.
             </p>
           </div>
-          <div className="stack-1 short-field">
+          <div className="cap-stack short-field" data-gap="2">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -343,17 +343,17 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
         </Form>
       </section>
 
-      <section aria-labelledby="recipients-heading" className="stack-4">
+      <section aria-labelledby="recipients-heading" className="cap-stack">
         <h2 id="recipients-heading" className="subsection-title">
           Recipients
         </h2>
         {recipients.length === 0 ? (
           <p className="cap-muted">No recipients yet. Add the first below.</p>
         ) : (
-          <ul className="stack-3">
+          <ul className="cap-stack" data-gap="4">
             {recipients.map((recipient) => (
-              <li key={recipient.id} className="card stack-3">
-                <div className="spread">
+              <li key={recipient.id} className="card cap-stack" data-gap="4">
+                <div className="cap-spread">
                   <div className="shrink">
                     <p className="strong">
                       {recipient.year} &middot; {recipient.personName}
@@ -388,7 +388,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 </div>
                 <details className="card card-s">
                   <summary className="summary">Edit recipient</summary>
-                  <Form method="post" className="stack-3 mt-3" noValidate>
+                  <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
                     <input type="hidden" name="intent" value="recipient-update" />
                     <input type="hidden" name="recipientId" value={recipient.id} />
                     <RecipientFields recipient={recipient} editions={editions} />
@@ -402,11 +402,11 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
           </ul>
         )}
 
-        <section aria-labelledby="add-recipient-heading" className="card stack-4">
+        <section aria-labelledby="add-recipient-heading" className="card cap-stack">
           <h3 id="add-recipient-heading" className="strong">
             Add a recipient
           </h3>
-          <Form method="post" className="stack-4" noValidate>
+          <Form method="post" className="cap-stack" noValidate>
             <input type="hidden" name="intent" value="recipient-create" />
             <RecipientFields editions={editions} />
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

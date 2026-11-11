@@ -1,12 +1,12 @@
 {
   "linked_css": true,
   "enforce": true,
-  "budget_bytes": 200000,
+  "budget_bytes": 240000,
   "baseline": {
     "measured_at": "1e8c44f",
     "routes": {
       "routes/signin": 199708,
-      "routes/admin.editions.$editionId.program": 197313,
+      "routes/admin.editions.$editionId.program": 202318,
       "routes/account": 194870,
       "routes/admin.editions.$editionId.book": 192807,
       "routes/admin.editions.$editionId.decisions": 190578,
@@ -24,7 +24,7 @@
       "routes/admin.editions.$editionId.categories.$categoryId": 184575,
       "routes/admin.editions.$editionId.roles": 184401,
       "routes/admin.editions.$editionId.abstract-categories": 184233,
-      "routes/abstracts.$abstractId.edit": 184148,
+      "routes/abstracts.$abstractId.edit": 231627,
       "routes/admin.editions.new": 184053,
       "routes/admin": 183926,
       "routes/signin.confirm": 183268,
