@@ -26,6 +26,7 @@ import {
   SPECULATION_RULES_PATH,
   speculationRulesResponse,
 } from "@dustinedwards/site-runtime/prefetch";
+import { isWrite } from "@dustinedwards/site-runtime/http";
 import { timedRender } from "@dustinedwards/site-runtime/server-timing";
 import { canonicalRedirect } from "@dustinedwards/site-runtime/url";
 import { cloudflareContext, cspNonceContext } from "@dustinedwards/site-runtime/context";
@@ -60,8 +61,6 @@ function withSpeculationRules(page: Response): Response {
   headers.set(SPECULATION_RULES_HEADER.name, SPECULATION_RULES_HEADER.value);
   return new Response(page.body, { status: page.status, statusText: page.statusText, headers });
 }
-
-const isWrite = (request: Request) => request.method !== "GET" && request.method !== "HEAD";
 
 // Runs the React Router handler with the Cloudflare env and execution context, so loaders and actions reach
 // bindings through context.get(cloudflareContext), never ambiently. `nonce` goes to the render (app/entry.server.tsx);
