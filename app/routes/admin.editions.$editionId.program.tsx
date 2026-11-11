@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -28,7 +29,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Program");
+  return privateMeta(pageTitle(matches, "Program"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/admin.settings";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -14,7 +15,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Platform settings");
+  return privateMeta(pageTitle(matches, "Platform settings"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
