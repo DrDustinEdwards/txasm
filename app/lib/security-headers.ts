@@ -34,8 +34,10 @@ const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 //   cannot cover.
 // - The Cloudflare Web Analytics beacon, allowed like every family site. On workers.dev the edge injects
 //   none; once txasm.org is on the zone, it does.
-// Beside it, the same policy with Trusted Types and default-src 'none' as Report-Only (the registry stages both), so the
-// reports name each sink a page hands a string to and each kind it loads that the policy does not name.
+// - Trusted Types, enforced (site-runtime 0.132.0): a string never reaches an injection sink, and only the shared
+//   policy names exist.
+// Beside it, the same policy with default-src 'none' as Report-Only (the registry stages it), so the reports name each
+// kind a page loads that the policy does not name.
 function contentSecurityPolicies(nonce: string | undefined) {
   const policy = {
     sources: {
@@ -46,12 +48,10 @@ function contentSecurityPolicies(nonce: string | undefined) {
     nonce,
     styleAttributesInline: true,
     cloudflareWebAnalytics: true,
+    trustedTypes: TRUSTED_TYPES_NAMES,
     ...SINK,
   };
-  return [
-    buildContentSecurityPolicy(policy),
-    buildStagedPolicy(policy, { trustedTypes: TRUSTED_TYPES_NAMES, denyUnlisted: true }),
-  ];
+  return [buildContentSecurityPolicy(policy), buildStagedPolicy(policy, { denyUnlisted: true })];
 }
 
 /**
