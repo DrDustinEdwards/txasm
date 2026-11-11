@@ -1,5 +1,4 @@
 import { Form, useNavigation, useSubmit } from "react-router";
-import { Disclosure } from "capsomer/react/disclosure";
 import { SortableList } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
@@ -106,7 +105,9 @@ function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
         {item.note ? <p className="cap-muted">{item.note}</p> : null}
       </div>
 
-      <Disclosure summary="Edit item" variant="card" size="sm">
+      {/* A plain disclosure, as before: Capsomer's Disclosure has no unboxed variant for an inline "Edit item". */}
+      <details>
+        <summary className="summary tiny cap-muted">Edit item</summary>
         <Form method="post" className="grid-2">
           <input type="hidden" name="intent" value="item-update" />
           <input type="hidden" name="itemId" value={item.id} />
@@ -156,7 +157,7 @@ function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
             </button>
           </div>
         </Form>
-      </Disclosure>
+      </details>
     </div>
   );
 }

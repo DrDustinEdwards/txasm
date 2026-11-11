@@ -273,7 +273,6 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           ) : (
             <SortableBoard
               aria-label="Abstract book sections"
-              className="book-section"
               lanes={book.sections.map((section) => ({
                 id: section.sectionId,
                 label: section.title,

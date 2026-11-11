@@ -569,6 +569,11 @@
   font-size: 0.875rem;
   font-weight: 600;
 }
+.summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
 .cell-end {
   text-align: end;
 }
@@ -620,29 +625,17 @@
   gap: 1rem;
 }
 
-/* The abstract book's running order, on Capsomer's SortableBoard: each section a
-   small card (as .card-s), each entry a row whose excluded state is dashed and faded. */
-.cap-sortable-lane:has(> .book-section) {
-  padding: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-}
-.book-section > .cap-sortable-item {
-  font-size: 0.875rem;
-  &:has(.book-entry[data-excluded]) {
-    border-style: dashed;
-    background: var(--sunken);
-    & .book-entry {
-      opacity: 0.6;
-    }
-  }
-}
+/* An entry of the abstract book's running order, inside Capsomer's SortableBoard item: an
+   excluded entry is faded. */
 .book-entry {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.875rem;
+  &[data-excluded] {
+    opacity: 0.6;
+  }
 }
 
 /* The institution suggestions under their input. */
