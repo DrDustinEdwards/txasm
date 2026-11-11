@@ -18,6 +18,7 @@ import type {
 import { clock, dayLabel, slotLabel, zoneLine } from "capsomer/behavior/schedule";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { escapeCssString, joinParts } from "./format";
 import { dateRange } from "capsomer/behavior/time";
@@ -252,7 +253,7 @@ export function renderProgramBook(data: ProgramBookData): string {
 <style>${printStyles(data.meeting.name)}</style>
 </head>
 <body>
-${body}
+${pagedContent(body)}
 ${PAGED_JS_SCRIPTS}
 </body>
 </html>`;
