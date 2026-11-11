@@ -3,7 +3,7 @@ import type { Route } from "./+types/archive.$category";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { DocumentList } from "capsomer/react/document-archive";
-import { renderLink } from "~/components/site-chrome";
+import { routerRenderLink } from "capsomer/react/link";
 import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
@@ -72,7 +72,7 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
               detail: documentSubtitle(d) || undefined,
             }))}
             label={title}
-            renderLink={renderLink}
+            renderLink={routerRenderLink}
           />
         )}
       </section>

@@ -17,7 +17,6 @@ import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedule";
 import { RichText } from "capsomer/react/trusted-html";
-import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import schedule from "capsomer/schedule.css?url";
 

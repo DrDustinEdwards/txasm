@@ -3,7 +3,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { Empty } from "capsomer/react/empty";
 import { DocumentList } from "capsomer/react/document-archive";
-import { renderLink } from "~/components/site-chrome";
+import { routerRenderLink } from "capsomer/react/link";
 import { documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
@@ -64,7 +64,7 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
               detail: documentSubtitle(d) || undefined,
             }))}
             label="Newsletter archive"
-            renderLink={renderLink}
+            renderLink={routerRenderLink}
           />
         </section>
       )}

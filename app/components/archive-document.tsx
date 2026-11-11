@@ -1,6 +1,6 @@
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { DocumentViewer, type PagerDoc } from "capsomer/react/document-archive";
-import { renderLink } from "~/components/site-chrome";
+import { routerRenderLink } from "capsomer/react/link";
 import { PdfViewer } from "capsomer/react/pdf-viewer";
 import { documentSubtitle, type ArchiveDoc } from "~/lib/document-nav";
 
@@ -27,7 +27,7 @@ export function ArchiveDocument({
       subtitle={documentSubtitle(doc) || undefined}
       before={
         <Breadcrumb
-          renderLink={renderLink}
+          renderLink={routerRenderLink}
           items={[
             { label: "Home", href: "/" },
             { label: backTitle, href: basePath },
@@ -39,7 +39,7 @@ export function ArchiveDocument({
       prev={prev}
       next={next}
       collection={backTitle}
-      renderLink={renderLink}
+      renderLink={routerRenderLink}
     >
       <div data-island="pdf-viewer">
         <PdfViewer src={`/documents/${doc.slug}/inline`} title={doc.title} />
