@@ -15,39 +15,23 @@ import type {
   SpeakerPublic,
   SponsorPublic,
 } from "./data-access";
+import { clock, dayLabel, slotLabel, zoneLine } from "capsomer/behavior/schedule";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { escapeCssString, formatMeetingDates, joinParts } from "./format";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
 
-const DAY_FMT = new Intl.DateTimeFormat("en-US", {
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-  timeZone: "UTC",
-});
+// The meeting's times, in UTC like the rest of the site; the schedule says so once.
+const ZONE = "UTC";
 
-const TIME_FMT = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "UTC",
-});
-
-function dayHeading(day: ProgramDay): string {
-  if (day.date) return DAY_FMT.format(day.date);
-  return "To be scheduled";
-}
-
-function timeLabel(date: Date | null): string {
-  return date ? `${TIME_FMT.format(date)} UTC` : "";
-}
-
-function slotTimeLine(session: ProgramSessionResolved): string {
-  const start = timeLabel(session.startsAt);
-  const end = timeLabel(session.endsAt);
-  if (start && end) return `${start} to ${end}`;
-  return start || end || "";
+function sessionTimes(session: ProgramSessionResolved): string {
+  return slotLabel(
+    session.startsAt?.getTime() ?? null,
+    session.endsAt?.getTime() ?? null,
+    ZONE,
+    "",
+  );
 }
 
 function itemBlock(item: ProgramSessionResolved["items"][number]): string {
@@ -73,14 +57,14 @@ function itemBlock(item: ProgramSessionResolved["items"][number]): string {
     body = `<span class="item-title">${escapeHtml(item.customTitle ?? "")}</span>`;
   }
   const time = item.startsAt
-    ? `<span class="item-time">${escapeHtml(timeLabel(item.startsAt))}</span>`
+    ? `<span class="item-time">${escapeHtml(clock(item.startsAt.getTime(), ZONE))}</span>`
     : "";
   const note = item.note ? `<p class="item-note">${escapeHtml(item.note)}</p>` : "";
   return `<li class="item">${time}${kind}${body}${note}</li>`;
 }
 
 function sessionBlock(session: ProgramSessionResolved): string {
-  const meta = joinParts([session.location, slotTimeLine(session)]);
+  const meta = joinParts([session.location, sessionTimes(session)]);
   const moderator = session.moderator
     ? `<p class="session-moderator">Moderated by ${escapeHtml(session.moderator)}</p>`
     : "";
@@ -96,26 +80,25 @@ function sessionBlock(session: ProgramSessionResolved): string {
 </div>`;
 }
 
-function slotBlock(group: ProgramDay["groups"][number]): string {
-  const source = group.sessions[0];
-  const trackCount = group.sessions.length;
-  const time = slotTimeLine(source);
+function slotBlock(slot: ProgramDay["slots"][number]): string {
+  const trackCount = slot.items.length;
+  const time = slotLabel(slot.start, slot.end, ZONE, "");
   const heading =
     time || trackCount > 1
       ? `<p class="slot-heading">${escapeHtml(time)}${
           trackCount > 1 ? `<span class="slot-tracks"> ${trackCount} parallel tracks</span>` : ""
         }</p>`
       : "";
-  const sessions = group.sessions.map(sessionBlock).join("");
+  const sessions = slot.items.map(sessionBlock).join("");
   // One session renders full width; several render as side-by-side tracks.
   const body = trackCount > 1 ? `<div class="tracks">${sessions}</div>` : sessions;
   return `<section class="slot">${heading}${body}</section>`;
 }
 
 function daySection(day: ProgramDay): string {
-  const slots = day.groups.map(slotBlock).join("");
+  const slots = day.slots.map(slotBlock).join("");
   return `<section class="day">
-  <h3 class="day-heading">${escapeHtml(dayHeading(day))}</h3>
+  <h3 class="day-heading">${escapeHtml(dayLabel(day.key, { noDate: "To be scheduled" }))}</h3>
   ${slots}
 </section>`;
 }
@@ -247,8 +230,12 @@ function emptyState(data: ProgramBookData): string {
 }
 
 export function renderProgramBook(data: ProgramBookData): string {
-  const hasSchedule = data.days.some((day) => day.groups.length > 0);
-  const schedule = hasSchedule ? data.days.map(daySection).join("") : "";
+  const hasSchedule = data.days.some((day) => day.slots.length > 0);
+  const firstStart = data.days.flatMap((day) => day.slots).find((slot) => slot.start !== null);
+  const zone = firstStart
+    ? `<p class="doc-note">${escapeHtml(zoneLine(firstStart.start, ZONE))}</p>`
+    : "";
+  const schedule = hasSchedule ? zone + data.days.map(daySection).join("") : "";
   const body = hasSchedule
     ? `${titlePage(data)}<section class="schedule">${schedule}</section>${speakersSection(
         data.speakers,

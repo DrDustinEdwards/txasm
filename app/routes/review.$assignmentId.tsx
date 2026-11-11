@@ -19,7 +19,7 @@ import { RichEditor } from "~/components/rich-editor";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
-import { markup } from "capsomer/behavior/trusted-html";
+import { RichText } from "capsomer/react/trusted-html";
 
 // An app: the review form and its rich-text comment. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -125,7 +125,7 @@ function AbstractSections({
       {filled.map(([label, html]) => (
         <section key={label} className="stack-1">
           <h3 className="small strong">{label}</h3>
-          <div className="small" dangerouslySetInnerHTML={markup(html)} />
+          <RichText className="small" html={html} />
         </section>
       ))}
     </div>
@@ -154,11 +154,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
     <div className="form-page stack-6">
       <div className="stack-1">
         <h1 className="page-title">
-          {abstract.title ? (
-            <span dangerouslySetInnerHTML={markup(abstract.title)} />
-          ) : (
-            "Untitled abstract"
-          )}
+          <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
         <p className="small cap-muted">
           {edition.name}
@@ -248,7 +244,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
               {review.overallComment ? (
                 <div className="stack-1">
                   <h3 className="small strong">Overall comment</h3>
-                  <div className="small" dangerouslySetInnerHTML={markup(review.overallComment)} />
+                  <RichText className="small" html={review.overallComment} />
                 </div>
               ) : null}
             </section>

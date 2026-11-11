@@ -23,7 +23,7 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
-@import "capsomer/pdf-viewer.css";
+@import "capsomer/trusted-html.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,
@@ -277,11 +277,6 @@
   }
 }
 
-.doc-pager {
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
-
 .tier-benefits {
   margin-top: 0.75rem;
 }
@@ -330,13 +325,6 @@
 .program-item {
   align-items: baseline;
   gap: 0.5rem;
-}
-.tracks {
-  overflow-x: auto;
-  & > div {
-    display: grid;
-    gap: 1rem;
-  }
 }
 .speaker-bio {
   margin-top: 0.5rem;
@@ -573,16 +561,6 @@
   border-radius: var(--radius-s);
   background: var(--surface);
   object-fit: contain;
-}
-
-/* The program builder's concurrent tracks: one column per track, scrolling
-   sideways on a narrow screen rather than crushing. */
-.track-scroll {
-  overflow-x: auto;
-}
-.track-grid {
-  display: grid;
-  gap: 1rem;
 }
 
 /* The abstract book's running order: a dashed, faded row is left out; a
