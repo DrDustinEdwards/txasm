@@ -6,7 +6,8 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
-import { RichEditor } from "~/components/rich-editor";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
@@ -155,7 +156,13 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
         />
       </div>
       <div className="span-2">
-        <RichEditor name="bio" label="Bio" mode="body" initialHTML={speaker?.bio ?? ""} />
+        <RichTextField
+          name="bio"
+          label="Bio"
+          tags={BODY_TAGS}
+          lines="multi"
+          initialHTML={speaker?.bio ?? ""}
+        />
       </div>
     </div>
   );

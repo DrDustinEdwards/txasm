@@ -27,8 +27,9 @@ import {
   type PresentationPreference,
 } from "~/lib/vocab";
 import { formatDateTime } from "~/lib/format";
-import { countWords } from "~/lib/richtext";
-import { RichEditor } from "~/components/rich-editor";
+import { richTextWords } from "capsomer/behavior/rich-text-field";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS, TITLE_TAGS } from "~/lib/richtext";
 import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
 import {
   AffiliationsFieldset,
@@ -216,7 +217,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const [affiliations, setAffiliations] = useState<AffiliationState[]>(
     () => loaderData.affiliations,
   );
-  const [bodyWords, setBodyWords] = useState(() => countWords(abstract.bodyText));
+  const [bodyWords, setBodyWords] = useState(() => richTextWords(abstract.bodyText));
   const overLimit = bodyWords > edition.wordLimit;
 
   const statusRef = useRef<HTMLParagraphElement>(null);
@@ -338,16 +339,17 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       </p>
 
       <Form method="post" className="stack-6">
-        <RichEditor name="title" label="Title" mode="title" initialHTML={abstract.title} />
+        <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
         <div className="stack-1">
-          <RichEditor
+          <RichTextField
             name="bodyText"
             label="Abstract body"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={abstract.bodyText}
-            describedById="body-count"
-            onValueChange={(value) => setBodyWords(countWords(value))}
+            describedBy="body-count"
+            onValueChange={(value) => setBodyWords(richTextWords(value))}
           />
           <p
             id="body-count"

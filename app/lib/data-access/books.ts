@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { extractPlainText } from "../richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { ABSTRACT_LEVELS, type AbstractFormat, type AbstractLevel } from "../vocab";
 import {
   assembleBookAbstracts,
@@ -144,7 +144,7 @@ export function createBooks(db: DB) {
             (px?.firstName ?? "").localeCompare(py?.firstName ?? "", "en", {
               sensitivity: "base",
             }) ||
-            extractPlainText(x.title).localeCompare(extractPlainText(y.title), "en", {
+            richTextPlain(x.title).localeCompare(richTextPlain(y.title), "en", {
               sensitivity: "base",
             })
           );

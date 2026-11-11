@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import { DECISION_OUTCOMES, type DecisionOutcome, type PresentationType } from "../vocab";
 import { submittedAbstracts } from "./abstracts";
 import {

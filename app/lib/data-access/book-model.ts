@@ -9,7 +9,7 @@ import {
   type PresentationType,
   type Season,
 } from "../vocab";
-import { extractPlainText } from "../richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { byIdChunks, type DB } from "./core";
 
 // Book author and affiliation shapes shared by the arranged renderer. Title and
@@ -155,7 +155,7 @@ export function inBookOrder<R extends { categoryId: string | null; title: string
   categories: Array<{ id: string }>,
 ): R[] {
   const byTitle = (a: R, b: R) =>
-    extractPlainText(a.title).localeCompare(extractPlainText(b.title), "en", {
+    richTextPlain(a.title).localeCompare(richTextPlain(b.title), "en", {
       sensitivity: "base",
     });
   const group = (categoryId: string | null) =>
