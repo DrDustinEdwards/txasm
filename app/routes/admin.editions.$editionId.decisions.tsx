@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -23,7 +24,7 @@ import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Decisions");
+  return privateMeta(pageTitle(matches, "Decisions"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

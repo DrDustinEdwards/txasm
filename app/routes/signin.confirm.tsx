@@ -6,7 +6,8 @@ import {
 import { Link } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 
@@ -19,7 +20,7 @@ import { getAuth, getSessionUser } from "~/lib/auth.server";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Sign in");
+  return privateMeta(pageTitle(matches, "Sign in"));
 }
 
 // The page's URL holds the token.
