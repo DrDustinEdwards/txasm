@@ -13,6 +13,7 @@ import {
 } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Assign reviewers"));
@@ -142,7 +143,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                   <div className="stack-1">
                     <h2 className="strong">
                       {abstract.title ? (
-                        <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                        <span dangerouslySetInnerHTML={markup(abstract.title)} />
                       ) : (
                         <span className="cap-muted">Untitled</span>
                       )}

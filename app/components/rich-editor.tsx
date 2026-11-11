@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
+import { trustedHtml } from "capsomer/behavior/trusted-html";
 import { BODY_TAGS, TITLE_TAGS, countWords, sanitizeRichText } from "~/lib/richtext";
 
 interface RichEditorProps {
@@ -36,7 +37,7 @@ export function RichEditor({
   // An effect event, so the mount effect reads value without re-running on it
   // (re-running would reset the caret).
   const mount = useEffectEvent(() => {
-    if (editorRef.current) editorRef.current.innerHTML = value;
+    if (editorRef.current) editorRef.current.innerHTML = trustedHtml(value);
     onValueChange?.(value);
   });
   useEffect(() => mount(), []);
@@ -90,7 +91,7 @@ export function RichEditor({
     const range = selection.getRangeAt(0);
     range.deleteContents();
     const temp = document.createElement("div");
-    temp.innerHTML = clean;
+    temp.innerHTML = trustedHtml(clean);
     const fragment = document.createDocumentFragment();
     let lastNode: ChildNode | null = null;
     while (temp.firstChild) lastNode = fragment.appendChild(temp.firstChild);
