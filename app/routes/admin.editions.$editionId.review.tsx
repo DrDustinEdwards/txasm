@@ -1,7 +1,8 @@
 import { Form, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -12,9 +13,10 @@ import {
 } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Assign reviewers");
+  return privateMeta(pageTitle(matches, "Assign reviewers"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -141,7 +143,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                   <div className="stack-1">
                     <h2 className="strong">
                       {abstract.title ? (
-                        <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                        <span dangerouslySetInnerHTML={markup(abstract.title)} />
                       ) : (
                         <span className="cap-muted">Untitled</span>
                       )}

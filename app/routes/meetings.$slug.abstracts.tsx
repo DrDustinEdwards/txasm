@@ -16,6 +16,7 @@ import { pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -200,7 +201,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                             to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
                             className="strong"
                           >
-                            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                            <span dangerouslySetInnerHTML={markup(abstract.title)} />
                           </Link>
                           {abstract.authors.length > 0 ? (
                             <p className="small cap-muted">

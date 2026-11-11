@@ -1,13 +1,15 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review.$abstractId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Reviews");
+  return privateMeta(pageTitle(matches, "Reviews"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -49,7 +51,7 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
         <h1 className="page-title">
           Reviews for{" "}
           {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+            <span dangerouslySetInnerHTML={markup(abstract.title)} />
           ) : (
             "an untitled abstract"
           )}
@@ -80,10 +82,7 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
               {review.overallComment ? (
                 <div className="stack-1">
                   <h2 className="small strong">Overall comment</h2>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{ __html: review.overallComment }}
-                  />
+                  <div className="small" dangerouslySetInnerHTML={markup(review.overallComment)} />
                 </div>
               ) : null}
               {review.confidentialComment ? (
@@ -91,9 +90,7 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
                   <h2 className="small strong">Confidential comment to chairs</h2>
                   <div
                     className="small"
-                    dangerouslySetInnerHTML={{
-                      __html: review.confidentialComment,
-                    }}
+                    dangerouslySetInnerHTML={markup(review.confidentialComment)}
                   />
                 </div>
               ) : null}

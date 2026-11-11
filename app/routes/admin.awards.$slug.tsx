@@ -10,13 +10,14 @@ import {
   getDataAccess,
   type AwardRecipientView,
 } from "~/lib/data-access";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Manage award");
+  return privateMeta(pageTitle(matches, "Manage award"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {

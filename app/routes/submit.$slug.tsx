@@ -1,7 +1,8 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/submit.$slug";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import {
@@ -13,12 +14,13 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // An app: abstract submission. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Submit an abstract");
+  return privateMeta(pageTitle(matches, "Submit an abstract"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -141,7 +143,7 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
               <li key={abstract.id} className="spread row-pad">
                 <span>
                   {abstract.title ? (
-                    <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                    <span dangerouslySetInnerHTML={markup(abstract.title)} />
                   ) : (
                     <span className="cap-muted">Untitled</span>
                   )}{" "}

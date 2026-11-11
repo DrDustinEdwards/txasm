@@ -1,16 +1,17 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories.$categoryId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
-import { centsToDollarsInput, parseDollarsToCents } from "~/lib/format";
+import { moneyInputValue, parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Edit category");
+  return privateMeta(pageTitle(matches, "Edit category"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -31,7 +32,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const currency = String(form.get("currency") ?? "usd");
   const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
   const active = form.get("active") != null;
-  const amountCents = parseDollarsToCents(String(form.get("fee") ?? ""));
+  const amountCents = parseMoneyInput(String(form.get("fee") ?? ""), currency);
 
   if (amountCents === null) {
     return { error: "Enter a fee of zero or more dollars." };
@@ -107,7 +108,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             min={0}
             step="0.01"
             required
-            defaultValue={centsToDollarsInput(category.amountCents)}
+            defaultValue={moneyInputValue(category.amountCents, category.currency)}
             className="cap-input"
           />
         </div>
