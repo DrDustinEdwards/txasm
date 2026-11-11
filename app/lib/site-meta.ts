@@ -37,15 +37,6 @@ export function privateMeta(matches: ReadonlyArray<{ id: string } | undefined>, 
  */
 export const SITE_ORIGIN = "https://txasm.org";
 
-/**
- * Where the site is served now (wrangler.jsonc vars.PUBLIC_ORIGIN), which IndexNow, webmentions, Carrel's links and its
- * preview name, since they tell other sites about a page that must be reachable there today. Until the cutover that
- * is workers.dev; at the cutover the var becomes SITE_ORIGIN (or goes, and this falls back to it), the one change.
- */
-export function publicOrigin(env: { PUBLIC_ORIGIN?: string }): string {
-  return env.PUBLIC_ORIGIN ? new URL(env.PUBLIC_ORIGIN).origin : SITE_ORIGIN;
-}
-
 /** The site's IndexNow key, public by the protocol's design: served as /<key>.txt and sent with each changed page. */
 export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
 

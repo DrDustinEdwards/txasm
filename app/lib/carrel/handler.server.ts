@@ -1,7 +1,8 @@
 // Carrel's site API, mounted by workers/app.ts at /api/carrel/v1, with its preview links at /preview/<token>. One key
 // (CARREL_SITE_KEY, a Worker secret) reaches only that prefix and nothing else on the site.
 import { standardSiteApi, type PublishHook } from "@dustinedwards/site-api";
-import { INDEXNOW_KEY, publicOrigin } from "~/lib/site-meta";
+import { publicOrigin } from "@dustinedwards/site-runtime/http";
+import { INDEXNOW_KEY, SITE_ORIGIN } from "~/lib/site-meta";
 import { createCarrelAdapter, type RenderPage } from "./adapter.server";
 
 /**
@@ -29,7 +30,7 @@ export function carrelApi(
     key: env.CARREL_SITE_KEY,
     limiter: env.CARREL_RATE_LIMIT,
     db: env.DB,
-    indexNow: { origin: publicOrigin(env), key: INDEXNOW_KEY },
+    indexNow: { origin: publicOrigin(env, SITE_ORIGIN), key: INDEXNOW_KEY },
     hooks: ({ indexNow, purge, webmention }) => [
       indexNow && liveChanges(indexNow),
       purge,
