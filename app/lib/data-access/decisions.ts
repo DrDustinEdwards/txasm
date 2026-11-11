@@ -1,11 +1,11 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { isEmptyRichText, sanitizeBody } from "../richtext";
 import { DECISION_OUTCOMES, type DecisionOutcome, type PresentationType } from "../vocab";
 import { submittedAbstracts } from "./abstracts";
 import {
   type Actor,
-  byIdChunks,
   type DB,
   ForbiddenError,
   isChair,
@@ -104,20 +104,17 @@ export function createDecisions(db: DB) {
       const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);
       if (rows.length === 0) return [];
 
-      const submittedReviews = await byIdChunks(ids, (part) =>
-        db
-          .select({
-            abstractId: schema.review.abstractId,
-            recommendation: schema.review.recommendation,
-          })
-          .from(schema.review)
-          .where(
-            and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted")),
-          ),
-      );
-      const decisionRows = await byIdChunks(ids, (part) =>
-        db.select().from(schema.decision).where(inArray(schema.decision.abstractId, part)),
-      );
+      const submittedReviews = await db
+        .select({
+          abstractId: schema.review.abstractId,
+          recommendation: schema.review.recommendation,
+        })
+        .from(schema.review)
+        .where(and(inList(schema.review.abstractId, ids), eq(schema.review.status, "submitted")));
+      const decisionRows = await db
+        .select()
+        .from(schema.decision)
+        .where(inList(schema.decision.abstractId, ids));
 
       const summaryByAbstract = new Map<
         string,

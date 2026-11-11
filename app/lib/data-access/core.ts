@@ -123,37 +123,3 @@ export function isReviewer(actor: Actor, editionId: string): boolean {
 export function isReviewerAnywhere(actor: Actor): boolean {
   return actor.grants.some((g) => g.role === "reviewer");
 }
-
-// A single-column `IN (...)` list must stay under D1's bound-parameter cap, so
-// id lists longer than this are queried in batches (see chunk() below, defined
-// alongside D1_MAX_BOUND_PARAMS).
-const ID_CHUNK_SIZE = 90;
-
-// D1 rejects a query with more than 100 bound parameters ("too many SQL
-// variables"), so a batched insert of many rows must be split. A row binds one
-// parameter per column, so the safe batch size is the parameter budget divided
-// by the column count. The margin keeps a little headroom under the cap.
-const D1_MAX_BOUND_PARAMS = 100;
-
-export function insertChunkSize(columnsPerRow: number): number {
-  return Math.max(1, Math.floor((D1_MAX_BOUND_PARAMS - 10) / columnsPerRow));
-}
-
-export function chunk<T>(items: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    out.push(items.slice(i, i + size));
-  }
-  return out;
-}
-
-// The rows `query` returns for each run of at most ID_CHUNK_SIZE ids, in order.
-// Every `inArray` over abstract ids goes through this: a meeting has more
-// abstracts than D1 binds in one query. Rows for one id all come from one run,
-// so an order the query sets (author ordinal, say) holds within each id.
-export async function byIdChunks<T>(
-  ids: string[],
-  query: (part: string[]) => Promise<T[]>,
-): Promise<T[]> {
-  return (await Promise.all(chunk(ids, ID_CHUNK_SIZE).map(query))).flat();
-}
