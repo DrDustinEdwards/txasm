@@ -1,7 +1,5 @@
 import { EmailConfirm } from "capsomer/react/sign-in";
 import { confirmEmailLink, emailLinkResult } from "@dustinedwards/site-runtime/sign-in";
-import { signalCurrentUserDetails } from "@dustinedwards/site-runtime/sign-in-passkey";
-import { useEffect } from "react";
 import { data } from "react-router";
 import type { Route } from "./+types/account.email";
 import { privateMeta } from "~/lib/site-meta";
@@ -14,7 +12,7 @@ import { getAuth, getSessionUser } from "~/lib/auth.server";
 // the button's POST is site-runtime's confirmEmailLink, which runs Better Auth's /verify-email through its
 // handler, limiter and all, and comes back here with ?done= or ?error= (emailLinkResult).
 
-// Part of the account app, which hydrates: the browser tells the password manager the new address.
+// Part of the account app, which hydrates: EmailConfirm tells the password manager the new address.
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -41,11 +39,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function EmailChangeConfirm({ loaderData, actionData }: Route.ComponentProps) {
   const { done, problem, email } = loaderData;
-
-  // The change is made: the password manager shows the new address on this account's passkeys.
-  useEffect(() => {
-    if (email) void signalCurrentUserDetails({ name: email });
-  }, [email]);
 
   return (
     <EmailConfirm
