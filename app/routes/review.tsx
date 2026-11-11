@@ -5,7 +5,8 @@ import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { RichText } from "capsomer/react/trusted-html";
 
 // A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
@@ -65,7 +66,9 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
                     />
                   </td>
                   <td>{assignment.editionName}</td>
-                  <td>{assignment.dueAt ? formatDateTime(assignment.dueAt) : "No due date"}</td>
+                  <td>
+                    {assignment.dueAt ? formatDate(assignment.dueAt, DATE_TIME) : "No due date"}
+                  </td>
                   <td>
                     {assignment.reviewSubmitted ? (
                       <span className="ok-text">Review submitted</span>

@@ -10,7 +10,8 @@ import {
   type SpeakerPublic,
   type SponsorPublic,
 } from "~/lib/data-access";
-import { formatDateTime, formatMeetingDates, joinParts } from "~/lib/format";
+import { DATE_TIME, joinParts } from "~/lib/format";
+import { dateRange, formatDate } from "capsomer/behavior/time";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { Empty } from "capsomer/react/empty";
@@ -97,7 +98,9 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
           <p className="strong">{item.customTitle}</p>
         )}
       </div>
-      {item.startsAt ? <p className="small cap-muted">{formatDateTime(item.startsAt)}</p> : null}
+      {item.startsAt ? (
+        <p className="small cap-muted">{formatDate(item.startsAt, DATE_TIME)}</p>
+      ) : null}
       {item.note ? <p className="small cap-muted">{item.note}</p> : null}
     </li>
   );
@@ -171,7 +174,7 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
 
 export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const { edition, program } = loaderData;
-  const dateLine = formatMeetingDates(edition.meetingStartsAt, edition.meetingEndsAt);
+  const dateLine = dateRange(edition.meetingStartsAt, edition.meetingEndsAt) ?? "";
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (

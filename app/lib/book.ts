@@ -14,7 +14,8 @@ import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
-import { escapeCssString, formatMeetingDates, joinParts } from "./format";
+import { escapeCssString, joinParts } from "./format";
+import { dateRange } from "capsomer/behavior/time";
 
 function authorLine(authors: BookAuthor[]): string {
   return authors
@@ -85,7 +86,7 @@ function bodyBlock(abstract: BookBodyFields): string {
 function arrangedCover(data: BookRenderData): string {
   return coverArt({
     meetingName: data.edition.name,
-    dates: formatMeetingDates(data.edition.meetingStartsAt, data.edition.meetingEndsAt),
+    dates: dateRange(data.edition.meetingStartsAt, data.edition.meetingEndsAt) ?? "",
     title: "Abstract Book",
   });
 }

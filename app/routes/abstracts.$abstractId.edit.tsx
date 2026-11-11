@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { pageTitle } from "~/lib/site-meta";
@@ -27,7 +28,8 @@ import {
   PRESENTATION_PREFERENCES,
   type PresentationPreference,
 } from "~/lib/vocab";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { richTextWords } from "capsomer/behavior/rich-text-field";
 import { RichTextField } from "capsomer/react/rich-text-field";
 import { BODY_TAGS, TITLE_TAGS } from "~/lib/richtext";
@@ -37,7 +39,6 @@ import {
   type AffiliationState,
   AuthorsFieldset,
   type AuthorState,
-  emptyAffiliation,
   emptyAuthor,
 } from "~/components/abstract-authors";
 import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only";
@@ -222,31 +223,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const [bodyWords, setBodyWords] = useState(() => richTextWords(abstract.bodyText));
   const overLimit = bodyWords > edition.wordLimit;
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
-
   function updateAuthor(index: number, patch: Partial<AuthorState>) {
     setAuthors((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
-  }
-  function addAuthor() {
-    setAuthors((prev) => [...prev, emptyAuthor()]);
-  }
-  function removeAuthor(index: number) {
-    setAuthors((prev) => prev.filter((_, i) => i !== index));
-  }
-  function moveAuthor(index: number, direction: -1 | 1) {
-    setAuthors((prev) => {
-      const next = [...prev];
-      const target = index + direction;
-      if (target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
   }
   function toggleAffiliationForAuthor(index: number, ordinal: number) {
     setAuthors((prev) =>
@@ -274,18 +252,16 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       country: suggestion.country ?? "USA",
     });
   }
-  function addAffiliation() {
-    setAffiliations((prev) => [...prev, emptyAffiliation()]);
-  }
-  function removeAffiliation(index: number) {
-    const removedOrdinal = index + 1;
-    setAffiliations((prev) => prev.filter((_, i) => i !== index));
+  // An affiliation moved or was removed: from[i] is the old index of the one now at i. Each author's
+  // ordinals follow their affiliation, and one that was removed is dropped.
+  function renumberAffiliations(from: number[]) {
     setAuthors((prev) =>
       prev.map((a) => ({
         ...a,
         affiliationOrdinals: a.affiliationOrdinals
-          .filter((o) => o !== removedOrdinal)
-          .map((o) => (o > removedOrdinal ? o - 1 : o)),
+          .map((o) => from.indexOf(o - 1) + 1)
+          .filter((o) => o > 0)
+          .sort((x, y) => x - y),
       })),
     );
   }
@@ -319,22 +295,14 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         <p className="small cap-muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
-            ? ` . Deadline: ${formatDateTime(edition.submissionDeadline)}`
+            ? ` . Deadline: ${formatDate(edition.submissionDeadline, DATE_TIME)}`
             : ""}
         </p>
       </div>
 
       <DecisionPanel decision={decision} />
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {error ?? ok ?? ""}
-      </p>
+      <ActionResult data={actionData} />
 
       <Form method="post" className="cap-stack" data-gap="6">
         <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
@@ -416,19 +384,17 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
         <AffiliationsFieldset
           affiliations={affiliations}
+          onChange={setAffiliations}
           updateAffiliation={updateAffiliation}
           selectInstitution={selectInstitution}
-          addAffiliation={addAffiliation}
-          removeAffiliation={removeAffiliation}
+          renumber={renumberAffiliations}
         />
 
         <AuthorsFieldset
           authors={authors}
           affiliations={affiliations}
+          onChange={setAuthors}
           updateAuthor={updateAuthor}
-          addAuthor={addAuthor}
-          removeAuthor={removeAuthor}
-          moveAuthor={moveAuthor}
           toggleAffiliationForAuthor={toggleAffiliationForAuthor}
         />
 

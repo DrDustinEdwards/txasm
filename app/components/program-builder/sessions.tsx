@@ -1,8 +1,9 @@
 import { Form } from "react-router";
 import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { toDateTimeLocal } from "~/lib/format";
-import { AddItemForms, ItemRow } from "./items";
+import { utcInputValue } from "capsomer/behavior/time";
+import { Disclosure } from "capsomer/react/disclosure";
+import { AddItemForms, SessionItems } from "./items";
 import { type SpeakerOption, toDateInput } from "./shared";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
@@ -63,7 +64,7 @@ export function SessionFields({
           id={`start-${idBase}`}
           name="startsAt"
           type="datetime-local"
-          defaultValue={toDateTimeLocal(session?.startsAt ?? null)}
+          defaultValue={utcInputValue(session?.startsAt ?? null)}
           className="cap-input"
         />
       </div>
@@ -75,7 +76,7 @@ export function SessionFields({
           id={`end-${idBase}`}
           name="endsAt"
           type="datetime-local"
-          defaultValue={toDateTimeLocal(session?.endsAt ?? null)}
+          defaultValue={utcInputValue(session?.endsAt ?? null)}
           className="cap-input"
         />
       </div>
@@ -164,34 +165,15 @@ export function SessionCard({
 
       <div className="cap-stack" data-gap="3">
         <Sub className="small strong">Items</Sub>
-        {session.items.length === 0 ? (
-          <p className="small cap-muted">No items in this session yet.</p>
-        ) : (
-          <ol className="cap-stack" data-gap="3">
-            {session.items.map((item, itemIndex) => (
-              <ItemRow
-                key={item.id}
-                session={session}
-                item={item}
-                index={itemIndex}
-                count={session.items.length}
-                busy={busy}
-              />
-            ))}
-          </ol>
-        )}
+        <SessionItems session={session} busy={busy} />
       </div>
 
-      <details className="card card-s">
-        <summary className="summary">Add an item</summary>
-        <div className="mt-3">
-          <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
-        </div>
-      </details>
+      <Disclosure summary="Add an item" variant="card" size="sm" marker="triangle">
+        <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
+      </Disclosure>
 
-      <details className="card card-s">
-        <summary className="summary">Edit or delete session</summary>
-        <div className="cap-stack mt-3" data-gap="4">
+      <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
+        <div className="cap-stack" data-gap="4">
           <Form method="post" className="cap-stack" data-gap="4" noValidate>
             <input type="hidden" name="intent" value="session-update" />
             <input type="hidden" name="sessionId" value={session.id} />
@@ -218,7 +200,7 @@ export function SessionCard({
             </button>
           </Form>
         </div>
-      </details>
+      </Disclosure>
     </div>
   );
 }

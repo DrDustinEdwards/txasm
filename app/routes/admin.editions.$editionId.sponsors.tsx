@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.sponsors";
 import { pageTitle } from "~/lib/site-meta";
@@ -196,9 +197,8 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                 </Form>
               </div>
 
-              <details className="card card-s">
-                <summary className="summary">Edit sponsor</summary>
-                <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
+              <Disclosure summary="Edit sponsor" variant="card" size="sm" marker="triangle">
+                <Form method="post" className="cap-stack" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="sponsorId" value={sponsor.id} />
                   <SponsorFields sponsor={sponsor} />
@@ -206,7 +206,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                     Save sponsor
                   </button>
                 </Form>
-              </details>
+              </Disclosure>
             </li>
           ))}
         </ul>

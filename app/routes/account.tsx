@@ -33,7 +33,8 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
 import { authClient } from "~/lib/auth-client";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { readForm } from "@dustinedwards/site-runtime/body";
 
 // An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
@@ -441,8 +442,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                   {p.name}
                   <span className="small cap-muted">
                     {p.provider !== p.name ? ` (${p.provider})` : ""}
-                    {p.createdAt ? `, added ${formatDateTime(new Date(p.createdAt))}` : ""}
-                    {`, ${p.lastUsedAt ? `last used ${formatDateTime(new Date(p.lastUsedAt))}` : "not used to sign in yet"}`}
+                    {p.createdAt ? `, added ${formatDate(new Date(p.createdAt), DATE_TIME)}` : ""}
+                    {`, ${p.lastUsedAt ? `last used ${formatDate(new Date(p.lastUsedAt), DATE_TIME)}` : "not used to sign in yet"}`}
                   </span>
                 </span>
                 <button
@@ -495,7 +496,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                   <span className="small cap-muted">
                     {s.current
                       ? " (this device)"
-                      : ` signed in ${formatDateTime(new Date(s.signedInAt))}, last active ${formatDateTime(new Date(s.lastActiveAt))}${s.location ? ` near ${s.location}` : ""}`}
+                      : ` signed in ${formatDate(new Date(s.signedInAt), DATE_TIME)}, last active ${formatDate(new Date(s.lastActiveAt), DATE_TIME)}${s.location ? ` near ${s.location}` : ""}`}
                   </span>
                 </span>
                 {s.current ? null : (
@@ -503,7 +504,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                     type="button"
                     className="cap-btn"
                     data-variant="quiet"
-                    aria-label={`Sign out ${s.device ?? "Unknown device"}, signed in ${formatDateTime(new Date(s.signedInAt))}`}
+                    aria-label={`Sign out ${s.device ?? "Unknown device"}, signed in ${formatDate(new Date(s.signedInAt), DATE_TIME)}`}
                     onClick={() => void signOut.submit({ session: s.id }, { method: "post" })}
                   >
                     Sign out
@@ -541,7 +542,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
             <li key={`${new Date(h.at).getTime()}-${i}`}>
               {historyWords(h.kind, h.via)}
               <span className="small cap-muted">
-                {` ${formatDateTime(new Date(h.at))}`}
+                {` ${formatDate(new Date(h.at), DATE_TIME)}`}
                 {h.device ? `, ${h.device}` : ""}
                 {h.location ? ` near ${h.location}` : ""}
               </span>

@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
 import { prepareUpload, RefusedError } from "@dustinedwards/site-api";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.documents";
@@ -556,9 +557,8 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                 </div>
               </div>
 
-              <details className="card card-s">
-                <summary className="summary">Edit details</summary>
-                <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
+              <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
+                <Form method="post" className="cap-stack" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="documentId" value={doc.id} />
                   <MetaFields doc={doc} editions={editions} />
@@ -574,7 +574,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     Save details
                   </button>
                 </Form>
-              </details>
+              </Disclosure>
             </li>
           ))}
         </ul>

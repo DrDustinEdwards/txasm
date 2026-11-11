@@ -1,12 +1,18 @@
 import { routerRenderLink } from "capsomer/react/link";
-import { Outlet, useLocation, useRouteLoaderData, useSubmit } from "react-router";
-import { SiteHeader, type HeaderGroup, type HeaderSection } from "capsomer/react/site-header";
+import { Outlet, useLocation, useRouteLoaderData } from "react-router";
+import {
+  SiteHeader,
+  initialsOf,
+  type HeaderGroup,
+  type HeaderSection,
+} from "capsomer/react/site-header";
 import type { Route } from "./+types/public.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
-import { initials, THEME_PREF_KEY, useThemeCookie } from "~/components/site-chrome";
+import { useRouteHydrates } from "~/components/site-chrome";
+import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";
 import { FEED_PATH } from "~/lib/site-meta";
 
 // Public shell: Capsomer's site header and txasm's footer around every public
@@ -63,14 +69,16 @@ function PublicHeader({
   isAdmin,
   isReviewer,
   wordmark,
+  theme,
 }: {
   email: string | null;
   isAdmin: boolean;
   isReviewer: boolean;
   wordmark: string;
+  theme: Theme | null;
 }) {
   const { pathname } = useLocation();
-  const submit = useSubmit();
+  const hydrates = useRouteHydrates();
   const sections: HeaderSection[] = [
     {
       id: "officers",
@@ -105,14 +113,17 @@ function PublicHeader({
         wordmark: <BrandWordmark className="txasm-wordmark" />,
       }}
       sections={sections}
+      hydrate={hydrates}
       themePrefKey={THEME_PREF_KEY}
+      themeCookie={THEME_COOKIE}
+      themeInitial={theme ?? undefined}
       account={
         email
           ? {
               name: email,
-              initials: initials(email),
+              initials: initialsOf(null, email),
               groups: [{ links: rows }],
-              onSignOut: () => void submit(null, { method: "post", action: "/signout" }),
+              signOutAction: "/signout",
             }
           : undefined
       }
@@ -168,7 +179,6 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
 export default function PublicLayout({ loaderData }: Route.ComponentProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
   const settings: PlatformSettings | undefined = rootData?.settings;
-  useThemeCookie(rootData?.theme ?? null);
 
   return (
     <div className="txasm-page">
@@ -177,6 +187,7 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
         isAdmin={loaderData.isAdmin}
         isReviewer={loaderData.isReviewer}
         wordmark={settings?.shortName ?? ""}
+        theme={rootData?.theme ?? null}
       />
       <main id="main" tabIndex={-1} className="txasm-frame txasm-main">
         <Outlet />

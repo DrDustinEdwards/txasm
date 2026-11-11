@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.officers";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -199,9 +200,8 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
           </button>
         </Form>
       </div>
-      <details className="card card-s">
-        <summary className="summary">Edit</summary>
-        <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
+      <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
+        <Form method="post" className="cap-stack" data-gap="4" noValidate>
           <input type="hidden" name="intent" value="update" />
           <input type="hidden" name="id" value={row.id} />
           <OfficerFields row={row} section={section} />
@@ -209,7 +209,7 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
             Save
           </button>
         </Form>
-      </details>
+      </Disclosure>
     </li>
   );
 }
@@ -225,16 +225,19 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
   return (
     <div className="cap-stack" data-gap="4">
       {[...groups].map(([office, officeRows]) => (
-        <details key={office} className="card card-s">
-          <summary className="summary">
-            {office} ({officeRows.length})
-          </summary>
-          <ul className="cap-stack mt-3" data-gap="4">
+        <Disclosure
+          key={office}
+          summary={`${office} (${officeRows.length})`}
+          variant="card"
+          size="sm"
+          marker="triangle"
+        >
+          <ul className="cap-stack" data-gap="4">
             {officeRows.map((row) => (
               <OfficerRow key={row.id} row={row} submitting={submitting} />
             ))}
           </ul>
-        </details>
+        </Disclosure>
       ))}
     </div>
   );

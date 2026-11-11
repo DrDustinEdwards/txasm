@@ -12,7 +12,8 @@ import {
   getActor,
   getDataAccess,
 } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
 import { RichText } from "capsomer/react/trusted-html";
 
@@ -104,7 +105,7 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
         <p>{edition.name}</p>
         {edition.submissionDeadline ? (
           <p className="small cap-muted">
-            Submission deadline: {formatDateTime(edition.submissionDeadline)}
+            Submission deadline: {formatDate(edition.submissionDeadline, DATE_TIME)}
           </p>
         ) : null}
         <p className="small cap-muted">
@@ -123,7 +124,7 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
         <p className="card card-s card-sunken">
           Submission is not open yet for this meeting
           {edition.submissionOpensAt
-            ? `. It opens ${formatDateTime(edition.submissionOpensAt)}.`
+            ? `. It opens ${formatDate(edition.submissionOpensAt, DATE_TIME)}.`
             : "."}
         </p>
       ) : null}

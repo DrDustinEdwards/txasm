@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.awards.$slug";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -386,9 +387,8 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                     </button>
                   </Form>
                 </div>
-                <details className="card card-s">
-                  <summary className="summary">Edit recipient</summary>
-                  <Form method="post" className="cap-stack mt-3" data-gap="4" noValidate>
+                <Disclosure summary="Edit recipient" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
                     <input type="hidden" name="intent" value="recipient-update" />
                     <input type="hidden" name="recipientId" value={recipient.id} />
                     <RecipientFields recipient={recipient} editions={editions} />
@@ -396,7 +396,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                       Save recipient
                     </button>
                   </Form>
-                </details>
+                </Disclosure>
               </li>
             ))}
           </ul>

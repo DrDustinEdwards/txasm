@@ -20,7 +20,8 @@ import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
-import { escapeCssString, formatMeetingDates, joinParts } from "./format";
+import { escapeCssString, joinParts } from "./format";
+import { dateRange } from "capsomer/behavior/time";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
 
 // The meeting's times, in UTC like the rest of the site; the schedule says so once.
@@ -150,7 +151,7 @@ function sponsorsSection(sponsors: SponsorPublic[]): string {
 function titlePage(data: ProgramBookData): string {
   return coverArt({
     meetingName: data.meeting.name,
-    dates: formatMeetingDates(data.meeting.meetingStartsAt, data.meeting.meetingEndsAt),
+    dates: dateRange(data.meeting.meetingStartsAt, data.meeting.meetingEndsAt) ?? "",
     title: "Program",
   });
 }

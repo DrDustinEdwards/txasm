@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
@@ -250,21 +250,13 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { ok: "Item removed." };
     }
 
-    if (intent === "item-move") {
-      const sessionId = String(form.get("sessionId") ?? "");
-      const itemId = String(form.get("itemId") ?? "");
-      const direction = String(form.get("direction") ?? "");
-      const sessions = await da.programSessions.listForEdition(actor, editionId);
-      const session = sessions.find((s) => s.id === sessionId);
-      if (session) {
-        const ids = session.items.map((i) => i.id);
-        const idx = ids.indexOf(itemId);
-        const swap = direction === "up" ? idx - 1 : idx + 1;
-        if (idx !== -1 && swap >= 0 && swap < ids.length) {
-          [ids[idx], ids[swap]] = [ids[swap], ids[idx]];
-          await da.programItems.reorder(actor, sessionId, ids);
-        }
-      }
+    if (intent === "item-reorder") {
+      // The session's items in their new order, from the list's drag, keys or buttons.
+      await da.programItems.reorder(
+        actor,
+        String(form.get("sessionId") ?? ""),
+        form.getAll("order").map(String),
+      );
       return { ok: true };
     }
   } catch (error) {
@@ -287,13 +279,6 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const busy = navigation.state === "submitting";
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
 
   const dayParam = searchParams.get("day");
   const keys = dayKeys(
@@ -329,15 +314,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
-      </p>
+      <ActionResult data={actionData} />
 
       <ScheduleDayNav
         days={keys}

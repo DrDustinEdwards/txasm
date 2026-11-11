@@ -479,26 +479,71 @@
   object-fit: contain;
 }
 
-/* The abstract book's running order: a dashed, faded row is left out; a
-   draggable row shows the grab cursor. */
+/* txasm's own look on Capsomer's parts, set by their tokens and slots (Capsomer's "A site's own look"). */
+
+/* The compact disclosure cards of the admin pages: 12px around the card, a bare summary, a 12px gap above the body. */
+:root {
+  --disclosure-pad: 12px;
+  --disclosure-summary-pad: 0;
+  --disclosure-summary-min-h: var(--target);
+  --disclosure-body-pad: 0;
+  --disclosure-body-gap: 12px;
+}
+
+/* Repeatable rows (authors, affiliations): boxed items 12px in, a 16px gap, and Remove in red. */
+.sort-card,
+.sort-plain {
+  --sortable-card-pad: 12px;
+  --sortable-card-radius: var(--radius-m);
+  --sortable-gap: 16px;
+  --sortable-remove-ink: var(--crit);
+  --sortable-remove-hover-ink: var(--crit);
+  --sortable-remove-fs: 14px;
+  --sortable-remove-weight: 600;
+}
+/* Affiliations have no box per row. */
+.sort-plain {
+  --sortable-item-border: 0;
+  --sortable-item-bg: transparent;
+}
+
+/* A session's program items: 12px rows with an 8px gap, parts at the top, Remove in the link color. */
+.sort-rows {
+  --sortable-item-pad: 12px;
+  --sortable-item-gap: 8px;
+  --sortable-item-align: start;
+  --sortable-remove-ink: var(--accent-text);
+  --sortable-remove-hover-ink: var(--accent-text);
+  --sortable-remove-fs: 14px;
+  --sortable-remove-weight: 600;
+}
+
+/* The abstract book: each section a bordered box, each entry a bordered 8px row; an excluded entry is dashed,
+   sunken and faded. */
+.sort-book {
+  --sortable-gap: 8px;
+  --sortable-item-pad: 8px;
+  --sortable-item-gap: 8px;
+  --sortable-item-radius: var(--radius-s);
+  --sortable-item-border: 1px solid var(--line);
+  --sortable-item-bg: var(--surface);
+  --sortable-lane-pad: 12px;
+  --sortable-lane-border: 1px solid var(--line);
+  --sortable-lane-radius: var(--radius-m);
+  --sortable-lane-bg: var(--surface);
+}
+.book-excluded {
+  border-style: dashed;
+  background: var(--sunken);
+  opacity: 0.6;
+}
+/* An entry's own text, inside the item. */
 .book-entry {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  background: var(--surface);
   font-size: 0.875rem;
-  &[data-excluded] {
-    border-style: dashed;
-    background: var(--sunken);
-    opacity: 0.6;
-  }
-  &[data-draggable] {
-    cursor: grab;
-  }
 }
 
 .date-field {

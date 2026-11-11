@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
 import { pageTitle } from "~/lib/site-meta";
@@ -15,7 +16,8 @@ import {
   type DecisionOutcome,
   type PresentationType,
 } from "~/lib/vocab";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { RichTextField } from "capsomer/react/rich-text-field";
 import { BODY_TAGS } from "~/lib/richtext";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
@@ -112,14 +114,6 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   const { edition, abstracts } = loaderData;
   const actionData = useActionData<typeof action>();
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
-
   return (
     <div className="cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
@@ -140,15 +134,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {error ?? ok ?? ""}
-      </p>
+      <ActionResult data={actionData} />
 
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
@@ -217,7 +203,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
 
       {decision ? (
         <p className="small cap-muted">
-          Current decision recorded {formatDateTime(decision.decidedAt)}.
+          Current decision recorded {formatDate(decision.decidedAt, DATE_TIME)}.
         </p>
       ) : null}
 

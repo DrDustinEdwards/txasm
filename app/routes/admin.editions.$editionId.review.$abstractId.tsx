@@ -5,7 +5,8 @@ import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -67,7 +68,7 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
               <div className="cap-spread">
                 <span className="small strong">{review.reviewerName || review.reviewerEmail}</span>
                 <span className="small cap-muted">
-                  {review.submittedAt ? formatDateTime(review.submittedAt) : null}
+                  {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
                 </span>
               </div>
               <p className="small">
