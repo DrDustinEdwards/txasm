@@ -2,6 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["workers/*.ts", "scripts/*.ts", "tests/*.test.ts"],
   "project": ["app/**/*.{ts,tsx,css}", "workers/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"],
-  "ignoreDependencies": ["cloudflare"],
+  "ignoreDependencies": ["cloudflare", "pdfjs-dist"],
   "ignoreUnresolved": ["\\+types/"]
 }
