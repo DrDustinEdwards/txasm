@@ -31,7 +31,6 @@ import { formatDateTime } from "~/lib/format";
 import { richTextWords } from "capsomer/behavior/rich-text-field";
 import { RichTextField } from "capsomer/react/rich-text-field";
 import { BODY_TAGS, TITLE_TAGS } from "~/lib/richtext";
-import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
 import {
   AffiliationsFieldset,
   type InstitutionSuggestion,
