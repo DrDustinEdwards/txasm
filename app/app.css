@@ -23,15 +23,7 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
-@import "capsomer/link-file.css";
-@import "capsomer/panel.css";
-@import "capsomer/row-list.css";
-@import "capsomer/time.css";
 @import "capsomer/trusted-html.css";
-@import "capsomer/schedule.css";
-@import "capsomer/generated-file.css";
-@import "capsomer/document-archive.css";
-@import "capsomer/pdf-viewer.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,

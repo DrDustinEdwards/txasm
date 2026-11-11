@@ -18,8 +18,12 @@ import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedu
 import { RichText } from "capsomer/react/trusted-html";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import schedule from "capsomer/schedule.css?url";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: schedule }];
+
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location, loaderData }: Route.MetaArgs) {

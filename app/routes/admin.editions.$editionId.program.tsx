@@ -27,6 +27,14 @@ import { GeneratedFile } from "capsomer/react/generated-file";
 import { Status } from "capsomer/react/status";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import schedule from "capsomer/schedule.css?url";
+import generatedFile from "~/styles/generated-file.css?url";
+
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [
+  { rel: "stylesheet", href: schedule },
+  { rel: "stylesheet", href: generatedFile },
+];
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Program"));
