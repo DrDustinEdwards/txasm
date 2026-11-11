@@ -11,7 +11,7 @@ import {
   REGISTRATION_CATEGORY_KEY_LABELS,
   type RegistrationCategoryKey,
 } from "~/lib/vocab";
-import { formatMoney, parseDollarsToCents } from "~/lib/format";
+import { formatMoney, parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
@@ -45,7 +45,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const label = String(form.get("label") ?? "").trim();
     const currency = String(form.get("currency") ?? "usd");
     const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
-    const amountCents = parseDollarsToCents(String(form.get("fee") ?? ""));
+    const amountCents = parseMoneyInput(String(form.get("fee") ?? ""), currency);
 
     if (!(REGISTRATION_CATEGORY_KEYS as readonly string[]).includes(key)) {
       return { error: "Choose a category type." };
