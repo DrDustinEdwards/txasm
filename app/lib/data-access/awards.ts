@@ -1,7 +1,8 @@
 import { likeContains } from "@drdustinedwards/site-helpers/search";
 import { type AnyColumn, type SQL, and, desc, eq, or, sql } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import {
   type Actor,
   AlreadyExistsError,

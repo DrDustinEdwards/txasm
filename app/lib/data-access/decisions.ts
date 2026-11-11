@@ -1,7 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import { DECISION_OUTCOMES, type DecisionOutcome, type PresentationType } from "../vocab";
 import { submittedAbstracts } from "./abstracts";
 import {

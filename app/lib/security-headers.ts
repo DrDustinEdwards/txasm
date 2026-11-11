@@ -26,7 +26,7 @@ const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 //   placeholder a library picture shows while it loads (site-api's, a base64 raster that Prelum and site-runtime check
 //   before they write it; an image runs no script). Carrel's pages refuse any
 //   picture outside the library (app/lib/carrel/render.server.ts), and every other stored HTML field is sanitized to
-//   em/sup/sub (app/lib/richtext.ts).
+//   em/sup/sub (app/lib/richtext.ts, on Capsomer's rich text field).
 // - script: 'self' plus the render's nonce, which React Router puts on its inline hydration and streaming scripts
 //   (app/entry.server.tsx). A stored page keeps it and the gateway gives each reader a fresh one (renewNonce).
 // - script, frame: Cloudflare Turnstile on the sign-in form (app/routes/signin.tsx).

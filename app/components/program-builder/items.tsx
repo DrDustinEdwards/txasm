@@ -1,7 +1,7 @@
 import { Form } from "react-router";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { toDateTimeLocal } from "~/lib/format";
-import { extractPlainText } from "~/lib/richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
@@ -178,7 +178,7 @@ export function AddItemForms({
               {unplaced.map((option) => (
                 <option key={option.abstractId} value={option.abstractId}>
                   {option.code ? `${option.code} ` : ""}
-                  {extractPlainText(option.title)}
+                  {richTextPlain(option.title)}
                   {option.presentingAuthorName ? ` (${option.presentingAuthorName})` : ""}
                 </option>
               ))}

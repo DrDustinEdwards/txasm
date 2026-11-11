@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody, sanitizeTitle } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody, sanitizeTitle } from "../richtext";
 import {
   ABSTRACT_FORMATS,
   ABSTRACT_LEVELS,

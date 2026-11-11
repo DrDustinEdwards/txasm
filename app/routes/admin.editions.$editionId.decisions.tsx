@@ -16,7 +16,8 @@ import {
   type PresentationType,
 } from "~/lib/vocab";
 import { formatDateTime } from "~/lib/format";
-import { RichEditor } from "~/components/rich-editor";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
@@ -289,16 +290,14 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           </div>
         ) : null}
 
-        <RichEditor
+        <RichTextField
           name="decisionMessage"
           label="Message to the author (optional)"
-          mode="body"
+          tags={BODY_TAGS}
+          lines="multi"
           initialHTML={decision?.decisionMessage ?? ""}
-          describedById={`decision-help-${abstract.id}`}
+          help="Shown to the author with the decision."
         />
-        <p id={`decision-help-${abstract.id}`} className="small cap-muted">
-          Shown to the author with the decision.
-        </p>
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {decision ? "Update decision" : "Save decision"}

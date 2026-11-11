@@ -15,7 +15,8 @@ import {
   getDataAccess,
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
-import { RichEditor } from "~/components/rich-editor";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
@@ -199,27 +200,23 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             </div>
           </fieldset>
 
-          <RichEditor
+          <RichTextField
             name="overallComment"
             label="Overall comment"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={review?.overallComment ?? ""}
-            describedById="overall-help"
+            help="Shared with the chairs. Optional."
           />
-          <p id="overall-help" className="small cap-muted">
-            Shared with the chairs. Optional.
-          </p>
 
-          <RichEditor
+          <RichTextField
             name="confidentialComment"
             label="Confidential comment to chairs"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={review?.confidentialComment ?? ""}
-            describedById="confidential-help"
+            help="Seen only by chairs and admins, never by the authors. Optional."
           />
-          <p id="confidential-help" className="small cap-muted">
-            Seen only by chairs and admins, never by the authors. Optional.
-          </p>
 
           <div className="cluster">
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

@@ -14,6 +14,8 @@
 @import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
+@import "capsomer/toolbar.css";
+@import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
 @import "capsomer/tabs.css";
 @import "capsomer/banner.css";
@@ -600,16 +602,6 @@
 .date-field {
   width: auto;
 }
-/* The rich editor's editable box: room for a title or a body. */
-.rich-input {
-  min-height: 3rem;
-  height: auto;
-  padding-block: 0.5rem;
-  &[data-mode="body"] {
-    min-height: 7rem;
-  }
-}
-
 /* The admin page is a grid: its column must be able to shrink below a wide
    table, so the table's own region scrolls instead of the page. */
 .cap-admin-page > * {
