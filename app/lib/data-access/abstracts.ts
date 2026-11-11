@@ -1,7 +1,8 @@
 import { and, desc, eq, ne } from "drizzle-orm";
 import { inList, chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
-import { countWords, isEmptyRichText, sanitizeBody, sanitizeTitle } from "../richtext";
+import { isEmptyRichText, richTextWords } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody, sanitizeTitle } from "../richtext";
 import {
   ABSTRACT_FORMATS,
   ABSTRACT_LEVELS,
@@ -399,7 +400,7 @@ export function createAbstracts(db: DB) {
         throw new ValidationError("Add the abstract body before submitting.");
       }
       const wordLimit = ed?.abstractWordLimit ?? DEFAULT_WORD_LIMIT;
-      if (countWords(row.bodyText) > wordLimit) {
+      if (richTextWords(row.bodyText) > wordLimit) {
         throw new ValidationError(`The abstract body is over the ${wordLimit} word limit.`);
       }
       if (!row.level) {

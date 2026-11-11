@@ -31,9 +31,9 @@ import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
   type MultipartPart,
   multipartBoundary,
-  multipartParts,
   partText,
-} from "~/lib/multipart.server";
+  readMultipart,
+} from "@dustinedwards/site-runtime/body";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // File picker hint: allow every accepted type so images are selectable for the
@@ -176,19 +176,22 @@ type Admin = Awaited<ReturnType<typeof requireAdmin>>["actor"];
 
 // The upload form, read part by part rather than buffered: the browser sends its fields in page order, so the text
 // fields arrive first, then the file, which is checked on its first bytes and streamed to R2, then "publish".
-async function createDocument(
-  request: Request,
-  boundary: string,
-  env: Env,
-  da: DataAccess,
-  actor: Admin,
-) {
+async function createDocument(request: Request, env: Env, da: DataAccess, actor: Admin) {
   const fields = new Map<string, string>();
   let createdId: string | null = null;
-  for await (const part of multipartParts(request.body, boundary, MAX_UPLOAD_REQUEST)) {
-    if (part.filename === null) fields.set(part.name, await partText(part));
-    else if (part.name === "file" && !createdId)
-      createdId = await storeUpload(part, fields, env, da, actor);
+  try {
+    for await (const part of readMultipart(request, MAX_UPLOAD_REQUEST)) {
+      if (part.filename === null) fields.set(part.name, await partText(part));
+      else if (part.name === "file" && !createdId)
+        createdId = await storeUpload(part, fields, env, da, actor);
+    }
+  } catch (error) {
+    // The shared reader refuses a body that does not parse, or a field too long, with a 400; here it shows on the form
+    // as a ValidationError. The 413 over the ceiling still goes out as it is.
+    if (error instanceof Response && error.status === 400) {
+      throw new ValidationError((await error.text()) || "Could not read the upload. Try again.");
+    }
+    throw error;
   }
   if (!createdId) throw new ValidationError("Choose a file to upload.");
   if (fields.get("publish")) await da.documents.publish(actor, createdId);
@@ -288,8 +291,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const da = getDataAccess(env);
 
   try {
-    const boundary = multipartBoundary(request.headers.get("Content-Type"));
-    if (boundary) return await createDocument(request, boundary, env, da, actor);
+    if (multipartBoundary(request.headers.get("Content-Type")))
+      return await createDocument(request, env, da, actor);
 
     const form = await readForm(request, FORM_LIMIT);
     const intent = String(form.get("intent") ?? "");

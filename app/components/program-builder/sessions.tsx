@@ -1,8 +1,9 @@
 import { Form } from "react-router";
-import type { ProgramAbstractOption, ProgramDay, ProgramSessionResolved } from "~/lib/data-access";
+import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
+import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { toDateTimeLocal } from "~/lib/format";
 import { AddItemForms, ItemRow } from "./items";
-import { slotTimeLine, type SpeakerOption, toDateInput } from "./shared";
+import { type SpeakerOption, toDateInput } from "./shared";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function SessionFields({
@@ -95,8 +96,11 @@ export function SessionFields({
   );
 }
 
-function SessionColumn({
+// One session in the builder's Schedule: its facts, its items and its controls.
+// `level` is the heading level Capsomer's Schedule gives the session's title.
+export function SessionCard({
   session,
+  level,
   dayIndex,
   dayCount,
   busy,
@@ -104,19 +108,23 @@ function SessionColumn({
   speakers,
 }: {
   session: ProgramSessionResolved;
+  level: 3 | 4 | 5;
   dayIndex: number;
   dayCount: number;
   busy: boolean;
   unplaced: ProgramAbstractOption[];
   speakers: SpeakerOption[];
 }) {
+  const H = `h${level}` as "h3" | "h4" | "h5";
+  const Sub = `h${level + 1}` as "h4" | "h5" | "h6";
   return (
     <div className="card cap-stack">
       <div className="cap-spread">
         <div>
-          <h3 className="strong">{session.title}</h3>
+          <H className="strong">{session.title}</H>
           <p className="small cap-muted">
-            {session.location ? session.location : "No room set"} . {slotTimeLine(session)}
+            {session.location ? session.location : "No room set"} ·{" "}
+            {slotLabel(session.startsAt?.getTime() ?? null, session.endsAt?.getTime() ?? null)}
           </p>
           {session.moderator ? (
             <p className="small cap-muted">Moderated by {session.moderator}</p>
@@ -155,7 +163,7 @@ function SessionColumn({
       </div>
 
       <div className="cap-stack" data-gap="3">
-        <h4 className="small strong">Items</h4>
+        <Sub className="small strong">Items</Sub>
         {session.items.length === 0 ? (
           <p className="small cap-muted">No items in this session yet.</p>
         ) : (
@@ -215,100 +223,49 @@ function SessionColumn({
   );
 }
 
-export function Slot({
-  group,
-  flatIndexOf,
-  dayCount,
+// The form under a slot's tracks that adds a parallel track: a session with the
+// slot's first session's day and times, in another room.
+export function ConcurrentSessionForm({
+  slot,
   busy,
-  unplaced,
-  speakers,
 }: {
-  group: ProgramDay["groups"][number];
-  flatIndexOf: (id: string) => number;
-  dayCount: number;
+  slot: ScheduleSlot<ProgramSessionResolved>;
   busy: boolean;
-  unplaced: ProgramAbstractOption[];
-  speakers: SpeakerOption[];
 }) {
-  const trackCount = group.sessions.length;
-  const source = group.sessions[0];
+  const source = slot.items[0];
+  if (!source) return null;
   return (
-    <section className="cap-stack" data-gap="4">
-      <div className="cap-spread">
-        <h3 className="small strong">
-          {slotTimeLine(source)}
-          {trackCount > 1 ? (
-            <span className="tiny strong cap-muted">{trackCount} parallel tracks</span>
-          ) : null}
-        </h3>
-      </div>
-
-      {trackCount === 1 ? (
-        <SessionColumn
-          session={source}
-          dayIndex={flatIndexOf(source.id)}
-          dayCount={dayCount}
-          busy={busy}
-          unplaced={unplaced}
-          speakers={speakers}
+    <Form method="post" className="card card-s card-dashed cap-cluster" data-align="end">
+      <input type="hidden" name="intent" value="session-add-concurrent" />
+      <input type="hidden" name="sessionId" value={source.id} />
+      <div className="grow cap-stack" data-gap="2">
+        <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
+          Add a concurrent session (parallel track)
+        </label>
+        <input
+          id={`concurrent-title-${source.id}`}
+          name="title"
+          type="text"
+          required
+          placeholder="Second track title"
+          className="cap-input"
         />
-      ) : (
-        // N dynamic columns, one per concurrent track. minmax keeps each track
-        // readable and lets the row scroll on narrow screens rather than crush.
-        <div className="track-scroll">
-          <div
-            className="track-grid"
-            style={{
-              gridTemplateColumns: `repeat(${trackCount}, minmax(18rem, 1fr))`,
-            }}
-          >
-            {group.sessions.map((session) => (
-              <SessionColumn
-                key={session.id}
-                session={session}
-                dayIndex={flatIndexOf(session.id)}
-                dayCount={dayCount}
-                busy={busy}
-                unplaced={unplaced}
-                speakers={speakers}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Form method="post" className="card card-s card-dashed cap-cluster" data-align="end">
-        <input type="hidden" name="intent" value="session-add-concurrent" />
-        <input type="hidden" name="sessionId" value={source.id} />
-        <div className="grow cap-stack" data-gap="2">
-          <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
-            Add a concurrent session (parallel track)
-          </label>
-          <input
-            id={`concurrent-title-${source.id}`}
-            name="title"
-            type="text"
-            required
-            placeholder="Second track title"
-            className="cap-input"
-          />
-        </div>
-        <div className="grow cap-stack" data-gap="2">
-          <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
-            Room
-          </label>
-          <input
-            id={`concurrent-room-${source.id}`}
-            name="location"
-            type="text"
-            placeholder="Room B"
-            className="cap-input"
-          />
-        </div>
-        <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-          Add track
-        </button>
-      </Form>
-    </section>
+      </div>
+      <div className="grow cap-stack" data-gap="2">
+        <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
+          Room
+        </label>
+        <input
+          id={`concurrent-room-${source.id}`}
+          name="location"
+          type="text"
+          placeholder="Room B"
+          className="cap-input"
+        />
+      </div>
+      <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+        Add track
+      </button>
+    </Form>
   );
 }

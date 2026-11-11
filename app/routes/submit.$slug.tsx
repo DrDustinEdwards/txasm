@@ -14,6 +14,7 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
+import { RichText } from "capsomer/react/trusted-html";
 
 // An app: abstract submission. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -141,11 +142,11 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
             {mine.map((abstract) => (
               <li key={abstract.id} className="cap-spread row-pad">
                 <span>
-                  {abstract.title ? (
-                    <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-                  ) : (
-                    <span className="cap-muted">Untitled</span>
-                  )}{" "}
+                  <RichText
+                    as="span"
+                    html={abstract.title}
+                    fallback={<span className="cap-muted">Untitled</span>}
+                  />{" "}
                   <span className="small cap-muted">
                     ({ABSTRACT_STATUS_LABELS[abstract.status]})
                   </span>

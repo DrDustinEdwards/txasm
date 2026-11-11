@@ -82,18 +82,54 @@ interface Dataset {
   abstracts: DatasetAbstract[];
 }
 
-// Last whitespace-separated token is the family name, the rest is given. The
-// schema stores firstName and lastName, so a single-token name goes to lastName.
+// Family-name particles that stay with the family name ("de la Cruz", "van der Berg").
+const NAME_PARTICLES = new Set([
+  "al",
+  "bin",
+  "da",
+  "das",
+  "de",
+  "del",
+  "della",
+  "den",
+  "der",
+  "di",
+  "dos",
+  "du",
+  "el",
+  "ibn",
+  "la",
+  "le",
+  "st",
+  "st.",
+  "ter",
+  "van",
+  "von",
+]);
+// Generational suffixes. The schema has no field for them, so they are dropped.
+const NAME_SUFFIXES = new Set(["jr", "sr", "ii", "iii", "iv"]);
+
+// The family name is the last token plus any particles before it; a trailing
+// suffix ("Jr.", "III") is kept out of both parts. The schema stores firstName
+// and lastName, so a single-token name goes to lastName.
 function splitName(full: string): { firstName: string; lastName: string } {
   const parts = full
     .trim()
     .split(/\s+/)
+    .map((p) => p.replace(/,+$/, ""))
     .filter((p) => p.length > 0);
+  while (
+    parts.length > 1 &&
+    NAME_SUFFIXES.has(parts[parts.length - 1].replace(/\.$/, "").toLowerCase())
+  ) {
+    parts.pop();
+  }
   if (parts.length === 0) return { firstName: "", lastName: "" };
-  if (parts.length === 1) return { firstName: "", lastName: parts[0] };
+  let start = parts.length - 1;
+  while (start > 1 && NAME_PARTICLES.has(parts[start - 1].toLowerCase())) start -= 1;
   return {
-    firstName: parts.slice(0, -1).join(" "),
-    lastName: parts[parts.length - 1],
+    firstName: parts.slice(0, start).join(" "),
+    lastName: parts.slice(start).join(" "),
   };
 }
 

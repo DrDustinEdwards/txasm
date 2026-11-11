@@ -79,31 +79,6 @@ function normalizeInstitutionName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ").replace(/[%_]/g, "");
 }
 
-export function createRegistrations(_db: DB) {
-  return {
-    // Attendee scoping: a user reads their own registration; a chair reads any
-    // in the edition. The PayPal capture webhook flips status to paid out of band.
-    // Bodies land in Part B once PayPal credentials exist.
-    listForEdition(_actor: Actor, _editionId: string): Promise<unknown[]> {
-      throw new Error("not implemented");
-    },
-    getMine(_actor: Actor, _editionId: string): Promise<unknown> {
-      throw new Error("not implemented");
-    },
-    startCheckout(
-      _actor: Actor,
-      _input: { editionId: string; categoryId: string },
-    ): Promise<{ approveUrl: string }> {
-      // Creates a PayPal order and returns its approval link for the payer.
-      throw new Error("not implemented");
-    },
-    markPaidFromWebhook(_input: { paypalOrderId: string }): Promise<unknown> {
-      // Called by the verified PayPal webhook, not by a user, so it has no Actor.
-      throw new Error("not implemented");
-    },
-  };
-}
-
 export function createEditions(db: DB) {
   return {
     // Admin view: every edition, newest first. The public listing (listPublic)

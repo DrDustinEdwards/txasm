@@ -15,6 +15,7 @@ import {
 import { pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -204,7 +205,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                             to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
                             className="strong"
                           >
-                            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                            <RichText as="span" html={abstract.title} />
                           </Link>
                           {abstract.authors.length > 0 ? (
                             <p className="small cap-muted">

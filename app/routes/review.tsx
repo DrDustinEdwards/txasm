@@ -6,6 +6,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { RichText } from "capsomer/react/trusted-html";
 
 // A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -57,11 +58,11 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
               {assignments.map((assignment) => (
                 <tr key={assignment.assignmentId}>
                   <td>
-                    {assignment.title ? (
-                      <span dangerouslySetInnerHTML={{ __html: assignment.title }} />
-                    ) : (
-                      <span className="cap-muted">Untitled</span>
-                    )}
+                    <RichText
+                      as="span"
+                      html={assignment.title}
+                      fallback={<span className="cap-muted">Untitled</span>}
+                    />
                   </td>
                   <td>{assignment.editionName}</td>
                   <td>{assignment.dueAt ? formatDateTime(assignment.dueAt) : "No due date"}</td>

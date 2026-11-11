@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import { SPEAKER_ROLES, type SpeakerRole } from "../vocab";
 import {
   type Actor,
