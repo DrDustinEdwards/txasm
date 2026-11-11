@@ -481,16 +481,20 @@
 
 /* txasm's own look on Capsomer's parts, set by their tokens and slots (Capsomer's "A site's own look"). */
 
-/* The compact disclosure cards of the admin pages: 12px around the card, a bare summary, a 12px gap above the body. */
+/* The compact disclosure cards of the admin pages: 12px around the card, a bare summary, an 8px marker gap, a 12px
+   gap above the body. */
 :root {
   --disclosure-pad: 12px;
   --disclosure-summary-pad: 0;
-  --disclosure-summary-min-h: var(--target);
+  --disclosure-summary-min-h: 0;
   --disclosure-body-pad: 0;
   --disclosure-body-gap: 12px;
+  --disclosure-marker-gap: 8px;
 }
 
-/* Repeatable rows (authors, affiliations): boxed items 12px in, a 16px gap, and Remove in red. */
+/* Repeatable rows (authors, affiliations): boxed items 12px in and 16px apart, 12px between the head and the
+   fields, the fields flush with the head; Up and Down in the text color and 16px apart, Remove a boxed button in
+   red. */
 .sort-card,
 .sort-plain {
   --sortable-card-pad: 12px;
@@ -500,18 +504,35 @@
   --sortable-remove-hover-ink: var(--crit);
   --sortable-remove-fs: 14px;
   --sortable-remove-weight: 600;
+  --sortable-item-gap: 12px;
+  --sortable-steps-gap: 16px;
+  --sortable-step-ink: var(--text);
+  --sortable-remove-pad-inline: 8px;
+  --sortable-body-pad-inline: 0;
 }
-/* Affiliations have no box per row. */
+/* Affiliations have no box per row: no inset, and the fields 4px under the head. */
 .sort-plain {
   --sortable-item-border: 0;
   --sortable-item-bg: transparent;
+  --sortable-card-pad: 0;
+  --sortable-item-gap: 4px;
 }
 
-/* A session's program items: 12px rows with an 8px gap, parts at the top, Remove in the link color. */
+/* A session's program items: 12px rows 8px apart, the text and the buttons on one baseline 12px apart (the buttons
+   drop 12px under a long title), then "Edit item" 8px under them; Up and Down in the text color and 16px apart, Remove a bare word in the link
+   color; an empty session is its words. */
 .sort-rows {
+  --sortable-gap: 8px;
+  --sortable-item-wrap: wrap;
+  --sortable-steps-gap: 16px;
+  --sortable-step-ink: var(--text);
+  --sortable-empty-pad: 0;
+  --sortable-empty-border: 0;
   --sortable-item-pad: 12px;
-  --sortable-item-gap: 8px;
-  --sortable-item-align: start;
+  --sortable-item-gap: 12px;
+  --sortable-foot-gap: 8px;
+  --sortable-item-align: baseline;
+  --sortable-remove-pad-inline: 0;
   --sortable-remove-ink: var(--accent-text);
   --sortable-remove-hover-ink: var(--accent-text);
   --sortable-remove-fs: 14px;

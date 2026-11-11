@@ -92,6 +92,7 @@ export function AffiliationsFieldset({
         layout="stack"
         className="sort-plain"
         steps="labeled"
+        removeStyle="bordered"
         grip={false}
         items={rows.items}
         getId={rows.getId}
@@ -191,6 +192,7 @@ export function AuthorsFieldset({
         layout="stack"
         className="sort-card"
         steps="labeled"
+        removeStyle="bordered"
         grip={false}
         items={rows.items}
         getId={rows.getId}
