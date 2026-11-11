@@ -71,92 +71,97 @@ export function SessionItems({
           ["itemId", id],
         ])
       }
-      renderItem={(item) => <ItemBody item={item} busy={busy} />}
+      renderItem={(item) => <ItemBody item={item} />}
+      renderFoot={(item) => <ItemEdit item={item} busy={busy} />}
     />
   );
 }
 
-function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
+// What the item is: its kind, its title or speaker, and its note.
+function ItemBody({ item }: { item: Item }) {
+  return (
+    <div className="small">
+      <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
+      {item.abstractId ? (
+        <p>
+          {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
+          <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
+          {item.presentingAuthorName ? (
+            <span className="cap-muted"> . {item.presentingAuthorName}</span>
+          ) : null}
+        </p>
+      ) : item.speakerId ? (
+        <p>
+          <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
+          {item.speakerTalkTitle ? (
+            <span className="cap-muted"> . {item.speakerTalkTitle}</span>
+          ) : null}
+        </p>
+      ) : (
+        <p className="strong">{item.customTitle}</p>
+      )}
+      {item.note ? <p className="cap-muted">{item.note}</p> : null}
+    </div>
+  );
+}
+
+// "Edit item", under the item's title and its buttons, as before. A plain disclosure: Capsomer's Disclosure has
+// no unboxed variant for an inline "Edit item".
+function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
   const isCustom = item.abstractId === null && item.speakerId === null;
   return (
-    <div className="cap-stack" data-gap="3">
-      <div className="small">
-        <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-        {item.abstractId ? (
-          <p>
-            {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-            <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
-            {item.presentingAuthorName ? (
-              <span className="cap-muted"> . {item.presentingAuthorName}</span>
-            ) : null}
-          </p>
-        ) : item.speakerId ? (
-          <p>
-            <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-            {item.speakerTalkTitle ? (
-              <span className="cap-muted"> . {item.speakerTalkTitle}</span>
-            ) : null}
-          </p>
-        ) : (
-          <p className="strong">{item.customTitle}</p>
-        )}
-        {item.note ? <p className="cap-muted">{item.note}</p> : null}
-      </div>
-
-      {/* A plain disclosure, as before: Capsomer's Disclosure has no unboxed variant for an inline "Edit item". */}
-      <details>
-        <summary className="summary tiny cap-muted">Edit item</summary>
-        <Form method="post" className="cap-grid" data-cols="2">
-          <input type="hidden" name="intent" value="item-update" />
-          <input type="hidden" name="itemId" value={item.id} />
-          <KindSelect id={`itemkind-${item.id}`} defaultValue={item.kind} />
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor={`itemtime-${item.id}`} className="cap-field-label">
-              Time
-            </label>
-            <input
-              id={`itemtime-${item.id}`}
-              name="startsAt"
-              type="datetime-local"
-              defaultValue={utcInputValue(item.startsAt)}
-              className="cap-input"
-            />
-          </div>
-          {isCustom ? (
-            <div className="cap-stack span-2" data-gap="2">
-              <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
-                Title
-              </label>
-              <input
-                id={`itemtitle-${item.id}`}
-                name="customTitle"
-                type="text"
-                required
-                defaultValue={item.customTitle ?? ""}
-                className="cap-input"
-              />
-            </div>
-          ) : null}
+    <details>
+      <summary className="summary tiny cap-muted">Edit item</summary>
+      <Form method="post" className="cap-grid" data-cols="2">
+        <input type="hidden" name="intent" value="item-update" />
+        <input type="hidden" name="itemId" value={item.id} />
+        <KindSelect id={`itemkind-${item.id}`} defaultValue={item.kind} />
+        <div className="cap-stack" data-gap="2">
+          <label htmlFor={`itemtime-${item.id}`} className="cap-field-label">
+            Time
+          </label>
+          <input
+            id={`itemtime-${item.id}`}
+            name="startsAt"
+            type="datetime-local"
+            defaultValue={utcInputValue(item.startsAt)}
+            className="cap-input"
+          />
+        </div>
+        {isCustom ? (
           <div className="cap-stack span-2" data-gap="2">
-            <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
-              Note
+            <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
+              Title
             </label>
             <input
-              id={`itemnote-${item.id}`}
-              name="note"
+              id={`itemtitle-${item.id}`}
+              name="customTitle"
               type="text"
-              defaultValue={item.note ?? ""}
+              required
+              defaultValue={item.customTitle ?? ""}
               className="cap-input"
             />
           </div>
-          <div className="span-2">
-            <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-              Save item
-            </button>
-          </div>
-        </Form>
-      </details>
-    </div>
+        ) : null}
+        <div className="cap-stack span-2" data-gap="2">
+          <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
+            Note
+          </label>
+          <input
+            id={`itemnote-${item.id}`}
+            name="note"
+            type="text"
+            defaultValue={item.note ?? ""}
+            className="cap-input"
+          />
+        </div>
+        <div className="span-2">
+          <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+            Save item
+          </button>
+        </div>
+      </Form>
+    </details>
   );
 }
 
