@@ -52,7 +52,8 @@ import {
   type PublishedPage,
 } from "../data-access";
 import { mediaKeyOf } from "../media/images";
-import { publicOrigin } from "../site-meta";
+import { publicOrigin } from "@dustinedwards/site-runtime/http";
+import { SITE_ORIGIN } from "../site-meta";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { renderBody, versionedPath } from "./render.server";
 import { parseSource, type PageSource } from "./source";
@@ -152,7 +153,8 @@ export function createCarrelAdapter(
   options: { renderVersion?: string; stylesheets?: string[]; renderPage?: RenderPage } = {},
 ): SiteAdapter {
   const pages = getCarrelPages(env);
-  const origin = () => publicOrigin(env);
+  // Where the site is served now (wrangler.jsonc vars.PUBLIC_ORIGIN, workers.dev until the cutover), else txasm.org.
+  const origin = () => publicOrigin(env, SITE_ORIGIN);
 
   type Change = Pick<PageWrite, "fields" | "schedule">;
 
