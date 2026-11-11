@@ -1,4 +1,4 @@
-import { Link } from "capsomer/react/link";
+import { ButtonLink, Link } from "capsomer/react/link";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { PdfViewer } from "./pdf-viewer";
@@ -36,9 +36,9 @@ export function DocumentDetail({
         <h1 className="page-title">{doc.title}</h1>
         {subtitle ? <p className="cap-muted">{subtitle}</p> : null}
         <p>
-          <a href={`/documents/${doc.slug}/download`} className="cap-btn" data-variant="primary">
+          <ButtonLink href={`/documents/${doc.slug}/download`} variant="primary">
             Download PDF
-          </a>
+          </ButtonLink>
         </p>
       </header>
 

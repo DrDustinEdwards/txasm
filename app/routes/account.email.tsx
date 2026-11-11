@@ -1,4 +1,4 @@
-import { Link } from "capsomer/react/link";
+import { ButtonLink } from "capsomer/react/link";
 import {
   confirmEmailLink,
   emailLinkResult,
@@ -92,9 +92,9 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
           </p>
         </div>
         <div>
-          <Link to="/account" className="cap-btn" data-variant="primary">
+          <ButtonLink to="/account" variant="primary">
             Go to your account
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -109,9 +109,9 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
           <p>{words.text}</p>
         </div>
         <div>
-          <Link to="/account" className="cap-btn" data-variant="primary">
+          <ButtonLink to="/account" variant="primary">
             Go to your account
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );

@@ -1,4 +1,5 @@
-import { type DragEvent, useEffect, useRef, useState } from "react";
+import { type DragEvent, useState } from "react";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Form, useFetcher } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.book";
@@ -135,7 +136,6 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   const fetcher = useFetcher<typeof action>();
   const [book, setBook] = useState<BookView | null>(loaderData.book);
   const [dragId, setDragId] = useState<string | null>(null);
-  const statusRef = useRef<HTMLParagraphElement>(null);
 
   // The action returns the authoritative BookView (with reflowed codes); adopt it
   // whenever a builder mutation resolves. Adjusted while rendering, not in an
@@ -158,16 +158,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
     setBook(loaderData.book);
   }
 
-  const fetcherMsg =
-    fetcher.data && "error" in fetcher.data
-      ? (fetcher.data as { error?: string }).error
-      : fetcher.data && "ok" in fetcher.data
-        ? (fetcher.data as { ok?: string }).ok
-        : null;
-  const fetcherError = Boolean(fetcher.data && "error" in fetcher.data && fetcher.data.error);
-  useEffect(() => {
-    if (fetcherMsg) statusRef.current?.focus();
-  }, [fetcherMsg]);
+  const status = useActionStatus(fetcher.data);
 
   const busy = fetcher.state !== "idle";
   const published = book?.status === "published";
@@ -241,15 +232,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={fetcherError ? "alert" : "status"}
-        className={fetcherError || fetcherMsg ? "cap-alert" : "cap-sr-only"}
-        data-tone={fetcherError ? "crit" : "ok"}
-      >
-        {fetcherMsg ?? ""}
-      </p>
+      <FormStatus status={status} />
 
       {!book ? (
         <section className="card stack-3">

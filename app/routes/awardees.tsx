@@ -2,6 +2,7 @@ import { Form } from "react-router";
 import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
+import { FilterBar } from "capsomer/react/filter-bar";
 import type { Route } from "./+types/awardees";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
@@ -65,7 +66,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" role="search" aria-label="Search awardees" className="card stack-4">
+      <FilterBar label="Search awardees" Form={Form} applyLabel="Search">
         <Field label="Search term">
           <input
             id="q"
@@ -76,41 +77,36 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </Field>
-        <div className="grid-3">
-          <Field label="Award">
-            <select id="award" name="award" defaultValue={award} className="cap-select">
-              <option value="">All awards</option>
-              {awards.map((a) => (
-                <option key={a.slug} value={a.slug}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Year">
-            <input
-              id="year"
-              name="year"
-              type="text"
-              defaultValue={year}
-              placeholder="2025-26"
-              className="cap-input"
-            />
-          </Field>
-          <Field label="Institution">
-            <input
-              id="institution"
-              name="institution"
-              type="text"
-              defaultValue={institution}
-              className="cap-input"
-            />
-          </Field>
-        </div>
-        <button type="submit" className="cap-btn" data-variant="primary">
-          Search
-        </button>
-      </Form>
+        <Field label="Award">
+          <select id="award" name="award" defaultValue={award} className="cap-select">
+            <option value="">All awards</option>
+            {awards.map((a) => (
+              <option key={a.slug} value={a.slug}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Year">
+          <input
+            id="year"
+            name="year"
+            type="text"
+            defaultValue={year}
+            placeholder="2025-26"
+            className="cap-input"
+          />
+        </Field>
+        <Field label="Institution">
+          <input
+            id="institution"
+            name="institution"
+            type="text"
+            defaultValue={institution}
+            className="cap-input"
+          />
+        </Field>
+      </FilterBar>
 
       {results ? (
         <section aria-label="Search results" className="stack-4">

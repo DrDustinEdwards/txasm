@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
@@ -219,13 +220,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const [bodyWords, setBodyWords] = useState(() => countWords(abstract.bodyText));
   const overLimit = bodyWords > edition.wordLimit;
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
+  const status = useActionStatus(actionData);
 
   function updateAuthor(index: number, patch: Partial<AuthorState>) {
     setAuthors((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
@@ -327,15 +322,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
       <DecisionPanel decision={decision} />
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {error ?? ok ?? ""}
-      </p>
+      <FormStatus status={status} />
 
       <Form method="post" className="stack-6">
         <RichEditor name="title" label="Title" mode="title" initialHTML={abstract.title} />

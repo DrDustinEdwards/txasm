@@ -1,4 +1,5 @@
 import { Link } from "capsomer/react/link";
+import { Table } from "capsomer/react/table";
 import type { Route } from "./+types/my.abstracts";
 import { privateMeta } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -48,58 +49,56 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
           You have not started any abstracts yet. Open the submission page for a meeting to begin.
         </p>
       ) : (
-        <div className="cap-table-wrap" role="region" aria-label="Your abstracts" tabIndex={0}>
-          <table className="cap-table">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Meeting</th>
-                <th scope="col">Status</th>
-                <th scope="col">Decision</th>
-                <th scope="col" className="cell-end">
-                  <span className="cap-sr-only">Actions</span>
-                </th>
+        <Table caption="Your abstracts" captionHidden>
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Meeting</th>
+              <th scope="col">Status</th>
+              <th scope="col">Decision</th>
+              <th scope="col" className="cell-end">
+                <span className="cap-sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {abstracts.map((abstract) => (
+              <tr key={abstract.id}>
+                <td>
+                  {abstract.title ? (
+                    <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                  ) : (
+                    <span className="cap-muted">Untitled</span>
+                  )}
+                </td>
+                <td>{abstract.editionName}</td>
+                <td>{ABSTRACT_STATUS_LABELS[abstract.status]}</td>
+                <td>
+                  {abstract.decision ? (
+                    <span>
+                      {DECISION_OUTCOME_LABELS[abstract.decision.outcome as DecisionOutcome] ??
+                        abstract.decision.outcome}
+                      {abstract.decision.presentationType
+                        ? ` (${
+                            PRESENTATION_TYPE_LABELS[
+                              abstract.decision.presentationType as PresentationType
+                            ] ?? abstract.decision.presentationType
+                          })`
+                        : ""}
+                    </span>
+                  ) : (
+                    <span className="cap-muted">Pending</span>
+                  )}
+                </td>
+                <td className="cell-end">
+                  <Link to={`/abstracts/${abstract.id}/edit`} className="strong">
+                    {abstract.status === "draft" ? "Edit" : "View or edit"}
+                  </Link>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {abstracts.map((abstract) => (
-                <tr key={abstract.id}>
-                  <td>
-                    {abstract.title ? (
-                      <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-                    ) : (
-                      <span className="cap-muted">Untitled</span>
-                    )}
-                  </td>
-                  <td>{abstract.editionName}</td>
-                  <td>{ABSTRACT_STATUS_LABELS[abstract.status]}</td>
-                  <td>
-                    {abstract.decision ? (
-                      <span>
-                        {DECISION_OUTCOME_LABELS[abstract.decision.outcome as DecisionOutcome] ??
-                          abstract.decision.outcome}
-                        {abstract.decision.presentationType
-                          ? ` (${
-                              PRESENTATION_TYPE_LABELS[
-                                abstract.decision.presentationType as PresentationType
-                              ] ?? abstract.decision.presentationType
-                            })`
-                          : ""}
-                      </span>
-                    ) : (
-                      <span className="cap-muted">Pending</span>
-                    )}
-                  </td>
-                  <td className="cell-end">
-                    <Link to={`/abstracts/${abstract.id}/edit`} className="strong">
-                      {abstract.status === "draft" ? "Edit" : "View or edit"}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   );

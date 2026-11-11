@@ -21,6 +21,8 @@
 @import "capsomer/empty.css";
 @import "capsomer/error-page.css";
 @import "capsomer/table.css";
+@import "capsomer/filter-bar.css";
+@import "capsomer/form-status.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
 
@@ -292,9 +294,6 @@
   gap: 0.5rem;
 }
 
-.filters {
-  align-items: end;
-}
 .rule-below {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--line);

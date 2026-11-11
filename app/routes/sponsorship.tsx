@@ -1,4 +1,4 @@
-import { Link } from "capsomer/react/link";
+import { ButtonLink, Link } from "capsomer/react/link";
 import type { Route } from "./+types/sponsorship";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
@@ -98,9 +98,9 @@ export default function Sponsorship() {
           laboratories, academic departments, and individuals.
         </p>
         <p>
-          <a href={SPONSOR_REGISTRATION_URL} className="cap-btn" data-variant="primary">
+          <ButtonLink href={SPONSOR_REGISTRATION_URL} variant="primary">
             Sponsor registration
-          </a>
+          </ButtonLink>
         </p>
       </header>
 

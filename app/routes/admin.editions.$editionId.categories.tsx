@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Table } from "capsomer/react/table";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
 import { privateMeta } from "~/lib/site-meta";
@@ -105,55 +106,48 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
       {categories.length === 0 ? (
         <p>No categories yet. Add the first below.</p>
       ) : (
-        <div
-          className="cap-table-wrap"
-          role="region"
-          aria-label="Registration categories"
-          tabIndex={0}
-        >
-          <table className="cap-table">
-            <thead>
-              <tr>
-                <th scope="col">Label</th>
-                <th scope="col">Type</th>
-                <th scope="col">Fee</th>
-                <th scope="col">Active</th>
-                <th scope="col" className="cell-end">
-                  <span className="cap-sr-only">Actions</span>
-                </th>
+        <Table caption="Registration categories" captionHidden>
+          <thead>
+            <tr>
+              <th scope="col">Label</th>
+              <th scope="col">Type</th>
+              <th scope="col">Fee</th>
+              <th scope="col">Active</th>
+              <th scope="col" className="cell-end">
+                <span className="cap-sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((category) => (
+              <tr key={category.id}>
+                <td>{category.label}</td>
+                <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
+                <td>{formatMoney(category.amountCents, category.currency)}</td>
+                <td>{category.active ? "Yes" : "No"}</td>
+                <td className="cell-end">
+                  <div className="cluster cluster-right">
+                    <Link
+                      to={`/admin/editions/${edition.id}/categories/${category.id}`}
+                      className="strong"
+                    >
+                      Edit
+                    </Link>
+                    {category.active ? (
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="deactivate" />
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <button type="submit" className="link-button strong cap-muted">
+                          Deactivate
+                        </button>
+                      </Form>
+                    ) : null}
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td>{category.label}</td>
-                  <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
-                  <td>{formatMoney(category.amountCents, category.currency)}</td>
-                  <td>{category.active ? "Yes" : "No"}</td>
-                  <td className="cell-end">
-                    <div className="cluster cluster-right">
-                      <Link
-                        to={`/admin/editions/${edition.id}/categories/${category.id}`}
-                        className="strong"
-                      >
-                        Edit
-                      </Link>
-                      {category.active ? (
-                        <Form method="post">
-                          <input type="hidden" name="intent" value="deactivate" />
-                          <input type="hidden" name="categoryId" value={category.id} />
-                          <button type="submit" className="link-button strong cap-muted">
-                            Deactivate
-                          </button>
-                        </Form>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </Table>
       )}
 
       <section className="card stack-4">

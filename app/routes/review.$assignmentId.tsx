@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
@@ -135,12 +135,8 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
-  const error = actionData?.error ?? null;
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
+  const status = useActionStatus(actionData);
 
   const authorLine = authors
     .map((a) => `${a.firstName} ${a.lastName}`.trim())
@@ -170,14 +166,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         <AbstractSections abstract={abstract} />
       </section>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error ? "cap-alert" : "cap-sr-only"}
-      >
-        {error ?? ""}
-      </p>
+      <FormStatus status={status} />
 
       {editable ? (
         <Form method="post" className="stack-6">

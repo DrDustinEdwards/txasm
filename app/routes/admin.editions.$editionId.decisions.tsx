@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
@@ -109,13 +110,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   const { edition, abstracts } = loaderData;
   const actionData = useActionData<typeof action>();
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
+  const status = useActionStatus(actionData);
 
   return (
     <div className="stack-6">
@@ -137,15 +132,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {error ?? ok ?? ""}
-      </p>
+      <FormStatus status={status} />
 
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>

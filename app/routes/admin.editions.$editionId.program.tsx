@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
@@ -273,12 +273,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   const busy = navigation.state === "submitting";
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
+  const status = useActionStatus(actionData);
 
   const dayParam = searchParams.get("day");
   const dayKeys = buildDayKeys(
@@ -314,15 +309,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
-      </p>
+      <FormStatus status={status} />
 
       <div className="cluster">
         <nav aria-label="Meeting days" className="cluster">
