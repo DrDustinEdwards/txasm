@@ -197,6 +197,26 @@ export function createDecisions(db: DB) {
       };
     },
 
+    // The decisions on the actor's own abstracts, by abstract id, in one query: the author's list page reads
+    // these instead of one getForAbstract per row. Ownership is the join, so no other author's decision can
+    // come back; the fields are getForAbstract's.
+    async listForMine(actor: Actor) {
+      const rows = await db
+        .select({
+          abstractId: schema.decision.abstractId,
+          outcome: schema.decision.outcome,
+          presentationType: schema.decision.presentationType,
+          decisionMessage: schema.decision.decisionMessage,
+          decidedAt: schema.decision.decidedAt,
+          notifyState: schema.decision.notifyState,
+          notifiedAt: schema.decision.notifiedAt,
+        })
+        .from(schema.decision)
+        .innerJoin(schema.abstract, eq(schema.abstract.id, schema.decision.abstractId))
+        .where(eq(schema.abstract.submitterId, actor.userId));
+      return new Map(rows.map(({ abstractId, ...decision }) => [abstractId, decision]));
+    },
+
     // Chair/admin removes a decision, for corrections, and reverts the abstract
     // status to under_review when reviewers are still assigned, otherwise to
     // submitted.
