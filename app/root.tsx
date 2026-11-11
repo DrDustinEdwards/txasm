@@ -67,6 +67,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="text-scale" content="scale" />
         <Meta />
         <Links />
         {/* Same-origin, so script-src 'self' allows it and it needs no nonce. Not on a hydrating page, whose React

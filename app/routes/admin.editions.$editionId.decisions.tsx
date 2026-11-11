@@ -20,6 +20,7 @@ import { decisionEmail, sendEmail } from "~/lib/email.server";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Decisions");
@@ -181,7 +182,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
         <div className="stack-1">
           <h2 className="strong">
             {abstract.title ? (
-              <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+              <span dangerouslySetInnerHTML={markup(abstract.title)} />
             ) : (
               <span className="cap-muted">Untitled</span>
             )}

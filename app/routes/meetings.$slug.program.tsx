@@ -17,6 +17,7 @@ import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -90,10 +91,7 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
             {item.abstractCode ? (
               <span className="strong cap-muted">{item.abstractCode} </span>
             ) : null}
-            <span
-              className="strong"
-              dangerouslySetInnerHTML={{ __html: item.abstractTitle ?? "" }}
-            />
+            <span className="strong" dangerouslySetInnerHTML={markup(item.abstractTitle ?? "")} />
             {item.presentingAuthorName ? (
               <span className="cap-muted"> . {item.presentingAuthorName}</span>
             ) : null}
@@ -175,10 +173,7 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
             </p>
             {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
             {speaker.bio ? (
-              <div
-                className="small speaker-bio"
-                dangerouslySetInnerHTML={{ __html: speaker.bio }}
-              />
+              <div className="small speaker-bio" dangerouslySetInnerHTML={markup(speaker.bio)} />
             ) : null}
           </li>
         ))}

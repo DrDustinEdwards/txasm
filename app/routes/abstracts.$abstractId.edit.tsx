@@ -42,6 +42,7 @@ import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -292,7 +293,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       <div className="form-page stack-6">
         <h1 className="page-title">
           {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+            <span dangerouslySetInnerHTML={markup(abstract.title)} />
           ) : (
             "Untitled abstract"
           )}

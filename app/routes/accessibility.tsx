@@ -5,6 +5,7 @@ import {
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import type { Route } from "./+types/accessibility";
 import { pageHead } from "~/lib/site-meta";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -36,7 +37,7 @@ export default function Accessibility() {
       <div
         className="stack-4"
         style={{ maxWidth: "65ch" }}
-        dangerouslySetInnerHTML={{ __html: STATEMENT.html }}
+        dangerouslySetInnerHTML={markup(STATEMENT.html)}
       />
     </div>
   );

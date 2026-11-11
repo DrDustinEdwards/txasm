@@ -13,6 +13,7 @@ import {
 } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // An app: abstract submission. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -141,7 +142,7 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
               <li key={abstract.id} className="spread row-pad">
                 <span>
                   {abstract.title ? (
-                    <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
+                    <span dangerouslySetInnerHTML={markup(abstract.title)} />
                   ) : (
                     <span className="cap-muted">Untitled</span>
                   )}{" "}

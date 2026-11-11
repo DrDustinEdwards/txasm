@@ -5,6 +5,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
 import { formatDateTime } from "~/lib/format";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -57,7 +58,7 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
                 <tr key={assignment.assignmentId}>
                   <td>
                     {assignment.title ? (
-                      <span dangerouslySetInnerHTML={{ __html: assignment.title }} />
+                      <span dangerouslySetInnerHTML={markup(assignment.title)} />
                     ) : (
                       <span className="cap-muted">Untitled</span>
                     )}

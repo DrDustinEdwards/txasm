@@ -17,6 +17,7 @@ import { formatDateTime } from "~/lib/format";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { markup } from "capsomer/behavior/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(matches, "Abstract book builder");
@@ -367,7 +368,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                           <span
                             className="strong"
                             // Title is stored sanitized (em/sup/sub only).
-                            dangerouslySetInnerHTML={{ __html: entry.title }}
+                            dangerouslySetInnerHTML={markup(entry.title)}
                           />
                           <span className="tiny cap-muted block">
                             {entry.presentingAuthorName ?? "No presenter"}
