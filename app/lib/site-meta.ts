@@ -1,27 +1,25 @@
-import { articleDates, defineHead, shareCard } from "@drdustinedwards/site-helpers/head";
+import {
+  articleDates,
+  defineHead,
+  rootLoaderData,
+  shareCard,
+} from "@drdustinedwards/site-helpers/head";
 import { graph, thing, website } from "@drdustinedwards/site-helpers/schema";
 import type { PageSearch, PlatformSettings } from "./data-access";
 import { CATEGORY_PATHS } from "./document-nav";
 
 // The root loader (settings) is always in the matches chain. Pull the org short
 // name from there so page titles track the settings value instead of hardcoding
-// the branch name in every route. React Router 8 names a match's data
-// `loaderData`; the older `data` is gone. Type-only import, erased at build.
-type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings; origin?: string } };
+// the branch name in every route. Type-only import, erased at build.
+type RootData = { settings?: PlatformSettings; origin?: string };
+type Matches = ReadonlyArray<{ id: string; loaderData?: unknown } | undefined>;
 
-const rootData = (matches: ReadonlyArray<{ id: string } | undefined>) =>
-  (matches as ReadonlyArray<RootMatch | undefined>).find((match) => match?.id === "root")
-    ?.loaderData;
-
-function titleSuffix(matches: ReadonlyArray<{ id: string } | undefined>): string {
-  const shortName = rootData(matches)?.settings?.shortName ?? "";
+function titleSuffix(matches: Matches): string {
+  const shortName = rootLoaderData<RootData>(matches)?.settings?.shortName ?? "";
   return shortName ? ` | ${shortName}` : "";
 }
 
-export function pageTitle(
-  matches: ReadonlyArray<{ id: string } | undefined>,
-  pageName: string,
-): string {
+export function pageTitle(matches: Matches, pageName: string): string {
   return `${pageName}${titleSuffix(matches)}`;
 }
 
@@ -92,7 +90,7 @@ const SECTIONS: Record<string, string> = {
  * the old site, which has no card.
  */
 export function pageHead(
-  matches: ReadonlyArray<{ id: string } | undefined>,
+  matches: Matches,
   {
     name,
     search,
@@ -115,7 +113,7 @@ export function pageHead(
     suffix: titleSuffix(matches),
     sections: SECTIONS,
   });
-  const origin = rootData(matches)?.origin ?? SITE_ORIGIN;
+  const origin = rootLoaderData<RootData>(matches)?.origin ?? SITE_ORIGIN;
   const image = search?.image
     ? {
         url: `${origin}${search.image.url}`,
