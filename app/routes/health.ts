@@ -23,6 +23,7 @@ import { cronCheck } from "@dustinedwards/site-runtime/cron";
 import type { Route } from "./+types/health";
 import { backupStatus } from "~/lib/backup.server";
 import { allCronJobs } from "~/lib/cron.server";
+import { deployedAt, deployedSha } from "@dustinedwards/site-runtime/deploy";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 
 export function loader({ context }: Route.LoaderArgs) {
@@ -30,7 +31,7 @@ export function loader({ context }: Route.LoaderArgs) {
   return healthResponse({
     ping: () => env.DB.prepare("select 1").first(),
     backup: () => backupStatus(env),
-    sha: (env as { DEPLOY_SHA?: string }).DEPLOY_SHA,
+    sha: deployedSha(env),
     checks: [
       { ...r2Check("uploads", env.UPLOADS), level: "warn" },
       { ...r2Check("books", env.BOOKS), level: "warn" },
@@ -46,7 +47,7 @@ export function loader({ context }: Route.LoaderArgs) {
       },
       cronCheck(env.DB, {
         jobs: allCronJobs(env),
-        deployedAt: new Date(env.CF_VERSION_METADATA.timestamp),
+        deployedAt: deployedAt(env),
       }),
       // A run of failed sign-ins or sign-in mails in the last hour (auth_events), warn only.
       authSpikeCheck(env.DB),
