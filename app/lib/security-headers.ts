@@ -9,6 +9,7 @@ import {
   scriptHash,
 } from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
+import { TRUSTED_TYPES_NAMES } from "@dustinedwards/site-runtime/trusted-types";
 import { PAGED_JS_CONFIG } from "./paged";
 import { SECURITY_HEADERS } from "./header-set";
 import { isPrivatePath } from "./site-meta";
@@ -49,7 +50,7 @@ function contentSecurityPolicies(nonce: string | undefined) {
   };
   return [
     buildContentSecurityPolicy(policy),
-    buildStagedPolicy(policy, { trustedTypes: true, denyUnlisted: true }),
+    buildStagedPolicy(policy, { trustedTypes: TRUSTED_TYPES_NAMES, denyUnlisted: true }),
   ];
 }
 

@@ -1,4 +1,5 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
 import { sanitizeBody } from "../richtext";
@@ -6,7 +7,6 @@ import { DECISION_OUTCOMES, type DecisionOutcome, type PresentationType } from "
 import { submittedAbstracts } from "./abstracts";
 import {
   type Actor,
-  byIdChunks,
   type DB,
   ForbiddenError,
   isChair,
@@ -105,20 +105,17 @@ export function createDecisions(db: DB) {
       const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);
       if (rows.length === 0) return [];
 
-      const submittedReviews = await byIdChunks(ids, (part) =>
-        db
-          .select({
-            abstractId: schema.review.abstractId,
-            recommendation: schema.review.recommendation,
-          })
-          .from(schema.review)
-          .where(
-            and(inArray(schema.review.abstractId, part), eq(schema.review.status, "submitted")),
-          ),
-      );
-      const decisionRows = await byIdChunks(ids, (part) =>
-        db.select().from(schema.decision).where(inArray(schema.decision.abstractId, part)),
-      );
+      const submittedReviews = await db
+        .select({
+          abstractId: schema.review.abstractId,
+          recommendation: schema.review.recommendation,
+        })
+        .from(schema.review)
+        .where(and(inList(schema.review.abstractId, ids), eq(schema.review.status, "submitted")));
+      const decisionRows = await db
+        .select()
+        .from(schema.decision)
+        .where(inList(schema.decision.abstractId, ids));
 
       const summaryByAbstract = new Map<
         string,
@@ -196,6 +193,26 @@ export function createDecisions(db: DB) {
         notifyState: row.notifyState,
         notifiedAt: row.notifiedAt,
       };
+    },
+
+    // The decisions on the actor's own abstracts, by abstract id, in one query: the author's list page reads
+    // these instead of one getForAbstract per row. Ownership is the join, so no other author's decision can
+    // come back; the fields are getForAbstract's.
+    async listForMine(actor: Actor) {
+      const rows = await db
+        .select({
+          abstractId: schema.decision.abstractId,
+          outcome: schema.decision.outcome,
+          presentationType: schema.decision.presentationType,
+          decisionMessage: schema.decision.decisionMessage,
+          decidedAt: schema.decision.decidedAt,
+          notifyState: schema.decision.notifyState,
+          notifiedAt: schema.decision.notifiedAt,
+        })
+        .from(schema.decision)
+        .innerJoin(schema.abstract, eq(schema.abstract.id, schema.decision.abstractId))
+        .where(eq(schema.abstract.submitterId, actor.userId));
+      return new Map(rows.map(({ abstractId, ...decision }) => [abstractId, decision]));
     },
 
     // Chair/admin removes a decision, for corrections, and reverts the abstract

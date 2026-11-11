@@ -9,6 +9,7 @@ import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -74,7 +75,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         </p>
         <h1
           className="page-title abstract-title"
-          dangerouslySetInnerHTML={{ __html: abstract.title }}
+          dangerouslySetInnerHTML={markup(abstract.title)}
         />
         {abstract.authors.length > 0 ? (
           <p>
@@ -118,7 +119,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
       {abstract.bodyText ? (
         <div
           className="stack-3 abstract-body"
-          dangerouslySetInnerHTML={{ __html: abstract.bodyText }}
+          dangerouslySetInnerHTML={markup(abstract.bodyText)}
         />
       ) : (
         <p className="cap-muted">No abstract body on record.</p>

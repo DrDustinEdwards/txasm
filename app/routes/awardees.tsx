@@ -7,6 +7,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { markup } from "capsomer/behavior/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -159,7 +160,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
                   {a.description ? (
                     <p
                       className="small cap-muted"
-                      dangerouslySetInnerHTML={{ __html: a.description }}
+                      dangerouslySetInnerHTML={markup(a.description)}
                     />
                   ) : null}
                 </Link>
