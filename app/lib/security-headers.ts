@@ -10,7 +10,7 @@ import {
 } from "@dustinedwards/site-runtime/csp";
 import { TURNSTILE_ORIGIN } from "@dustinedwards/site-runtime/turnstile";
 import { TRUSTED_TYPES_NAMES } from "@dustinedwards/site-runtime/trusted-types";
-import { PAGED_JS_CONFIG } from "@dustinedwards/site-runtime/print-pdf";
+import { PAGED_JS_CONFIG, PAGED_JS_TRUSTED_TYPES } from "@dustinedwards/site-runtime/print-pdf";
 import { SECURITY_HEADERS } from "./header-set";
 import { isPrivatePath } from "./site-meta";
 
@@ -56,12 +56,15 @@ function contentSecurityPolicies(nonce: string | undefined) {
 
 /**
  * The printable book's own policy (book preview): its Paged.js config script by hash, the self-hosted Paged.js, and
- * inline styles, which the book's print stylesheet is and which Paged.js writes as it paginates.
+ * inline styles, which the book's print stylesheet is and which Paged.js writes as it paginates. Trusted Types is
+ * enforced: the config's default policy passes only Paged.js's page frame and the empty string, and the content sits
+ * in the template Paged.js reads (site-runtime ./print-pdf, pagedContent), so nothing else reaches a sink.
  */
 export async function bookPolicy(): Promise<Record<string, string>> {
   const { name, value } = buildContentSecurityPolicy({
     scriptHashes: [await scriptHash(PAGED_JS_CONFIG)],
     sources: { style: ["'unsafe-inline'"] },
+    trustedTypes: PAGED_JS_TRUSTED_TYPES,
     ...SINK,
   });
   return { [name]: value };

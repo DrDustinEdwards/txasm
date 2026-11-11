@@ -5,7 +5,7 @@
 // 2026-10-21. The file is the npm tarball's dist/paged.polyfill.js, byte for byte.
 import { pagedScripts } from "@dustinedwards/site-runtime/print-pdf";
 
-const PAGED_JS_PATH = "/pagedjs/paged.polyfill-0.4.3.js";
+export const PAGED_JS_PATH = "/pagedjs/paged.polyfill-0.4.3.js";
 // Subresource integrity for that exact file. The book preview runs on the app origin
 // with the chair's session, so a changed file must not run there. A new version
 // needs a new hash.
