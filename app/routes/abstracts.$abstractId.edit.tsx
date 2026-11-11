@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
@@ -48,7 +49,7 @@ import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Edit abstract");
+  return privateMeta(pageTitle(matches, "Edit abstract"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
