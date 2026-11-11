@@ -86,8 +86,8 @@ type Speaker = Route.ComponentProps["loaderData"]["speakers"][number];
 function SpeakerFields({ speaker }: { speaker?: Speaker }) {
   const idBase = speaker ? speaker.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
@@ -101,7 +101,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`affiliation-${idBase}`} className="cap-field-label">
           Affiliation
         </label>
@@ -114,7 +114,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`role-${idBase}`} className="cap-field-label">
           Role
         </label>
@@ -132,7 +132,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`sort-${idBase}`} className="cap-field-label">
           Sort order
         </label>
@@ -145,7 +145,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`talk-${idBase}`} className="cap-field-label">
           Talk title
         </label>
@@ -178,8 +178,8 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Invited speakers</h1>
         <p>
           {edition.name}.{" "}
@@ -205,10 +205,10 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       {speakers.length === 0 ? (
         <p>No invited speakers yet. Add the first below.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {speakers.map((speaker) => (
-            <li key={speaker.id} className="card stack-3">
-              <div className="spread">
+            <li key={speaker.id} className="card cap-stack" data-gap="4">
+              <div className="cap-spread">
                 <div>
                   <p className="strong">{speaker.name}</p>
                   <p className="small cap-muted">
@@ -237,7 +237,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
               </div>
 
               <Disclosure summary="Edit speaker" variant="card" size="sm">
-                <Form method="post" className="stack-3" noValidate>
+                <Form method="post" className="cap-stack" data-gap="4" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="speakerId" value={speaker.id} />
                   <SpeakerFields speaker={speaker} />
@@ -251,9 +251,9 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
         </ul>
       )}
 
-      <section className="card stack-4">
+      <section className="card cap-stack">
         <h2 className="subsection-title">Add a speaker</h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SpeakerFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

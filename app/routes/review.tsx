@@ -28,7 +28,7 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
   const { assignments } = loaderData;
 
   return (
-    <div className="stack-6">
+    <div className="cap-stack" data-gap="6">
       <h1 className="page-title">Review</h1>
 
       {assignments.length === 0 ? (

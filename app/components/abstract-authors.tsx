@@ -1,10 +1,32 @@
+import { ComboboxFreeText, type ComboboxOption } from "capsomer/react/combobox";
 import { SortableList, useRows } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
-import {
-  InstitutionAutocomplete,
-  type InstitutionSuggestion,
-} from "~/components/institution-autocomplete";
+
+// A suggestion from the institution master list (/api/institutions).
+export interface InstitutionSuggestion {
+  id: string;
+  name: string;
+  city: string | null;
+  region: string | null;
+  country: string | null;
+}
+
+// The suggestions as combobox options: the label is the name and the hint is the place; the value
+// carries the whole suggestion, so picking one can fill the city, region and country.
+async function findInstitutions(query: string, signal: AbortSignal): Promise<ComboboxOption[]> {
+  const res = await fetch(`/api/institutions?q=${encodeURIComponent(query)}`, {
+    headers: { Accept: "application/json" },
+    signal,
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { results?: InstitutionSuggestion[] };
+  return (data.results ?? []).map((i) => ({
+    value: JSON.stringify(i),
+    label: i.name,
+    hint: [i.city, i.region].filter(Boolean).join(", ") || undefined,
+  }));
+}
 
 // The author and affiliation editors of the abstract form, on Capsomer's repeatable rows (SortableList's
 // stack layout with useRows): drag, the keyboard or Move up and Move down reorder, Remove drops a row and
@@ -41,8 +63,6 @@ function emptyAffiliation(): AffiliationState {
   return { institution: "", department: "", city: "", region: "", country: "" };
 }
 
-export const inputClass = "cap-input";
-
 export function AffiliationsFieldset({
   affiliations,
   onChange,
@@ -61,7 +81,7 @@ export function AffiliationsFieldset({
   const rows = useRows(affiliations, onChange);
   const oldIndex = (id: string) => rows.items.findIndex((r) => r.id === id);
   return (
-    <fieldset className="card stack-4">
+    <fieldset className="card cap-stack">
       <legend className="legend">Affiliations</legend>
       <p className="small cap-muted">
         Number each affiliation once, then attach it to authors below. Start typing to pick a known
@@ -87,18 +107,21 @@ export function AffiliationsFieldset({
         addLabel="Add affiliation"
         empty={<p className="small cap-muted">No affiliations added.</p>}
         renderItem={({ value: affiliation, index }) => (
-          <div className="grid-2">
+          <div className="cap-grid" data-cols="2">
             <div className="span-2">
-              <InstitutionAutocomplete
+              <ComboboxFreeText
                 id={`institution-${index}`}
                 label="Institution"
                 value={affiliation.institution}
-                onChange={(name) => updateAffiliation(index, { institution: name })}
-                onSelect={(suggestion) => selectInstitution(index, suggestion)}
-                inputClassName={inputClass}
+                onValueChange={(name) => updateAffiliation(index, { institution: name })}
+                onPick={(option) =>
+                  selectInstitution(index, JSON.parse(option.value) as InstitutionSuggestion)
+                }
+                search={findInstitutions}
+                minSearchLength={2}
               />
             </div>
-            <label className="stack-1">
+            <label className="cap-stack" data-gap="2">
               <span className="cap-field-label">Department</span>
               <input
                 type="text"
@@ -107,7 +130,7 @@ export function AffiliationsFieldset({
                 className="cap-input"
               />
             </label>
-            <label className="stack-1">
+            <label className="cap-stack" data-gap="2">
               <span className="cap-field-label">City</span>
               <input
                 type="text"
@@ -116,7 +139,7 @@ export function AffiliationsFieldset({
                 className="cap-input"
               />
             </label>
-            <label className="stack-1">
+            <label className="cap-stack" data-gap="2">
               <span className="cap-field-label">State or province</span>
               <input
                 type="text"
@@ -125,7 +148,7 @@ export function AffiliationsFieldset({
                 className="cap-input"
               />
             </label>
-            <label className="stack-1">
+            <label className="cap-stack" data-gap="2">
               <span className="cap-field-label">Country</span>
               <input
                 type="text"
@@ -158,7 +181,7 @@ export function AuthorsFieldset({
 }) {
   const rows = useRows(authors, onChange);
   return (
-    <fieldset className="card stack-4">
+    <fieldset className="card cap-stack">
       <legend className="legend">Authors</legend>
       <SortableList
         aria-label="Authors"
@@ -172,9 +195,9 @@ export function AuthorsFieldset({
         onAdd={() => onChange([...authors, emptyAuthor()])}
         addLabel="Add author"
         renderItem={({ value: author, index }) => (
-          <div className="stack-3">
-            <div className="grid-2">
-              <label className="stack-1">
+          <div className="cap-stack" data-gap="4">
+            <div className="cap-grid" data-cols="2">
+              <label className="cap-stack" data-gap="2">
                 <span className="cap-field-label">First name</span>
                 <input
                   type="text"
@@ -183,7 +206,7 @@ export function AuthorsFieldset({
                   className="cap-input"
                 />
               </label>
-              <label className="stack-1">
+              <label className="cap-stack" data-gap="2">
                 <span className="cap-field-label">Last name</span>
                 <input
                   type="text"
@@ -192,7 +215,7 @@ export function AuthorsFieldset({
                   className="cap-input"
                 />
               </label>
-              <label className="stack-1 span-2">
+              <label className="cap-stack span-2" data-gap="2">
                 <span className="cap-field-label">Email</span>
                 <input
                   type="email"
@@ -202,7 +225,7 @@ export function AuthorsFieldset({
                 />
               </label>
             </div>
-            <div className="cluster">
+            <div className="cap-cluster">
               <label className="cap-check">
                 <input
                   type="checkbox"
@@ -221,13 +244,13 @@ export function AuthorsFieldset({
               </label>
             </div>
             {affiliations.length > 0 ? (
-              <fieldset className="stack-1">
+              <fieldset className="cap-stack" data-gap="2">
                 <legend className="small">Affiliations</legend>
-                <div className="cluster">
+                <div className="cap-cluster">
                   {affiliations.map((_, affIndex) => {
                     const ordinal = affIndex + 1;
                     return (
-                      <label key={affIndex} className="cluster small">
+                      <label key={affIndex} className="cap-cluster small">
                         <input
                           type="checkbox"
                           checked={author.affiliationOrdinals.includes(ordinal)}

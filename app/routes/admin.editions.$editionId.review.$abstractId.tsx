@@ -47,8 +47,8 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
   const { editionId, abstract, reviews } = loaderData;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">
           Reviews for <RichText as="span" html={abstract.title} fallback="an untitled abstract" />
         </h1>
@@ -62,10 +62,10 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
       {reviews.length === 0 ? (
         <p>No reviews submitted yet.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {reviews.map((review) => (
-            <li key={review.id} className="card stack-3">
-              <div className="spread">
+            <li key={review.id} className="card cap-stack" data-gap="4">
+              <div className="cap-spread">
                 <span className="small strong">{review.reviewerName || review.reviewerEmail}</span>
                 <span className="small cap-muted">
                   {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
@@ -76,13 +76,13 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
                 {recommendationLabel(review.recommendation)}
               </p>
               {review.overallComment ? (
-                <div className="stack-1">
+                <div className="cap-stack" data-gap="2">
                   <h2 className="small strong">Overall comment</h2>
                   <RichText className="small" html={review.overallComment} />
                 </div>
               ) : null}
               {review.confidentialComment ? (
-                <div className="cap-banner stack-1" data-tone="warn">
+                <div className="cap-banner cap-stack" data-gap="2" data-tone="warn">
                   <h2 className="small strong">Confidential comment to chairs</h2>
                   <RichText className="small" html={review.confidentialComment} />
                 </div>

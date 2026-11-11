@@ -1,5 +1,5 @@
 import { Form } from "react-router";
-import { Link } from "capsomer/react/link";
+import { Link, routerRenderLink } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
 import type { Route } from "./+types/meetings.$slug.abstracts";
@@ -14,7 +14,6 @@ import {
 } from "~/lib/vocab";
 import { pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
-import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { RichText } from "capsomer/react/trusted-html";
 
@@ -112,9 +111,9 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
   const filtered = filters.level || filters.format || filters.topic;
 
   return (
-    <div className="stack-8">
+    <div className="cap-stack" data-gap="7">
       <Breadcrumb
-        renderLink={renderLink}
+        renderLink={routerRenderLink}
         items={[
           { label: "Home", href: "/" },
           { label: "Meetings", href: "/meetings" },
@@ -122,7 +121,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         ]}
       />
 
-      <header className="stack-2">
+      <header className="cap-stack" data-gap="3">
         <h1 className="page-title">{edition.name}</h1>
         <p className="home-tagline cap-muted">Abstracts</p>
         <p className="small cap-muted">
@@ -131,7 +130,12 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" aria-label="Filter abstracts" className="card grid-4 filters">
+      <Form
+        method="get"
+        aria-label="Filter abstracts"
+        className="card cap-grid filters"
+        data-cols="4"
+      >
         <Field label="Level">
           <select id="level" name="level" defaultValue={filters.level} className="cap-select">
             <option value="">All levels</option>
@@ -163,7 +167,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
             <option value={NO_TOPIC}>{untopicedLabel}</option>
           </select>
         </Field>
-        <div className="cluster">
+        <div className="cap-cluster">
           <button type="submit" className="cap-btn" data-variant="primary">
             Apply
           </button>
@@ -182,13 +186,13 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
       {groups.length === 0 ? (
         <Empty kind="no-match" title="No abstracts match these filters." />
       ) : (
-        <div className="stack-10">
+        <div className="cap-stack" data-gap="8">
           {groups.map((group) => {
             const label = group.topic ?? untopicedLabel;
             return (
-              <section key={group.topic ?? NO_TOPIC} aria-label={label} className="stack-4">
+              <section key={group.topic ?? NO_TOPIC} aria-label={label} className="cap-stack">
                 <h2 className="section-title rule-below">{label}</h2>
-                <ul className="stack-4">
+                <ul className="cap-stack">
                   {group.abstracts.map((abstract) => {
                     const line = metaLine(abstract);
                     return (
@@ -196,7 +200,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                         <span className="small strong cap-muted">
                           {abstract.code ?? abstract.number}
                         </span>
-                        <div className="stack-1">
+                        <div className="cap-stack" data-gap="2">
                           <Link
                             to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
                             className="strong"

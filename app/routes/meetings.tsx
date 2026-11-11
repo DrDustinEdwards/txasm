@@ -64,8 +64,8 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
   const { meetings, q, level, format, meeting, results } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Meetings</h1>
         <p className="lead">
           The branch meets twice a year. Search the accepted abstracts across all meetings, or open
@@ -73,7 +73,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" role="search" aria-label="Search abstracts" className="card stack-4">
+      <Form method="get" role="search" aria-label="Search abstracts" className="card cap-stack">
         <Field label="Search abstracts">
           <input
             id="q"
@@ -84,7 +84,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </Field>
-        <div className="grid-3">
+        <div className="cap-grid">
           <Field label="Level">
             <select id="level" name="level" defaultValue={level} className="cap-select">
               <option value="">All levels</option>
@@ -122,7 +122,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       </Form>
 
       {results ? (
-        <section aria-label="Search results" className="stack-4">
+        <section aria-label="Search results" className="cap-stack">
           <h2 className="subsection-title">
             {results.length} {results.length === 1 ? "result" : "results"}
           </h2>
@@ -150,7 +150,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
         </section>
       ) : null}
 
-      <section aria-label="Meetings" className="stack-4">
+      <section aria-label="Meetings" className="cap-stack">
         <h2 className="subsection-title">All meetings</h2>
         {meetings.length === 0 ? (
           <Empty
@@ -158,18 +158,18 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
             title="Meetings appear here once their programs are published."
           />
         ) : (
-          <ul className="stack-4">
+          <ul className="cap-stack">
             {meetings.map((m) => {
               const venue = venueLine(m.venueName, m.city);
               return (
-                <li key={m.slug} className="card stack-1">
+                <li key={m.slug} className="card cap-stack" data-gap="2">
                   <h3 className="subsection-title">{m.name}</h3>
                   <p className="small cap-muted">
                     {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
                       .filter((p) => p.length > 0)
                       .join(" · ")}
                   </p>
-                  <p className="cluster small">
+                  <p className="cap-cluster small">
                     <Link to={`/meetings/${m.slug}/abstracts`}>Abstracts ({m.abstractCount})</Link>
                     <Link to={`/meetings/${m.slug}/program`}>Program</Link>
                   </p>

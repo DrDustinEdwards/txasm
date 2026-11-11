@@ -3,7 +3,7 @@ import type { Route } from "./+types/archive.$category";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { DocumentList } from "capsomer/react/document-archive";
-import { renderLink } from "~/components/site-chrome";
+import { routerRenderLink } from "capsomer/react/link";
 import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
@@ -51,8 +51,8 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
   const { title, basePath, documents } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">{title}</h1>
         <p className="lead">
           The branch's archive of {title.toLowerCase()} from past meetings. Open one to read it in
@@ -72,7 +72,7 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
               detail: documentSubtitle(d) || undefined,
             }))}
             label={title}
-            renderLink={renderLink}
+            renderLink={routerRenderLink}
           />
         )}
       </section>

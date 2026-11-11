@@ -76,7 +76,7 @@ export function SessionItems({
 function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
   const isCustom = item.abstractId === null && item.speakerId === null;
   return (
-    <div className="stack-2">
+    <div className="cap-stack" data-gap="3">
       <div className="small">
         <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
         {item.abstractId ? (
@@ -103,11 +103,11 @@ function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
       {/* A plain disclosure, as before: Capsomer's Disclosure has no unboxed variant for an inline "Edit item". */}
       <details>
         <summary className="summary tiny cap-muted">Edit item</summary>
-        <Form method="post" className="grid-2">
+        <Form method="post" className="cap-grid" data-cols="2">
           <input type="hidden" name="intent" value="item-update" />
           <input type="hidden" name="itemId" value={item.id} />
           <KindSelect id={`itemkind-${item.id}`} defaultValue={item.kind} />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor={`itemtime-${item.id}`} className="cap-field-label">
               Time
             </label>
@@ -120,7 +120,7 @@ function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
             />
           </div>
           {isCustom ? (
-            <div className="stack-1 span-2">
+            <div className="cap-stack span-2" data-gap="2">
               <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
                 Title
               </label>
@@ -134,7 +134,7 @@ function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
               />
             </div>
           ) : null}
-          <div className="stack-1 span-2">
+          <div className="cap-stack span-2" data-gap="2">
             <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
               Note
             </label>
@@ -169,8 +169,8 @@ export function AddItemForms({
   busy: boolean;
 }) {
   return (
-    <div className="stack-3">
-      <Form method="post" className="card card-s stack-2">
+    <div className="cap-stack" data-gap="4">
+      <Form method="post" className="card card-s cap-stack" data-gap="3">
         <input type="hidden" name="intent" value="item-add-abstract" />
         <input type="hidden" name="sessionId" value={session.id} />
         <label htmlFor={`add-abstract-${session.id}`} className="cap-field-label">
@@ -205,7 +205,7 @@ export function AddItemForms({
         )}
       </Form>
 
-      <Form method="post" className="card card-s stack-2">
+      <Form method="post" className="card card-s cap-stack" data-gap="3">
         <input type="hidden" name="intent" value="item-add-speaker" />
         <input type="hidden" name="sessionId" value={session.id} />
         <label htmlFor={`add-speaker-${session.id}`} className="cap-field-label">
@@ -239,7 +239,7 @@ export function AddItemForms({
         )}
       </Form>
 
-      <Form method="post" className="card card-s stack-2">
+      <Form method="post" className="card card-s cap-stack" data-gap="3">
         <input type="hidden" name="intent" value="item-add-custom" />
         <input type="hidden" name="sessionId" value={session.id} />
         <label htmlFor={`custom-title-${session.id}`} className="cap-field-label">

@@ -33,9 +33,9 @@ import { formatDate } from "capsomer/behavior/time";
 import { richTextWords } from "capsomer/behavior/rich-text-field";
 import { RichTextField } from "capsomer/react/rich-text-field";
 import { BODY_TAGS, TITLE_TAGS } from "~/lib/richtext";
-import type { InstitutionSuggestion } from "~/components/institution-autocomplete";
 import {
   AffiliationsFieldset,
+  type InstitutionSuggestion,
   type AffiliationState,
   AuthorsFieldset,
   type AuthorState,
@@ -268,7 +268,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
   if (!editable) {
     return (
-      <div className="form-page stack-6">
+      <div className="form-page cap-stack" data-gap="6">
         <h1 className="page-title">
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
@@ -289,8 +289,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-1">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="2">
         <h1 className="page-title">Abstract</h1>
         <p className="small cap-muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
@@ -304,10 +304,10 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
       <ActionResult data={actionData} />
 
-      <Form method="post" className="stack-6">
+      <Form method="post" className="cap-stack" data-gap="6">
         <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <RichTextField
             name="bodyText"
             label="Abstract body"
@@ -329,8 +329,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </p>
         </div>
 
-        <div className="grid-2">
-          <div className="stack-1">
+        <div className="cap-grid" data-cols="2">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="level" className="cap-field-label">
               Level
             </label>
@@ -344,7 +344,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             </select>
           </div>
 
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="categoryId" className="cap-field-label">
               Topic
             </label>
@@ -364,7 +364,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="presentationPreference" className="cap-field-label">
             Presentation preference
           </label>
@@ -401,7 +401,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
         <input type="hidden" name="authors" value={JSON.stringify(authors)} />
         <input type="hidden" name="affiliations" value={JSON.stringify(affiliations)} />
 
-        <div className="cluster">
+        <div className="cap-cluster">
           <button
             type="submit"
             name="intent"

@@ -86,8 +86,8 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const reviewers = grants.filter((g) => g.role === "reviewer");
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Chairs and reviewers</h1>
         <p>
           {edition.name}.{" "}
@@ -110,11 +110,11 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <RoleList title="Chairs" empty="No chairs yet." grants={chairs} />
       <RoleList title="Reviewers" empty="No reviewers yet." grants={reviewers} />
 
-      <section className="card stack-4">
+      <section className="card cap-stack">
         <h2 className="subsection-title">Add a chair or reviewer</h2>
-        <Form method="post" className="stack-4" noValidate>
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="email" className="cap-field-label">
               Email
             </label>
@@ -128,7 +128,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="role" className="cap-field-label">
               Role
             </label>
@@ -156,14 +156,14 @@ function RoleList({
   grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
 }) {
   return (
-    <section className="stack-3">
+    <section className="cap-stack" data-gap="4">
       <h2 className="subsection-title">{title}</h2>
       {grants.length === 0 ? (
         <p>{empty}</p>
       ) : (
-        <ul className="stack-2">
+        <ul className="cap-stack" data-gap="3">
           {grants.map((grant) => (
-            <li key={`${grant.userId}-${grant.role}`} className="card card-s spread">
+            <li key={`${grant.userId}-${grant.role}`} className="card card-s cap-spread">
               <span className="small">
                 <span className="strong">{grant.name || grant.email}</span>
                 {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}

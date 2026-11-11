@@ -178,8 +178,8 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Abstract book builder</h1>
         <p>
           {edition.name}.{" "}
@@ -196,7 +196,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
       <ActionResult data={fetcher.data} />
 
       {!book ? (
-        <section className="card stack-3">
+        <section className="card cap-stack" data-gap="4">
           <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
           <fetcher.Form method="post">
             <input type="hidden" name="intent" value="generate" />
@@ -207,7 +207,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         </section>
       ) : (
         <>
-          <div className="card card-s cluster">
+          <div className="card card-s cap-cluster">
             <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
               {published ? "Published" : "Draft"}
             </span>
@@ -215,7 +215,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               {book.includedCount} included
               {book.publishedAt ? ` . published ${formatDate(book.publishedAt, DATE_TIME)}` : ""}
             </span>
-            <span className="cluster push-end">
+            <span className="cap-cluster cap-push">
               <a
                 href={`/admin/editions/${edition.id}/book/preview`}
                 target="_blank"
@@ -308,7 +308,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                     </span>
                   </span>
                   {editable ? (
-                    <label className="cluster cluster-tight tiny">
+                    <label className="cap-cluster tiny" data-gap="2">
                       <input
                         type="checkbox"
                         checked={entry.included}

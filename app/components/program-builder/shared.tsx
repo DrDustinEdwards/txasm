@@ -22,7 +22,7 @@ export function KindSelect({
   label?: string;
 }) {
   return (
-    <div className="stack-1">
+    <div className="cap-stack" data-gap="2">
       <label htmlFor={id} className="cap-field-label">
         {label}
       </label>

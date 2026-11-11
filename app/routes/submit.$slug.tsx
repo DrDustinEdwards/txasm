@@ -99,8 +99,8 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Submit an abstract</h1>
         <p>{edition.name}</p>
         {edition.submissionDeadline ? (
@@ -137,11 +137,11 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       {mine.length > 0 ? (
-        <section className="stack-3">
+        <section className="cap-stack" data-gap="4">
           <h2 className="subsection-title">Your abstracts for this meeting</h2>
           <ul className="divided">
             {mine.map((abstract) => (
-              <li key={abstract.id} className="spread row-pad">
+              <li key={abstract.id} className="cap-spread row-pad">
                 <span>
                   <RichText
                     as="span"

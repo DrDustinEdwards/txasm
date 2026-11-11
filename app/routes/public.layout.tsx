@@ -1,3 +1,4 @@
+import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useRouteLoaderData } from "react-router";
 import {
   SiteHeader,
@@ -10,7 +11,7 @@ import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
-import { renderLink, useRouteHydrates } from "~/components/site-chrome";
+import { useRouteHydrates } from "~/components/site-chrome";
 import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";
 import { FEED_PATH } from "~/lib/site-meta";
 
@@ -129,7 +130,7 @@ function PublicHeader({
       signIn={email ? undefined : { href: "/signin" }}
       skipTo="#main"
       sheetTitle="Menu"
-      renderLink={renderLink}
+      renderLink={routerRenderLink}
     />
   );
 }
@@ -139,7 +140,7 @@ function FooterLink({ label, url }: { label: string; url: string }) {
   if (/^https?:/i.test(url)) {
     return <a href={url}>{label}</a>;
   }
-  return renderLink({ href: url, children: label });
+  return routerRenderLink({ href: url, children: label });
 }
 
 function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) {

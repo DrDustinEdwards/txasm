@@ -6,6 +6,7 @@
 @import "capsomer/site-txasm.css";
 @import "capsomer/fallback-fonts.css";
 @import "capsomer/base.css";
+@import "capsomer/icons.css";
 @import "capsomer/site-header.css";
 @import "capsomer/admin-shell.css";
 @import "capsomer/dialog.css";
@@ -25,6 +26,8 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
+@import "capsomer/card.css";
+@import "capsomer/combobox.css";
 @import "capsomer/trusted-html.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
@@ -185,68 +188,6 @@
   font-weight: 600;
 }
 
-/* Rhythm and layout: a stack spaces its children (the number is Tailwind's
-   step it replaced, in quarters of a rem), a cluster lines them up and wraps,
-   a spread pushes them to both ends. */
-.stack-1 > * + * {
-  margin-top: 0.25rem;
-}
-.stack-2 > * + * {
-  margin-top: 0.5rem;
-}
-.stack-3 > * + * {
-  margin-top: 0.75rem;
-}
-.stack-4 > * + * {
-  margin-top: 1rem;
-}
-.stack-6 > * + * {
-  margin-top: 1.5rem;
-}
-.stack-8 > * + * {
-  margin-top: 2rem;
-}
-.stack-10 > * + * {
-  margin-top: 2.5rem;
-}
-/* A check or a button straight in a stack takes its own line, as a block would. */
-[class*="stack-"] > :is(.cap-check, .cap-btn) {
-  display: flex;
-  width: fit-content;
-}
-.cluster {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-}
-.spread {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-.grid-2,
-.grid-3,
-.grid-4 {
-  display: grid;
-  gap: 1rem;
-  @media (width >= 640px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (width >= 640px) {
-  .grid-3,
-  .grid-4 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (width >= 1024px) {
-  .grid-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
 .narrow {
   max-width: 28rem;
   margin-inline: auto;
@@ -354,14 +295,6 @@
   }
 }
 /* A card that is one link: the edge darkens on hover. */
-.card-link {
-  display: block;
-  height: 100%;
-  text-decoration: none;
-  &:hover {
-    border-color: var(--line-strong);
-  }
-}
 .bullets {
   list-style: disc;
   padding-left: 1.25rem;
@@ -444,30 +377,12 @@
 }
 
 /* More layout pieces for the admin and author screens. */
-.cluster-start {
-  align-items: flex-start;
-}
-.cluster-end {
-  align-items: flex-end;
-}
-.cluster-tight {
-  gap: 0.25rem;
-}
-.cluster-right {
-  justify-content: flex-end;
-}
-.push-end {
-  margin-inline-start: auto;
-}
 .grow {
   flex: 1;
   min-width: 0;
 }
 .shrink {
   min-width: 0;
-}
-.relative {
-  position: relative;
 }
 .inline {
   display: inline;
@@ -481,10 +396,9 @@
 .mt-3 {
   margin-top: 0.75rem;
 }
+/* A field that takes a whole row of a .cap-grid. */
 .span-2 {
-  @media (width >= 640px) {
-    grid-column: span 2;
-  }
+  grid-column: 1 / -1;
 }
 .short-field {
   max-width: 10rem;
@@ -578,18 +492,6 @@
   }
 }
 
-/* The institution suggestions under their input. */
-.suggest-popup {
-  position: absolute;
-  z-index: 40;
-  inset-inline: 0;
-  margin-top: 0.25rem;
-  max-height: 15rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--raised);
-  box-shadow: var(--shadow-m);
-}
 .date-field {
   width: auto;
 }

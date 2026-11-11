@@ -19,7 +19,7 @@ export function DecisionPanel({
   const tone =
     decision.outcome === "accept" ? "ok" : decision.outcome === "reject" ? "crit" : "warn";
   return (
-    <section role="status" className="cap-banner stack-2" data-tone={tone}>
+    <section role="status" className="cap-banner cap-stack" data-gap="3" data-tone={tone}>
       <h2 className="subsection-title">Decision</h2>
       <p className="small">
         <span className="strong">Outcome:</span>{" "}
@@ -32,7 +32,7 @@ export function DecisionPanel({
           : ""}
       </p>
       {decision.decisionMessage ? (
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <h3 className="small strong">Message from the organizers</h3>
           <RichText className="small" html={decision.decisionMessage} />
         </div>
@@ -51,15 +51,15 @@ export function ReadOnlyAbstract({
   affiliations: Array<{ institution: string }>;
 }) {
   return (
-    <div className="stack-4">
+    <div className="cap-stack">
       {bodyText.trim().length > 0 ? (
-        <section className="stack-1">
+        <section className="cap-stack" data-gap="2">
           <h2 className="small strong">Abstract</h2>
           <RichText html={bodyText} />
         </section>
       ) : null}
       {authors.length > 0 ? (
-        <section className="stack-1">
+        <section className="cap-stack" data-gap="2">
           <h2 className="small strong">Authors</h2>
           <p>
             {authors
@@ -70,7 +70,7 @@ export function ReadOnlyAbstract({
         </section>
       ) : null}
       {affiliations.length > 0 ? (
-        <section className="stack-1">
+        <section className="cap-stack" data-gap="2">
           <h2 className="small strong">Affiliations</h2>
           <ol className="numbered">
             {affiliations.map((a, i) => (

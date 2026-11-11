@@ -89,8 +89,8 @@ const SPONSOR_TIERS: SponsorTier[] = [
 
 export default function Sponsorship() {
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Sponsorship</h1>
         <p className="lead">
           Sponsors help the branch keep meeting registration affordable, fund the student awards,
@@ -104,14 +104,14 @@ export default function Sponsorship() {
         </p>
       </header>
 
-      <section aria-labelledby="tiers-heading" className="stack-4">
+      <section aria-labelledby="tiers-heading" className="cap-stack">
         <h2 id="tiers-heading" className="section-title">
           Sponsorship levels
         </h2>
-        <ul className="grid-2">
+        <ul className="cap-grid" data-cols="2">
           {SPONSOR_TIERS.map((tier) => (
-            <li key={tier.name} className="card stack-1">
-              <div className="spread">
+            <li key={tier.name} className="card cap-stack" data-gap="2">
+              <div className="cap-spread">
                 <h3 className="subsection-title">{tier.name}</h3>
                 <p className="subsection-title">{tier.amount}</p>
               </div>
@@ -126,7 +126,7 @@ export default function Sponsorship() {
         </ul>
       </section>
 
-      <section aria-labelledby="contact-heading" className="stack-2">
+      <section aria-labelledby="contact-heading" className="cap-stack" data-gap="3">
         <h2 id="contact-heading" className="section-title">
           Become a sponsor
         </h2>
