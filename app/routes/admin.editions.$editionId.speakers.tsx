@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.speakers";
 import { pageTitle } from "~/lib/site-meta";
@@ -228,9 +229,8 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                 </Form>
               </div>
 
-              <details className="card card-s">
-                <summary className="summary">Edit speaker</summary>
-                <Form method="post" className="stack-3 mt-3" noValidate>
+              <Disclosure summary="Edit speaker" variant="card" size="sm">
+                <Form method="post" className="stack-3" noValidate>
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="speakerId" value={speaker.id} />
                   <SpeakerFields speaker={speaker} />
@@ -238,7 +238,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                     Save speaker
                   </button>
                 </Form>
-              </details>
+              </Disclosure>
             </li>
           ))}
         </ul>

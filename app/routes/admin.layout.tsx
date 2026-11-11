@@ -1,5 +1,7 @@
 import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
+// Capsomer's Disclosure styles: its compact cards are on the admin pages only.
+import "capsomer/disclosure.css";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
