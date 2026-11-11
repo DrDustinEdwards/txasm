@@ -1,7 +1,7 @@
 import { Link } from "capsomer/react/link";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { renderLink } from "~/components/site-chrome";
-import { PdfViewer } from "./pdf-viewer";
+import { PdfViewer } from "capsomer/react/pdf-viewer";
 import { documentSubtitle, type ArchiveDoc } from "~/lib/document-nav";
 
 // The shared per-document page body: title and subtitle, a Download button, the
@@ -42,7 +42,11 @@ export function DocumentDetail({
         </p>
       </header>
 
-      <PdfViewer url={`/documents/${doc.slug}/inline`} title={doc.title} />
+      {/* Capsomer's viewer; on a page that sends no React, the pdf-viewer island (app/islands/pdf-viewer.ts)
+          starts it. PDF.js is served from /pdfjs and never bundled. */}
+      <div data-island="pdf-viewer">
+        <PdfViewer src={`/documents/${doc.slug}/inline`} title={doc.title} />
+      </div>
 
       <nav aria-label={`More in ${backTitle}`} className="spread doc-pager">
         {prevSlug ? (
