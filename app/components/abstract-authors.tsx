@@ -1,10 +1,14 @@
+import { SortableList, useRows } from "capsomer/react/sortable-list";
+// Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
+import "capsomer/sortable-list.css";
 import {
   InstitutionAutocomplete,
   type InstitutionSuggestion,
 } from "~/components/institution-autocomplete";
 
-// The author and affiliation editors of the abstract form. The form owns the
-// state (authors link to affiliations by ordinal); these render it.
+// The author and affiliation editors of the abstract form, on Capsomer's repeatable rows (SortableList's
+// stack layout with useRows): drag, the keyboard or Move up and Move down reorder, Remove drops a row and
+// Add appends one. The form owns the state (authors link to affiliations by ordinal); these render it.
 export interface AuthorState {
   firstName: string;
   lastName: string;
@@ -33,7 +37,7 @@ export function emptyAuthor(): AuthorState {
   };
 }
 
-export function emptyAffiliation(): AffiliationState {
+function emptyAffiliation(): AffiliationState {
   return { institution: "", department: "", city: "", region: "", country: "" };
 }
 
@@ -41,17 +45,21 @@ export const inputClass = "cap-input";
 
 export function AffiliationsFieldset({
   affiliations,
+  onChange,
   updateAffiliation,
   selectInstitution,
-  addAffiliation,
-  removeAffiliation,
+  renumber,
 }: {
   affiliations: AffiliationState[];
+  onChange: (next: AffiliationState[]) => void;
   updateAffiliation: (index: number, patch: Partial<AffiliationState>) => void;
   selectInstitution: (index: number, suggestion: InstitutionSuggestion) => void;
-  addAffiliation: () => void;
-  removeAffiliation: (index: number) => void;
+  /** The authors' ordinals follow a move or a removal: `from[i]` is the old index of the affiliation now
+   *  at i, and an old index missing from it was removed. */
+  renumber: (from: number[]) => void;
 }) {
+  const rows = useRows(affiliations, onChange);
+  const oldIndex = (id: string) => rows.items.findIndex((r) => r.id === id);
   return (
     <fieldset className="card stack-4">
       <legend className="legend">Affiliations</legend>
@@ -59,140 +67,112 @@ export function AffiliationsFieldset({
         Number each affiliation once, then attach it to authors below. Start typing to pick a known
         institution or add a new one.
       </p>
-      {affiliations.length === 0 ? (
-        <p className="small cap-muted">No affiliations added.</p>
-      ) : (
-        <ol className="stack-4">
-          {affiliations.map((affiliation, index) => (
-            <li key={index} className="stack-2">
-              <div className="spread">
-                <span className="small strong">Affiliation {index + 1}</span>
-                <button
-                  type="button"
-                  onClick={() => removeAffiliation(index)}
-                  className="small strong crit-text"
-                >
-                  Remove
-                </button>
-              </div>
-              <div className="grid-2">
-                <div className="span-2">
-                  <InstitutionAutocomplete
-                    id={`institution-${index}`}
-                    label="Institution"
-                    value={affiliation.institution}
-                    onChange={(name) => updateAffiliation(index, { institution: name })}
-                    onSelect={(suggestion) => selectInstitution(index, suggestion)}
-                    inputClassName={inputClass}
-                  />
-                </div>
-                <label className="stack-1">
-                  <span className="cap-field-label">Department</span>
-                  <input
-                    type="text"
-                    value={affiliation.department}
-                    onChange={(e) =>
-                      updateAffiliation(index, {
-                        department: e.target.value,
-                      })
-                    }
-                    className="cap-input"
-                  />
-                </label>
-                <label className="stack-1">
-                  <span className="cap-field-label">City</span>
-                  <input
-                    type="text"
-                    value={affiliation.city}
-                    onChange={(e) => updateAffiliation(index, { city: e.target.value })}
-                    className="cap-input"
-                  />
-                </label>
-                <label className="stack-1">
-                  <span className="cap-field-label">State or province</span>
-                  <input
-                    type="text"
-                    value={affiliation.region}
-                    onChange={(e) => updateAffiliation(index, { region: e.target.value })}
-                    className="cap-input"
-                  />
-                </label>
-                <label className="stack-1">
-                  <span className="cap-field-label">Country</span>
-                  <input
-                    type="text"
-                    value={affiliation.country}
-                    onChange={(e) => updateAffiliation(index, { country: e.target.value })}
-                    className="cap-input"
-                  />
-                </label>
-              </div>
-            </li>
-          ))}
-        </ol>
-      )}
-      <button type="button" onClick={addAffiliation} className="cap-btn">
-        Add affiliation
-      </button>
+      <SortableList
+        aria-label="Affiliations"
+        layout="stack"
+        items={rows.items}
+        getId={rows.getId}
+        getLabel={(row) => row.value.institution.trim() || `Affiliation ${row.index + 1}`}
+        renderHead={(_, { index }) => <span className="small">Affiliation {index + 1}</span>}
+        onReorder={(order) => {
+          renumber(order.map(oldIndex));
+          rows.onReorder(order);
+        }}
+        onRemove={(id) => {
+          const gone = oldIndex(id);
+          renumber(rows.items.map((r) => r.index).filter((i) => i !== gone));
+          rows.onRemove(id);
+        }}
+        onAdd={() => onChange([...affiliations, emptyAffiliation()])}
+        addLabel="Add affiliation"
+        empty={<p className="small cap-muted">No affiliations added.</p>}
+        renderItem={({ value: affiliation, index }) => (
+          <div className="grid-2">
+            <div className="span-2">
+              <InstitutionAutocomplete
+                id={`institution-${index}`}
+                label="Institution"
+                value={affiliation.institution}
+                onChange={(name) => updateAffiliation(index, { institution: name })}
+                onSelect={(suggestion) => selectInstitution(index, suggestion)}
+                inputClassName={inputClass}
+              />
+            </div>
+            <label className="stack-1">
+              <span className="cap-field-label">Department</span>
+              <input
+                type="text"
+                value={affiliation.department}
+                onChange={(e) => updateAffiliation(index, { department: e.target.value })}
+                className="cap-input"
+              />
+            </label>
+            <label className="stack-1">
+              <span className="cap-field-label">City</span>
+              <input
+                type="text"
+                value={affiliation.city}
+                onChange={(e) => updateAffiliation(index, { city: e.target.value })}
+                className="cap-input"
+              />
+            </label>
+            <label className="stack-1">
+              <span className="cap-field-label">State or province</span>
+              <input
+                type="text"
+                value={affiliation.region}
+                onChange={(e) => updateAffiliation(index, { region: e.target.value })}
+                className="cap-input"
+              />
+            </label>
+            <label className="stack-1">
+              <span className="cap-field-label">Country</span>
+              <input
+                type="text"
+                value={affiliation.country}
+                onChange={(e) => updateAffiliation(index, { country: e.target.value })}
+                className="cap-input"
+              />
+            </label>
+          </div>
+        )}
+      />
     </fieldset>
   );
 }
 
+const authorName = (a: AuthorState) => `${a.firstName} ${a.lastName}`.trim();
+
 export function AuthorsFieldset({
   authors,
   affiliations,
+  onChange,
   updateAuthor,
-  addAuthor,
-  removeAuthor,
-  moveAuthor,
   toggleAffiliationForAuthor,
 }: {
   authors: AuthorState[];
   affiliations: AffiliationState[];
+  onChange: (next: AuthorState[]) => void;
   updateAuthor: (index: number, patch: Partial<AuthorState>) => void;
-  addAuthor: () => void;
-  removeAuthor: (index: number) => void;
-  moveAuthor: (index: number, direction: -1 | 1) => void;
   toggleAffiliationForAuthor: (index: number, ordinal: number) => void;
 }) {
+  const rows = useRows(authors, onChange);
   return (
     <fieldset className="card stack-4">
       <legend className="legend">Authors</legend>
-      <ol className="stack-4">
-        {authors.map((author, index) => (
-          <li key={index} className="card card-s stack-3">
-            <div className="spread">
-              <span className="small strong">Author {index + 1}</span>
-              <div className="cluster">
-                <button
-                  type="button"
-                  onClick={() => moveAuthor(index, -1)}
-                  disabled={index === 0}
-                  aria-label={`Move author ${index + 1} up`}
-                  className="cap-btn"
-                  data-size="sm"
-                >
-                  Up
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveAuthor(index, 1)}
-                  disabled={index === authors.length - 1}
-                  aria-label={`Move author ${index + 1} down`}
-                  className="cap-btn"
-                  data-size="sm"
-                >
-                  Down
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeAuthor(index)}
-                  className="small strong crit-text"
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
+      <SortableList
+        aria-label="Authors"
+        layout="stack"
+        items={rows.items}
+        getId={rows.getId}
+        getLabel={(row) => authorName(row.value) || `Author ${row.index + 1}`}
+        renderHead={(_, { index }) => <span className="small">Author {index + 1}</span>}
+        onReorder={rows.onReorder}
+        onRemove={rows.onRemove}
+        onAdd={() => onChange([...authors, emptyAuthor()])}
+        addLabel="Add author"
+        renderItem={({ value: author, index }) => (
+          <div className="stack-3">
             <div className="grid-2">
               <label className="stack-1">
                 <span className="cap-field-label">First name</span>
@@ -235,11 +215,7 @@ export function AuthorsFieldset({
                 <input
                   type="checkbox"
                   checked={author.isCorresponding}
-                  onChange={(e) =>
-                    updateAuthor(index, {
-                      isCorresponding: e.target.checked,
-                    })
-                  }
+                  onChange={(e) => updateAuthor(index, { isCorresponding: e.target.checked })}
                 />
                 Corresponding
               </label>
@@ -264,12 +240,9 @@ export function AuthorsFieldset({
                 </div>
               </fieldset>
             ) : null}
-          </li>
-        ))}
-      </ol>
-      <button type="button" onClick={addAuthor} className="cap-btn">
-        Add author
-      </button>
+          </div>
+        )}
+      />
     </fieldset>
   );
 }

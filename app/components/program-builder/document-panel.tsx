@@ -1,6 +1,7 @@
 import { Form } from "react-router";
 import type { DataAccess } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 
 export function ProgramDocumentPanel({
   document,
@@ -24,7 +25,9 @@ export function ProgramDocumentPanel({
         <div className="stack-1 small">
           <p>
             <span className="strong ok-text">Ready</span>
-            {document.generatedAt ? ` . Generated ${formatDateTime(document.generatedAt)}` : ""}
+            {document.generatedAt
+              ? ` . Generated ${formatDate(document.generatedAt, DATE_TIME)}`
+              : ""}
           </p>
           <p>
             <a href={`/admin/editions/${editionId}/program-document/download`} className="strong">

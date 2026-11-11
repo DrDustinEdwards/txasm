@@ -1,97 +1,112 @@
-import { Form } from "react-router";
+import { Form, useNavigation, useSubmit } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
+import { SortableList } from "capsomer/react/sortable-list";
+// Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
+import "capsomer/sortable-list.css";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { toDateTimeLocal } from "~/lib/format";
+import { utcInputValue } from "capsomer/behavior/time";
 import { extractPlainText } from "~/lib/richtext";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
 
-export function ItemRow({
+type Item = ProgramSessionResolved["items"][number];
+
+const itemLabel = (item: Item) =>
+  item.abstractId
+    ? [item.abstractCode, extractPlainText(item.abstractTitle ?? "Abstract")]
+        .filter(Boolean)
+        .join(" ")
+    : item.speakerId
+      ? (item.speakerName ?? "Invited speaker")
+      : (item.customTitle ?? programKindLabel(item.kind));
+
+// A session's items in order, on Capsomer's SortableList: drag, the keyboard or Move up and Move down
+// reorder them, and Remove deletes one. Each change posts to the program action (item-reorder,
+// item-delete), and the list shows the posted order until the reloaded program arrives.
+export function SessionItems({
   session,
-  item,
-  index,
-  count,
   busy,
 }: {
   session: ProgramSessionResolved;
-  item: ProgramSessionResolved["items"][number];
-  index: number;
-  count: number;
   busy: boolean;
 }) {
+  const submit = useSubmit();
+  const pending = useNavigation().formData;
+  // A reorder is shown at once and saved behind it, so the list stays usable (and the pressed control keeps
+  // focus) while it saves; any other save under way disables it.
+  const listBusy = busy && pending?.get("intent") !== "item-reorder";
+  let items: Item[] = session.items;
+  if (pending?.get("sessionId") === session.id && pending.get("intent") === "item-reorder") {
+    const order = pending.getAll("order").map(String);
+    const byId = new Map(items.map((i) => [i.id, i]));
+    items = order.flatMap((id) => byId.get(id) ?? []);
+  } else if (pending?.get("intent") === "item-delete") {
+    items = items.filter((i) => i.id !== pending.get("itemId"));
+  }
+  const post = (fields: [string, string][]) => {
+    const body = new FormData();
+    for (const [k, v] of fields) body.append(k, v);
+    void submit(body, { method: "post", preventScrollReset: true });
+  };
+  return (
+    <SortableList
+      aria-label={`Items in ${session.title}`}
+      items={items}
+      getId={(item) => item.id}
+      getLabel={itemLabel}
+      busy={listBusy}
+      empty={<p className="small cap-muted">No items in this session yet.</p>}
+      onReorder={(order) =>
+        post([
+          ["intent", "item-reorder"],
+          ["sessionId", session.id],
+          ...order.map((id): [string, string] => ["order", id]),
+        ])
+      }
+      onRemove={(id) =>
+        post([
+          ["intent", "item-delete"],
+          ["itemId", id],
+        ])
+      }
+      renderItem={(item) => <ItemBody item={item} busy={busy} />}
+    />
+  );
+}
+
+function ItemBody({ item, busy }: { item: Item; busy: boolean }) {
   const isCustom = item.abstractId === null && item.speakerId === null;
   return (
-    <li className="card card-s">
-      <div className="spread">
-        <div className="small">
-          <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-          {item.abstractId ? (
-            <p>
-              {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: item.abstractTitle ?? "Abstract",
-                }}
-              />
-              {item.presentingAuthorName ? (
-                <span className="cap-muted"> . {item.presentingAuthorName}</span>
-              ) : null}
-            </p>
-          ) : item.speakerId ? (
-            <p>
-              <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-              {item.speakerTalkTitle ? (
-                <span className="cap-muted"> . {item.speakerTalkTitle}</span>
-              ) : null}
-            </p>
-          ) : (
-            <p className="strong">{item.customTitle}</p>
-          )}
-          {item.note ? <p className="cap-muted">{item.note}</p> : null}
-        </div>
-        <div className="cluster">
-          <Form method="post">
-            <input type="hidden" name="intent" value="item-move" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <input type="hidden" name="itemId" value={item.id} />
-            <input type="hidden" name="direction" value="up" />
-            <button
-              type="submit"
-              disabled={busy || index === 0}
-              aria-label="Move item up"
-              className="cap-btn"
-              data-size="sm"
-            >
-              Up
-            </button>
-          </Form>
-          <Form method="post">
-            <input type="hidden" name="intent" value="item-move" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <input type="hidden" name="itemId" value={item.id} />
-            <input type="hidden" name="direction" value="down" />
-            <button
-              type="submit"
-              disabled={busy || index === count - 1}
-              aria-label="Move item down"
-              className="cap-btn"
-              data-size="sm"
-            >
-              Down
-            </button>
-          </Form>
-          <Form method="post">
-            <input type="hidden" name="intent" value="item-delete" />
-            <input type="hidden" name="itemId" value={item.id} />
-            <button type="submit" disabled={busy} className="link-button small strong">
-              Remove
-            </button>
-          </Form>
-        </div>
+    <div className="stack-2">
+      <div className="small">
+        <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
+        {item.abstractId ? (
+          <p>
+            {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
+            <span
+              dangerouslySetInnerHTML={{
+                __html: item.abstractTitle ?? "Abstract",
+              }}
+            />
+            {item.presentingAuthorName ? (
+              <span className="cap-muted"> . {item.presentingAuthorName}</span>
+            ) : null}
+          </p>
+        ) : item.speakerId ? (
+          <p>
+            <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
+            {item.speakerTalkTitle ? (
+              <span className="cap-muted"> . {item.speakerTalkTitle}</span>
+            ) : null}
+          </p>
+        ) : (
+          <p className="strong">{item.customTitle}</p>
+        )}
+        {item.note ? <p className="cap-muted">{item.note}</p> : null}
       </div>
 
-      <details className="mt-2">
-        <summary className="summary tiny cap-muted">Edit item</summary>
+      <Disclosure summary="Edit item" variant="card" size="sm">
         <Form method="post" className="grid-2">
           <input type="hidden" name="intent" value="item-update" />
           <input type="hidden" name="itemId" value={item.id} />
@@ -104,7 +119,7 @@ export function ItemRow({
               id={`itemtime-${item.id}`}
               name="startsAt"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(item.startsAt)}
+              defaultValue={utcInputValue(item.startsAt)}
               className="cap-input"
             />
           </div>
@@ -141,8 +156,8 @@ export function ItemRow({
             </button>
           </div>
         </Form>
-      </details>
-    </li>
+      </Disclosure>
+    </div>
   );
 }
 

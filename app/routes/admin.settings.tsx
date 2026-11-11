@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import type { Route } from "./+types/admin.settings";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -116,13 +117,6 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
 
   const [footerLinks, setFooterLinks] = useState<FooterLink[]>(() => settings.footerLinks);
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
-
   function updateLink(index: number, patch: Partial<FooterLink>) {
     setFooterLinks((prev) => prev.map((link, i) => (i === index ? { ...link, ...patch } : link)));
   }
@@ -143,15 +137,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
-      </p>
+      <ActionResult data={actionData} />
 
       <Form method="post" className="stack-8" noValidate>
         <fieldset className="card stack-4">

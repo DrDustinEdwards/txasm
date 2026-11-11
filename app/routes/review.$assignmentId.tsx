@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
 import { pageTitle } from "~/lib/site-meta";
@@ -14,7 +14,8 @@ import {
   getActor,
   getDataAccess,
 } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { RichEditor } from "~/components/rich-editor";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
@@ -136,12 +137,6 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
-  const error = actionData?.error ?? null;
-
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
 
   const authorLine = authors
     .map((a) => `${a.firstName} ${a.lastName}`.trim())
@@ -162,7 +157,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         <p className="small cap-muted">
           {edition.name}
           {authorLine ? ` . ${authorLine}` : ""}
-          {assignment.dueAt ? ` . Due: ${formatDateTime(assignment.dueAt)}` : ""}
+          {assignment.dueAt ? ` . Due: ${formatDate(assignment.dueAt, DATE_TIME)}` : ""}
         </p>
       </div>
 
@@ -171,14 +166,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         <AbstractSections abstract={abstract} />
       </section>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error ? "cap-alert" : "cap-sr-only"}
-      >
-        {error ?? ""}
-      </p>
+      <ActionResult data={actionData} />
 
       {editable ? (
         <Form method="post" className="stack-6">

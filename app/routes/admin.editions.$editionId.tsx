@@ -18,7 +18,7 @@ import {
   type EditionStatus,
   type Season,
 } from "~/lib/vocab";
-import { toDateTimeLocal } from "~/lib/format";
+import { utcInputValue } from "capsomer/behavior/time";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
@@ -158,7 +158,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               id="meetingStartsAt"
               name="meetingStartsAt"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(edition.meetingStartsAt)}
+              defaultValue={utcInputValue(edition.meetingStartsAt)}
               className="cap-input"
             />
           </div>
@@ -170,7 +170,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               id="meetingEndsAt"
               name="meetingEndsAt"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(edition.meetingEndsAt)}
+              defaultValue={utcInputValue(edition.meetingEndsAt)}
               className="cap-input"
             />
           </div>
@@ -223,7 +223,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               id="registrationOpensAt"
               name="registrationOpensAt"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(edition.registrationOpensAt)}
+              defaultValue={utcInputValue(edition.registrationOpensAt)}
               className="cap-input"
             />
           </div>
@@ -235,7 +235,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               id="registrationClosesAt"
               name="registrationClosesAt"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(edition.registrationClosesAt)}
+              defaultValue={utcInputValue(edition.registrationClosesAt)}
               className="cap-input"
             />
           </div>
@@ -251,7 +251,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               id="submissionOpensAt"
               name="submissionOpensAt"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(edition.submissionOpensAt)}
+              defaultValue={utcInputValue(edition.submissionOpensAt)}
               className="cap-input"
             />
           </div>
@@ -263,7 +263,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               id="submissionDeadline"
               name="submissionDeadline"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(edition.submissionDeadline)}
+              defaultValue={utcInputValue(edition.submissionDeadline)}
               className="cap-input"
             />
           </div>

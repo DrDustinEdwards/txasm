@@ -18,7 +18,8 @@ import type {
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { PAGED_JS_SCRIPTS } from "./paged";
-import { escapeCssString, formatMeetingDates, joinParts } from "./format";
+import { escapeCssString, joinParts } from "./format";
+import { dateRange } from "capsomer/behavior/time";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
 
 const DAY_FMT = new Intl.DateTimeFormat("en-US", {
@@ -166,7 +167,7 @@ function sponsorsSection(sponsors: SponsorPublic[]): string {
 function titlePage(data: ProgramBookData): string {
   return coverArt({
     meetingName: data.meeting.name,
-    dates: formatMeetingDates(data.meeting.meetingStartsAt, data.meeting.meetingEndsAt),
+    dates: dateRange(data.meeting.meetingStartsAt, data.meeting.meetingEndsAt) ?? "",
     title: "Program",
   });
 }
