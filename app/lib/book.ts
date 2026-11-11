@@ -11,6 +11,7 @@
 import type { BookAffiliation, BookAuthor, BookRenderData, BookRenderEntry } from "./data-access";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
 import { escapeCssString, formatMeetingDates, joinParts } from "./format";
@@ -234,7 +235,7 @@ export function renderArrangedBook(data: BookRenderData): string {
 <style>${arrangedPrintStyles(data.edition.name)}</style>
 </head>
 <body>
-${body}
+${pagedContent(body)}
 ${PAGED_JS_SCRIPTS}
 </body>
 </html>`;
