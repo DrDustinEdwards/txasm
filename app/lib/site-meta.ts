@@ -25,26 +25,14 @@ export function pageTitle(
   return `${pageName}${titleSuffix(matches)}`;
 }
 
-/** A signed-in or admin page's meta: its title and noindex (the Worker also sends X-Robots-Tag on these paths). */
-export function privateMeta(matches: ReadonlyArray<{ id: string } | undefined>, pageName: string) {
-  return [{ title: pageTitle(matches, pageName) }, { name: "robots", content: "noindex" }];
-}
-
 /**
  * The production origin: canonicals, the sitemap, robots.txt and the feeds name it, never the request's. Until the
  * cutover txasm.org is still the old site, and these name it on purpose: the new pages say where they will live, so
  * the workers.dev copy is never indexed as a site of its own.
  */
 export const SITE_ORIGIN = "https://txasm.org";
-
-/**
- * Where the site is served now (wrangler.jsonc vars.PUBLIC_ORIGIN), which IndexNow, webmentions, Carrel's links and its
- * preview name, since they tell other sites about a page that must be reachable there today. Until the cutover that
- * is workers.dev; at the cutover the var becomes SITE_ORIGIN (or goes, and this falls back to it), the one change.
- */
-export function publicOrigin(env: { PUBLIC_ORIGIN?: string }): string {
-  return env.PUBLIC_ORIGIN ? new URL(env.PUBLIC_ORIGIN).origin : SITE_ORIGIN;
-}
+// Where the site is served now is site-runtime's publicOrigin(env, SITE_ORIGIN) (wrangler.jsonc vars.PUBLIC_ORIGIN):
+// IndexNow, webmentions, Carrel's links and its preview name it. At the cutover the var becomes SITE_ORIGIN, or goes.
 
 /** The site's IndexNow key, public by the protocol's design: served as /<key>.txt and sent with each changed page. */
 export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
