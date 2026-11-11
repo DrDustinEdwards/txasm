@@ -14,4 +14,7 @@ const PAGED_JS_INTEGRITY =
 
 // The closing scripts of a printable book: site-runtime's config (it signals when Paged.js has finished, which the PDF
 // render waits on) and this file's polyfill tag.
-export const PAGED_JS_SCRIPTS = pagedScripts({ path: PAGED_JS_PATH, integrity: PAGED_JS_INTEGRITY });
+export const PAGED_JS_SCRIPTS = pagedScripts({
+  path: PAGED_JS_PATH,
+  integrity: PAGED_JS_INTEGRITY,
+});
