@@ -1,10 +1,11 @@
 import { Form } from "react-router";
+import { isoDay } from "@drdustinedwards/site-helpers/xml";
 import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { utcInputValue } from "capsomer/behavior/time";
 import { Disclosure } from "capsomer/react/disclosure";
 import { AddItemForms, SessionItems } from "./items";
-import { type SpeakerOption, toDateInput } from "./shared";
+import { type SpeakerOption } from "./shared";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function SessionFields({
@@ -39,7 +40,7 @@ export function SessionFields({
           id={`date-${idBase}`}
           name="sessionDate"
           type="date"
-          defaultValue={toDateInput(session?.sessionDate ?? null) || defaultDate || ""}
+          defaultValue={isoDay(session?.sessionDate) || defaultDate || ""}
           className="cap-input"
         />
       </div>

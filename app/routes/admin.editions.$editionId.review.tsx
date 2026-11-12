@@ -2,6 +2,7 @@ import { Form, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review";
 import { pageTitle } from "~/lib/site-meta";
+import { titleCase } from "~/lib/format";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
@@ -81,13 +82,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   }
 
   return { error: "Unknown action." };
-}
-
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 export default function AssignReviewers({ loaderData }: Route.ComponentProps) {

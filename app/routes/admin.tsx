@@ -1,6 +1,7 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin";
 import { pageTitle } from "~/lib/site-meta";
+import { titleCase } from "~/lib/format";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
@@ -15,13 +16,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const editions = await getDataAccess(env).editions.list(actor);
   return { editions };
-}
-
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 export default function AdminIndex({ loaderData }: Route.ComponentProps) {

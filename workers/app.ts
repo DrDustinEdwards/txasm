@@ -14,7 +14,7 @@ import {
   settleCacheHeaders,
   withPurgePages,
 } from "@dustinedwards/site-runtime/edge-cache";
-import { runJobs } from "@dustinedwards/site-runtime/cron";
+import { operatorJobTools, runJobs } from "@dustinedwards/site-runtime/cron";
 import { maintenanceOn, maintenanceResponse } from "@dustinedwards/site-runtime/maintenance";
 import { operatorResponse } from "@dustinedwards/site-runtime/operator";
 import { logEvent, routeNamer, withRequestLog } from "@dustinedwards/site-runtime/log";
@@ -37,7 +37,7 @@ import { carrelRequestApi } from "../app/lib/carrel/handler.server";
 import type { PublishedPage } from "../app/lib/data-access";
 import { pagePreviewContext } from "../app/lib/preview-context";
 import { allCronJobs, cronJobs } from "../app/lib/cron.server";
-import { operatorTools } from "../app/lib/operator.server";
+import { backupStatus } from "../app/lib/backup.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
 
@@ -181,7 +181,12 @@ const site = {
       return operatorResponse(request, {
         token: env.OPERATOR_TOKEN,
         limiter: env.RATE_LIMITER,
-        tools: operatorTools(env, () => allCronJobs(env)),
+        tools: operatorJobTools({
+          db: env.DB,
+          jobs: () => allCronJobs(env),
+          backupStatus: () => backupStatus(env),
+          files: ["uploads"],
+        }),
       });
 
     // Carrel's site API. Its own guard (prefix, rate limit, key, route) runs first and answers

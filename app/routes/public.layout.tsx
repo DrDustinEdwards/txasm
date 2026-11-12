@@ -1,5 +1,6 @@
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useRouteLoaderData } from "react-router";
+import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 import {
   SiteHeader,
   initialsOf,
@@ -137,7 +138,7 @@ function PublicHeader({
 
 function FooterLink({ label, url }: { label: string; url: string }) {
   // An outside address is a plain link; internal paths go through the router.
-  if (/^https?:/i.test(url)) {
+  if (isHttpUrl(url)) {
     return <a href={url}>{label}</a>;
   }
   return routerRenderLink({ href: url, children: label });
