@@ -1,5 +1,5 @@
 import type { Route } from "./+types/media.$";
-import { MEDIA_PREFIX, images } from "~/lib/media/images";
+import { MEDIA_ADDRESS, MEDIA_PREFIX, images } from "~/lib/media/images";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 
 // The media library's files (app/lib/carrel/media-adapter.server.ts), from UPLOADS under media/:
@@ -19,7 +19,8 @@ export function loader({ request, context }: Route.LoaderArgs) {
     // `caches.default` is the Workers runtime's; the DOM lib does not declare it, hence the cast.
     cache: (caches as typeof caches & { default: Cache }).default,
     prefix: `/${MEDIA_PREFIX}`,
-    keyPrefix: MEDIA_PREFIX,
-    within: MEDIA_PREFIX,
+    // The same keyPrefix and within as MEDIA_ADDRESS, so the addresses pages write and the keys the route reads agree.
+    keyPrefix: MEDIA_ADDRESS.keyPrefix,
+    within: MEDIA_ADDRESS.within,
   });
 }
