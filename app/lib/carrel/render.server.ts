@@ -9,9 +9,10 @@
 // PLACEHOLDERS. A picture shows site-api's stored placeholder and main color while it loads: Prelum writes them on the
 // img (has-lqip, sized by Capsomer's picture.css), and the policy allows data: images for them (security-headers.ts).
 import { RefusedError } from "@dustinedwards/site-api";
+import { keyOfAddress, keysAtAddresses } from "@dustinedwards/site-runtime/image";
 import { logEvent } from "@dustinedwards/site-runtime/log";
 import { getCarrelMedia, getCarrelPages, type MediaRow } from "../data-access";
-import { images, mediaKeyOf, mediaKeysIn, mediaPath } from "../media/images";
+import { MEDIA_ADDRESS, images, mediaPath } from "../media/images";
 import { parseSource } from "./source";
 
 /** A library file's address, versioned: the original with no width, else the size a use asks for. */
@@ -25,10 +26,13 @@ export const versionedPath = (row: Pick<MediaRow, "key" | "sha256">) =>
  */
 async function libraryImages(env: Env, body: string) {
   const rows = new Map(
-    (await getCarrelMedia(env).many([...mediaKeysIn(body)])).map((row) => [row.key, row]),
+    (await getCarrelMedia(env).many([...keysAtAddresses(body, MEDIA_ADDRESS)])).map((row) => [
+      row.key,
+      row,
+    ]),
   );
   const rowOf = (src: string) => {
-    const key = mediaKeyOf(src);
+    const key = keyOfAddress(src, MEDIA_ADDRESS);
     return key ? rows.get(key) : undefined;
   };
   const attributesOf = (row: MediaRow) =>
@@ -61,7 +65,7 @@ async function libraryImages(env: Env, body: string) {
       };
     },
     media: {
-      keyOf: mediaKeyOf,
+      keyOf: (src: string) => keyOfAddress(src, MEDIA_ADDRESS),
       imageProps(src: string) {
         const row = rowOf(src);
         const attrs = row ? attributesOf(row) : null;
@@ -105,10 +109,8 @@ export async function renderBody(
  */
 export async function rerenderUsing(env: Env, key: string): Promise<number> {
   const pages = getCarrelPages(env);
-  // The key's path, as an original or a suffixed size (photo.jpg, photo.jpg.webp?w=640), never a longer key.
-  const escaped = `/${key}`.replace(/[.*+?^$()|[\]{}\\]/g, "\\$&");
-  const path = new RegExp(`${escaped}(?![A-Za-z0-9_/-])`);
-  const named = (text: string) => path.test(text);
+  // The key's address, as an original or a suffixed size (photo.jpg, photo.jpg.webp?w=640), never a longer key.
+  const named = (text: string) => keysAtAddresses(text, MEDIA_ADDRESS).has(key);
   let done = 0;
   for (const page of await pages.list()) {
     if (!page.publishedAt || !named(`${page.html}\n${page.searchFields?.image?.url ?? ""}`))
@@ -119,7 +121,9 @@ export async function rerenderUsing(env: Env, key: string): Promise<number> {
       const { html, renderVersion } = await renderBody(env, parseSource(published).body);
       const image = page.searchFields?.image;
       const [row] =
-        image && mediaKeyOf(image.url) === key ? await getCarrelMedia(env).many([key]) : [];
+        image && keyOfAddress(image.url, MEDIA_ADDRESS) === key
+          ? await getCarrelMedia(env).many([key])
+          : [];
       // A shrink changes the size as well as the version, so the share image takes both.
       const searchFields =
         image && row
