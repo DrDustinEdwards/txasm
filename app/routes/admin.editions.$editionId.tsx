@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId";
 import { pageTitle } from "~/lib/site-meta";
@@ -148,126 +149,129 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <fieldset className="card cap-stack">
-          <legend className="legend">Meeting dates and venue</legend>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="meetingStartsAt" className="cap-field-label">
-              Starts
-            </label>
-            <input
-              id="meetingStartsAt"
-              name="meetingStartsAt"
-              type="datetime-local"
-              defaultValue={utcInputValue(edition.meetingStartsAt)}
-              className="cap-input"
-            />
+        <Panel title="Meeting dates and venue">
+          <div className="cap-stack">
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="meetingStartsAt" className="cap-field-label">
+                Starts
+              </label>
+              <input
+                id="meetingStartsAt"
+                name="meetingStartsAt"
+                type="datetime-local"
+                defaultValue={utcInputValue(edition.meetingStartsAt)}
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="meetingEndsAt" className="cap-field-label">
+                Ends
+              </label>
+              <input
+                id="meetingEndsAt"
+                name="meetingEndsAt"
+                type="datetime-local"
+                defaultValue={utcInputValue(edition.meetingEndsAt)}
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="venueName" className="cap-field-label">
+                Venue
+              </label>
+              <input
+                id="venueName"
+                name="venueName"
+                type="text"
+                defaultValue={edition.venueName ?? ""}
+                placeholder="University Conference Center"
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="venueAddress" className="cap-field-label">
+                Address
+              </label>
+              <input
+                id="venueAddress"
+                name="venueAddress"
+                type="text"
+                defaultValue={edition.venueAddress ?? ""}
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="city" className="cap-field-label">
+                City
+              </label>
+              <input
+                id="city"
+                name="city"
+                type="text"
+                defaultValue={edition.city ?? ""}
+                className="cap-input"
+              />
+            </div>
           </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="meetingEndsAt" className="cap-field-label">
-              Ends
-            </label>
-            <input
-              id="meetingEndsAt"
-              name="meetingEndsAt"
-              type="datetime-local"
-              defaultValue={utcInputValue(edition.meetingEndsAt)}
-              className="cap-input"
-            />
-          </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="venueName" className="cap-field-label">
-              Venue
-            </label>
-            <input
-              id="venueName"
-              name="venueName"
-              type="text"
-              defaultValue={edition.venueName ?? ""}
-              placeholder="University Conference Center"
-              className="cap-input"
-            />
-          </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="venueAddress" className="cap-field-label">
-              Address
-            </label>
-            <input
-              id="venueAddress"
-              name="venueAddress"
-              type="text"
-              defaultValue={edition.venueAddress ?? ""}
-              className="cap-input"
-            />
-          </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="city" className="cap-field-label">
-              City
-            </label>
-            <input
-              id="city"
-              name="city"
-              type="text"
-              defaultValue={edition.city ?? ""}
-              className="cap-input"
-            />
-          </div>
-        </fieldset>
+        </Panel>
 
-        <fieldset className="card cap-stack">
-          <legend className="legend">Registration window</legend>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="registrationOpensAt" className="cap-field-label">
-              Opens
-            </label>
-            <input
-              id="registrationOpensAt"
-              name="registrationOpensAt"
-              type="datetime-local"
-              defaultValue={utcInputValue(edition.registrationOpensAt)}
-              className="cap-input"
-            />
+        <Panel title="Registration window">
+          <div className="cap-stack">
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="registrationOpensAt" className="cap-field-label">
+                Opens
+              </label>
+              <input
+                id="registrationOpensAt"
+                name="registrationOpensAt"
+                type="datetime-local"
+                defaultValue={utcInputValue(edition.registrationOpensAt)}
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="registrationClosesAt" className="cap-field-label">
+                Deadline
+              </label>
+              <input
+                id="registrationClosesAt"
+                name="registrationClosesAt"
+                type="datetime-local"
+                defaultValue={utcInputValue(edition.registrationClosesAt)}
+                className="cap-input"
+              />
+            </div>
           </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="registrationClosesAt" className="cap-field-label">
-              Deadline
-            </label>
-            <input
-              id="registrationClosesAt"
-              name="registrationClosesAt"
-              type="datetime-local"
-              defaultValue={utcInputValue(edition.registrationClosesAt)}
-              className="cap-input"
-            />
-          </div>
-        </fieldset>
+        </Panel>
 
-        <fieldset className="card cap-stack">
-          <legend className="legend">Submission window</legend>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="submissionOpensAt" className="cap-field-label">
-              Opens
-            </label>
-            <input
-              id="submissionOpensAt"
-              name="submissionOpensAt"
-              type="datetime-local"
-              defaultValue={utcInputValue(edition.submissionOpensAt)}
-              className="cap-input"
-            />
+        <Panel title="Submission window">
+          <div className="cap-stack">
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="submissionOpensAt" className="cap-field-label">
+                Opens
+              </label>
+              <input
+                id="submissionOpensAt"
+                name="submissionOpensAt"
+                type="datetime-local"
+                defaultValue={utcInputValue(edition.submissionOpensAt)}
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="submissionDeadline" className="cap-field-label">
+                Deadline
+              </label>
+              <input
+                id="submissionDeadline"
+                name="submissionDeadline"
+                type="datetime-local"
+                defaultValue={utcInputValue(edition.submissionDeadline)}
+                className="cap-input"
+              />
+            </div>
           </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="submissionDeadline" className="cap-field-label">
-              Deadline
-            </label>
-            <input
-              id="submissionDeadline"
-              name="submissionDeadline"
-              type="datetime-local"
-              defaultValue={utcInputValue(edition.submissionDeadline)}
-              className="cap-input"
-            />
-          </div>
-        </fieldset>
+        </Panel>
 
         <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

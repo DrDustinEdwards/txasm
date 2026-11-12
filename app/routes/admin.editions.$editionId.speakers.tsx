@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.speakers";
@@ -207,52 +208,56 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       ) : (
         <ul className="cap-stack">
           {speakers.map((speaker) => (
-            <li key={speaker.id} className="card cap-stack" data-gap="4">
-              <div className="cap-spread">
-                <div>
-                  <p className="strong">{speaker.name}</p>
-                  <p className="small cap-muted">
-                    {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
-                      .filter((p) => p.length > 0)
-                      .join(" . ")}
-                  </p>
-                  {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+            <li key={speaker.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div>
+                    <p className="strong">{speaker.name}</p>
+                    <p className="small cap-muted">
+                      {[
+                        speaker.role ? speakerRoleLabel(speaker.role) : "",
+                        speaker.affiliation ?? "",
+                      ]
+                        .filter((p) => p.length > 0)
+                        .join(" . ")}
+                    </p>
+                    {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+                  </div>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="speakerId" value={speaker.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${speaker.name}?`,
+                          action: "Remove speaker",
+                        })
+                      }
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </Form>
                 </div>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="speakerId" value={speaker.id} />
-                  <button
-                    type="submit"
-                    onClick={(e) =>
-                      confirmSubmit(e, {
-                        title: `Remove ${speaker.name}?`,
-                        action: "Remove speaker",
-                      })
-                    }
-                    className="small strong"
-                  >
-                    Remove
-                  </button>
-                </Form>
-              </div>
 
-              <Disclosure summary="Edit speaker" variant="card" size="sm" marker="triangle">
-                <Form method="post" className="cap-stack" data-gap="4" noValidate>
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="speakerId" value={speaker.id} />
-                  <SpeakerFields speaker={speaker} />
-                  <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
-                    Save speaker
-                  </button>
-                </Form>
-              </Disclosure>
+                <Disclosure summary="Edit speaker" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                    <input type="hidden" name="intent" value="update" />
+                    <input type="hidden" name="speakerId" value={speaker.id} />
+                    <SpeakerFields speaker={speaker} />
+                    <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
+                      Save speaker
+                    </button>
+                  </Form>
+                </Disclosure>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section className="card cap-stack">
-        <h2 className="subsection-title">Add a speaker</h2>
+      <Panel title="Add a speaker">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SpeakerFields />
@@ -260,7 +265,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add speaker"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

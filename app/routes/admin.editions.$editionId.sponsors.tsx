@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.sponsors";
@@ -169,51 +170,52 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       ) : (
         <ul className="cap-stack">
           {sponsors.map((sponsor) => (
-            <li key={sponsor.id} className="card cap-stack" data-gap="4">
-              <div className="cap-spread">
-                <div>
-                  <p className="strong">{sponsor.name}</p>
-                  <p className="small cap-muted">
-                    {[sponsor.tier ?? "", sponsor.url ?? ""]
-                      .filter((p) => p.length > 0)
-                      .join(" . ")}
-                  </p>
+            <li key={sponsor.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div>
+                    <p className="strong">{sponsor.name}</p>
+                    <p className="small cap-muted">
+                      {[sponsor.tier ?? "", sponsor.url ?? ""]
+                        .filter((p) => p.length > 0)
+                        .join(" . ")}
+                    </p>
+                  </div>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="sponsorId" value={sponsor.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${sponsor.name}?`,
+                          action: "Remove sponsor",
+                        })
+                      }
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </Form>
                 </div>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="sponsorId" value={sponsor.id} />
-                  <button
-                    type="submit"
-                    onClick={(e) =>
-                      confirmSubmit(e, {
-                        title: `Remove ${sponsor.name}?`,
-                        action: "Remove sponsor",
-                      })
-                    }
-                    className="small strong"
-                  >
-                    Remove
-                  </button>
-                </Form>
-              </div>
 
-              <Disclosure summary="Edit sponsor" variant="card" size="sm" marker="triangle">
-                <Form method="post" className="cap-stack" data-gap="4" noValidate>
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="sponsorId" value={sponsor.id} />
-                  <SponsorFields sponsor={sponsor} />
-                  <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
-                    Save sponsor
-                  </button>
-                </Form>
-              </Disclosure>
+                <Disclosure summary="Edit sponsor" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                    <input type="hidden" name="intent" value="update" />
+                    <input type="hidden" name="sponsorId" value={sponsor.id} />
+                    <SponsorFields sponsor={sponsor} />
+                    <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
+                      Save sponsor
+                    </button>
+                  </Form>
+                </Disclosure>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section className="card cap-stack">
-        <h2 className="subsection-title">Add a sponsor</h2>
+      <Panel title="Add a sponsor">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SponsorFields />
@@ -221,7 +223,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add sponsor"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

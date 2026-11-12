@@ -10,6 +10,7 @@
 @import "capsomer/site-header.css";
 @import "capsomer/admin-shell.css";
 @import "capsomer/dialog.css";
+@import "capsomer/panel.css";
 @import "capsomer/popover.css";
 @import "capsomer/theme-switch.css";
 @import "capsomer/breadcrumb.css";
@@ -27,6 +28,7 @@
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
 @import "capsomer/card.css";
+@import "capsomer/row-list.css";
 @import "capsomer/combobox.css";
 @import "capsomer/trusted-html.css";
 
@@ -205,29 +207,10 @@
 .officer-contact {
   margin-top: 0.75rem;
 }
-.past-officer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  @media (width >= 640px) {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 1rem;
-    & > :first-child {
-      flex: none;
-      width: 7rem;
-    }
-  }
-}
-
 .tier-benefits {
   margin-top: 0.75rem;
 }
 .trail-years {
-  gap: 0.5rem;
-}
-
-.recipient {
   gap: 0.5rem;
 }
 
@@ -237,17 +220,6 @@
 .rule-below {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--line);
-}
-.abstract-row {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1rem;
-  & > :first-child {
-    flex: none;
-  }
-  & > :last-child {
-    min-width: 0;
-  }
 }
 .abstract-title {
   font-size: 1.5rem;
@@ -272,29 +244,6 @@
 .speaker-bio {
   margin-top: 0.5rem;
 }
-.sponsor {
-  padding: 0.5rem 0.75rem;
-}
-
-/* A card, and a list of rows in one card. */
-.card {
-  padding: 1.25rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-}
-.card-list {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  & > li {
-    padding: 0.75rem 1rem;
-  }
-  & > li + li {
-    border-top: 1px solid var(--line);
-  }
-}
-/* A card that is one link: the edge darkens on hover. */
 .bullets {
   list-style: disc;
   padding-left: 1.25rem;
@@ -361,21 +310,6 @@
   }
 }
 
-/* Card variants: smaller padding, a sunken note, a dashed add-row, a warning edge. */
-.card-s {
-  padding: 0.75rem;
-  border-radius: var(--radius-m);
-}
-.card-sunken {
-  background: var(--sunken);
-}
-.card-dashed {
-  border-style: dashed;
-}
-.card-warn {
-  border-color: var(--warn);
-}
-
 /* More layout pieces for the admin and author screens. */
 .grow {
   flex: 1;
@@ -427,16 +361,6 @@
 }
 .divided > * + * {
   border-top: 1px solid var(--line);
-}
-.legend {
-  padding-inline: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-.summary {
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
 }
 .cell-end {
   text-align: end;

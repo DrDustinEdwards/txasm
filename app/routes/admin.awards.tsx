@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.awards";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -102,46 +103,45 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
       ) : (
         <ul className="cap-stack" data-gap="4">
           {awards.map((award) => (
-            <li key={award.id} className="card cap-spread">
-              <div className="shrink">
-                <Link to={`/admin/awards/${award.slug}`} className="strong">
-                  {award.name}
-                </Link>
-                <p className="small cap-muted">
-                  {award.slug} &middot; {award.recipientCount}{" "}
-                  {award.recipientCount === 1 ? "recipient" : "recipients"}
-                </p>
-              </div>
-              <div className="cap-cluster">
-                <Link to={`/admin/awards/${award.slug}`} className="small strong">
-                  Manage
-                </Link>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="awardId" value={award.id} />
-                  <button
-                    type="submit"
-                    onClick={(e) =>
-                      confirmSubmit(e, {
-                        title: `Remove ${award.name} and all its recipients?`,
-                        action: "Remove award",
-                      })
-                    }
-                    className="small strong"
-                  >
-                    Remove
-                  </button>
-                </Form>
+            <li key={award.id} className="cap-panel">
+              <div className="cap-panel-body cap-spread">
+                <div className="shrink">
+                  <Link to={`/admin/awards/${award.slug}`} className="strong">
+                    {award.name}
+                  </Link>
+                  <p className="small cap-muted">
+                    {award.slug} &middot; {award.recipientCount}{" "}
+                    {award.recipientCount === 1 ? "recipient" : "recipients"}
+                  </p>
+                </div>
+                <div className="cap-cluster">
+                  <Link to={`/admin/awards/${award.slug}`} className="small strong">
+                    Manage
+                  </Link>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="awardId" value={award.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${award.name} and all its recipients?`,
+                          action: "Remove award",
+                        })
+                      }
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </Form>
+                </div>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section aria-labelledby="add-award-heading" className="card cap-stack">
-        <h2 id="add-award-heading" className="subsection-title">
-          Add an award
-        </h2>
+      <Panel title="Add an award" headingId="add-award-heading">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <div className="cap-grid" data-cols="2">
@@ -197,7 +197,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add award"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

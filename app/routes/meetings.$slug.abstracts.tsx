@@ -1,4 +1,5 @@
 import { Form } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link, routerRenderLink } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
@@ -130,54 +131,51 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form
-        method="get"
-        aria-label="Filter abstracts"
-        className="card cap-grid filters"
-        data-cols="4"
-      >
-        <Field label="Level">
-          <select id="level" name="level" defaultValue={filters.level} className="cap-select">
-            <option value="">All levels</option>
-            {ABSTRACT_LEVELS.map((l) => (
-              <option key={l} value={l}>
-                {ABSTRACT_LEVEL_LABELS[l]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Format">
-          <select id="format" name="format" defaultValue={filters.format} className="cap-select">
-            <option value="">All formats</option>
-            {ABSTRACT_FORMATS.map((f) => (
-              <option key={f} value={f}>
-                {ABSTRACT_FORMAT_LABELS[f]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Topic">
-          <select id="topic" name="topic" defaultValue={filters.topic} className="cap-select">
-            <option value="">All topics</option>
-            {topics.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-            <option value={NO_TOPIC}>{untopicedLabel}</option>
-          </select>
-        </Field>
-        <div className="cap-cluster">
-          <button type="submit" className="cap-btn" data-variant="primary">
-            Apply
-          </button>
-          {filtered ? (
-            <Link to={`/meetings/${edition.slug}/abstracts`} className="cap-btn">
-              Clear
-            </Link>
-          ) : null}
-        </div>
-      </Form>
+      <Panel>
+        <Form method="get" aria-label="Filter abstracts" className="cap-grid filters" data-cols="4">
+          <Field label="Level">
+            <select id="level" name="level" defaultValue={filters.level} className="cap-select">
+              <option value="">All levels</option>
+              {ABSTRACT_LEVELS.map((l) => (
+                <option key={l} value={l}>
+                  {ABSTRACT_LEVEL_LABELS[l]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Format">
+            <select id="format" name="format" defaultValue={filters.format} className="cap-select">
+              <option value="">All formats</option>
+              {ABSTRACT_FORMATS.map((f) => (
+                <option key={f} value={f}>
+                  {ABSTRACT_FORMAT_LABELS[f]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Topic">
+            <select id="topic" name="topic" defaultValue={filters.topic} className="cap-select">
+              <option value="">All topics</option>
+              {topics.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+              <option value={NO_TOPIC}>{untopicedLabel}</option>
+            </select>
+          </Field>
+          <div className="cap-cluster">
+            <button type="submit" className="cap-btn" data-variant="primary">
+              Apply
+            </button>
+            {filtered ? (
+              <Link to={`/meetings/${edition.slug}/abstracts`} className="cap-btn">
+                Clear
+              </Link>
+            ) : null}
+          </div>
+        </Form>
+      </Panel>
 
       <p className="small cap-muted" aria-live="polite">
         {filtered ? `${abstracts.length} of ${total} abstracts` : `${total} abstracts`}
@@ -196,24 +194,30 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                   {group.abstracts.map((abstract) => {
                     const line = metaLine(abstract);
                     return (
-                      <li key={abstract.number} className="card abstract-row">
-                        <span className="small strong cap-muted">
-                          {abstract.code ?? abstract.number}
-                        </span>
-                        <div className="cap-stack" data-gap="2">
-                          <Link
-                            to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
-                            className="strong"
-                          >
-                            <RichText as="span" html={abstract.title} />
-                          </Link>
-                          {abstract.authors.length > 0 ? (
-                            <p className="small cap-muted">
-                              {abstract.authors.map((a) => a.name).join(", ")}
+                      <li key={abstract.number}>
+                        <article className="cap-card">
+                          <header>
+                            <p className="small strong cap-muted">
+                              {abstract.code ?? abstract.number}
                             </p>
-                          ) : null}
-                          {line ? <p className="cap-label">{line}</p> : null}
-                        </div>
+                            <h3>
+                              <Link
+                                to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
+                                className="cap-card-link"
+                              >
+                                <RichText as="span" html={abstract.title} />
+                              </Link>
+                            </h3>
+                          </header>
+                          <div className="cap-stack" data-gap="2">
+                            {abstract.authors.length > 0 ? (
+                              <p className="small cap-muted">
+                                {abstract.authors.map((a) => a.name).join(", ")}
+                              </p>
+                            ) : null}
+                            {line ? <p className="cap-label">{line}</p> : null}
+                          </div>
+                        </article>
                       </li>
                     );
                   })}

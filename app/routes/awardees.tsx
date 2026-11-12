@@ -1,4 +1,6 @@
 import { Form } from "react-router";
+import { Row, RowList } from "capsomer/react/row-list";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
@@ -66,52 +68,54 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" role="search" aria-label="Search awardees" className="card cap-stack">
-        <Field label="Search term">
-          <input
-            id="q"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder="Name, institution, or mentor"
-            className="cap-input"
-          />
-        </Field>
-        <div className="cap-grid">
-          <Field label="Award">
-            <select id="award" name="award" defaultValue={award} className="cap-select">
-              <option value="">All awards</option>
-              {awards.map((a) => (
-                <option key={a.slug} value={a.slug}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Year">
+      <Panel>
+        <Form method="get" role="search" aria-label="Search awardees" className="cap-stack">
+          <Field label="Search term">
             <input
-              id="year"
-              name="year"
-              type="text"
-              defaultValue={year}
-              placeholder="2025-26"
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Name, institution, or mentor"
               className="cap-input"
             />
           </Field>
-          <Field label="Institution">
-            <input
-              id="institution"
-              name="institution"
-              type="text"
-              defaultValue={institution}
-              className="cap-input"
-            />
-          </Field>
-        </div>
-        <button type="submit" className="cap-btn" data-variant="primary">
-          Search
-        </button>
-      </Form>
+          <div className="cap-grid">
+            <Field label="Award">
+              <select id="award" name="award" defaultValue={award} className="cap-select">
+                <option value="">All awards</option>
+                {awards.map((a) => (
+                  <option key={a.slug} value={a.slug}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Year">
+              <input
+                id="year"
+                name="year"
+                type="text"
+                defaultValue={year}
+                placeholder="2025-26"
+                className="cap-input"
+              />
+            </Field>
+            <Field label="Institution">
+              <input
+                id="institution"
+                name="institution"
+                type="text"
+                defaultValue={institution}
+                className="cap-input"
+              />
+            </Field>
+          </div>
+          <button type="submit" className="cap-btn" data-variant="primary">
+            Search
+          </button>
+        </Form>
+      </Panel>
 
       {results ? (
         <section aria-label="Search results" className="cap-stack">
@@ -121,25 +125,32 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
           {results.length === 0 ? (
             <p className="cap-muted">No awardees match that search. Try a broader term.</p>
           ) : (
-            <ul className="card-list">
-              {results.map((result) => (
-                <li key={result.id}>
-                  <p>
-                    <span className="strong">{result.personName}</span>
-                    {result.institution ? (
-                      <span className="cap-muted"> &middot; {result.institution}</span>
-                    ) : null}
-                  </p>
-                  <p className="small cap-muted">
-                    <Link to={`/awards/${result.awardSlug}`}>{result.awardName}</Link>
-                    {" · "}
-                    {result.year}
-                    {result.placement ? ` · ${result.placement}` : ""}
-                    {result.mentor ? ` · Mentor: ${result.mentor}` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <Panel flush>
+              <RowList label="Search results">
+                {results.map((result) => (
+                  <Row
+                    key={result.id}
+                    title={
+                      <>
+                        <span className="strong">{result.personName}</span>
+                        {result.institution ? (
+                          <span className="cap-muted"> &middot; {result.institution}</span>
+                        ) : null}
+                      </>
+                    }
+                    detail={
+                      <>
+                        <Link to={`/awards/${result.awardSlug}`}>{result.awardName}</Link>
+                        {" · "}
+                        {result.year}
+                        {result.placement ? ` · ${result.placement}` : ""}
+                        {result.mentor ? ` · Mentor: ${result.mentor}` : ""}
+                      </>
+                    }
+                  />
+                ))}
+              </RowList>
+            </Panel>
           )}
         </section>
       ) : null}
@@ -155,9 +166,11 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
           <ul className="cap-card-grid">
             {awards.map((a) => (
               <li key={a.slug}>
-                <Link to={`/awards/${a.slug}`} className="card card-link">
-                  <h3 className="subsection-title">{a.name}</h3>
-                  <RichText as="p" className="small cap-muted" html={a.description} />
+                <Link to={`/awards/${a.slug}`}>
+                  <article className="cap-card">
+                    <h3>{a.name}</h3>
+                    <RichText as="p" className="small cap-muted" html={a.description} />
+                  </article>
                 </Link>
               </li>
             ))}

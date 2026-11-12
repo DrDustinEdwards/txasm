@@ -165,149 +165,151 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
   const summary = abstract.recommendationSummary;
 
   return (
-    <li className="card cap-stack">
-      <div className="cap-spread">
-        <div className="cap-stack" data-gap="2">
-          <h2 className="strong">
-            <RichText
-              as="span"
-              html={abstract.title}
-              fallback={<span className="cap-muted">Untitled</span>}
-            />
-          </h2>
-          <p className="small cap-muted">
-            {abstract.authorNames.length > 0
-              ? abstract.authorNames.join(", ")
-              : "No authors listed"}
-          </p>
-          <p className="small cap-muted">
-            Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews: {abstract.reviewCount}{" "}
-            (accept {summary.accept} / revise {summary.revise} / reject {summary.reject}) .{" "}
-            <Link to={`/admin/editions/${editionId}/review/${abstract.id}`} className="strong">
-              Read reviews
-            </Link>
-          </p>
-        </div>
-        {decision ? (
-          <span className="cap-badge" data-variant="secondary">
-            {outcomeLabel(decision.outcome)}
-            {decision.presentationType
-              ? ` . ${
-                  PRESENTATION_TYPE_LABELS[decision.presentationType as PresentationType] ??
-                  decision.presentationType
-                }`
-              : ""}
-          </span>
-        ) : null}
-      </div>
-
-      {decision ? (
-        <p className="small cap-muted">
-          Current decision recorded {formatDate(decision.decidedAt, DATE_TIME)}.
-        </p>
-      ) : null}
-
-      {decision ? (
-        <div className="cap-stack" data-gap="2">
-          <div className="cap-cluster">
-            <Form method="post">
-              <input type="hidden" name="intent" value="notify" />
-              <input type="hidden" name="abstractId" value={abstract.id} />
-              <button type="submit" disabled={submitting} className="cap-btn">
-                Notify author
-              </button>
-            </Form>
-            <span className="small cap-muted">
-              {decision.notifyState === "emailed"
-                ? "Author emailed."
-                : decision.notifyState === "in_app"
-                  ? "Author notified in-app."
-                  : "Not notified yet."}
-            </span>
-          </div>
-          <p className="tiny cap-muted">
-            Until email goes live at cutover, this marks the author as notified in-app. The author
-            already sees the decision when signed in.
-          </p>
-        </div>
-      ) : null}
-
-      <Form method="post" className="cap-stack">
-        <input type="hidden" name="intent" value="decide" />
-        <input type="hidden" name="abstractId" value={abstract.id} />
-
-        <fieldset className="cap-stack" data-gap="3">
-          <legend className="small strong">Outcome</legend>
-          <div className="cap-cluster">
-            {OUTCOME_OPTIONS.map((option) => (
-              <label key={option.value} className="cap-check">
-                <input
-                  type="radio"
-                  name="outcome"
-                  value={option.value}
-                  required
-                  checked={outcome === option.value}
-                  onChange={() => setOutcome(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {outcome === "accept" ? (
+    <li className="cap-panel">
+      <div className="cap-panel-body cap-stack">
+        <div className="cap-spread">
           <div className="cap-stack" data-gap="2">
-            <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
-              Presentation type
-            </label>
-            <select
-              id={`presentation-${abstract.id}`}
-              name="presentationType"
-              required
-              defaultValue={decision?.presentationType ?? "oral"}
-              className="cap-select"
-            >
-              {PRESENTATION_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {PRESENTATION_TYPE_LABELS[type]}
-                </option>
-              ))}
-            </select>
+            <h2 className="strong">
+              <RichText
+                as="span"
+                html={abstract.title}
+                fallback={<span className="cap-muted">Untitled</span>}
+              />
+            </h2>
+            <p className="small cap-muted">
+              {abstract.authorNames.length > 0
+                ? abstract.authorNames.join(", ")
+                : "No authors listed"}
+            </p>
+            <p className="small cap-muted">
+              Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews: {abstract.reviewCount}{" "}
+              (accept {summary.accept} / revise {summary.revise} / reject {summary.reject}) .{" "}
+              <Link to={`/admin/editions/${editionId}/review/${abstract.id}`} className="strong">
+                Read reviews
+              </Link>
+            </p>
+          </div>
+          {decision ? (
+            <span className="cap-badge" data-variant="secondary">
+              {outcomeLabel(decision.outcome)}
+              {decision.presentationType
+                ? ` . ${
+                    PRESENTATION_TYPE_LABELS[decision.presentationType as PresentationType] ??
+                    decision.presentationType
+                  }`
+                : ""}
+            </span>
+          ) : null}
+        </div>
+
+        {decision ? (
+          <p className="small cap-muted">
+            Current decision recorded {formatDate(decision.decidedAt, DATE_TIME)}.
+          </p>
+        ) : null}
+
+        {decision ? (
+          <div className="cap-stack" data-gap="2">
+            <div className="cap-cluster">
+              <Form method="post">
+                <input type="hidden" name="intent" value="notify" />
+                <input type="hidden" name="abstractId" value={abstract.id} />
+                <button type="submit" disabled={submitting} className="cap-btn">
+                  Notify author
+                </button>
+              </Form>
+              <span className="small cap-muted">
+                {decision.notifyState === "emailed"
+                  ? "Author emailed."
+                  : decision.notifyState === "in_app"
+                    ? "Author notified in-app."
+                    : "Not notified yet."}
+              </span>
+            </div>
+            <p className="tiny cap-muted">
+              Until email goes live at cutover, this marks the author as notified in-app. The author
+              already sees the decision when signed in.
+            </p>
           </div>
         ) : null}
 
-        <RichTextField
-          name="decisionMessage"
-          label="Message to the author (optional)"
-          tags={BODY_TAGS}
-          lines="multi"
-          initialHTML={decision?.decisionMessage ?? ""}
-          help="Shown to the author with the decision."
-        />
-
-        <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
-          {decision ? "Update decision" : "Save decision"}
-        </button>
-      </Form>
-
-      {decision ? (
-        <Form method="post">
-          <input type="hidden" name="intent" value="clear" />
+        <Form method="post" className="cap-stack">
+          <input type="hidden" name="intent" value="decide" />
           <input type="hidden" name="abstractId" value={abstract.id} />
-          <button
-            type="submit"
-            disabled={submitting}
-            onClick={(e) =>
-              confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
-            }
-            className="cap-btn"
-            data-variant="link"
-            data-size="sm"
-          >
-            Clear decision
+
+          <fieldset className="cap-stack" data-gap="3">
+            <legend className="small strong">Outcome</legend>
+            <div className="cap-cluster">
+              {OUTCOME_OPTIONS.map((option) => (
+                <label key={option.value} className="cap-check">
+                  <input
+                    type="radio"
+                    name="outcome"
+                    value={option.value}
+                    required
+                    checked={outcome === option.value}
+                    onChange={() => setOutcome(option.value)}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {outcome === "accept" ? (
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
+                Presentation type
+              </label>
+              <select
+                id={`presentation-${abstract.id}`}
+                name="presentationType"
+                required
+                defaultValue={decision?.presentationType ?? "oral"}
+                className="cap-select"
+              >
+                {PRESENTATION_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {PRESENTATION_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          <RichTextField
+            name="decisionMessage"
+            label="Message to the author (optional)"
+            tags={BODY_TAGS}
+            lines="multi"
+            initialHTML={decision?.decisionMessage ?? ""}
+            help="Shown to the author with the decision."
+          />
+
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
+            {decision ? "Update decision" : "Save decision"}
           </button>
         </Form>
-      ) : null}
+
+        {decision ? (
+          <Form method="post">
+            <input type="hidden" name="intent" value="clear" />
+            <input type="hidden" name="abstractId" value={abstract.id} />
+            <button
+              type="submit"
+              disabled={submitting}
+              onClick={(e) =>
+                confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
+              }
+              className="cap-btn"
+              data-variant="link"
+              data-size="sm"
+            >
+              Clear decision
+            </button>
+          </Form>
+        ) : null}
+      </div>
     </li>
   );
 }

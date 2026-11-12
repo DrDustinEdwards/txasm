@@ -52,9 +52,11 @@ export default function Trail() {
         </Banner>
         <ul className="cap-grid trail-years" data-cols="4">
           {MEETING_YEARS.map((year) => (
-            <li key={year} className="card">
-              <p className="strong">{year}</p>
-              <p className="small cap-muted">Host city to be added</p>
+            <li key={year}>
+              <article className="cap-card">
+                <h3>{year}</h3>
+                <p className="small cap-muted">Host city to be added</p>
+              </article>
             </li>
           ))}
         </ul>

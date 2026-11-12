@@ -1,4 +1,5 @@
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
@@ -373,12 +374,11 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             slotFooter={(slot) => <ConcurrentSessionForm slot={slot} busy={busy} />}
           />
 
-          <section className="card cap-stack">
-            <h3 className="strong">Add a session to this day</h3>
+          <Panel title="Add a session to this day" level={3}>
             <Form method="post" className="cap-stack" data-gap="4" noValidate>
               <input type="hidden" name="intent" value="session-create" />
               {/* Keyed by day so the date prefill remounts when the tab changes;
-                  an unkeyed defaultValue would keep the previous day's date. */}
+                an unkeyed defaultValue would keep the previous day's date. */}
               <SessionFields
                 key={selectedDay}
                 defaultDate={selectedDay === NO_DATE ? "" : (selectedDay ?? "")}
@@ -387,7 +387,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
                 Add session
               </button>
             </Form>
-          </section>
+          </Panel>
         </div>
       )}
 

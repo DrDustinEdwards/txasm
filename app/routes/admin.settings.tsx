@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { ActionResult } from "capsomer/react/message";
+import { Panel } from "capsomer/react/panel";
 import type { Route } from "./+types/admin.settings";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -140,108 +141,115 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
       <ActionResult data={actionData} />
 
       <Form method="post" className="cap-stack" data-gap="7" noValidate>
-        <fieldset className="card cap-stack">
-          <legend className="legend">Identity</legend>
-          <div className="cap-grid" data-cols="2">
+        <Panel title="Identity">
+          <div className="cap-stack">
+            <div className="cap-grid" data-cols="2">
+              <TextField
+                name="shortName"
+                label="Wordmark (short name)"
+                defaultValue={settings.shortName}
+                placeholder="TXASM"
+              />
+              <TextField
+                name="orgName"
+                label="Display name"
+                defaultValue={settings.orgName}
+                placeholder="Texas Branch ASM"
+              />
+            </div>
             <TextField
-              name="shortName"
-              label="Wordmark (short name)"
-              defaultValue={settings.shortName}
-              placeholder="TXASM"
+              name="orgFullName"
+              label="Full organization name"
+              defaultValue={settings.orgFullName}
             />
+            <TextField name="tagline" label="Tagline" defaultValue={settings.tagline} />
+            <div className="cap-grid" data-cols="2">
+              <TextField
+                name="foundingYear"
+                label="Founding year"
+                type="number"
+                defaultValue={settings.foundingYear === null ? "" : String(settings.foundingYear)}
+              />
+              <TextField
+                name="contactEmail"
+                label="Contact email"
+                type="email"
+                defaultValue={settings.contactEmail ?? ""}
+              />
+            </div>
             <TextField
-              name="orgName"
-              label="Display name"
-              defaultValue={settings.orgName}
-              placeholder="Texas Branch ASM"
+              name="facebookUrl"
+              label="Facebook URL"
+              type="url"
+              defaultValue={settings.facebookUrl ?? ""}
+              placeholder="https://www.facebook.com/groups/..."
             />
           </div>
-          <TextField
-            name="orgFullName"
-            label="Full organization name"
-            defaultValue={settings.orgFullName}
-          />
-          <TextField name="tagline" label="Tagline" defaultValue={settings.tagline} />
-          <div className="cap-grid" data-cols="2">
-            <TextField
-              name="foundingYear"
-              label="Founding year"
-              type="number"
-              defaultValue={settings.foundingYear === null ? "" : String(settings.foundingYear)}
-            />
-            <TextField
-              name="contactEmail"
-              label="Contact email"
-              type="email"
-              defaultValue={settings.contactEmail ?? ""}
-            />
-          </div>
-          <TextField
-            name="facebookUrl"
-            label="Facebook URL"
-            type="url"
-            defaultValue={settings.facebookUrl ?? ""}
-            placeholder="https://www.facebook.com/groups/..."
-          />
-        </fieldset>
+        </Panel>
 
-        <fieldset className="card cap-stack">
-          <legend className="legend">Footer links</legend>
-          {footerLinks.length === 0 ? (
-            <p className="small cap-muted">No footer links. Add one below.</p>
-          ) : (
-            <ol className="cap-stack" data-gap="4">
-              {footerLinks.map((link, index) => (
-                <li key={index} className="grid-pair-action">
-                  <label className="cap-stack" data-gap="2">
-                    <span className="cap-field-label">Label</span>
-                    <input
-                      type="text"
-                      value={link.label}
-                      onChange={(e) => updateLink(index, { label: e.target.value })}
-                      className="cap-input"
-                    />
-                  </label>
-                  <label className="cap-stack" data-gap="2">
-                    <span className="cap-field-label">URL or path</span>
-                    <input
-                      type="text"
-                      value={link.url}
-                      onChange={(e) => updateLink(index, { url: e.target.value })}
-                      placeholder="/branch-officers"
-                      className="cap-input"
-                    />
-                  </label>
-                  <button type="button" onClick={() => removeLink(index)} className="small strong">
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ol>
-          )}
-          <button type="button" onClick={addLink} className="cap-btn" data-size="sm">
-            Add footer link
-          </button>
-          <input type="hidden" name="footerLinks" value={JSON.stringify(footerLinks)} />
-        </fieldset>
-
-        <fieldset className="card cap-stack">
-          <legend className="legend">Defaults</legend>
-          <div className="cap-grid" data-cols="2">
-            <TextField
-              name="defaultCurrency"
-              label="Default currency"
-              defaultValue={settings.defaultCurrency}
-              placeholder="usd"
-            />
-            <TextField
-              name="defaultAbstractWordLimit"
-              label="Default abstract word limit"
-              type="number"
-              defaultValue={String(settings.defaultAbstractWordLimit)}
-            />
+        <Panel title="Footer links">
+          <div className="cap-stack">
+            {footerLinks.length === 0 ? (
+              <p className="small cap-muted">No footer links. Add one below.</p>
+            ) : (
+              <ol className="cap-stack" data-gap="4">
+                {footerLinks.map((link, index) => (
+                  <li key={index} className="grid-pair-action">
+                    <label className="cap-stack" data-gap="2">
+                      <span className="cap-field-label">Label</span>
+                      <input
+                        type="text"
+                        value={link.label}
+                        onChange={(e) => updateLink(index, { label: e.target.value })}
+                        className="cap-input"
+                      />
+                    </label>
+                    <label className="cap-stack" data-gap="2">
+                      <span className="cap-field-label">URL or path</span>
+                      <input
+                        type="text"
+                        value={link.url}
+                        onChange={(e) => updateLink(index, { url: e.target.value })}
+                        placeholder="/branch-officers"
+                        className="cap-input"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <button type="button" onClick={addLink} className="cap-btn" data-size="sm">
+              Add footer link
+            </button>
+            <input type="hidden" name="footerLinks" value={JSON.stringify(footerLinks)} />
           </div>
-        </fieldset>
+        </Panel>
+
+        <Panel title="Defaults">
+          <div className="cap-stack">
+            <div className="cap-grid" data-cols="2">
+              <TextField
+                name="defaultCurrency"
+                label="Default currency"
+                defaultValue={settings.defaultCurrency}
+                placeholder="usd"
+              />
+              <TextField
+                name="defaultAbstractWordLimit"
+                label="Default abstract word limit"
+                type="number"
+                defaultValue={String(settings.defaultAbstractWordLimit)}
+              />
+            </div>
+          </div>
+        </Panel>
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Saving..." : "Save settings"}

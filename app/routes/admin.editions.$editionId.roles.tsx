@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.roles";
 import { pageTitle } from "~/lib/site-meta";
@@ -110,8 +111,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <RoleList title="Chairs" empty="No chairs yet." grants={chairs} />
       <RoleList title="Reviewers" empty="No reviewers yet." grants={reviewers} />
 
-      <section className="card cap-stack">
-        <h2 className="subsection-title">Add a chair or reviewer</h2>
+      <Panel title="Add a chair or reviewer">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="grant" />
           <div className="cap-stack" data-gap="2">
@@ -141,7 +141,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add role"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }
@@ -163,22 +163,24 @@ function RoleList({
       ) : (
         <ul className="cap-stack" data-gap="3">
           {grants.map((grant) => (
-            <li key={`${grant.userId}-${grant.role}`} className="card card-s cap-spread">
-              <span className="small">
-                <span className="strong">{grant.name || grant.email}</span>
-                {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
-              </span>
-              <Form method="post">
-                <input type="hidden" name="intent" value="revoke" />
-                <input type="hidden" name="userId" value={grant.userId} />
-                <input type="hidden" name="role" value={grant.role} />
-                <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
-                  Remove{" "}
-                  <span className="cap-sr-only">
-                    {roleLabel(grant.role)} {grant.email}
-                  </span>
-                </button>
-              </Form>
+            <li key={`${grant.userId}-${grant.role}`} className="cap-panel" data-size="sm">
+              <div className="cap-panel-body cap-spread">
+                <span className="small">
+                  <span className="strong">{grant.name || grant.email}</span>
+                  {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
+                </span>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="revoke" />
+                  <input type="hidden" name="userId" value={grant.userId} />
+                  <input type="hidden" name="role" value={grant.role} />
+                  <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
+                    Remove{" "}
+                    <span className="cap-sr-only">
+                      {roleLabel(grant.role)} {grant.email}
+                    </span>
+                  </button>
+                </Form>
+              </div>
             </li>
           ))}
         </ul>

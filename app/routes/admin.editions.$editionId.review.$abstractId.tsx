@@ -64,29 +64,33 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
       ) : (
         <ul className="cap-stack">
           {reviews.map((review) => (
-            <li key={review.id} className="card cap-stack" data-gap="4">
-              <div className="cap-spread">
-                <span className="small strong">{review.reviewerName || review.reviewerEmail}</span>
-                <span className="small cap-muted">
-                  {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
-                </span>
+            <li key={review.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <span className="small strong">
+                    {review.reviewerName || review.reviewerEmail}
+                  </span>
+                  <span className="small cap-muted">
+                    {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
+                  </span>
+                </div>
+                <p className="small">
+                  <span className="strong">Recommendation:</span>{" "}
+                  {recommendationLabel(review.recommendation)}
+                </p>
+                {review.overallComment ? (
+                  <div className="cap-stack" data-gap="2">
+                    <h2 className="small strong">Overall comment</h2>
+                    <RichText className="small" html={review.overallComment} />
+                  </div>
+                ) : null}
+                {review.confidentialComment ? (
+                  <div className="cap-banner cap-stack" data-gap="2" data-tone="warn">
+                    <h2 className="small strong">Confidential comment to chairs</h2>
+                    <RichText className="small" html={review.confidentialComment} />
+                  </div>
+                ) : null}
               </div>
-              <p className="small">
-                <span className="strong">Recommendation:</span>{" "}
-                {recommendationLabel(review.recommendation)}
-              </p>
-              {review.overallComment ? (
-                <div className="cap-stack" data-gap="2">
-                  <h2 className="small strong">Overall comment</h2>
-                  <RichText className="small" html={review.overallComment} />
-                </div>
-              ) : null}
-              {review.confidentialComment ? (
-                <div className="cap-banner cap-stack" data-gap="2" data-tone="warn">
-                  <h2 className="small strong">Confidential comment to chairs</h2>
-                  <RichText className="small" html={review.confidentialComment} />
-                </div>
-              ) : null}
             </li>
           ))}
         </ul>

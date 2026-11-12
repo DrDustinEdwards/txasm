@@ -1,4 +1,5 @@
 import { Form } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { isoDay } from "@drdustinedwards/site-helpers/xml";
 import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
@@ -120,89 +121,91 @@ export function SessionCard({
   const H = `h${level}` as "h3" | "h4" | "h5";
   const Sub = `h${level + 1}` as "h4" | "h5" | "h6";
   return (
-    <div className="card cap-stack">
-      <div className="cap-spread">
-        <div>
-          <H className="strong">{session.title}</H>
-          <p className="small cap-muted">
-            {session.location ? session.location : "No room set"} ·{" "}
-            {slotLabel(session.startsAt?.getTime() ?? null, session.endsAt?.getTime() ?? null)}
-          </p>
-          {session.moderator ? (
-            <p className="small cap-muted">Moderated by {session.moderator}</p>
-          ) : null}
+    <Panel>
+      <div className="cap-stack">
+        <div className="cap-spread">
+          <div>
+            <H className="strong">{session.title}</H>
+            <p className="small cap-muted">
+              {session.location ? session.location : "No room set"} ·{" "}
+              {slotLabel(session.startsAt?.getTime() ?? null, session.endsAt?.getTime() ?? null)}
+            </p>
+            {session.moderator ? (
+              <p className="small cap-muted">Moderated by {session.moderator}</p>
+            ) : null}
+          </div>
+          <div className="cap-cluster">
+            <Form method="post">
+              <input type="hidden" name="intent" value="session-move" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <input type="hidden" name="direction" value="up" />
+              <button
+                type="submit"
+                disabled={busy || dayIndex === 0}
+                aria-label={`Move ${session.title} earlier`}
+                className="cap-btn"
+                data-size="sm"
+              >
+                Up
+              </button>
+            </Form>
+            <Form method="post">
+              <input type="hidden" name="intent" value="session-move" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <input type="hidden" name="direction" value="down" />
+              <button
+                type="submit"
+                disabled={busy || dayIndex === dayCount - 1}
+                aria-label={`Move ${session.title} later`}
+                className="cap-btn"
+                data-size="sm"
+              >
+                Down
+              </button>
+            </Form>
+          </div>
         </div>
-        <div className="cap-cluster">
-          <Form method="post">
-            <input type="hidden" name="intent" value="session-move" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <input type="hidden" name="direction" value="up" />
-            <button
-              type="submit"
-              disabled={busy || dayIndex === 0}
-              aria-label={`Move ${session.title} earlier`}
-              className="cap-btn"
-              data-size="sm"
-            >
-              Up
-            </button>
-          </Form>
-          <Form method="post">
-            <input type="hidden" name="intent" value="session-move" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <input type="hidden" name="direction" value="down" />
-            <button
-              type="submit"
-              disabled={busy || dayIndex === dayCount - 1}
-              aria-label={`Move ${session.title} later`}
-              className="cap-btn"
-              data-size="sm"
-            >
-              Down
-            </button>
-          </Form>
+
+        <div className="cap-stack" data-gap="3">
+          <Sub className="small strong">Items</Sub>
+          <SessionItems session={session} busy={busy} />
         </div>
+
+        <Disclosure summary="Add an item" variant="card" size="sm" marker="triangle">
+          <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
+        </Disclosure>
+
+        <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
+          <div className="cap-stack" data-gap="4">
+            <Form method="post" className="cap-stack" data-gap="4" noValidate>
+              <input type="hidden" name="intent" value="session-update" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <SessionFields session={session} />
+              <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+                Save session
+              </button>
+            </Form>
+            <Form method="post">
+              <input type="hidden" name="intent" value="session-delete" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <button
+                type="submit"
+                disabled={busy}
+                onClick={(e) =>
+                  confirmSubmit(e, {
+                    title: "Delete this session and its items?",
+                    action: "Delete session",
+                  })
+                }
+                className="small strong"
+              >
+                Delete session
+              </button>
+            </Form>
+          </div>
+        </Disclosure>
       </div>
-
-      <div className="cap-stack" data-gap="3">
-        <Sub className="small strong">Items</Sub>
-        <SessionItems session={session} busy={busy} />
-      </div>
-
-      <Disclosure summary="Add an item" variant="card" size="sm" marker="triangle">
-        <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
-      </Disclosure>
-
-      <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
-        <div className="cap-stack" data-gap="4">
-          <Form method="post" className="cap-stack" data-gap="4" noValidate>
-            <input type="hidden" name="intent" value="session-update" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <SessionFields session={session} />
-            <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-              Save session
-            </button>
-          </Form>
-          <Form method="post">
-            <input type="hidden" name="intent" value="session-delete" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <button
-              type="submit"
-              disabled={busy}
-              onClick={(e) =>
-                confirmSubmit(e, {
-                  title: "Delete this session and its items?",
-                  action: "Delete session",
-                })
-              }
-              className="small strong"
-            >
-              Delete session
-            </button>
-          </Form>
-        </div>
-      </Disclosure>
-    </div>
+    </Panel>
   );
 }
 
@@ -218,37 +221,39 @@ export function ConcurrentSessionForm({
   const source = slot.items[0];
   if (!source) return null;
   return (
-    <Form method="post" className="card card-s card-dashed cap-cluster" data-align="end">
-      <input type="hidden" name="intent" value="session-add-concurrent" />
-      <input type="hidden" name="sessionId" value={source.id} />
-      <div className="grow cap-stack" data-gap="2">
-        <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
-          Add a concurrent session (parallel track)
-        </label>
-        <input
-          id={`concurrent-title-${source.id}`}
-          name="title"
-          type="text"
-          required
-          placeholder="Second track title"
-          className="cap-input"
-        />
-      </div>
-      <div className="grow cap-stack" data-gap="2">
-        <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
-          Room
-        </label>
-        <input
-          id={`concurrent-room-${source.id}`}
-          name="location"
-          type="text"
-          placeholder="Room B"
-          className="cap-input"
-        />
-      </div>
-      <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-        Add track
-      </button>
-    </Form>
+    <Panel size="sm">
+      <Form method="post" className="cap-cluster" data-align="end">
+        <input type="hidden" name="intent" value="session-add-concurrent" />
+        <input type="hidden" name="sessionId" value={source.id} />
+        <div className="grow cap-stack" data-gap="2">
+          <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
+            Add a concurrent session (parallel track)
+          </label>
+          <input
+            id={`concurrent-title-${source.id}`}
+            name="title"
+            type="text"
+            required
+            placeholder="Second track title"
+            className="cap-input"
+          />
+        </div>
+        <div className="grow cap-stack" data-gap="2">
+          <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
+            Room
+          </label>
+          <input
+            id={`concurrent-room-${source.id}`}
+            name="location"
+            type="text"
+            placeholder="Room B"
+            className="cap-input"
+          />
+        </div>
+        <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+          Add track
+        </button>
+      </Form>
+    </Panel>
   );
 }

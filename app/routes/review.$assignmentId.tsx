@@ -1,4 +1,6 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
+import { Banner } from "capsomer/react/banner";
 import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
@@ -159,10 +161,11 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <section className="card cap-stack" data-gap="4">
-        <h2 className="subsection-title">Abstract</h2>
-        <AbstractSections abstract={abstract} />
-      </section>
+      <Panel title="Abstract">
+        <div className="cap-stack" data-gap="4">
+          <AbstractSections abstract={abstract} />
+        </div>
+      </Panel>
 
       <ActionResult data={actionData} />
 
@@ -217,22 +220,23 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </Form>
       ) : (
         <div className="cap-stack">
-          <p role="status" className="card card-s card-sunken small">
+          <Banner tone="warn">
             The review deadline has passed. This review can no longer be edited.
-          </p>
+          </Banner>
           {review ? (
-            <section className="card cap-stack" data-gap="3">
-              <h2 className="subsection-title">Your review</h2>
-              <p className="small">
-                <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
-              </p>
-              {review.overallComment ? (
-                <div className="cap-stack" data-gap="2">
-                  <h3 className="small strong">Overall comment</h3>
-                  <RichText className="small" html={review.overallComment} />
-                </div>
-              ) : null}
-            </section>
+            <Panel title="Your review">
+              <div className="cap-stack" data-gap="3">
+                <p className="small">
+                  <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
+                </p>
+                {review.overallComment ? (
+                  <div className="cap-stack" data-gap="2">
+                    <h3 className="small strong">Overall comment</h3>
+                    <RichText className="small" html={review.overallComment} />
+                  </div>
+                ) : null}
+              </div>
+            </Panel>
           ) : null}
           <Link to="/review" className="strong">
             Back to review
@@ -240,47 +244,48 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <section className="card card-warn cap-stack" data-gap="4">
-        <h2 className="subsection-title">Have a conflict of interest?</h2>
-        <p className="small cap-muted">
-          If you should not review this abstract, declare a conflict. This removes the assignment
-          and the abstract will be reassigned by a chair.
-        </p>
-        <Form
-          method="post"
-          className="cap-stack"
-          data-gap="4"
-          onSubmit={(e) =>
-            confirmSubmit(e, {
-              title: "Declare a conflict and remove this assignment?",
-              action: "Declare conflict",
-            })
-          }
-        >
-          <input type="hidden" name="intent" value="conflict" />
-          <input type="hidden" name="abstractId" value={abstract.id} />
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="reason" className="cap-field-label">
-              Reason
-            </label>
-            <select id="reason" name="reason" defaultValue="colleague" className="cap-select">
-              <option value="author">I am an author</option>
-              <option value="coauthor">I have co-authored with an author</option>
-              <option value="colleague">An author is a close colleague</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="note" className="cap-field-label">
-              Note (optional)
-            </label>
-            <textarea id="note" name="note" rows={2} className="cap-input" />
-          </div>
-          <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
-            I have a conflict
-          </button>
-        </Form>
-      </section>
+      <Panel title="Have a conflict of interest?">
+        <div className="cap-stack" data-gap="4">
+          <p className="small cap-muted">
+            If you should not review this abstract, declare a conflict. This removes the assignment
+            and the abstract will be reassigned by a chair.
+          </p>
+          <Form
+            method="post"
+            className="cap-stack"
+            data-gap="4"
+            onSubmit={(e) =>
+              confirmSubmit(e, {
+                title: "Declare a conflict and remove this assignment?",
+                action: "Declare conflict",
+              })
+            }
+          >
+            <input type="hidden" name="intent" value="conflict" />
+            <input type="hidden" name="abstractId" value={abstract.id} />
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="reason" className="cap-field-label">
+                Reason
+              </label>
+              <select id="reason" name="reason" defaultValue="colleague" className="cap-select">
+                <option value="author">I am an author</option>
+                <option value="coauthor">I have co-authored with an author</option>
+                <option value="colleague">An author is a close colleague</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="note" className="cap-field-label">
+                Note (optional)
+              </label>
+              <textarea id="note" name="note" rows={2} className="cap-input" />
+            </div>
+            <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
+              I have a conflict
+            </button>
+          </Form>
+        </div>
+      </Panel>
     </div>
   );
 }
