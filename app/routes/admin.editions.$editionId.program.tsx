@@ -15,7 +15,8 @@ import {
   ValidationError,
 } from "~/lib/data-access";
 import { renderProgramBook } from "~/lib/program-book";
-import { renderBookPdf } from "~/lib/book-pdf.server";
+import puppeteer from "@cloudflare/puppeteer";
+import { pagedPdf } from "@dustinedwards/site-runtime/print-pdf";
 import {
   ConcurrentSessionForm,
   SessionCard,
@@ -113,7 +114,10 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     try {
       const data = await da.program.getProgramData(actor, editionId);
       const html = renderProgramBook(data);
-      const bytes = await renderBookPdf(html, env, new URL(request.url).origin);
+      const bytes = await pagedPdf(puppeteer, env.BROWSER, html, {
+        origin: new URL(request.url).origin,
+        what: "the program",
+      });
 
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const r2Key = `editions/${editionId}/program-${stamp}.pdf`;
