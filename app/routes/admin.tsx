@@ -1,7 +1,7 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin";
 import { pageTitle } from "~/lib/site-meta";
-import { titleCase } from "~/lib/format";
+import { titleCase } from "@drdustinedwards/site-helpers/text";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";

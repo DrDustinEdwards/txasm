@@ -3,7 +3,7 @@ import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review";
 import { pageTitle } from "~/lib/site-meta";
-import { titleCase } from "~/lib/format";
+import { titleCase } from "@drdustinedwards/site-helpers/text";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
