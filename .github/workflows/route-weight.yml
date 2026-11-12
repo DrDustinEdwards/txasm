@@ -1,5 +1,5 @@
 # The gzip weight of each route's JS and CSS against .route-weight.json, on every pull request (area 7, D5). Knip and
-# jscpd, which ran beside it here, are in checks.yml now (devkit's pr.yml, warn-only). See no-bloat/README.md.
+# jscpd, which ran beside it here, are in checks.yml now (devkit's pr.yml). See no-bloat/README.md.
 
 name: Route weight
 
