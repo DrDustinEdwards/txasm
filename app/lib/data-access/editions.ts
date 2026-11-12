@@ -1,5 +1,5 @@
-import { and, count, desc, eq, inArray, like } from "drizzle-orm";
-import { inList } from "@dustinedwards/site-runtime/d1";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { inList, likeContains } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   DEFAULT_CURRENCY,
@@ -459,8 +459,6 @@ export function createInstitutions(db: DB) {
     async search(actor: Actor, query: string) {
       const normalized = normalizeInstitutionName(query);
       if (!normalized) return [];
-      // The normalized name has no % or _ (stripped in normalize), so it is safe
-      // to interpolate into the LIKE pattern.
       return db
         .select({
           id: schema.institution.id,
@@ -470,7 +468,7 @@ export function createInstitutions(db: DB) {
           country: schema.institution.country,
         })
         .from(schema.institution)
-        .where(like(schema.institution.normalizedName, `%${normalized}%`))
+        .where(likeContains(schema.institution.normalizedName, normalized))
         .orderBy(schema.institution.name)
         .limit(10);
     },
