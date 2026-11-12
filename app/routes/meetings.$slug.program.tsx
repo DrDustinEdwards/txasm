@@ -20,6 +20,7 @@ import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedu
 import { RichText } from "capsomer/react/trusted-html";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import schedule from "capsomer/schedule.css?url";
+import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 // Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
@@ -157,7 +158,7 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
       <ul className="cap-cluster">
         {sponsors.map((sponsor) => (
           <li key={sponsor.id} className="card small sponsor">
-            {sponsor.url && /^https?:\/\//i.test(sponsor.url) ? (
+            {isHttpUrl(sponsor.url) ? (
               <a href={sponsor.url} className="strong">
                 {sponsor.name}
               </a>
