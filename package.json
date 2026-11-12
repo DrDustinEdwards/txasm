@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.64.0",
-    "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.27.0",
+    "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.37.1",
     "@react-router/dev": "8.5.1",
     "@types/node": "22.20.5",
     "@types/react": "19.2.17",

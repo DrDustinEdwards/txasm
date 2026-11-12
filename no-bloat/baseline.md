@@ -64,4 +64,4 @@ Dependencies: 9 direct runtime, 15 direct dev; 540 packages in `package-lock.jso
 
 ## The CI check
 
-`.github/workflows/no-bloat.yml` runs on every pull request, warn-only: the job and every step are `continue-on-error`, and Knip runs with `--no-exit-code`. Each tool writes to the run's summary; duplication above the baseline percentage, or a route grown past its baseline in `.route-weight.json` by more than 5% and 1 KB, adds a `::warning::`. Locally the three tools take about 4 s (Knip), 2 s (jscpd) and 6 s (build plus weight); with checkout, setup-node with the npm cache and `npm ci`, expect about 1.5 to 2 minutes of Actions time per pull request push.
+Knip and jscpd run in `checks / Repo checks` (`.github/workflows/checks.yml`, devkit's pr.yml) and fail on any count off its baseline; route weight is `.github/workflows/route-weight.yml`. Each tool writes to the run's summary. Locally the three tools take about 4 s (Knip), 2 s (jscpd) and 6 s (build plus weight); with checkout, setup-node with the npm cache and `npm ci`, expect about 1.5 to 2 minutes of Actions time per pull request push.
