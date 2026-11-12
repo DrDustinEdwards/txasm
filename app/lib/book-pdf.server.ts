@@ -12,12 +12,6 @@ import { renderArrangedBook } from "./book";
 import type { Actor, DataAccess } from "./data-access";
 import { PDF_MIME_TYPE } from "./vocab";
 
-// `origin` is the site's: the book names Paged.js and its fonts by path, and the page the
-// browser opens has no address of its own, so pagedPdf's <base> resolves them against the site.
-export function renderBookPdf(html: string, env: Env, origin: string): Promise<Uint8Array> {
-  return pagedPdf(puppeteer, env.BROWSER, html, { origin, what: "the abstract book" });
-}
-
 // The PDF outcome of a publish: the new arranged PDF was produced, the previous
 // PDF was kept because the new render could not run, or no PDF is available yet
 // and one is pending Browser Rendering.
@@ -56,7 +50,12 @@ export async function publishArrangedBook(
   }
 
   try {
-    const bytes = await renderBookPdf(html, env, origin);
+    // `origin` is the site's: the book names Paged.js and its fonts by path, and the page the
+    // browser opens has no address of its own, so pagedPdf's <base> resolves them against the site.
+    const bytes = await pagedPdf(puppeteer, env.BROWSER, html, {
+      origin,
+      what: "the abstract book",
+    });
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const r2Key = `editions/${editionId}/abstract-book-${stamp}.pdf`;
     const season = data.edition.season;
