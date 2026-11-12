@@ -1,4 +1,5 @@
 import { Form, useActionData, useNavigation } from "react-router";
+import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review";
 import { pageTitle } from "~/lib/site-meta";
@@ -115,9 +116,9 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
       </div>
 
       {reviewers.length === 0 ? (
-        <p role="status" className="card card-s card-sunken small">
+        <Banner tone="info">
           No reviewers on this meeting yet. Add reviewers first under Chairs and reviewers.
-        </p>
+        </Banner>
       ) : null}
 
       {abstracts.length === 0 ? (
@@ -132,117 +133,119 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
               rowError && "abstractId" in rowError ? rowError.abstractId === abstract.id : false;
 
             return (
-              <li key={abstract.id} className="card cap-stack" data-gap="4">
-                <div className="cap-spread">
-                  <div className="cap-stack" data-gap="2">
-                    <h2 className="strong">
-                      <RichText
-                        as="span"
-                        html={abstract.title}
-                        fallback={<span className="cap-muted">Untitled</span>}
-                      />
-                    </h2>
-                    <p className="small cap-muted">
-                      {abstract.authorNames.length > 0
-                        ? abstract.authorNames.join(", ")
-                        : "No authors listed"}
-                    </p>
-                  </div>
-                  <span className="cap-badge" data-variant="secondary">
-                    {titleCase(abstract.status)}
-                  </span>
-                </div>
-
-                {showError && rowError && "error" in rowError ? (
-                  <p role="alert" className="cap-alert">
-                    {rowError.error}
-                  </p>
-                ) : null}
-
-                <div className="cap-stack" data-gap="3">
-                  <h3 className="small strong">Reviewers</h3>
-                  {assigned.length === 0 ? (
-                    <p className="small cap-muted">None assigned yet.</p>
-                  ) : (
-                    <ul className="cap-stack" data-gap="2">
-                      {assigned.map((a) => (
-                        <li key={a.assignmentId} className="cap-spread small">
-                          <span>
-                            {a.reviewerName || a.reviewerEmail}{" "}
-                            <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
-                              ({a.reviewSubmitted ? "review submitted" : "assigned"})
-                            </span>
-                          </span>
-                          <Form method="post">
-                            <input type="hidden" name="intent" value="unassign" />
-                            <input type="hidden" name="abstractId" value={abstract.id} />
-                            <input type="hidden" name="assignmentId" value={a.assignmentId} />
-                            <button
-                              type="submit"
-                              className="cap-btn"
-                              data-variant="link"
-                              data-size="sm"
-                            >
-                              Unassign
-                              <span className="cap-sr-only">
-                                {" "}
-                                {a.reviewerName || a.reviewerEmail}
-                              </span>
-                            </button>
-                          </Form>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                {available.length > 0 ? (
-                  <Form method="post" className="cap-cluster" data-align="end">
-                    <input type="hidden" name="intent" value="assign" />
-                    <input type="hidden" name="abstractId" value={abstract.id} />
+              <li key={abstract.id} className="cap-panel">
+                <div className="cap-panel-body cap-stack" data-gap="4">
+                  <div className="cap-spread">
                     <div className="cap-stack" data-gap="2">
-                      <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
-                        Add a reviewer
-                      </label>
-                      <select
-                        id={`reviewer-${abstract.id}`}
-                        name="reviewerId"
-                        defaultValue=""
-                        className="cap-select"
-                      >
-                        <option value="" disabled>
-                          Choose a reviewer
-                        </option>
-                        {available.map((r) => (
-                          <option key={r.userId} value={r.userId}>
-                            {r.name ? `${r.name} (${r.email})` : r.email}
-                          </option>
-                        ))}
-                      </select>
+                      <h2 className="strong">
+                        <RichText
+                          as="span"
+                          html={abstract.title}
+                          fallback={<span className="cap-muted">Untitled</span>}
+                        />
+                      </h2>
+                      <p className="small cap-muted">
+                        {abstract.authorNames.length > 0
+                          ? abstract.authorNames.join(", ")
+                          : "No authors listed"}
+                      </p>
                     </div>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="cap-btn"
-                      data-variant="primary"
-                    >
-                      Assign
-                    </button>
-                  </Form>
-                ) : reviewers.length > 0 ? (
-                  <p className="small cap-muted">
-                    Every reviewer on this meeting is already assigned.
-                  </p>
-                ) : null}
+                    <span className="cap-badge" data-variant="secondary">
+                      {titleCase(abstract.status)}
+                    </span>
+                  </div>
 
-                <p className="small">
-                  <Link
-                    to={`/admin/editions/${edition.id}/review/${abstract.id}`}
-                    className="strong"
-                  >
-                    Read reviews ({abstract.reviewCount})
-                  </Link>
-                </p>
+                  {showError && rowError && "error" in rowError ? (
+                    <p role="alert" className="cap-alert">
+                      {rowError.error}
+                    </p>
+                  ) : null}
+
+                  <div className="cap-stack" data-gap="3">
+                    <h3 className="small strong">Reviewers</h3>
+                    {assigned.length === 0 ? (
+                      <p className="small cap-muted">None assigned yet.</p>
+                    ) : (
+                      <ul className="cap-stack" data-gap="2">
+                        {assigned.map((a) => (
+                          <li key={a.assignmentId} className="cap-spread small">
+                            <span>
+                              {a.reviewerName || a.reviewerEmail}{" "}
+                              <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
+                                ({a.reviewSubmitted ? "review submitted" : "assigned"})
+                              </span>
+                            </span>
+                            <Form method="post">
+                              <input type="hidden" name="intent" value="unassign" />
+                              <input type="hidden" name="abstractId" value={abstract.id} />
+                              <input type="hidden" name="assignmentId" value={a.assignmentId} />
+                              <button
+                                type="submit"
+                                className="cap-btn"
+                                data-variant="link"
+                                data-size="sm"
+                              >
+                                Unassign
+                                <span className="cap-sr-only">
+                                  {" "}
+                                  {a.reviewerName || a.reviewerEmail}
+                                </span>
+                              </button>
+                            </Form>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {available.length > 0 ? (
+                    <Form method="post" className="cap-cluster" data-align="end">
+                      <input type="hidden" name="intent" value="assign" />
+                      <input type="hidden" name="abstractId" value={abstract.id} />
+                      <div className="cap-stack" data-gap="2">
+                        <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
+                          Add a reviewer
+                        </label>
+                        <select
+                          id={`reviewer-${abstract.id}`}
+                          name="reviewerId"
+                          defaultValue=""
+                          className="cap-select"
+                        >
+                          <option value="" disabled>
+                            Choose a reviewer
+                          </option>
+                          {available.map((r) => (
+                            <option key={r.userId} value={r.userId}>
+                              {r.name ? `${r.name} (${r.email})` : r.email}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="cap-btn"
+                        data-variant="primary"
+                      >
+                        Assign
+                      </button>
+                    </Form>
+                  ) : reviewers.length > 0 ? (
+                    <p className="small cap-muted">
+                      Every reviewer on this meeting is already assigned.
+                    </p>
+                  ) : null}
+
+                  <p className="small">
+                    <Link
+                      to={`/admin/editions/${edition.id}/review/${abstract.id}`}
+                      className="strong"
+                    >
+                      Read reviews ({abstract.reviewCount})
+                    </Link>
+                  </p>
+                </div>
               </li>
             );
           })}

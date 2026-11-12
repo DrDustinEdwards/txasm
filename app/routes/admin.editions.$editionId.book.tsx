@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Panel } from "capsomer/react/panel";
 import { Form, useFetcher } from "react-router";
 import { ActionResult } from "capsomer/react/message";
 import { SortableBoard } from "capsomer/react/sortable-list";
@@ -196,79 +197,83 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
       <ActionResult data={fetcher.data} />
 
       {!book ? (
-        <section className="card cap-stack" data-gap="4">
-          <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
-          <fetcher.Form method="post">
-            <input type="hidden" name="intent" value="generate" />
-            <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
-              {busy ? "Generating..." : "Generate draft book"}
-            </button>
-          </fetcher.Form>
-        </section>
+        <Panel>
+          <div className="cap-stack" data-gap="4">
+            <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="generate" />
+              <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
+                {busy ? "Generating..." : "Generate draft book"}
+              </button>
+            </fetcher.Form>
+          </div>
+        </Panel>
       ) : (
         <>
-          <div className="card card-s cap-cluster">
-            <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
-              {published ? "Published" : "Draft"}
-            </span>
-            <span className="small cap-muted">
-              {book.includedCount} included
-              {book.publishedAt ? ` . published ${formatDate(book.publishedAt, DATE_TIME)}` : ""}
-            </span>
-            <span className="cap-cluster cap-push">
-              <a
-                href={`/admin/editions/${edition.id}/book/preview`}
-                target="_blank"
-                rel="noreferrer"
-                className="small strong"
-              >
-                Open preview
-                <span className="cap-sr-only"> (opens in a new tab)</span>
-              </a>
-              {published ? (
-                <fetcher.Form method="post">
-                  <input type="hidden" name="intent" value="reopen" />
-                  <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-                    Reopen to edit
-                  </button>
-                </fetcher.Form>
-              ) : (
-                <fetcher.Form method="post">
-                  <input type="hidden" name="intent" value="publish" />
+          <Panel size="sm">
+            <div className="cap-cluster">
+              <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
+                {published ? "Published" : "Draft"}
+              </span>
+              <span className="small cap-muted">
+                {book.includedCount} included
+                {book.publishedAt ? ` . published ${formatDate(book.publishedAt, DATE_TIME)}` : ""}
+              </span>
+              <span className="cap-cluster cap-push">
+                <a
+                  href={`/admin/editions/${edition.id}/book/preview`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="small strong"
+                >
+                  Open preview
+                  <span className="cap-sr-only"> (opens in a new tab)</span>
+                </a>
+                {published ? (
+                  <fetcher.Form method="post">
+                    <input type="hidden" name="intent" value="reopen" />
+                    <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+                      Reopen to edit
+                    </button>
+                  </fetcher.Form>
+                ) : (
+                  <fetcher.Form method="post">
+                    <input type="hidden" name="intent" value="publish" />
+                    <button
+                      type="submit"
+                      disabled={busy}
+                      className="cap-btn"
+                      data-variant="primary"
+                      data-size="sm"
+                    >
+                      Publish
+                    </button>
+                  </fetcher.Form>
+                )}
+                <fetcher.Form
+                  method="post"
+                  onSubmit={(e) =>
+                    confirmSubmit(e, {
+                      title: "Regenerate the book?",
+                      lead: "This rebuilds the arrangement from the accepted abstracts and discards manual ordering.",
+                      action: "Regenerate",
+                    })
+                  }
+                >
+                  <input type="hidden" name="intent" value="generate" />
                   <button
                     type="submit"
-                    disabled={busy}
+                    disabled={busy || published}
+                    title={published ? "Reopen the book before regenerating." : undefined}
                     className="cap-btn"
-                    data-variant="primary"
                     data-size="sm"
                   >
-                    Publish
+                    Regenerate
                   </button>
                 </fetcher.Form>
-              )}
-              <fetcher.Form
-                method="post"
-                onSubmit={(e) =>
-                  confirmSubmit(e, {
-                    title: "Regenerate the book?",
-                    lead: "This rebuilds the arrangement from the accepted abstracts and discards manual ordering.",
-                    action: "Regenerate",
-                  })
-                }
-              >
-                <input type="hidden" name="intent" value="generate" />
-                <button
-                  type="submit"
-                  disabled={busy || published}
-                  title={published ? "Reopen the book before regenerating." : undefined}
-                  className="cap-btn"
-                  data-size="sm"
-                >
-                  Regenerate
-                </button>
-              </fetcher.Form>
-            </span>
-          </div>
+              </span>
+            </div>
+          </Panel>
 
           {published ? (
             <p className="small cap-muted">

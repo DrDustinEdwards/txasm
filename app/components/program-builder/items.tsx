@@ -1,4 +1,6 @@
 import { Form, useNavigation, useSubmit } from "react-router";
+import { Disclosure } from "capsomer/react/disclosure";
+import { Panel } from "capsomer/react/panel";
 import { SortableList } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
@@ -105,13 +107,11 @@ function ItemBody({ item }: { item: Item }) {
   );
 }
 
-// "Edit item", under the item's title and its buttons, as before. A plain disclosure: Capsomer's Disclosure has
-// no unboxed variant for an inline "Edit item".
+// "Edit item", under the item's title and its buttons, in Capsomer's unboxed inline disclosure.
 function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
   const isCustom = item.abstractId === null && item.speakerId === null;
   return (
-    <details>
-      <summary className="summary tiny cap-muted">Edit item</summary>
+    <Disclosure summary="Edit item" variant="inline" size="sm">
       <Form method="post" className="cap-grid" data-cols="2">
         <input type="hidden" name="intent" value="item-update" />
         <input type="hidden" name="itemId" value={item.id} />
@@ -161,7 +161,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
           </button>
         </div>
       </Form>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -178,101 +178,107 @@ export function AddItemForms({
 }) {
   return (
     <div className="cap-stack" data-gap="4">
-      <Form method="post" className="card card-s cap-stack" data-gap="3">
-        <input type="hidden" name="intent" value="item-add-abstract" />
-        <input type="hidden" name="sessionId" value={session.id} />
-        <label htmlFor={`add-abstract-${session.id}`} className="cap-field-label">
-          Add an accepted abstract
-        </label>
-        {unplaced.length === 0 ? (
-          <p className="small cap-muted">No unplaced accepted abstracts.</p>
-        ) : (
-          <>
-            <select
-              id={`add-abstract-${session.id}`}
-              name="abstractId"
-              defaultValue=""
-              className="cap-select"
-            >
-              <option value="" disabled>
-                Choose an abstract
-              </option>
-              {unplaced.map((option) => (
-                <option key={option.abstractId} value={option.abstractId}>
-                  {option.code ? `${option.code} ` : ""}
-                  {richTextPlain(option.title)}
-                  {option.presentingAuthorName ? ` (${option.presentingAuthorName})` : ""}
+      <Panel size="sm">
+        <Form method="post" className="cap-stack" data-gap="3">
+          <input type="hidden" name="intent" value="item-add-abstract" />
+          <input type="hidden" name="sessionId" value={session.id} />
+          <label htmlFor={`add-abstract-${session.id}`} className="cap-field-label">
+            Add an accepted abstract
+          </label>
+          {unplaced.length === 0 ? (
+            <p className="small cap-muted">No unplaced accepted abstracts.</p>
+          ) : (
+            <>
+              <select
+                id={`add-abstract-${session.id}`}
+                name="abstractId"
+                defaultValue=""
+                className="cap-select"
+              >
+                <option value="" disabled>
+                  Choose an abstract
                 </option>
-              ))}
-            </select>
-            <KindSelect id={`add-abstract-kind-${session.id}`} defaultValue="talk" />
-            <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-              Add abstract
-            </button>
-          </>
-        )}
-      </Form>
+                {unplaced.map((option) => (
+                  <option key={option.abstractId} value={option.abstractId}>
+                    {option.code ? `${option.code} ` : ""}
+                    {richTextPlain(option.title)}
+                    {option.presentingAuthorName ? ` (${option.presentingAuthorName})` : ""}
+                  </option>
+                ))}
+              </select>
+              <KindSelect id={`add-abstract-kind-${session.id}`} defaultValue="talk" />
+              <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+                Add abstract
+              </button>
+            </>
+          )}
+        </Form>
+      </Panel>
 
-      <Form method="post" className="card card-s cap-stack" data-gap="3">
-        <input type="hidden" name="intent" value="item-add-speaker" />
-        <input type="hidden" name="sessionId" value={session.id} />
-        <label htmlFor={`add-speaker-${session.id}`} className="cap-field-label">
-          Add an invited speaker
-        </label>
-        {speakers.length === 0 ? (
-          <p className="small cap-muted">No invited speakers yet.</p>
-        ) : (
-          <>
-            <select
-              id={`add-speaker-${session.id}`}
-              name="speakerId"
-              defaultValue=""
-              className="cap-select"
-            >
-              <option value="" disabled>
-                Choose a speaker
-              </option>
-              {speakers.map((speaker) => (
-                <option key={speaker.id} value={speaker.id}>
-                  {speaker.name}
-                  {speaker.role ? ` (${speakerRoleLabel(speaker.role)})` : ""}
+      <Panel size="sm">
+        <Form method="post" className="cap-stack" data-gap="3">
+          <input type="hidden" name="intent" value="item-add-speaker" />
+          <input type="hidden" name="sessionId" value={session.id} />
+          <label htmlFor={`add-speaker-${session.id}`} className="cap-field-label">
+            Add an invited speaker
+          </label>
+          {speakers.length === 0 ? (
+            <p className="small cap-muted">No invited speakers yet.</p>
+          ) : (
+            <>
+              <select
+                id={`add-speaker-${session.id}`}
+                name="speakerId"
+                defaultValue=""
+                className="cap-select"
+              >
+                <option value="" disabled>
+                  Choose a speaker
                 </option>
-              ))}
-            </select>
-            <KindSelect id={`add-speaker-kind-${session.id}`} defaultValue="keynote" />
-            <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-              Add speaker
-            </button>
-          </>
-        )}
-      </Form>
+                {speakers.map((speaker) => (
+                  <option key={speaker.id} value={speaker.id}>
+                    {speaker.name}
+                    {speaker.role ? ` (${speakerRoleLabel(speaker.role)})` : ""}
+                  </option>
+                ))}
+              </select>
+              <KindSelect id={`add-speaker-kind-${session.id}`} defaultValue="keynote" />
+              <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+                Add speaker
+              </button>
+            </>
+          )}
+        </Form>
+      </Panel>
 
-      <Form method="post" className="card card-s cap-stack" data-gap="3">
-        <input type="hidden" name="intent" value="item-add-custom" />
-        <input type="hidden" name="sessionId" value={session.id} />
-        <label htmlFor={`custom-title-${session.id}`} className="cap-field-label">
-          Add a custom item
-        </label>
-        <input
-          id={`custom-title-${session.id}`}
-          name="customTitle"
-          type="text"
-          required
-          placeholder="Break, lunch, poster session"
-          className="cap-input"
-        />
-        <KindSelect id={`custom-kind-${session.id}`} defaultValue="other" />
-        <input
-          name="note"
-          type="text"
-          aria-label="Custom item note"
-          placeholder="Optional note"
-          className="cap-input"
-        />
-        <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-          Add item
-        </button>
-      </Form>
+      <Panel size="sm">
+        <Form method="post" className="cap-stack" data-gap="3">
+          <input type="hidden" name="intent" value="item-add-custom" />
+          <input type="hidden" name="sessionId" value={session.id} />
+          <label htmlFor={`custom-title-${session.id}`} className="cap-field-label">
+            Add a custom item
+          </label>
+          <input
+            id={`custom-title-${session.id}`}
+            name="customTitle"
+            type="text"
+            required
+            placeholder="Break, lunch, poster session"
+            className="cap-input"
+          />
+          <KindSelect id={`custom-kind-${session.id}`} defaultValue="other" />
+          <input
+            name="note"
+            type="text"
+            aria-label="Custom item note"
+            placeholder="Optional note"
+            className="cap-input"
+          />
+          <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+            Add item
+          </button>
+        </Form>
+      </Panel>
     </div>
   );
 }

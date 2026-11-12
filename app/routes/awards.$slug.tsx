@@ -1,4 +1,6 @@
 import { routerRenderLink } from "capsomer/react/link";
+import { Row, RowList } from "capsomer/react/row-list";
+import { Panel } from "capsomer/react/panel";
 import { htmlToText } from "@drdustinedwards/site-helpers/text";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { Empty } from "capsomer/react/empty";
@@ -99,26 +101,29 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
                   data-gap="3"
                 >
                   {bucket.category ? <h3 className="cap-label">{bucket.category}</h3> : null}
-                  <ul className="card-list">
-                    {bucket.recipients.map((recipient) => (
-                      <li key={recipient.id}>
-                        <p className="cap-cluster recipient">
-                          {recipient.placement ? (
-                            <Pill variant="secondary">{recipient.placement}</Pill>
-                          ) : null}
-                          <span>
-                            <span className="strong">{recipient.personName}</span>
-                            {recipient.institution ? (
-                              <span className="cap-muted"> &middot; {recipient.institution}</span>
-                            ) : null}
-                          </span>
-                        </p>
-                        {recipient.mentor ? (
-                          <p className="small cap-muted">Mentor: {recipient.mentor}</p>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
+                  <Panel flush>
+                    <RowList label={bucket.category ?? `Recipients ${group.year}`}>
+                      {bucket.recipients.map((recipient) => (
+                        <Row
+                          key={recipient.id}
+                          status={
+                            recipient.placement ? (
+                              <Pill variant="secondary">{recipient.placement}</Pill>
+                            ) : undefined
+                          }
+                          title={recipient.personName}
+                          detail={
+                            [
+                              recipient.institution,
+                              recipient.mentor ? `Mentor: ${recipient.mentor}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ") || undefined
+                          }
+                        />
+                      ))}
+                    </RowList>
+                  </Panel>
                 </div>
               ))}
             </section>

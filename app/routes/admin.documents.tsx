@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { prepareUpload, RefusedError } from "@dustinedwards/site-api";
 import { Link } from "capsomer/react/link";
@@ -506,84 +507,83 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       ) : (
         <ul className="cap-stack" data-gap="4">
           {documents.map((doc) => (
-            <li key={doc.id} className="card cap-stack" data-gap="4">
-              <div className="cap-spread">
-                <div className="cap-cluster shrink" data-align="start">
-                  {doc.fileKind === "image" && doc.hasFile ? (
-                    <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
-                  ) : null}
-                  <div className="shrink">
-                    <p className="strong">{doc.title}</p>
-                    <p className="small cap-muted">
-                      {[
-                        DOCUMENT_CATEGORY_LABELS[doc.category],
-                        doc.status === "published" ? "Published" : "Draft",
-                        doc.source === "generated" ? "Generated" : "Uploaded",
-                        doc.hasFile ? "" : "No file",
-                      ]
-                        .filter((p) => p.length > 0)
-                        .join(" · ")}
-                    </p>
+            <li key={doc.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div className="cap-cluster shrink" data-align="start">
+                    {doc.fileKind === "image" && doc.hasFile ? (
+                      <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
+                    ) : null}
+                    <div className="shrink">
+                      <p className="strong">{doc.title}</p>
+                      <p className="small cap-muted">
+                        {[
+                          DOCUMENT_CATEGORY_LABELS[doc.category],
+                          doc.status === "published" ? "Published" : "Draft",
+                          doc.source === "generated" ? "Generated" : "Uploaded",
+                          doc.hasFile ? "" : "No file",
+                        ]
+                          .filter((p) => p.length > 0)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="cap-cluster">
+                    {doc.status === "published" ? (
+                      <a
+                        href={`/documents/${doc.slug}/inline`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="small strong"
+                      >
+                        View
+                        <span className="cap-sr-only"> (opens in a new tab)</span>
+                      </a>
+                    ) : null}
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="remove" />
+                      <input type="hidden" name="documentId" value={doc.id} />
+                      <button
+                        type="submit"
+                        onClick={(e) =>
+                          confirmSubmit(e, {
+                            title: `Remove ${doc.title}?`,
+                            action: "Remove document",
+                          })
+                        }
+                        className="small strong"
+                      >
+                        Remove
+                      </button>
+                    </Form>
                   </div>
                 </div>
-                <div className="cap-cluster">
-                  {doc.status === "published" ? (
-                    <a
-                      href={`/documents/${doc.slug}/inline`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="small strong"
-                    >
-                      View
-                      <span className="cap-sr-only"> (opens in a new tab)</span>
-                    </a>
-                  ) : null}
-                  <Form method="post">
-                    <input type="hidden" name="intent" value="remove" />
+
+                <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                    <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="documentId" value={doc.id} />
-                    <button
-                      type="submit"
-                      onClick={(e) =>
-                        confirmSubmit(e, {
-                          title: `Remove ${doc.title}?`,
-                          action: "Remove document",
-                        })
-                      }
-                      className="small strong"
-                    >
-                      Remove
+                    <MetaFields doc={doc} editions={editions} />
+                    <label className="cap-check">
+                      <input
+                        type="checkbox"
+                        name="publish"
+                        defaultChecked={doc.status === "published"}
+                      />
+                      Published
+                    </label>
+                    <button type="submit" disabled={submitting} className="cap-btn">
+                      Save details
                     </button>
                   </Form>
-                </div>
+                </Disclosure>
               </div>
-
-              <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
-                <Form method="post" className="cap-stack" data-gap="4" noValidate>
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="documentId" value={doc.id} />
-                  <MetaFields doc={doc} editions={editions} />
-                  <label className="cap-check">
-                    <input
-                      type="checkbox"
-                      name="publish"
-                      defaultChecked={doc.status === "published"}
-                    />
-                    Published
-                  </label>
-                  <button type="submit" disabled={submitting} className="cap-btn">
-                    Save details
-                  </button>
-                </Form>
-              </Disclosure>
             </li>
           ))}
         </ul>
       )}
 
-      <section aria-labelledby="upload-heading" className="card cap-stack">
-        <h2 id="upload-heading" className="subsection-title">
-          Upload a document
-        </h2>
+      <Panel title="Upload a document" headingId="upload-heading">
         <Form method="post" encType="multipart/form-data" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
@@ -612,7 +612,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
             {submitting ? "Uploading..." : "Upload document"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

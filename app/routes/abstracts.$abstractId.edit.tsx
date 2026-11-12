@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Banner } from "capsomer/react/banner";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
@@ -273,9 +274,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
         <DecisionPanel decision={decision} />
-        <p role="status" className="card card-s card-sunken cap-muted">
+        <Banner tone="warn">
           The submission deadline has passed. This abstract can no longer be edited.
-        </p>
+        </Banner>
         <ReadOnlyAbstract
           bodyText={abstract.bodyText}
           authors={loaderData.authors}

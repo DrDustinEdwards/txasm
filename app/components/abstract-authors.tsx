@@ -1,4 +1,5 @@
 import { ComboboxFreeText, type ComboboxOption } from "capsomer/react/combobox";
+import { Panel } from "capsomer/react/panel";
 import { SortableList, useRows } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
@@ -81,90 +82,91 @@ export function AffiliationsFieldset({
   const rows = useRows(affiliations, onChange);
   const oldIndex = (id: string) => rows.items.findIndex((r) => r.id === id);
   return (
-    <fieldset className="card cap-stack">
-      <legend className="legend">Affiliations</legend>
-      <p className="small cap-muted">
-        Number each affiliation once, then attach it to authors below. Start typing to pick a known
-        institution or add a new one.
-      </p>
-      <SortableList
-        aria-label="Affiliations"
-        layout="stack"
-        className="sort-plain"
-        steps="labeled"
-        removeStyle="bordered"
-        grip={false}
-        items={rows.items}
-        getId={rows.getId}
-        getLabel={(row) => row.value.institution.trim() || `Affiliation ${row.index + 1}`}
-        renderHead={(_, { index }) => <span className="small">Affiliation {index + 1}</span>}
-        onReorder={(order) => {
-          renumber(order.map(oldIndex));
-          rows.onReorder(order);
-        }}
-        onRemove={(id) => {
-          const gone = oldIndex(id);
-          renumber(rows.items.map((r) => r.index).filter((i) => i !== gone));
-          rows.onRemove(id);
-        }}
-        onAdd={() => onChange([...affiliations, emptyAffiliation()])}
-        addLabel="Add affiliation"
-        empty={<p className="small cap-muted">No affiliations added.</p>}
-        renderItem={({ value: affiliation, index }) => (
-          <div className="cap-grid" data-cols="2">
-            <div className="span-2">
-              <ComboboxFreeText
-                id={`institution-${index}`}
-                label="Institution"
-                value={affiliation.institution}
-                onValueChange={(name) => updateAffiliation(index, { institution: name })}
-                onPick={(option) =>
-                  selectInstitution(index, JSON.parse(option.value) as InstitutionSuggestion)
-                }
-                search={findInstitutions}
-                minSearchLength={2}
-              />
+    <Panel title="Affiliations">
+      <div className="cap-stack">
+        <p className="small cap-muted">
+          Number each affiliation once, then attach it to authors below. Start typing to pick a
+          known institution or add a new one.
+        </p>
+        <SortableList
+          aria-label="Affiliations"
+          layout="stack"
+          className="sort-plain"
+          steps="labeled"
+          removeStyle="bordered"
+          grip={false}
+          items={rows.items}
+          getId={rows.getId}
+          getLabel={(row) => row.value.institution.trim() || `Affiliation ${row.index + 1}`}
+          renderHead={(_, { index }) => <span className="small">Affiliation {index + 1}</span>}
+          onReorder={(order) => {
+            renumber(order.map(oldIndex));
+            rows.onReorder(order);
+          }}
+          onRemove={(id) => {
+            const gone = oldIndex(id);
+            renumber(rows.items.map((r) => r.index).filter((i) => i !== gone));
+            rows.onRemove(id);
+          }}
+          onAdd={() => onChange([...affiliations, emptyAffiliation()])}
+          addLabel="Add affiliation"
+          empty={<p className="small cap-muted">No affiliations added.</p>}
+          renderItem={({ value: affiliation, index }) => (
+            <div className="cap-grid" data-cols="2">
+              <div className="span-2">
+                <ComboboxFreeText
+                  id={`institution-${index}`}
+                  label="Institution"
+                  value={affiliation.institution}
+                  onValueChange={(name) => updateAffiliation(index, { institution: name })}
+                  onPick={(option) =>
+                    selectInstitution(index, JSON.parse(option.value) as InstitutionSuggestion)
+                  }
+                  search={findInstitutions}
+                  minSearchLength={2}
+                />
+              </div>
+              <label className="cap-stack" data-gap="2">
+                <span className="cap-field-label">Department</span>
+                <input
+                  type="text"
+                  value={affiliation.department}
+                  onChange={(e) => updateAffiliation(index, { department: e.target.value })}
+                  className="cap-input"
+                />
+              </label>
+              <label className="cap-stack" data-gap="2">
+                <span className="cap-field-label">City</span>
+                <input
+                  type="text"
+                  value={affiliation.city}
+                  onChange={(e) => updateAffiliation(index, { city: e.target.value })}
+                  className="cap-input"
+                />
+              </label>
+              <label className="cap-stack" data-gap="2">
+                <span className="cap-field-label">State or province</span>
+                <input
+                  type="text"
+                  value={affiliation.region}
+                  onChange={(e) => updateAffiliation(index, { region: e.target.value })}
+                  className="cap-input"
+                />
+              </label>
+              <label className="cap-stack" data-gap="2">
+                <span className="cap-field-label">Country</span>
+                <input
+                  type="text"
+                  value={affiliation.country}
+                  onChange={(e) => updateAffiliation(index, { country: e.target.value })}
+                  className="cap-input"
+                />
+              </label>
             </div>
-            <label className="cap-stack" data-gap="2">
-              <span className="cap-field-label">Department</span>
-              <input
-                type="text"
-                value={affiliation.department}
-                onChange={(e) => updateAffiliation(index, { department: e.target.value })}
-                className="cap-input"
-              />
-            </label>
-            <label className="cap-stack" data-gap="2">
-              <span className="cap-field-label">City</span>
-              <input
-                type="text"
-                value={affiliation.city}
-                onChange={(e) => updateAffiliation(index, { city: e.target.value })}
-                className="cap-input"
-              />
-            </label>
-            <label className="cap-stack" data-gap="2">
-              <span className="cap-field-label">State or province</span>
-              <input
-                type="text"
-                value={affiliation.region}
-                onChange={(e) => updateAffiliation(index, { region: e.target.value })}
-                className="cap-input"
-              />
-            </label>
-            <label className="cap-stack" data-gap="2">
-              <span className="cap-field-label">Country</span>
-              <input
-                type="text"
-                value={affiliation.country}
-                onChange={(e) => updateAffiliation(index, { country: e.target.value })}
-                className="cap-input"
-              />
-            </label>
-          </div>
-        )}
-      />
-    </fieldset>
+          )}
+        />
+      </div>
+    </Panel>
   );
 }
 
@@ -185,95 +187,96 @@ export function AuthorsFieldset({
 }) {
   const rows = useRows(authors, onChange);
   return (
-    <fieldset className="card cap-stack">
-      <legend className="legend">Authors</legend>
-      <SortableList
-        aria-label="Authors"
-        layout="stack"
-        className="sort-card"
-        steps="labeled"
-        removeStyle="bordered"
-        grip={false}
-        items={rows.items}
-        getId={rows.getId}
-        getLabel={(row) => authorName(row.value) || `Author ${row.index + 1}`}
-        renderHead={(_, { index }) => <span className="small">Author {index + 1}</span>}
-        onReorder={rows.onReorder}
-        onRemove={rows.onRemove}
-        onAdd={() => onChange([...authors, emptyAuthor()])}
-        addLabel="Add author"
-        renderItem={({ value: author, index }) => (
-          <div className="cap-stack" data-gap="4">
-            <div className="cap-grid" data-cols="2">
-              <label className="cap-stack" data-gap="2">
-                <span className="cap-field-label">First name</span>
-                <input
-                  type="text"
-                  value={author.firstName}
-                  onChange={(e) => updateAuthor(index, { firstName: e.target.value })}
-                  className="cap-input"
-                />
-              </label>
-              <label className="cap-stack" data-gap="2">
-                <span className="cap-field-label">Last name</span>
-                <input
-                  type="text"
-                  value={author.lastName}
-                  onChange={(e) => updateAuthor(index, { lastName: e.target.value })}
-                  className="cap-input"
-                />
-              </label>
-              <label className="cap-stack span-2" data-gap="2">
-                <span className="cap-field-label">Email</span>
-                <input
-                  type="email"
-                  value={author.email}
-                  onChange={(e) => updateAuthor(index, { email: e.target.value })}
-                  className="cap-input"
-                />
-              </label>
+    <Panel title="Authors">
+      <div className="cap-stack">
+        <SortableList
+          aria-label="Authors"
+          layout="stack"
+          className="sort-card"
+          steps="labeled"
+          removeStyle="bordered"
+          grip={false}
+          items={rows.items}
+          getId={rows.getId}
+          getLabel={(row) => authorName(row.value) || `Author ${row.index + 1}`}
+          renderHead={(_, { index }) => <span className="small">Author {index + 1}</span>}
+          onReorder={rows.onReorder}
+          onRemove={rows.onRemove}
+          onAdd={() => onChange([...authors, emptyAuthor()])}
+          addLabel="Add author"
+          renderItem={({ value: author, index }) => (
+            <div className="cap-stack" data-gap="4">
+              <div className="cap-grid" data-cols="2">
+                <label className="cap-stack" data-gap="2">
+                  <span className="cap-field-label">First name</span>
+                  <input
+                    type="text"
+                    value={author.firstName}
+                    onChange={(e) => updateAuthor(index, { firstName: e.target.value })}
+                    className="cap-input"
+                  />
+                </label>
+                <label className="cap-stack" data-gap="2">
+                  <span className="cap-field-label">Last name</span>
+                  <input
+                    type="text"
+                    value={author.lastName}
+                    onChange={(e) => updateAuthor(index, { lastName: e.target.value })}
+                    className="cap-input"
+                  />
+                </label>
+                <label className="cap-stack span-2" data-gap="2">
+                  <span className="cap-field-label">Email</span>
+                  <input
+                    type="email"
+                    value={author.email}
+                    onChange={(e) => updateAuthor(index, { email: e.target.value })}
+                    className="cap-input"
+                  />
+                </label>
+              </div>
+              <div className="cap-cluster">
+                <label className="cap-check">
+                  <input
+                    type="checkbox"
+                    checked={author.isPresenting}
+                    onChange={(e) => updateAuthor(index, { isPresenting: e.target.checked })}
+                  />
+                  Presenting
+                </label>
+                <label className="cap-check">
+                  <input
+                    type="checkbox"
+                    checked={author.isCorresponding}
+                    onChange={(e) => updateAuthor(index, { isCorresponding: e.target.checked })}
+                  />
+                  Corresponding
+                </label>
+              </div>
+              {affiliations.length > 0 ? (
+                <fieldset className="cap-stack" data-gap="2">
+                  <legend className="small">Affiliations</legend>
+                  <div className="cap-cluster">
+                    {affiliations.map((_, affIndex) => {
+                      const ordinal = affIndex + 1;
+                      return (
+                        <label key={affIndex} className="cap-cluster small">
+                          <input
+                            type="checkbox"
+                            checked={author.affiliationOrdinals.includes(ordinal)}
+                            onChange={() => toggleAffiliationForAuthor(index, ordinal)}
+                          />
+                          {ordinal}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              ) : null}
             </div>
-            <div className="cap-cluster">
-              <label className="cap-check">
-                <input
-                  type="checkbox"
-                  checked={author.isPresenting}
-                  onChange={(e) => updateAuthor(index, { isPresenting: e.target.checked })}
-                />
-                Presenting
-              </label>
-              <label className="cap-check">
-                <input
-                  type="checkbox"
-                  checked={author.isCorresponding}
-                  onChange={(e) => updateAuthor(index, { isCorresponding: e.target.checked })}
-                />
-                Corresponding
-              </label>
-            </div>
-            {affiliations.length > 0 ? (
-              <fieldset className="cap-stack" data-gap="2">
-                <legend className="small">Affiliations</legend>
-                <div className="cap-cluster">
-                  {affiliations.map((_, affIndex) => {
-                    const ordinal = affIndex + 1;
-                    return (
-                      <label key={affIndex} className="cap-cluster small">
-                        <input
-                          type="checkbox"
-                          checked={author.affiliationOrdinals.includes(ordinal)}
-                          onChange={() => toggleAffiliationForAuthor(index, ordinal)}
-                        />
-                        {ordinal}
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            ) : null}
-          </div>
-        )}
-      />
-    </fieldset>
+          )}
+        />
+      </div>
+    </Panel>
   );
 }

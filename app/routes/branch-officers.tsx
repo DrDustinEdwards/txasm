@@ -1,4 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "capsomer/react/tabs";
+import { Row, RowList } from "capsomer/react/row-list";
+import { Panel } from "capsomer/react/panel";
 import type { Route } from "./+types/branch-officers";
 import { pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -29,22 +31,26 @@ export function meta({ matches }: Route.MetaArgs) {
 
 function OfficerCard({ officer }: { officer: Officer }) {
   return (
-    <article className="card">
-      <p className="cap-label">{officer.role}</p>
-      <h3 className="subsection-title">{officer.name}</h3>
-      <p className="small cap-muted">{officer.affiliation}</p>
-      <p className="small cap-muted">{officer.location}</p>
-      <div className="cap-stack small officer-contact" data-gap="2">
-        {officer.phone ? (
-          <p>
-            <a href={`tel:${officer.phone}`}>{officer.phone}</a>
-          </p>
-        ) : null}
-        {officer.email ? (
-          <p>
-            <a href={`mailto:${officer.email}`}>{officer.email}</a>
-          </p>
-        ) : null}
+    <article className="cap-card">
+      <header>
+        <p className="cap-label">{officer.role}</p>
+        <h3>{officer.name}</h3>
+      </header>
+      <div>
+        <p className="small cap-muted">{officer.affiliation}</p>
+        <p className="small cap-muted">{officer.location}</p>
+        <div className="cap-stack small officer-contact" data-gap="2">
+          {officer.phone ? (
+            <p>
+              <a href={`tel:${officer.phone}`}>{officer.phone}</a>
+            </p>
+          ) : null}
+          {officer.email ? (
+            <p>
+              <a href={`mailto:${officer.email}`}>{officer.email}</a>
+            </p>
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -52,10 +58,10 @@ function OfficerCard({ officer }: { officer: Officer }) {
 
 function PastOfficerRow({ entry }: { entry: PastOfficer }) {
   return (
-    <li className="past-officer">
-      <span className="small strong cap-muted">{entry.term ?? "Dates not recorded"}</span>
-      <span>
-        {entry.name ? (
+    <Row
+      status={<span className="small strong cap-muted">{entry.term ?? "Dates not recorded"}</span>}
+      title={
+        entry.name ? (
           <>
             <span className="strong">{entry.name}</span>
             {entry.institution ? (
@@ -64,9 +70,9 @@ function PastOfficerRow({ entry }: { entry: PastOfficer }) {
           </>
         ) : (
           <span className="cap-muted">Not recorded</span>
-        )}
-      </span>
-    </li>
+        )
+      }
+    />
   );
 }
 
@@ -85,11 +91,13 @@ function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
       </TabsList>
       {tabs.map((tab) => (
         <TabsContent key={tab.id} value={tab.id}>
-          <ul className="card-list">
-            {tab.entries.map((entry, entryIndex) => (
-              <PastOfficerRow key={`${tab.id}-${entryIndex}`} entry={entry} />
-            ))}
-          </ul>
+          <Panel flush>
+            <RowList label={tab.label}>
+              {tab.entries.map((entry, entryIndex) => (
+                <PastOfficerRow key={`${tab.id}-${entryIndex}`} entry={entry} />
+              ))}
+            </RowList>
+          </Panel>
         </TabsContent>
       ))}
     </Tabs>
@@ -128,9 +136,11 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
         </h2>
         <ul className="cap-grid" data-cols="2">
           {board.map((member) => (
-            <li key={member.name} className="card">
-              <p className="strong">{member.name}</p>
-              <p className="small cap-muted">{member.institution}</p>
+            <li key={member.name}>
+              <article className="cap-card">
+                <h3>{member.name}</h3>
+                <p className="small cap-muted">{member.institution}</p>
+              </article>
             </li>
           ))}
         </ul>

@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
 import { pageTitle } from "~/lib/site-meta";
@@ -162,8 +163,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
         </div>
       )}
 
-      <section className="card cap-stack">
-        <h2 className="subsection-title">Add a category</h2>
+      <Panel title="Add a category">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <div className="cap-stack" data-gap="2">
@@ -236,7 +236,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

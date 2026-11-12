@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/submit.$slug";
 import { pageTitle } from "~/lib/site-meta";
@@ -121,19 +122,19 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       {notYet ? (
-        <p className="card card-s card-sunken">
+        <Banner tone="info">
           Submission is not open yet for this meeting
           {edition.submissionOpensAt
             ? `. It opens ${formatDate(edition.submissionOpensAt, DATE_TIME)}.`
             : "."}
-        </p>
+        </Banner>
       ) : null}
 
       {closed ? (
-        <p className="card card-s card-sunken">
+        <Banner tone="warn">
           The submission deadline has passed. New abstracts can no longer be started for this
           meeting.
-        </p>
+        </Banner>
       ) : null}
 
       {mine.length > 0 ? (

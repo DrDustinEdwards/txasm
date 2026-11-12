@@ -110,17 +110,21 @@ export default function Sponsorship() {
         </h2>
         <ul className="cap-grid" data-cols="2">
           {SPONSOR_TIERS.map((tier) => (
-            <li key={tier.name} className="card cap-stack" data-gap="2">
-              <div className="cap-spread">
-                <h3 className="subsection-title">{tier.name}</h3>
-                <p className="subsection-title">{tier.amount}</p>
-              </div>
-              <p className="small cap-muted">{tier.audience}</p>
-              <ul className="bullets small cap-muted tier-benefits">
-                {tier.benefits.map((benefit) => (
-                  <li key={benefit}>{benefit}</li>
-                ))}
-              </ul>
+            <li key={tier.name}>
+              <article className="cap-card">
+                <hgroup>
+                  <h3>{tier.name}</h3>
+                  <p>{tier.amount}</p>
+                </hgroup>
+                <div className="cap-stack" data-gap="2">
+                  <p className="small cap-muted">{tier.audience}</p>
+                  <ul className="bullets small cap-muted tier-benefits">
+                    {tier.benefits.map((benefit) => (
+                      <li key={benefit}>{benefit}</li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
             </li>
           ))}
         </ul>

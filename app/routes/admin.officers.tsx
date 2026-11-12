@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.officers";
@@ -177,39 +178,41 @@ function summary(row: Row): string {
 function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
   const section = row.section;
   return (
-    <li className="card cap-stack" data-gap="4">
-      <div className="cap-spread">
-        <div className="shrink">
-          {row.role ? <p className="cap-label">{row.role}</p> : null}
-          <p className="small">{summary(row)}</p>
+    <li className="cap-panel">
+      <div className="cap-panel-body cap-stack" data-gap="4">
+        <div className="cap-spread">
+          <div className="shrink">
+            {row.role ? <p className="cap-label">{row.role}</p> : null}
+            <p className="small">{summary(row)}</p>
+          </div>
+          <Form method="post">
+            <input type="hidden" name="intent" value="remove" />
+            <input type="hidden" name="id" value={row.id} />
+            <button
+              type="submit"
+              onClick={(e) =>
+                confirmSubmit(e, {
+                  title: `Remove ${row.name ?? "this entry"}?`,
+                  action: "Remove entry",
+                })
+              }
+              className="small strong"
+            >
+              Remove
+            </button>
+          </Form>
         </div>
-        <Form method="post">
-          <input type="hidden" name="intent" value="remove" />
-          <input type="hidden" name="id" value={row.id} />
-          <button
-            type="submit"
-            onClick={(e) =>
-              confirmSubmit(e, {
-                title: `Remove ${row.name ?? "this entry"}?`,
-                action: "Remove entry",
-              })
-            }
-            className="small strong"
-          >
-            Remove
-          </button>
-        </Form>
+        <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
+          <Form method="post" className="cap-stack" data-gap="4" noValidate>
+            <input type="hidden" name="intent" value="update" />
+            <input type="hidden" name="id" value={row.id} />
+            <OfficerFields row={row} section={section} />
+            <button type="submit" disabled={submitting} className="cap-btn">
+              Save
+            </button>
+          </Form>
+        </Disclosure>
       </div>
-      <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
-        <Form method="post" className="cap-stack" data-gap="4" noValidate>
-          <input type="hidden" name="intent" value="update" />
-          <input type="hidden" name="id" value={row.id} />
-          <OfficerFields row={row} section={section} />
-          <button type="submit" disabled={submitting} className="cap-btn">
-            Save
-          </button>
-        </Form>
-      </Disclosure>
     </li>
   );
 }
@@ -288,10 +291,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
         );
       })}
 
-      <section aria-labelledby="add-officer-heading" className="card cap-stack">
-        <h2 id="add-officer-heading" className="subsection-title">
-          Add a person
-        </h2>
+      <Panel title="Add a person" headingId="add-officer-heading">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <OfficerFields section="officer" />
@@ -299,7 +299,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

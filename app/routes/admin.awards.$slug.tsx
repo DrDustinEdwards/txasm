@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.awards.$slug";
@@ -265,10 +266,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <section aria-labelledby="definition-heading" className="card cap-stack">
-        <h2 id="definition-heading" className="subsection-title">
-          Award definition
-        </h2>
+      <Panel title="Award definition" headingId="definition-heading">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="award-update" />
           <div className="cap-grid" data-cols="2">
@@ -342,7 +340,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
             Save definition
           </button>
         </Form>
-      </section>
+      </Panel>
 
       <section aria-labelledby="recipients-heading" className="cap-stack">
         <h2 id="recipients-heading" className="subsection-title">
@@ -353,59 +351,58 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
         ) : (
           <ul className="cap-stack" data-gap="4">
             {recipients.map((recipient) => (
-              <li key={recipient.id} className="card cap-stack" data-gap="4">
-                <div className="cap-spread">
-                  <div className="shrink">
-                    <p className="strong">
-                      {recipient.year} &middot; {recipient.personName}
-                    </p>
-                    <p className="small cap-muted">
-                      {[
-                        recipient.category ?? "",
-                        recipient.placement ?? "",
-                        recipient.institution ?? "",
-                        recipient.mentor ? `Mentor: ${recipient.mentor}` : "",
-                      ]
-                        .filter((p) => p.length > 0)
-                        .join(" · ")}
-                    </p>
+              <li key={recipient.id} className="cap-panel">
+                <div className="cap-panel-body cap-stack" data-gap="4">
+                  <div className="cap-spread">
+                    <div className="shrink">
+                      <p className="strong">
+                        {recipient.year} &middot; {recipient.personName}
+                      </p>
+                      <p className="small cap-muted">
+                        {[
+                          recipient.category ?? "",
+                          recipient.placement ?? "",
+                          recipient.institution ?? "",
+                          recipient.mentor ? `Mentor: ${recipient.mentor}` : "",
+                        ]
+                          .filter((p) => p.length > 0)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="recipient-remove" />
+                      <input type="hidden" name="recipientId" value={recipient.id} />
+                      <button
+                        type="submit"
+                        onClick={(e) =>
+                          confirmSubmit(e, {
+                            title: `Remove ${recipient.personName}?`,
+                            action: "Remove recipient",
+                          })
+                        }
+                        className="small strong"
+                      >
+                        Remove
+                      </button>
+                    </Form>
                   </div>
-                  <Form method="post">
-                    <input type="hidden" name="intent" value="recipient-remove" />
-                    <input type="hidden" name="recipientId" value={recipient.id} />
-                    <button
-                      type="submit"
-                      onClick={(e) =>
-                        confirmSubmit(e, {
-                          title: `Remove ${recipient.personName}?`,
-                          action: "Remove recipient",
-                        })
-                      }
-                      className="small strong"
-                    >
-                      Remove
-                    </button>
-                  </Form>
+                  <Disclosure summary="Edit recipient" variant="card" size="sm" marker="triangle">
+                    <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                      <input type="hidden" name="intent" value="recipient-update" />
+                      <input type="hidden" name="recipientId" value={recipient.id} />
+                      <RecipientFields recipient={recipient} editions={editions} />
+                      <button type="submit" disabled={submitting} className="cap-btn">
+                        Save recipient
+                      </button>
+                    </Form>
+                  </Disclosure>
                 </div>
-                <Disclosure summary="Edit recipient" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
-                    <input type="hidden" name="intent" value="recipient-update" />
-                    <input type="hidden" name="recipientId" value={recipient.id} />
-                    <RecipientFields recipient={recipient} editions={editions} />
-                    <button type="submit" disabled={submitting} className="cap-btn">
-                      Save recipient
-                    </button>
-                  </Form>
-                </Disclosure>
               </li>
             ))}
           </ul>
         )}
 
-        <section aria-labelledby="add-recipient-heading" className="card cap-stack">
-          <h3 id="add-recipient-heading" className="strong">
-            Add a recipient
-          </h3>
+        <Panel title="Add a recipient" level={3} headingId="add-recipient-heading">
           <Form method="post" className="cap-stack" noValidate>
             <input type="hidden" name="intent" value="recipient-create" />
             <RecipientFields editions={editions} />
@@ -413,7 +410,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               {submitting ? "Adding..." : "Add recipient"}
             </button>
           </Form>
-        </section>
+        </Panel>
       </section>
     </div>
   );

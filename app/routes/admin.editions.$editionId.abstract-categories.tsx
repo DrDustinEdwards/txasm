@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.abstract-categories";
 import { pageTitle } from "~/lib/site-meta";
@@ -101,54 +102,55 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       ) : (
         <ul className="cap-stack" data-gap="4">
           {categories.map((category) => (
-            <li key={category.id} className="card card-s">
-              <Form method="post" className="cap-cluster" data-align="end">
-                <input type="hidden" name="intent" value="update" />
-                <input type="hidden" name="categoryId" value={category.id} />
-                <div className="grow cap-stack" data-gap="2">
-                  <label htmlFor={`name-${category.id}`} className="cap-field-label">
-                    Name
-                  </label>
-                  <input
-                    id={`name-${category.id}`}
-                    name="name"
-                    type="text"
-                    defaultValue={category.name}
-                    required
-                    className="cap-input"
-                  />
-                </div>
-                <div className="cap-stack tiny-field" data-gap="2">
-                  <label htmlFor={`sort-${category.id}`} className="cap-field-label">
-                    Sort
-                  </label>
-                  <input
-                    id={`sort-${category.id}`}
-                    name="sortOrder"
-                    type="number"
-                    step="1"
-                    defaultValue={category.sortOrder}
-                    className="cap-input"
-                  />
-                </div>
-                <button type="submit" className="cap-btn">
-                  Save
-                </button>
-              </Form>
-              <Form method="post" className="mt-2">
-                <input type="hidden" name="intent" value="remove" />
-                <input type="hidden" name="categoryId" value={category.id} />
-                <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
-                  Remove
-                </button>
-              </Form>
+            <li key={category.id} className="cap-panel" data-size="sm">
+              <div className="cap-panel-body">
+                <Form method="post" className="cap-cluster" data-align="end">
+                  <input type="hidden" name="intent" value="update" />
+                  <input type="hidden" name="categoryId" value={category.id} />
+                  <div className="grow cap-stack" data-gap="2">
+                    <label htmlFor={`name-${category.id}`} className="cap-field-label">
+                      Name
+                    </label>
+                    <input
+                      id={`name-${category.id}`}
+                      name="name"
+                      type="text"
+                      defaultValue={category.name}
+                      required
+                      className="cap-input"
+                    />
+                  </div>
+                  <div className="cap-stack tiny-field" data-gap="2">
+                    <label htmlFor={`sort-${category.id}`} className="cap-field-label">
+                      Sort
+                    </label>
+                    <input
+                      id={`sort-${category.id}`}
+                      name="sortOrder"
+                      type="number"
+                      step="1"
+                      defaultValue={category.sortOrder}
+                      className="cap-input"
+                    />
+                  </div>
+                  <button type="submit" className="cap-btn">
+                    Save
+                  </button>
+                </Form>
+                <Form method="post" className="mt-2">
+                  <input type="hidden" name="intent" value="remove" />
+                  <input type="hidden" name="categoryId" value={category.id} />
+                  <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
+                    Remove
+                  </button>
+                </Form>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section className="card cap-stack">
-        <h2 className="subsection-title">Add a category</h2>
+      <Panel title="Add a category">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <div className="cap-stack" data-gap="2">
@@ -181,7 +183,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

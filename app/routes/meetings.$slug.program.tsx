@@ -135,15 +135,19 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
       <h2 className="section-title">Invited speakers</h2>
       <ul className="cap-stack">
         {speakers.map((speaker) => (
-          <li key={speaker.id} className="card">
-            <p className="strong">{speaker.name}</p>
-            <p className="small cap-muted">
-              {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
-                .filter((part) => part.length > 0)
-                .join(" . ")}
-            </p>
-            {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
-            <RichText className="small speaker-bio" html={speaker.bio} />
+          <li key={speaker.id}>
+            <article className="cap-card">
+              <h3>{speaker.name}</h3>
+              <div>
+                <p className="small cap-muted">
+                  {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
+                    .filter((part) => part.length > 0)
+                    .join(" . ")}
+                </p>
+                {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+                <RichText className="small speaker-bio" html={speaker.bio} />
+              </div>
+            </article>
           </li>
         ))}
       </ul>
@@ -157,15 +161,13 @@ function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
       <h2 className="section-title">Sponsors</h2>
       <ul className="cap-cluster">
         {sponsors.map((sponsor) => (
-          <li key={sponsor.id} className="card small sponsor">
-            {isHttpUrl(sponsor.url) ? (
-              <a href={sponsor.url} className="strong">
-                {sponsor.name}
-              </a>
-            ) : (
-              <span className="strong">{sponsor.name}</span>
-            )}
-            {sponsor.tier ? <span className="cap-muted"> . {sponsor.tier}</span> : null}
+          <li key={sponsor.id} className="small">
+            <article className="cap-card">
+              <h3>
+                {isHttpUrl(sponsor.url) ? <a href={sponsor.url}>{sponsor.name}</a> : sponsor.name}
+              </h3>
+              {sponsor.tier ? <p className="small cap-muted">{sponsor.tier}</p> : null}
+            </article>
           </li>
         ))}
       </ul>
