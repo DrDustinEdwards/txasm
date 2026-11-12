@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { isoDay } from "@drdustinedwards/site-helpers/xml";
 import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { groupByDay, type ScheduleDay } from "capsomer/behavior/schedule";
@@ -135,7 +136,7 @@ export function programDays(sessions: ProgramSessionResolved[]): ProgramDay[] {
     (s) => ({
       start: s.startsAt,
       end: s.endsAt,
-      day: s.sessionDate?.toISOString().slice(0, 10) ?? null,
+      day: isoDay(s.sessionDate),
       track: s.location,
       order: s.sortOrder,
     }),

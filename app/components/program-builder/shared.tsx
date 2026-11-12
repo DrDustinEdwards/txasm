@@ -3,10 +3,6 @@ import { PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
 
 export const inputClass = "cap-input";
 
-export function toDateInput(date: Date | null): string {
-  return date ? date.toISOString().slice(0, 10) : "";
-}
-
 export type SpeakerOption = Pick<
   Awaited<ReturnType<DataAccess["invitedSpeakers"]["listForEdition"]>>[number],
   "id" | "name" | "role" | "talkTitle"
