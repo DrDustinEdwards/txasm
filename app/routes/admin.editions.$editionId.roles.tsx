@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { capitalize } from "@drdustinedwards/site-helpers/text";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.roles";
@@ -70,10 +71,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   }
 
   return { error: "Unknown action." };
-}
-
-function roleLabel(role: string) {
-  return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
 export default function EditionRoles({ loaderData }: Route.ComponentProps) {
@@ -176,7 +173,7 @@ function RoleList({
                   <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
                     Remove{" "}
                     <span className="cap-sr-only">
-                      {roleLabel(grant.role)} {grant.email}
+                      {capitalize(grant.role)} {grant.email}
                     </span>
                   </button>
                 </Form>

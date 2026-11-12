@@ -6,6 +6,7 @@
 // inside the data boundary (books.publish has no env and only freezes codes +
 // stores the HTML).
 
+import { capitalize } from "@drdustinedwards/site-helpers/text";
 import puppeteer from "@cloudflare/puppeteer";
 import { pagedPdf } from "@dustinedwards/site-runtime/print-pdf";
 import { renderArrangedBook } from "./book";
@@ -59,7 +60,7 @@ export async function publishArrangedBook(
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const r2Key = `editions/${editionId}/abstract-book-${stamp}.pdf`;
     const season = data.edition.season;
-    const fileName = `TXASM ${season.charAt(0).toUpperCase()}${season.slice(1)} ${data.edition.year} Abstract Book.pdf`;
+    const fileName = `TXASM ${capitalize(season)} ${data.edition.year} Abstract Book.pdf`;
     await env.BOOKS.put(r2Key, bytes, {
       httpMetadata: { contentType: PDF_MIME_TYPE },
     });

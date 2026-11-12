@@ -1,5 +1,15 @@
 {
-  "path": ["app", "workers", "scripts", "tests"],
+  "path": [
+    "app",
+    "workers",
+    "scripts",
+    "tests",
+    "drizzle.config.ts",
+    "oxfmt.config.ts",
+    "oxlint.config.ts",
+    "react-router.config.ts",
+    "vite.config.ts"
+  ],
   "format": ["typescript", "tsx", "css"],
   "ignore": [
     "**/node_modules/**",
