@@ -57,6 +57,7 @@ import { publicOrigin } from "@dustinedwards/site-runtime/http";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { renderBody, versionedPath } from "./render.server";
 import { parseSource, type PageSource } from "./source";
+import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
 const KIND = "page";
 
@@ -140,7 +141,7 @@ async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<
     };
   }
   if (search.canonical.trim()) {
-    if (!/^https?:\/\//.test(search.canonical.trim()))
+    if (!isHttpUrl(search.canonical.trim()))
       throw new RefusedError("canonical must be an absolute http(s) address.");
     out.canonical = search.canonical.trim();
   }

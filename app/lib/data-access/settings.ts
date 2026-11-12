@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from "./core";
 import { normalizeCurrency } from "./editions";
+import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
 // ---------------------------------------------------------------------------
 // Platform settings. A single row of org identity and tunable defaults, read by
@@ -163,7 +164,7 @@ export function createSettings(db: DB) {
       }
       if (patch.facebookUrl !== undefined) {
         const url = patch.facebookUrl?.trim() ?? "";
-        if (url && !/^https?:\/\//i.test(url)) {
+        if (url && !isHttpUrl(url)) {
           throw new ValidationError("The Facebook URL must start with http.");
         }
         set.facebookUrl = url || null;
