@@ -44,9 +44,6 @@ export const SIGN_IN_CONFIRM_PATH = "/signin/confirm";
 /** Where an email change's two links open (app/lib/auth.server.ts): under /account, so it is private. */
 export const EMAIL_CONFIRM_PATH = "/account/email";
 
-/** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
-export const SECURITY_CONTACT = "security@dustinedwards.info";
-export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
 /** The site's short name: og:site_name, and the error page's title when the settings are out of reach. */
 export const SITE_NAME = "Texas Branch ASM";
 const SITE_CARD = shareCard(

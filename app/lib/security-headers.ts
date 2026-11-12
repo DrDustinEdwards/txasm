@@ -3,6 +3,7 @@
 // otherwise submit a role grant or a book publish with the chair's cookie.
 import { applyHeaderSet } from "@dustinedwards/site-runtime/headers";
 import {
+  CSP_REPORT_PATH,
   buildContentSecurityPolicy,
   buildStagedPolicy,
   reportingEndpoints,
@@ -14,8 +15,8 @@ import { PAGED_JS_CONFIG, PAGED_JS_TRUSTED_TYPES } from "@dustinedwards/site-run
 import { SECURITY_HEADERS } from "./header-set";
 import { isPrivatePath } from "./site-meta";
 
-/** Where browsers send violation reports (report-uri), and the Reporting API name for it (report-to). */
-export const CSP_REPORT_PATH = "/csp-report";
+// Where browsers send violation reports (report-uri: the shared gateway's receiver), and the Reporting API name for it
+// (report-to).
 const CSP_ENDPOINT = "csp-endpoint";
 const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 
