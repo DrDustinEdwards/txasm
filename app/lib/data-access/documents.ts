@@ -1,3 +1,4 @@
+import { slugify } from "@drdustinedwards/site-helpers/slug";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { type GeneratedRecord, mayStart } from "capsomer/behavior/generated-file";
 import * as schema from "../../db/schema";
@@ -26,15 +27,6 @@ import {
 // the generate-record flow (source "generated") and the uploaded archive
 // (source "uploaded").
 // ---------------------------------------------------------------------------
-
-// Same slug shape as awards: lowercase, non-alphanumerics collapsed to hyphens.
-function normalizeDocumentSlug(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 function assertDocumentCategory(value: string): DocumentCategory {
   if (!DOCUMENT_CATEGORIES.includes(value as DocumentCategory)) {
@@ -228,7 +220,7 @@ export function createDocuments(db: DB) {
       const category = assertDocumentCategory(input.category);
       const title = input.title.trim();
       if (!title) throw new ValidationError("Document title is required.");
-      const slug = normalizeDocumentSlug(input.slug || title);
+      const slug = slugify(input.slug || title);
       if (!slug) throw new ValidationError("Document slug is required.");
       const clash = await db.query.document.findFirst({
         where: eq(schema.document.slug, slug),
@@ -282,7 +274,7 @@ export function createDocuments(db: DB) {
         set.title = title;
       }
       if (patch.slug !== undefined) {
-        const slug = normalizeDocumentSlug(patch.slug);
+        const slug = slugify(patch.slug);
         if (!slug) throw new ValidationError("Document slug is required.");
         if (slug !== row.slug) {
           const clash = await db.query.document.findFirst({

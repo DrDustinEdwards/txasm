@@ -1,6 +1,5 @@
-import { likeContains } from "@drdustinedwards/site-helpers/search";
-import { and, type AnyColumn, eq, inArray, or, type SQL, sql } from "drizzle-orm";
-import { inList } from "@dustinedwards/site-runtime/d1";
+import { and, type AnyColumn, eq, inArray, or, type SQL } from "drizzle-orm";
+import { inList, likeContains } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   ABSTRACT_FORMATS,
@@ -226,8 +225,7 @@ export function createPublicAbstracts(db: DB) {
       if (term) {
         // The term matches as typed: its %, _ and backslash are escaped, so a
         // search for "50%" or "E_coli" is not a wildcard.
-        const pattern = likeContains(term);
-        const contains = (column: AnyColumn): SQL => sql`${column} LIKE ${pattern} ESCAPE '\\'`;
+        const contains = (column: AnyColumn): SQL => likeContains(column, term);
         conditions.push(
           or(
             contains(schema.abstract.title),
