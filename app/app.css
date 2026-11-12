@@ -451,23 +451,6 @@
 .crit-text {
   color: var(--crit);
 }
-/* A button that reads as a link (a form's submit inside running text). */
-.link-button {
-  border: 0;
-  padding: 0;
-  background: none;
-  cursor: pointer;
-  &:not(.crit-text, .cap-muted) {
-    color: var(--accent-text);
-  }
-  &:hover {
-    text-decoration: underline;
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-}
 .logo-thumb {
   flex: none;
   width: 3rem;

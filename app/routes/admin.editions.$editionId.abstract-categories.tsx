@@ -138,7 +138,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
               <Form method="post" className="mt-2">
                 <input type="hidden" name="intent" value="remove" />
                 <input type="hidden" name="categoryId" value={category.id} />
-                <button type="submit" className="link-button small strong">
+                <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
                   Remove
                 </button>
               </Form>

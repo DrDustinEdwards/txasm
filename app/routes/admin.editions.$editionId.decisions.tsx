@@ -300,7 +300,9 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
             onClick={(e) =>
               confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
             }
-            className="small strong link-button"
+            className="cap-btn"
+            data-variant="link"
+            data-size="sm"
           >
             Clear decision
           </button>
