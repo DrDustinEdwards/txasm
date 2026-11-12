@@ -510,6 +510,10 @@
   --sortable-remove-pad-inline: 8px;
   --sortable-body-pad-inline: 0;
 }
+/* "Add affiliation" and "Add author" sit 16px under their list: the form's own gap, nothing added. */
+:is(.sort-card, .sort-plain) + [data-cap-part="add"] {
+  --sortable-add-gap: 0;
+}
 /* Affiliations have no box per row: no inset, and the fields 4px under the head. */
 .sort-plain {
   --sortable-item-border: 0;
