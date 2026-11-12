@@ -17,11 +17,3 @@ export function joinParts(parts: Array<string | null>): string {
 export function escapeCssString(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\s+/g, " ").trim();
 }
-
-// A snake_case value as words: "abstract_book" becomes "Abstract Book".
-export function titleCase(value: string): string {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
