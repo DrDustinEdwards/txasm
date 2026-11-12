@@ -1,3 +1,4 @@
+import { standardFiles } from "@drdustinedwards/site-helpers/files";
 import { operatorJobTools } from "@dustinedwards/site-runtime/cron";
 import { isSiteApiRequest } from "@dustinedwards/site-api";
 import { WorkerEntrypoint } from "cloudflare:workers";
@@ -14,7 +15,14 @@ import { pagePreviewContext } from "../app/lib/preview-context";
 import { allCronJobs, cronJobs } from "../app/lib/cron.server";
 import { backupStatus } from "../app/lib/backup.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
-import { ROBOTS_DISALLOW, isPrivatePath } from "../app/lib/site-meta";
+import { getDataAccess } from "../app/lib/data-access";
+import {
+  INDEXNOW_KEY,
+  ROBOTS_DISALLOW,
+  SITE_NAME,
+  SITE_ORIGIN,
+  isPrivatePath,
+} from "../app/lib/site-meta";
 
 /**
  * Carrel's site API under /api/carrel/v1 and its preview links (/preview/<token>, no key): the page's current source in
@@ -40,7 +48,7 @@ const carrel: GatewayStep<Env> = async (request, env, ctx, kit) => {
 /**
  * The site's Worker (site-runtime ./worker): the gateway, the Renderer the Workers cache stores the public pages from,
  * the request log and the crons. What is txasm's own: its security set, Carrel's site API, the operator API's tools,
- * the paths never stored, the hover prefetch's exclusions, the text font's preload, the admin idle sign-out and the
+ * its machine files, the paths never stored, the hover prefetch's exclusions, the text font's preload, the admin idle sign-out and the
  * cron lists (app/lib/cron.server.ts).
  */
 const site = defineSite<Env>({
@@ -48,6 +56,27 @@ const site = defineSite<Env>({
   serverBuild: () => import("virtual:react-router/server-build") as Promise<ServerBuild>,
   mode: import.meta.env.MODE,
   withSecurityHeaders,
+  // robots.txt (the family bot policy; the workers.dev copy, a preview until the cutover, is Disallow: / for everyone),
+  // ai.txt (named from the settings in D1), site.webmanifest and the IndexNow key file (Prelum's standardFiles).
+  files: (request, env) =>
+    standardFiles({
+      origin: SITE_ORIGIN,
+      disallow: ROBOTS_DISALLOW,
+      indexNowKey: INDEXNOW_KEY,
+      ai: async () => {
+        const settings = await getDataAccess(env).settings.get();
+        return {
+          name: settings.orgName || "Texas Branch of the American Society for Microbiology",
+          contact: settings.contactEmail ?? `${SITE_ORIGIN}/contact`,
+        };
+      },
+      manifest: {
+        name: "Texas Branch of the American Society for Microbiology",
+        shortName: SITE_NAME,
+        themeColor: "#002868",
+        backgroundColor: "#ffffff",
+      },
+    })(request),
   // What the hover prefetch never fetches: every private path (robots.txt's Disallow list), registration and its
   // payment, and the files under /documents and /media, which open as files.
   speculationExclude: [...ROBOTS_DISALLOW, "/register", "/documents", "/media"],

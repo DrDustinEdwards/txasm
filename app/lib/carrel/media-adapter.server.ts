@@ -13,7 +13,7 @@
 // its proportions and only makes it smaller, the address carries no size, and the pages that show it are rendered again.
 //
 // HISTORY. The bytes a file no longer has are kept in UPLOADS under media-history/, which the /media route never serves
-// (it serves only keys under media/, app/lib/media/images.ts mediaKeyOf). Copies made before v0.24.0 are at
+// (it serves only keys under media/, app/lib/media/images.ts MEDIA_ADDRESS). Copies made before v0.24.0 are at
 // media-history/<iso>/<key>, named by their revision rows; newer ones at media-history/<key>/<sha256>.
 //
 // AFTER A BYTE CHANGE (replace, turn in place, revert, shrink), the published pages that show the file are rendered
@@ -33,8 +33,9 @@ import {
   type MediaKeyInput,
   type MediaUse,
 } from "@dustinedwards/site-api";
+import { keysAtAddresses } from "@dustinedwards/site-runtime/image";
 import { getCarrelMedia, getCarrelPages } from "../data-access";
-import { MEDIA_PREFIX, mediaKeysIn, mediaPath } from "../media/images";
+import { MEDIA_ADDRESS, MEDIA_PREFIX, mediaPath } from "../media/images";
 import { suggestFor } from "../media/suggest.server";
 import { rerenderUsing } from "./render.server";
 
@@ -49,8 +50,8 @@ function newKey(file: MediaKeyInput): string {
 async function pageUses(env: Env): Promise<Map<string, MediaUse[]>> {
   const uses = new Map<string, MediaUse[]>();
   for (const page of await getCarrelPages(env).list()) {
-    const draft = mediaKeysIn(page.source);
-    const live = page.publishedAt ? mediaKeysIn(page.html) : new Set<string>();
+    const draft = keysAtAddresses(page.source, MEDIA_ADDRESS);
+    const live = page.publishedAt ? keysAtAddresses(page.html, MEDIA_ADDRESS) : new Set<string>();
     for (const key of new Set([...draft, ...live])) {
       const detail = live.has(key)
         ? draft.has(key)

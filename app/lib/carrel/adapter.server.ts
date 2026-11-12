@@ -51,9 +51,10 @@ import {
   type PageWrite,
   type PublishedPage,
 } from "../data-access";
-import { mediaKeyOf } from "../media/images";
+import { MEDIA_ADDRESS } from "../media/images";
 import { SITE_ORIGIN } from "../site-meta";
 import { publicOrigin } from "@dustinedwards/site-runtime/http";
+import { keyOfAddress } from "@dustinedwards/site-runtime/image";
 import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { renderBody, versionedPath } from "./render.server";
 import { parseSource, type PageSource } from "./source";
@@ -127,7 +128,7 @@ async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<
   const out: PageSearch = {};
   if (search.searchTitle.trim()) out.searchTitle = search.searchTitle.trim();
   if (search.image.trim()) {
-    const key = mediaKeyOf(search.image);
+    const key = keyOfAddress(search.image, MEDIA_ADDRESS);
     const [row] = key ? await getCarrelMedia(env).many([key]) : [];
     if (!row)
       throw new RefusedError(
