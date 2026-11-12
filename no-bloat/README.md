@@ -4,7 +4,7 @@ Three checks run on every pull request: Knip and jscpd in `checks / Repo checks`
 
 | Check                               | Tool                                      | Command                                    | Reads                                |
 | ----------------------------------- | ----------------------------------------- | ------------------------------------------ | ------------------------------------ |
-| Unused files, exports, dependencies | Knip, through devkit's `devkit-no-bloat`  | `npx devkit-no-bloat`                       | `knip.json`, `.no-bloat.json`        |
+| Unused files, exports, dependencies | Knip, through devkit's `devkit-no-bloat`  | `npx devkit-no-bloat`                      | `knip.json`, `.no-bloat.json`        |
 | Duplicated blocks                   | jscpd, through devkit's `devkit-no-bloat` | (the same run)                             | `.jscpd.json`, `.no-bloat.json`      |
 | JS and CSS weight per route, gzip   | devkit's `devkit-route-weight`            | `npm run build && npx devkit-route-weight` | `build/client`, `.route-weight.json` |
 
