@@ -6,7 +6,6 @@ import {
   unique,
   index,
   primaryKey,
-  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 // Column factories. crypto.randomUUID is available in the Workers runtime.
@@ -1113,54 +1112,10 @@ export const mediaChange = sqliteTable("media_change", {
   mediaKey: text("media_key").notNull(),
 });
 
-// A count of the 404s the site serves, per path, referring host and UTC day (site-runtime
-// ./not-found, written by countNotFound in workers/app.ts). The shape is site-runtime's
-// NOT_FOUND_SQL, reached by NOT_FOUND_UPGRADE_SQL (migration 0024): the pathname only, never the
-// query, which can carry a sign-in token, and of the Referer only its host.
-export const page404Daily = sqliteTable(
-  "page_404_daily",
-  {
-    id: text("id").primaryKey(),
-    day: tsMs("day").notNull(),
-    path: text("path").notNull(),
-    hitCount: integer("hit_count").notNull().default(0),
-    referrerHost: text("referrer_host").notNull().default(""),
-    kind: text("kind").notNull().default("page"),
-  },
-  (t) => [uniqueIndex("page_404_daily_day_path_referrer_uq").on(t.day, t.path, t.referrerHost)],
-);
-
-// The auth event log as rows (site-runtime ./sign-in, eventsDb): each sign-in event's time, OWASP name, change or
-// scope, way in, user, device and coarse place; never an address, token or code. A person's security history on
-// /account reads it, /health's spike check counts it, and the daily cron prunes it. The shape is its AUTH_EVENTS_SQL.
-export const authEvents = sqliteTable(
-  "auth_events",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    at: integer("at").notNull(),
-    event: text("event").notNull(),
-    change: text("change"),
-    via: text("via"),
-    userId: text("user_id"),
-    device: text("device"),
-    location: text("location"),
-    // The sign-in's device id (AUTH_EVENTS_DEVICE_SQL), for the new-device notice.
-    deviceId: text("device_id"),
-  },
-  (t) => [index("auth_events_user").on(t.userId, t.at), index("auth_events_at").on(t.at, t.event)],
-);
-
-// Each scheduled job's last start, success and failure, in epoch ms (site-runtime ./cron, written
-// by runJobs in workers/app.ts and read by /health's cron check). The shape is its CRON_SQL.
-export const cronRuns = sqliteTable("cron_runs", {
-  name: text("name").primaryKey(),
-  everyMinutes: integer("every_minutes").notNull(),
-  firstStartedAt: integer("first_started_at"),
-  lastStartedAt: integer("last_started_at"),
-  lastOkAt: integer("last_ok_at"),
-  lastFailedAt: integer("last_failed_at"),
-  lastError: text("last_error"),
-});
+// site-runtime's own tables, so drizzle-kit knows them: the 404 count (./not-found, written by countNotFound in
+// workers/app.ts), the auth event log (./sign-in eventsDb: /account's security history, /health's spike check, the
+// daily prune) and each scheduled job's last runs (./cron, written by runJobs, read by /health's cron check).
+export { authEvents, cronRuns, page404Daily } from "@dustinedwards/site-runtime/drizzle";
 
 // An update Carrel scheduled on a live page (site-api's schedules, migration 0026): its own source, which replaces
 // the page's at publish_at, when the per-minute cron's runSchedules applies it. One per page at most. The shape is
