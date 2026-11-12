@@ -172,7 +172,7 @@ function RoleList({
                 <input type="hidden" name="intent" value="revoke" />
                 <input type="hidden" name="userId" value={grant.userId} />
                 <input type="hidden" name="role" value={grant.role} />
-                <button type="submit" className="link-button small strong">
+                <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
                   Remove{" "}
                   <span className="cap-sr-only">
                     {roleLabel(grant.role)} {grant.email}

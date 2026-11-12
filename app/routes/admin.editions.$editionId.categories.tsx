@@ -143,7 +143,12 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                         <Form method="post">
                           <input type="hidden" name="intent" value="deactivate" />
                           <input type="hidden" name="categoryId" value={category.id} />
-                          <button type="submit" className="link-button strong cap-muted">
+                          <button
+                            type="submit"
+                            className="cap-btn cap-muted"
+                            data-variant="link"
+                            data-size="sm"
+                          >
                             Deactivate
                           </button>
                         </Form>

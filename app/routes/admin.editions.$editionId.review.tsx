@@ -177,7 +177,12 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                             <input type="hidden" name="intent" value="unassign" />
                             <input type="hidden" name="abstractId" value={abstract.id} />
                             <input type="hidden" name="assignmentId" value={a.assignmentId} />
-                            <button type="submit" className="link-button strong">
+                            <button
+                              type="submit"
+                              className="cap-btn"
+                              data-variant="link"
+                              data-size="sm"
+                            >
                               Unassign
                               <span className="cap-sr-only">
                                 {" "}
