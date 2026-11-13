@@ -78,7 +78,7 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@72b44bea46d4316e1bd4bf335b77ca420b802910 # v0.45.0
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@90efbee8e78a1b07b334d5058d19cb0e2a9828d0 # v0.48.0
     with:
       worker-name: txasm
       # site-runtime withAdminIdle's key, minted once by the deploy and never shown (devkit "generated-secrets").
