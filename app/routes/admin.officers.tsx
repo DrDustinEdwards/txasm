@@ -121,7 +121,13 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
         help="Current officers only."
       />
       <TextField id={`${p}-phone`} name="phone" label="Phone" defaultValue={row?.phone ?? ""} />
-      <TextField id={`${p}-email`} name="email" label="Email" type="email" defaultValue={row?.email ?? ""} />
+      <TextField
+        id={`${p}-email`}
+        name="email"
+        label="Email"
+        type="email"
+        defaultValue={row?.email ?? ""}
+      />
       <TextField
         id={`${p}-sortOrder`}
         name="sortOrder"
