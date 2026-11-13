@@ -1,5 +1,4 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { logEvent, requestFields } from "@dustinedwards/site-runtime/log";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
@@ -9,7 +8,12 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { SIGN_IN_EXPIRES_IN_WORDS, signInMethods } from "@dustinedwards/site-runtime/sign-in";
-import { signInWithCode, type CodeRefusal } from "@dustinedwards/site-runtime/sign-in-form";
+import {
+  SIGN_IN_WORDS,
+  requestSignInLink,
+  signInWithCode,
+  type CodeRefusal,
+} from "@dustinedwards/site-runtime/sign-in-form";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient, signalAfterPasskeySignIn } from "~/lib/auth-client";
 import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
@@ -46,17 +50,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 type ActionResult = { ok: true; email: string; codeError?: string } | { ok: false; error: string };
 
-// The headers Better Auth's handler is handed: the origin it checks, the
-// address its limiter counts and the user agent.
-function forwardedHeaders(request: Request): Headers {
-  const headers = new Headers({ "Content-Type": "application/json" });
-  for (const name of ["origin", "cf-connecting-ip", "user-agent"]) {
-    const value = request.headers.get(name);
-    if (value) headers.set(name, value);
-  }
-  return headers;
-}
-
 // The six-digit code from the same mail, typed on the "Check your inbox" screen.
 // The link signs in the browser that opens it, often the mail app's, not this
 // tab; the code signs in this one. site-runtime ./sign-in-form checks it through
@@ -74,6 +67,12 @@ const CODE_REFUSALS: Record<CodeRefusal, string> = {
     "That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.",
   disposable: "That sign-in did not complete. Try again, or use the link in the email.",
   failed: "That sign-in did not complete. Try again, or use the link in the email.",
+};
+
+// The link's refusals in the shared words, but for the address's own limit, which this page words without "for this address".
+const LINK_REFUSALS = {
+  ...SIGN_IN_WORDS.link,
+  "email-limited": "Too many sign-in requests. Try again later.",
 };
 
 async function codeSignIn(
@@ -105,70 +104,17 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
       return { ok: true, email, codeError: "Enter the six-digit code from the email." };
     return codeSignIn(env, request, email, code, landing);
   }
-  try {
-    // Through Better Auth's HTTP handler, not auth.api: only the handler runs the
-    // rate limiter, so a direct api call let the form skip it (Grok audit
-    // 2026-10-21, TX-4).
-    const headers = forwardedHeaders(request);
-    // The Turnstile widget's token, for the captcha plugin (app/lib/auth.server.ts).
-    const captchaToken = String(formData.get("cf-turnstile-response") ?? "");
-    if (captchaToken) headers.set("x-captcha-response", captchaToken);
-    const response = await (
-      await getAuth(env)
-    ).handler(
-      new Request(new URL("/api/auth/sign-in/magic-link", request.url), {
-        method: "POST",
-        headers,
-        // A spent or expired link comes back to the confirm page, which says which from the time the
-        // mailed link carries (site-runtime confirmLinkURL and signInLinkProblem).
-        body: JSON.stringify({ email, callbackURL: landing }),
-      }),
-    );
-    if (response.status === 429) {
-      // Better Auth's per-IP limit, or the address's five mails an hour (EMAIL_RATE_LIMITED).
-      const { code } = (await response
-        .clone()
-        .json()
-        .catch(() => ({}))) as { code?: string };
-      return {
-        ok: false,
-        error: `Too many sign-in requests. ${code === "EMAIL_RATE_LIMITED" ? "Try again later" : "Wait a minute and try again"}.`,
-      };
-    }
-    // The captcha plugin's refusals: no token, or one Cloudflare would not pass.
-    if (response.status === 400 || response.status === 403) {
-      const { code } = (await response
-        .clone()
-        .json()
-        .catch(() => ({}))) as { code?: string };
-      if (code === "MISSING_RESPONSE" || code === "VERIFICATION_FAILED") {
-        return { ok: false, error: "Complete the check, then send the link again." };
-      }
-    }
-    // Turnstile's keys are missing and the site has not said to go on without them (app/lib/auth.server.ts).
-    if (response.status === 503) {
-      const { code } = (await response
-        .clone()
-        .json()
-        .catch(() => ({}))) as { code?: string };
-      if (code === "TURNSTILE_NOT_SET") {
-        return {
-          ok: false,
-          error: "Sign-in links can't be sent right now. Use a passkey, or try again later.",
-        };
-      }
-    }
-    if (!response.ok) {
-      throw new Error(`magic link request returned ${response.status}`);
-    }
-    return { ok: true, email };
-  } catch (error) {
-    logEvent("sign_in_link_failed", { ...requestFields(request), error }, { level: "error" });
-    return {
-      ok: false,
-      error: "We could not send the link. Check the address and try again.",
-    };
-  }
+  // Through Better Auth's HTTP handler, not auth.api: only the handler runs the rate limiter, so a direct api call let
+  // the form skip it (Grok audit 2026-10-21, TX-4). The Turnstile widget's token goes to the captcha plugin
+  // (app/lib/auth.server.ts). A spent or expired link comes back to the confirm page, which says which from the time
+  // the mailed link carries (site-runtime confirmLinkURL and signInLinkProblem).
+  const result = await requestSignInLink(await getAuth(env), request, {
+    email,
+    captchaToken: String(formData.get("cf-turnstile-response") ?? ""),
+    callbackURL: landing,
+  });
+  if (result === "sent") return { ok: true, email };
+  return { ok: false, error: LINK_REFUSALS[result] };
 }
 
 export default function SignIn({ loaderData }: Route.ComponentProps) {
