@@ -115,7 +115,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
       </header>
 
       {abstract.bodyText ? (
-        <RichText className="cap-stack abstract-body" data-gap="4" html={abstract.bodyText} />
+        <RichText className="cap-stack" data-gap="4" html={abstract.bodyText} />
       ) : (
         <p className="cap-muted">No abstract body on record.</p>
       )}

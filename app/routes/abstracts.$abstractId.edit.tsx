@@ -435,8 +435,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             onClick={(e) =>
               confirmSubmit(e, { title: "Withdraw this abstract?", action: "Withdraw abstract" })
             }
-            className="cap-btn crit-text"
+            className="cap-btn cap-text"
             data-variant="link"
+            data-tone="crit"
           >
             Withdraw
           </button>

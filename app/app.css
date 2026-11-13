@@ -288,6 +288,11 @@
   --sortable-lane-radius: var(--radius-m);
   --sortable-lane-bg: var(--surface);
 }
+.book-excluded {
+  border-style: dashed;
+  background: var(--sunken);
+  opacity: 0.6;
+}
 /* An entry's own text, inside the item. */
 .book-entry {
   display: flex;
