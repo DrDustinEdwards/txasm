@@ -1,3 +1,4 @@
+import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import type { Route } from "./+types/admin.editions.$editionId.book.preview";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
@@ -20,13 +21,20 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     const data = await getDataAccess(env).books.renderData(actor, params.editionId);
     const html = renderArrangedBook(data);
     return new Response(html, {
-      headers: { "Content-Type": "text/html; charset=utf-8", ...policy },
+      headers: { "Content-Type": "text/html; charset=utf-8", ...PRIVATE_PAGE_HEADERS, ...policy },
     });
   } catch (error) {
     if (error instanceof NotFoundError) {
       return new Response(
         '<!doctype html><meta charset=utf-8><title>No book yet</title><body style="font-family:system-ui;padding:2rem"><p>No book has been generated for this meeting yet. Generate it from the book builder, then reopen this preview.</p></body>',
-        { status: 404, headers: { "Content-Type": "text/html; charset=utf-8", ...policy } },
+        {
+          status: 404,
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            ...PRIVATE_PAGE_HEADERS,
+            ...policy,
+          },
+        },
       );
     }
     throw error;
