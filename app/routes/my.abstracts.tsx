@@ -14,6 +14,8 @@ import {
   type PresentationType,
 } from "~/lib/vocab";
 import { RichText } from "capsomer/react/trusted-html";
+// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
+import "capsomer/table.css";
 
 // A signed-in author's page, the way into submission and editing. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };

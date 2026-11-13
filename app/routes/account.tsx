@@ -32,7 +32,7 @@ import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
-import { authClient } from "~/lib/auth-client";
+import { authClient } from "~/lib/auth-client.client";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
 import { readForm } from "@dustinedwards/site-runtime/body";
