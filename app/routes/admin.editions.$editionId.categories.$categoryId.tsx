@@ -71,9 +71,11 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="2">
-        <h1 className="page-title">Edit category</h1>
+        <h1 className="cap-title" data-size="2">
+          Edit category
+        </h1>
         <p>Type: {category.key}</p>
       </div>
 
@@ -131,7 +133,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
         </div>
         <div className="cap-cluster">
           <input id="active" name="active" type="checkbox" defaultChecked={category.active} />
-          <label htmlFor="active" className="small strong">
+          <label htmlFor="active" className="cap-text" data-size="small" data-weight="strong">
             Active
           </label>
         </div>
@@ -140,7 +142,12 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>
-          <Link to={`/admin/editions/${editionId}/categories`} className="small strong cap-muted">
+          <Link
+            to={`/admin/editions/${editionId}/categories`}
+            className="cap-text cap-muted"
+            data-size="small"
+            data-weight="strong"
+          >
             Cancel
           </Link>
         </div>

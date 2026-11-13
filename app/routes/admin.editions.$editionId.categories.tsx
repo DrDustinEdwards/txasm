@@ -90,10 +90,12 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   return (
     <div className="cap-stack" data-gap="7">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Registration categories</h1>
+        <h1 className="cap-title" data-size="2">
+          Registration categories
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -121,7 +123,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                 <th scope="col">Type</th>
                 <th scope="col">Fee</th>
                 <th scope="col">Active</th>
-                <th scope="col" className="cell-end">
+                <th scope="col" className="cap-text" data-align="end">
                   <span className="cap-sr-only">Actions</span>
                 </th>
               </tr>
@@ -133,11 +135,12 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                   <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
                   <td>{formatMoney(category.amountCents, category.currency)}</td>
                   <td>{category.active ? "Yes" : "No"}</td>
-                  <td className="cell-end">
+                  <td className="cap-text" data-align="end">
                     <div className="cap-cluster" data-justify="end">
                       <Link
                         to={`/admin/editions/${edition.id}/categories/${category.id}`}
-                        className="strong"
+                        className="cap-text"
+                        data-weight="strong"
                       >
                         Edit
                       </Link>

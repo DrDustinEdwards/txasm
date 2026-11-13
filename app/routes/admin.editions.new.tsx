@@ -73,9 +73,11 @@ export default function NewEdition() {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">New meeting</h1>
+        <h1 className="cap-title" data-size="2">
+          New meeting
+        </h1>
         <p>Each meeting has a season and year, and the two together must be unique.</p>
       </div>
 
@@ -147,7 +149,7 @@ export default function NewEdition() {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Creating..." : "Create meeting"}
           </button>
-          <Link to="/admin" className="small strong cap-muted">
+          <Link to="/admin" className="cap-text cap-muted" data-size="small" data-weight="strong">
             Cancel
           </Link>
         </div>

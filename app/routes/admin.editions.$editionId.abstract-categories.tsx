@@ -81,10 +81,12 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
   return (
     <div className="cap-stack" data-gap="7">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Abstract categories</h1>
+        <h1 className="cap-title" data-size="2">
+          Abstract categories
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -103,11 +105,11 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
         <ul className="cap-stack" data-gap="4">
           {categories.map((category) => (
             <li key={category.id} className="cap-panel" data-size="sm">
-              <div className="cap-panel-body">
+              <div className="cap-panel-body cap-stack" data-gap="3">
                 <Form method="post" className="cap-cluster" data-align="end">
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="categoryId" value={category.id} />
-                  <div className="grow cap-stack" data-gap="2">
+                  <div className="cap-grow cap-stack" data-gap="2">
                     <label htmlFor={`name-${category.id}`} className="cap-field-label">
                       Name
                     </label>
@@ -137,7 +139,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                     Save
                   </button>
                 </Form>
-                <Form method="post" className="mt-2">
+                <Form method="post">
                   <input type="hidden" name="intent" value="remove" />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <button type="submit" className="cap-btn" data-variant="link" data-size="sm">

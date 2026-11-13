@@ -91,8 +91,10 @@ export default function Sponsorship() {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Sponsorship</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          Sponsorship
+        </h1>
+        <p className="cap-muted cap-measure">
           Sponsors help the branch keep meeting registration affordable, fund the student awards,
           and support travel for early-career researchers. Support is welcome from companies,
           laboratories, academic departments, and individuals.
@@ -105,7 +107,7 @@ export default function Sponsorship() {
       </header>
 
       <section aria-labelledby="tiers-heading" className="cap-stack">
-        <h2 id="tiers-heading" className="section-title">
+        <h2 id="tiers-heading" className="cap-title" data-size="4">
           Sponsorship levels
         </h2>
         <ul className="cap-grid" data-cols="2">
@@ -117,8 +119,10 @@ export default function Sponsorship() {
                   <p>{tier.amount}</p>
                 </hgroup>
                 <div className="cap-stack" data-gap="2">
-                  <p className="small cap-muted">{tier.audience}</p>
-                  <ul className="bullets small cap-muted tier-benefits">
+                  <p className="cap-text cap-muted" data-size="small">
+                    {tier.audience}
+                  </p>
+                  <ul className="cap-text bullets cap-muted tier-benefits" data-size="small">
                     {tier.benefits.map((benefit) => (
                       <li key={benefit}>{benefit}</li>
                     ))}
@@ -131,10 +135,10 @@ export default function Sponsorship() {
       </section>
 
       <section aria-labelledby="contact-heading" className="cap-stack" data-gap="3">
-        <h2 id="contact-heading" className="section-title">
+        <h2 id="contact-heading" className="cap-title" data-size="4">
           Become a sponsor
         </h2>
-        <p className="lead">
+        <p className="cap-muted cap-measure">
           Complete the <a href={SPONSOR_REGISTRATION_URL}>sponsor registration form</a> to reserve a
           level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss
           sponsoring an upcoming meeting.

@@ -85,7 +85,9 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="3">
-        <h1 className="page-title">Awards</h1>
+        <h1 className="cap-title" data-size="2">
+          Awards
+        </h1>
         <p className="cap-muted">
           The branch's named awards. Edit an award to manage its recipients, the every-meeting
           maintenance path. Public pages read this data.
@@ -105,17 +107,26 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
           {awards.map((award) => (
             <li key={award.id} className="cap-panel">
               <div className="cap-panel-body cap-spread">
-                <div className="shrink">
-                  <Link to={`/admin/awards/${award.slug}`} className="strong">
+                <div className="cap-shrink">
+                  <Link
+                    to={`/admin/awards/${award.slug}`}
+                    className="cap-text"
+                    data-weight="strong"
+                  >
                     {award.name}
                   </Link>
-                  <p className="small cap-muted">
+                  <p className="cap-text cap-muted" data-size="small">
                     {award.slug} &middot; {award.recipientCount}{" "}
                     {award.recipientCount === 1 ? "recipient" : "recipients"}
                   </p>
                 </div>
                 <div className="cap-cluster">
-                  <Link to={`/admin/awards/${award.slug}`} className="small strong">
+                  <Link
+                    to={`/admin/awards/${award.slug}`}
+                    className="cap-text"
+                    data-size="small"
+                    data-weight="strong"
+                  >
                     Manage
                   </Link>
                   <Form method="post">
@@ -129,7 +140,8 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                           action: "Remove award",
                         })
                       }
-                      className="small strong"
+                      className="cap-btn"
+                      data-variant="link"
                     >
                       Remove
                     </button>
@@ -162,7 +174,9 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                 placeholder="s-e-sulkin-award"
                 className="cap-input"
               />
-              <p className="tiny cap-muted">Leave blank to derive from the name.</p>
+              <p className="cap-text cap-muted" data-size="tiny">
+                Leave blank to derive from the name.
+              </p>
             </div>
           </div>
           <div className="cap-stack" data-gap="2">
@@ -176,7 +190,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
               Description
             </label>
             <textarea id="description" name="description" rows={2} className="cap-input" />
-            <p className="tiny cap-muted">
+            <p className="cap-text cap-muted" data-size="tiny">
               Bio and description support italics, superscript, and subscript.
             </p>
           </div>

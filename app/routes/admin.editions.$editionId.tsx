@@ -76,44 +76,78 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">{edition.name}</h1>
+        <h1 className="cap-title" data-size="2">
+          {edition.name}
+        </h1>
         <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
-          <Link to={`/admin/editions/${edition.id}/categories`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/categories`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Registration categories
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/abstract-categories`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/abstract-categories`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Abstract categories
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/roles`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/roles`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Chairs and reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/review`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Assign reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/decisions`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/decisions`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Decisions
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/book`} className="strong">
+          <Link to={`/admin/editions/${edition.id}/book`} className="cap-text" data-weight="strong">
             Abstract book
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/program`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Program
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/speakers`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/speakers`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Invited speakers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/sponsors`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/sponsors`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Sponsors
           </Link>
         </p>
@@ -231,7 +265,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>
-          <Link to="/admin" className="small strong cap-muted">
+          <Link to="/admin" className="cap-text cap-muted" data-size="small" data-weight="strong">
             Cancel
           </Link>
         </div>

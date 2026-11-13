@@ -43,8 +43,10 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Newsletters</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          Newsletters
+        </h1>
+        <p className="cap-muted cap-measure">
           The branch newsletter shares meeting recaps, award announcements, and news from member
           institutions across Texas. Read past issues below.
         </p>

@@ -47,13 +47,17 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
   const { editionId, abstract, reviews } = loaderData;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">
+        <h1 className="cap-title" data-size="2">
           Reviews for <RichText as="span" html={abstract.title} fallback="an untitled abstract" />
         </h1>
         <p>
-          <Link to={`/admin/editions/${editionId}/review`} className="strong">
+          <Link
+            to={`/admin/editions/${editionId}/review`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Back to assignments
           </Link>
         </p>
@@ -67,27 +71,37 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
             <li key={review.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
-                  <span className="small strong">
+                  <span className="cap-text" data-size="small" data-weight="strong">
                     {review.reviewerName || review.reviewerEmail}
                   </span>
-                  <span className="small cap-muted">
+                  <span className="cap-text cap-muted" data-size="small">
                     {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
                   </span>
                 </div>
-                <p className="small">
-                  <span className="strong">Recommendation:</span>{" "}
+                <p className="cap-text" data-size="small">
+                  <span className="cap-text" data-weight="strong">
+                    Recommendation:
+                  </span>{" "}
                   {recommendationLabel(review.recommendation)}
                 </p>
                 {review.overallComment ? (
                   <div className="cap-stack" data-gap="2">
-                    <h2 className="small strong">Overall comment</h2>
-                    <RichText className="small" html={review.overallComment} />
+                    <h2 className="cap-text" data-size="small" data-weight="strong">
+                      Overall comment
+                    </h2>
+                    <RichText className="cap-text" data-size="small" html={review.overallComment} />
                   </div>
                 ) : null}
                 {review.confidentialComment ? (
                   <div className="cap-banner cap-stack" data-gap="2" data-tone="warn">
-                    <h2 className="small strong">Confidential comment to chairs</h2>
-                    <RichText className="small" html={review.confidentialComment} />
+                    <h2 className="cap-text" data-size="small" data-weight="strong">
+                      Confidential comment to chairs
+                    </h2>
+                    <RichText
+                      className="cap-text"
+                      data-size="small"
+                      html={review.confidentialComment}
+                    />
                   </div>
                 ) : null}
               </div>

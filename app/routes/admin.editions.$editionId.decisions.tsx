@@ -117,14 +117,20 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Decisions</h1>
+        <h1 className="cap-title" data-size="2">
+          Decisions
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/review`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Assign reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -169,22 +175,26 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
       <div className="cap-panel-body cap-stack">
         <div className="cap-spread">
           <div className="cap-stack" data-gap="2">
-            <h2 className="strong">
+            <h2 className="cap-text" data-weight="strong">
               <RichText
                 as="span"
                 html={abstract.title}
                 fallback={<span className="cap-muted">Untitled</span>}
               />
             </h2>
-            <p className="small cap-muted">
+            <p className="cap-text cap-muted" data-size="small">
               {abstract.authorNames.length > 0
                 ? abstract.authorNames.join(", ")
                 : "No authors listed"}
             </p>
-            <p className="small cap-muted">
+            <p className="cap-text cap-muted" data-size="small">
               Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews: {abstract.reviewCount}{" "}
               (accept {summary.accept} / revise {summary.revise} / reject {summary.reject}) .{" "}
-              <Link to={`/admin/editions/${editionId}/review/${abstract.id}`} className="strong">
+              <Link
+                to={`/admin/editions/${editionId}/review/${abstract.id}`}
+                className="cap-text"
+                data-weight="strong"
+              >
                 Read reviews
               </Link>
             </p>
@@ -203,7 +213,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
         </div>
 
         {decision ? (
-          <p className="small cap-muted">
+          <p className="cap-text cap-muted" data-size="small">
             Current decision recorded {formatDate(decision.decidedAt, DATE_TIME)}.
           </p>
         ) : null}
@@ -218,7 +228,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                   Notify author
                 </button>
               </Form>
-              <span className="small cap-muted">
+              <span className="cap-text cap-muted" data-size="small">
                 {decision.notifyState === "emailed"
                   ? "Author emailed."
                   : decision.notifyState === "in_app"
@@ -226,7 +236,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                     : "Not notified yet."}
               </span>
             </div>
-            <p className="tiny cap-muted">
+            <p className="cap-text cap-muted" data-size="tiny">
               Until email goes live at cutover, this marks the author as notified in-app. The author
               already sees the decision when signed in.
             </p>
@@ -238,7 +248,9 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           <input type="hidden" name="abstractId" value={abstract.id} />
 
           <fieldset className="cap-stack" data-gap="3">
-            <legend className="small strong">Outcome</legend>
+            <legend className="cap-text" data-size="small" data-weight="strong">
+              Outcome
+            </legend>
             <div className="cap-cluster">
               {OUTCOME_OPTIONS.map((option) => (
                 <label key={option.value} className="cap-check">

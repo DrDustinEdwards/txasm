@@ -181,10 +181,12 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   return (
     <div className="cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Abstract book builder</h1>
+        <h1 className="cap-title" data-size="2">
+          Abstract book builder
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -215,7 +217,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
                 {published ? "Published" : "Draft"}
               </span>
-              <span className="small cap-muted">
+              <span className="cap-text cap-muted" data-size="small">
                 {book.includedCount} included
                 {book.publishedAt ? ` . published ${formatDate(book.publishedAt, DATE_TIME)}` : ""}
               </span>
@@ -224,7 +226,9 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                   href={`/admin/editions/${edition.id}/book/preview`}
                   target="_blank"
                   rel="noreferrer"
-                  className="small strong"
+                  className="cap-text"
+                  data-size="small"
+                  data-weight="strong"
                 >
                   Open preview
                   <span className="cap-sr-only"> (opens in a new tab)</span>
@@ -276,7 +280,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           </Panel>
 
           {published ? (
-            <p className="small cap-muted">
+            <p className="cap-text cap-muted" data-size="small">
               This book is published and its codes are frozen. Reopen it to edit the arrangement.
             </p>
           ) : null}
@@ -303,10 +307,14 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               busy={boardBusy}
               empty="Empty. Drag an abstract here."
               onMove={submitReorder}
-              renderLaneHead={(lane) => <h2 className="subsection-title">{lane.label}</h2>}
+              renderLaneHead={(lane) => (
+                <h2 className="cap-title" data-size="5">
+                  {lane.label}
+                </h2>
+              )}
               renderControls={(entry) =>
                 editable ? (
-                  <label className="cap-cluster tiny" data-gap="2">
+                  <label className="cap-text cap-cluster" data-size="tiny" data-gap="2">
                     <input
                       type="checkbox"
                       checked={entry.included}
@@ -319,18 +327,27 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               }
               renderItem={(entry) => (
                 <span className="book-entry">
-                  <span className="tiny cap-muted cap-num time-col">{entry.code ?? "-"}</span>
-                  <span className="grow">
+                  <span className="cap-text cap-muted cap-num cap-keep time-col" data-size="tiny">
+                    {entry.code ?? "-"}
+                  </span>
+                  <span className="cap-grow cap-stack" data-gap="1">
                     {/* Title is stored sanitized (em/sup/sub only). */}
-                    <RichText as="span" className="strong" html={entry.title} />
-                    <span className="tiny cap-muted block">
+                    <RichText
+                      as="span"
+                      className="cap-text"
+                      data-weight="strong"
+                      html={entry.title}
+                    />
+                    <span className="cap-text cap-muted" data-size="tiny">
                       {entry.presentingAuthorName ?? "No presenter"}
                       {entry.levelLabel ? ` . ${entry.levelLabel}` : ""}
                       {entry.formatLabel ? ` . ${entry.formatLabel}` : ""}
                     </span>
                   </span>
                   {editable ? null : (
-                    <span className="tiny cap-muted">{entry.included ? "" : "Excluded"}</span>
+                    <span className="cap-text cap-muted" data-size="tiny">
+                      {entry.included ? "" : "Excluded"}
+                    </span>
                   )}
                 </span>
               )}

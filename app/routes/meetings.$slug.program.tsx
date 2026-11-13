@@ -18,6 +18,7 @@ import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedule";
 import { RichText } from "capsomer/react/trusted-html";
+import { ProgramItemTitle } from "~/components/program-item-title";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import schedule from "capsomer/schedule.css?url";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
@@ -76,33 +77,20 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][number] }) {
   return (
     <li className="cap-stack" data-gap="2">
-      <div className="cap-cluster program-item">
+      <div className="cap-cluster" data-align="baseline" data-gap="3">
         <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-        {item.abstractId ? (
-          <p>
-            {item.abstractCode ? (
-              <span className="strong cap-muted">{item.abstractCode} </span>
-            ) : null}
-            <RichText as="span" className="strong" html={item.abstractTitle} />
-            {item.presentingAuthorName ? (
-              <span className="cap-muted"> . {item.presentingAuthorName}</span>
-            ) : null}
-          </p>
-        ) : item.speakerId ? (
-          <p>
-            <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-            {item.speakerTalkTitle ? (
-              <span className="cap-muted"> . {item.speakerTalkTitle}</span>
-            ) : null}
-          </p>
-        ) : (
-          <p className="strong">{item.customTitle}</p>
-        )}
+        <ProgramItemTitle item={item} />
       </div>
       {item.startsAt ? (
-        <p className="small cap-muted">{formatDate(item.startsAt, DATE_TIME)}</p>
+        <p className="cap-text cap-muted" data-size="small">
+          {formatDate(item.startsAt, DATE_TIME)}
+        </p>
       ) : null}
-      {item.note ? <p className="small cap-muted">{item.note}</p> : null}
+      {item.note ? (
+        <p className="cap-text cap-muted" data-size="small">
+          {item.note}
+        </p>
+      ) : null}
     </li>
   );
 }
@@ -117,7 +105,9 @@ function SessionBlock({ session, level }: { session: ProgramSessionResolved; lev
       meta={session.moderator ? <p>Moderated by {session.moderator}</p> : undefined}
     >
       {session.items.length === 0 ? (
-        <p className="small cap-muted">No items listed.</p>
+        <p className="cap-text cap-muted" data-size="small">
+          No items listed.
+        </p>
       ) : (
         <ol className="cap-stack" data-gap="4">
           {session.items.map((item) => (
@@ -132,20 +122,26 @@ function SessionBlock({ session, level }: { session: ProgramSessionResolved; lev
 function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
   return (
     <section className="cap-stack" data-gap="4">
-      <h2 className="section-title">Invited speakers</h2>
+      <h2 className="cap-title" data-size="4">
+        Invited speakers
+      </h2>
       <ul className="cap-stack">
         {speakers.map((speaker) => (
           <li key={speaker.id}>
             <article className="cap-card">
               <h3>{speaker.name}</h3>
               <div>
-                <p className="small cap-muted">
+                <p className="cap-text cap-muted" data-size="small">
                   {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
                     .filter((part) => part.length > 0)
                     .join(" . ")}
                 </p>
-                {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
-                <RichText className="small speaker-bio" html={speaker.bio} />
+                {speaker.talkTitle ? (
+                  <p className="cap-text" data-size="small">
+                    {speaker.talkTitle}
+                  </p>
+                ) : null}
+                <RichText className="cap-text speaker-bio" data-size="small" html={speaker.bio} />
               </div>
             </article>
           </li>
@@ -158,15 +154,21 @@ function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
 function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
   return (
     <section className="cap-stack" data-gap="4">
-      <h2 className="section-title">Sponsors</h2>
+      <h2 className="cap-title" data-size="4">
+        Sponsors
+      </h2>
       <ul className="cap-cluster">
         {sponsors.map((sponsor) => (
-          <li key={sponsor.id} className="small">
+          <li key={sponsor.id} className="cap-text" data-size="small">
             <article className="cap-card">
               <h3>
                 {isHttpUrl(sponsor.url) ? <a href={sponsor.url}>{sponsor.name}</a> : sponsor.name}
               </h3>
-              {sponsor.tier ? <p className="small cap-muted">{sponsor.tier}</p> : null}
+              {sponsor.tier ? (
+                <p className="cap-text cap-muted" data-size="small">
+                  {sponsor.tier}
+                </p>
+              ) : null}
             </article>
           </li>
         ))}
@@ -191,8 +193,12 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
         ]}
       />
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">{edition.name}</h1>
-        <p className="home-tagline">Program</p>
+        <h1 className="cap-title" data-size="2">
+          {edition.name}
+        </h1>
+        <p className="cap-text" data-size="lead" data-tone="ink">
+          Program
+        </p>
         {dateLine ? <p className="cap-muted">{dateLine}</p> : null}
         {venueLine ? <p className="cap-muted">{venueLine}</p> : null}
       </div>

@@ -32,8 +32,10 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
 
 export default function AwardNominations({ loaderData }: Route.ComponentProps) {
   return (
-    <div className="reading cap-stack" data-gap="4">
-      <h1 className="page-title">{loaderData.title}</h1>
+    <div className="cap-column cap-stack" data-width="reading" data-gap="4">
+      <h1 className="cap-title" data-size="2">
+        {loaderData.title}
+      </h1>
       <RichText className="page-prose" html={loaderData.html} />
     </div>
   );

@@ -3,7 +3,9 @@ import { Icon, type IconName } from "capsomer/react/icons";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
-// Capsomer's Disclosure styles: its compact cards are on the admin pages only.
+// Capsomer's admin shell and Disclosure styles: the shell and the compact cards are on the admin pages only,
+// so the public pages do not load them.
+import "capsomer/admin-shell.css";
 import "capsomer/disclosure.css";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";

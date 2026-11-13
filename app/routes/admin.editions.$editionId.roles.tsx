@@ -86,10 +86,12 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Chairs and reviewers</h1>
+        <h1 className="cap-title" data-size="2">
+          Chairs and reviewers
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -154,7 +156,9 @@ function RoleList({
 }) {
   return (
     <section className="cap-stack" data-gap="4">
-      <h2 className="subsection-title">{title}</h2>
+      <h2 className="cap-title" data-size="5">
+        {title}
+      </h2>
       {grants.length === 0 ? (
         <p>{empty}</p>
       ) : (
@@ -162,8 +166,10 @@ function RoleList({
           {grants.map((grant) => (
             <li key={`${grant.userId}-${grant.role}`} className="cap-panel" data-size="sm">
               <div className="cap-panel-body cap-spread">
-                <span className="small">
-                  <span className="strong">{grant.name || grant.email}</span>
+                <span className="cap-text" data-size="small">
+                  <span className="cap-text" data-weight="strong">
+                    {grant.name || grant.email}
+                  </span>
                   {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
                 </span>
                 <Form method="post">

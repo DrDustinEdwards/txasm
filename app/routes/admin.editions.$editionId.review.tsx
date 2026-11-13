@@ -102,14 +102,20 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Assign reviewers</h1>
+        <h1 className="cap-title" data-size="2">
+          Assign reviewers
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}/roles`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/roles`}
+            className="cap-text"
+            data-weight="strong"
+          >
             Chairs and reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -137,14 +143,14 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                 <div className="cap-panel-body cap-stack" data-gap="4">
                   <div className="cap-spread">
                     <div className="cap-stack" data-gap="2">
-                      <h2 className="strong">
+                      <h2 className="cap-text" data-weight="strong">
                         <RichText
                           as="span"
                           html={abstract.title}
                           fallback={<span className="cap-muted">Untitled</span>}
                         />
                       </h2>
-                      <p className="small cap-muted">
+                      <p className="cap-text cap-muted" data-size="small">
                         {abstract.authorNames.length > 0
                           ? abstract.authorNames.join(", ")
                           : "No authors listed"}
@@ -162,16 +168,27 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                   ) : null}
 
                   <div className="cap-stack" data-gap="3">
-                    <h3 className="small strong">Reviewers</h3>
+                    <h3 className="cap-text" data-size="small" data-weight="strong">
+                      Reviewers
+                    </h3>
                     {assigned.length === 0 ? (
-                      <p className="small cap-muted">None assigned yet.</p>
+                      <p className="cap-text cap-muted" data-size="small">
+                        None assigned yet.
+                      </p>
                     ) : (
                       <ul className="cap-stack" data-gap="2">
                         {assigned.map((a) => (
-                          <li key={a.assignmentId} className="cap-spread small">
+                          <li
+                            key={a.assignmentId}
+                            className="cap-text cap-spread"
+                            data-size="small"
+                          >
                             <span>
                               {a.reviewerName || a.reviewerEmail}{" "}
-                              <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
+                              <span
+                                className="cap-text"
+                                data-tone={a.reviewSubmitted ? "ok" : "muted"}
+                              >
                                 ({a.reviewSubmitted ? "review submitted" : "assigned"})
                               </span>
                             </span>
@@ -232,15 +249,16 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                       </button>
                     </Form>
                   ) : reviewers.length > 0 ? (
-                    <p className="small cap-muted">
+                    <p className="cap-text cap-muted" data-size="small">
                       Every reviewer on this meeting is already assigned.
                     </p>
                   ) : null}
 
-                  <p className="small">
+                  <p className="cap-text" data-size="small">
                     <Link
                       to={`/admin/editions/${edition.id}/review/${abstract.id}`}
-                      className="strong"
+                      className="cap-text"
+                      data-weight="strong"
                     >
                       Read reviews ({abstract.reviewCount})
                     </Link>

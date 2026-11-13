@@ -232,8 +232,8 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   if (sent) {
     return (
-      <div className="narrow cap-stack">
-        <h1 ref={confirmRef} tabIndex={-1} className="page-title">
+      <div className="cap-column cap-stack" data-width="narrow">
+        <h1 ref={confirmRef} tabIndex={-1} className="cap-title" data-size="2">
           Check your inbox
         </h1>
         <p>
@@ -283,10 +283,12 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="narrow cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
       {deleted ? <p role="status">Your account was deleted.</p> : null}
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
+        <h1 className="cap-title" data-size="2">
+          {next ? "Sign in again" : "Sign in"}
+        </h1>
         <p>
           {next
             ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. "

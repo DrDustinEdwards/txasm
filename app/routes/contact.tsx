@@ -27,15 +27,17 @@ export default function Contact() {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Contact</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          Contact
+        </h1>
+        <p className="cap-muted cap-measure">
           Questions about meetings, registration, abstracts, or the awards program are welcome.
           Reach the branch by email or through the member group.
         </p>
       </header>
 
       <section aria-labelledby="reach-heading" className="cap-stack">
-        <h2 id="reach-heading" className="section-title">
+        <h2 id="reach-heading" className="cap-title" data-size="4">
           Reach the branch
         </h2>
         <dl className="cap-stack">

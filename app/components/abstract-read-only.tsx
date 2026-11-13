@@ -20,9 +20,13 @@ export function DecisionPanel({
     decision.outcome === "accept" ? "ok" : decision.outcome === "reject" ? "crit" : "warn";
   return (
     <section role="status" className="cap-banner cap-stack" data-gap="3" data-tone={tone}>
-      <h2 className="subsection-title">Decision</h2>
-      <p className="small">
-        <span className="strong">Outcome:</span>{" "}
+      <h2 className="cap-title" data-size="5">
+        Decision
+      </h2>
+      <p className="cap-text" data-size="small">
+        <span className="cap-text" data-weight="strong">
+          Outcome:
+        </span>{" "}
         {DECISION_OUTCOME_LABELS[decision.outcome as DecisionOutcome] ?? decision.outcome}
         {decision.presentationType
           ? ` (${
@@ -33,8 +37,10 @@ export function DecisionPanel({
       </p>
       {decision.decisionMessage ? (
         <div className="cap-stack" data-gap="2">
-          <h3 className="small strong">Message from the organizers</h3>
-          <RichText className="small" html={decision.decisionMessage} />
+          <h3 className="cap-text" data-size="small" data-weight="strong">
+            Message from the organizers
+          </h3>
+          <RichText className="cap-text" data-size="small" html={decision.decisionMessage} />
         </div>
       ) : null}
     </section>
@@ -54,13 +60,17 @@ export function ReadOnlyAbstract({
     <div className="cap-stack">
       {bodyText.trim().length > 0 ? (
         <section className="cap-stack" data-gap="2">
-          <h2 className="small strong">Abstract</h2>
+          <h2 className="cap-text" data-size="small" data-weight="strong">
+            Abstract
+          </h2>
           <RichText html={bodyText} />
         </section>
       ) : null}
       {authors.length > 0 ? (
         <section className="cap-stack" data-gap="2">
-          <h2 className="small strong">Authors</h2>
+          <h2 className="cap-text" data-size="small" data-weight="strong">
+            Authors
+          </h2>
           <p>
             {authors
               .map((a) => `${a.firstName} ${a.lastName}`.trim())
@@ -71,7 +81,9 @@ export function ReadOnlyAbstract({
       ) : null}
       {affiliations.length > 0 ? (
         <section className="cap-stack" data-gap="2">
-          <h2 className="small strong">Affiliations</h2>
+          <h2 className="cap-text" data-size="small" data-weight="strong">
+            Affiliations
+          </h2>
           <ol className="numbered">
             {affiliations.map((a, i) => (
               <li key={i}>{a.institution}</li>

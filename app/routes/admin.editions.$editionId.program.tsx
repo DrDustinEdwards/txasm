@@ -306,10 +306,12 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Schedule</h1>
+        <h1 className="cap-title" data-size="2">
+          Schedule
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -334,7 +336,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           </Link>
         )}
       >
-        <label className="cap-cluster small cap-muted">
+        <label className="cap-text cap-cluster cap-muted" data-size="small">
           <span>Add day</span>
           <input
             type="date"
@@ -356,7 +358,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </p>
       ) : (
         <div className="cap-stack" data-gap="7">
-          <h2 className="subsection-title">{dayLabel(selectedDay, { noDate: "No date" })}</h2>
+          <h2 className="cap-title" data-size="5">
+            {dayLabel(selectedDay, { noDate: "No date" })}
+          </h2>
           <Schedule
             days={[day ?? { key: selectedDay, slots: [] }]}
             level={3}

@@ -107,9 +107,11 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
   const [footerLinks, setFooterLinks] = useState<FooterLink[]>(() => settings.footerLinks);
 
   return (
-    <div className="form-page cap-stack" data-gap="7">
+    <div className="cap-column cap-stack" data-gap="7">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Platform settings</h1>
+        <h1 className="cap-title" data-size="2">
+          Platform settings
+        </h1>
         <p className="cap-muted">
           Organization identity and tunable defaults. These drive the site header, footer, and home
           page.

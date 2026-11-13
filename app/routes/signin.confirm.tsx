@@ -51,9 +51,11 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
   if (problem) {
     const words = SIGN_IN_LINK_WORDS[problem];
     return (
-      <div className="narrow cap-stack" data-gap="6">
+      <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
         <div className="cap-stack" data-gap="3">
-          <h1 className="page-title">{words.title}</h1>
+          <h1 className="cap-title" data-size="2">
+            {words.title}
+          </h1>
           <p>{words.text}</p>
         </div>
         <div>
@@ -72,8 +74,10 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
   }
 
   return (
-    <div className="narrow cap-stack" data-gap="6">
-      <h1 className="page-title">Sign in to TXASM</h1>
+    <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
+      <h1 className="cap-title" data-size="2">
+        Sign in to TXASM
+      </h1>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
       <form method="post" className="cap-stack">
         {actionData?.limited ? (

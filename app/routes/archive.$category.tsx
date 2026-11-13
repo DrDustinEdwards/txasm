@@ -53,8 +53,10 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">{title}</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          {title}
+        </h1>
+        <p className="cap-muted cap-measure">
           The branch's archive of {title.toLowerCase()} from past meetings. Open one to read it in
           the viewer or download the PDF.
         </p>
