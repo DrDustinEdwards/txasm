@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Banner } from "capsomer/react/banner";
@@ -123,22 +125,22 @@ function AbstractSections({
   const filled = sections.filter(([, html]) => html.trim().length > 0);
   if (filled.length === 0) {
     return (
-      <p className="cap-text cap-muted" data-size="small">
+      <Text size="small" tone="muted">
         This abstract has no section content.
-      </p>
+      </Text>
     );
   }
   return (
-    <div className="cap-stack">
+    <Stack>
       {filled.map(([label, html]) => (
-        <section key={label} className="cap-stack" data-gap="2">
-          <h3 className="cap-text" data-size="small" data-weight="strong">
+        <Stack as="section" key={label} gap={2}>
+          <Text as="h3" size="small" weight="strong">
             {label}
-          </h3>
+          </Text>
           <RichText className="cap-text" data-size="small" html={html} />
-        </section>
+        </Stack>
       ))}
-    </div>
+    </Stack>
   );
 }
 
@@ -157,21 +159,21 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-column cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="2">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={2}>
+        <Title as="h1" size={2}>
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
-        </h1>
-        <p className="cap-text cap-muted" data-size="small">
+        </Title>
+        <Text size="small" tone="muted">
           {edition.name}
           {authorLine ? ` . ${authorLine}` : ""}
           {assignment.dueAt ? ` . Due: ${formatDate(assignment.dueAt, DATE_TIME)}` : ""}
-        </p>
-      </div>
+        </Text>
+      </Stack>
 
       <Panel title="Abstract">
-        <div className="cap-stack" data-gap="4">
+        <Stack gap={4}>
           <AbstractSections abstract={abstract} />
-        </div>
+        </Stack>
       </Panel>
 
       <FormStatus status={status} />
@@ -180,10 +182,10 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         <Form method="post" className="cap-stack" data-gap="6">
           <input type="hidden" name="intent" value="submit" />
 
-          <fieldset className="cap-stack" data-gap="3">
-            <legend className="cap-text" data-size="small" data-weight="strong">
+          <Stack as="fieldset" gap={3}>
+            <Text as="legend" size="small" weight="strong">
               Recommendation
-            </legend>
+            </Text>
             <div className="cap-cluster">
               {RECOMMENDATION_OPTIONS.map((option) => (
                 <label key={option.value} className="cap-check">
@@ -198,7 +200,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
                 </label>
               ))}
             </div>
-          </fieldset>
+          </Stack>
 
           <RichTextField
             name="overallComment"
@@ -228,42 +230,42 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
           </div>
         </Form>
       ) : (
-        <div className="cap-stack">
+        <Stack>
           <Banner tone="warn">
             The review deadline has passed. This review can no longer be edited.
           </Banner>
           {review ? (
             <Panel title="Your review">
-              <div className="cap-stack" data-gap="3">
-                <p className="cap-text" data-size="small">
-                  <span className="cap-text" data-weight="strong">
+              <Stack gap={3}>
+                <Text size="small">
+                  <Text as="span" weight="strong">
                     Recommendation:
-                  </span>{" "}
+                  </Text>{" "}
                   {review.recommendation ?? "None"}
-                </p>
+                </Text>
                 {review.overallComment ? (
-                  <div className="cap-stack" data-gap="2">
-                    <h3 className="cap-text" data-size="small" data-weight="strong">
+                  <Stack gap={2}>
+                    <Text as="h3" size="small" weight="strong">
                       Overall comment
-                    </h3>
+                    </Text>
                     <RichText className="cap-text" data-size="small" html={review.overallComment} />
-                  </div>
+                  </Stack>
                 ) : null}
-              </div>
+              </Stack>
             </Panel>
           ) : null}
           <Link to="/review" className="cap-text" data-weight="strong">
             Back to review
           </Link>
-        </div>
+        </Stack>
       )}
 
       <Panel title="Have a conflict of interest?">
-        <div className="cap-stack" data-gap="4">
-          <p className="cap-text cap-muted" data-size="small">
+        <Stack gap={4}>
+          <Text size="small" tone="muted">
             If you should not review this abstract, declare a conflict. This removes the assignment
             and the abstract will be reassigned by a chair.
-          </p>
+          </Text>
           <Form
             method="post"
             className="cap-stack"
@@ -277,7 +279,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
           >
             <input type="hidden" name="intent" value="conflict" />
             <input type="hidden" name="abstractId" value={abstract.id} />
-            <div className="cap-stack" data-gap="2">
+            <Stack gap={2}>
               <label htmlFor="reason" className="cap-field-label">
                 Reason
               </label>
@@ -287,18 +289,18 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
                 <option value="colleague">An author is a close colleague</option>
                 <option value="other">Other</option>
               </select>
-            </div>
-            <div className="cap-stack" data-gap="2">
+            </Stack>
+            <Stack gap={2}>
               <label htmlFor="note" className="cap-field-label">
                 Note (optional)
               </label>
               <textarea id="note" name="note" rows={2} className="cap-input" />
-            </div>
+            </Stack>
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
               I have a conflict
             </button>
           </Form>
-        </div>
+        </Stack>
       </Panel>
     </div>
   );

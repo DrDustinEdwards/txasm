@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form } from "react-router";
 import { routerRenderLink } from "capsomer/react/link";
 import { Row, RowList } from "capsomer/react/row-list";
@@ -67,16 +69,16 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
   const { meetings, q, level, format, meeting, results } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
           Meetings
-        </h1>
+        </Title>
         <p className="cap-muted cap-measure">
           The branch meets twice a year. Search the accepted abstracts across all meetings, or open
           a meeting for its program and full abstract archive.
         </p>
-      </header>
+      </Stack>
 
       <Panel>
         <Form method="get" role="search" aria-label="Search abstracts" className="cap-stack">
@@ -129,10 +131,10 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       </Panel>
 
       {results ? (
-        <section aria-label="Search results" className="cap-stack">
-          <h2 className="cap-title" data-size="5">
+        <Stack as="section" aria-label="Search results">
+          <Title size={5}>
             {results.length} {results.length === 1 ? "result" : "results"}
-          </h2>
+          </Title>
           {results.length === 0 ? (
             <p className="cap-muted">No abstracts match that search. Try a broader term.</p>
           ) : (
@@ -156,44 +158,42 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
               </RowList>
             </Panel>
           )}
-        </section>
+        </Stack>
       ) : null}
 
-      <section aria-label="Meetings" className="cap-stack">
-        <h2 className="cap-title" data-size="5">
-          All meetings
-        </h2>
+      <Stack as="section" aria-label="Meetings">
+        <Title size={5}>All meetings</Title>
         {meetings.length === 0 ? (
           <Empty
             kind="nothing-yet"
             title="Meetings appear here once their programs are published."
           />
         ) : (
-          <ul className="cap-stack">
+          <Stack as="ul">
             {meetings.map((m) => {
               const venue = venueLine(m.venueName, m.city);
               return (
                 <li key={m.slug}>
                   <article className="cap-card">
                     <h3>{m.name}</h3>
-                    <p className="cap-text cap-muted" data-size="small">
+                    <Text size="small" tone="muted">
                       {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
                         .filter((p) => p.length > 0)
                         .join(" · ")}
-                    </p>
-                    <footer className="cap-text cap-cluster" data-size="small">
+                    </Text>
+                    <Text as="footer" size="small" className="cap-cluster">
                       <Link to={`/meetings/${m.slug}/abstracts`}>
                         Abstracts ({m.abstractCount})
                       </Link>
                       <Link to={`/meetings/${m.slug}/program`}>Program</Link>
-                    </footer>
+                    </Text>
                   </article>
                 </li>
               );
             })}
-          </ul>
+          </Stack>
         )}
-      </section>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

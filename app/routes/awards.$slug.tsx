@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";
 import { Row, RowList } from "capsomer/react/row-list";
 import { Panel } from "capsomer/react/panel";
@@ -67,8 +69,8 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
   const { award, years } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
         <Breadcrumb
           renderLink={routerRenderLink}
           items={[
@@ -77,9 +79,9 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
             { label: award.name },
           ]}
         />
-        <h1 className="cap-title" data-size="2">
+        <Title as="h1" size={2}>
           {award.name}
-        </h1>
+        </Title>
         <RichText as="p" className="cap-muted cap-measure" html={award.description} />
         <RichText
           as="p"
@@ -87,7 +89,7 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
           data-size="small"
           html={award.namesakeBio}
         />
-      </header>
+      </Stack>
 
       {years.length === 0 ? (
         <section aria-label="Recipients">
@@ -97,18 +99,12 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
           />
         </section>
       ) : (
-        <div className="cap-stack" data-gap="7">
+        <Stack gap={7}>
           {years.map((group) => (
-            <section key={group.year} aria-label={`Recipients ${group.year}`} className="cap-stack">
-              <h2 className="cap-title" data-size="4">
-                {group.year}
-              </h2>
+            <Stack as="section" key={group.year} aria-label={`Recipients ${group.year}`}>
+              <Title size={4}>{group.year}</Title>
               {group.categories.map((bucket, index) => (
-                <div
-                  key={bucket.category ?? `uncategorized-${index}`}
-                  className="cap-stack"
-                  data-gap="3"
-                >
+                <Stack key={bucket.category ?? `uncategorized-${index}`} gap={3}>
                   {bucket.category ? <h3 className="cap-label">{bucket.category}</h3> : null}
                   <Panel flush>
                     <RowList label={bucket.category ?? `Recipients ${group.year}`}>
@@ -133,12 +129,12 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
                       ))}
                     </RowList>
                   </Panel>
-                </div>
+                </Stack>
               ))}
-            </section>
+            </Stack>
           ))}
-        </div>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 }

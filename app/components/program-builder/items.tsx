@@ -1,3 +1,5 @@
+import { Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, useNavigation, useSubmit } from "react-router";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Panel } from "capsomer/react/panel";
@@ -60,9 +62,9 @@ export function SessionItems({
       getLabel={itemLabel}
       busy={listBusy}
       empty={
-        <p className="cap-text cap-muted" data-size="small">
+        <Text size="small" tone="muted">
           No items in this session yet.
-        </p>
+        </Text>
       }
       onReorder={(order) =>
         post([
@@ -86,11 +88,11 @@ export function SessionItems({
 // What the item is: its kind, its title or speaker, and its note.
 function ItemBody({ item }: { item: Item }) {
   return (
-    <div className="cap-text" data-size="small">
+    <Text as="div" size="small">
       <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
       <ProgramItemTitle item={item} />
       {item.note ? <p className="cap-muted">{item.note}</p> : null}
-    </div>
+    </Text>
   );
 }
 
@@ -110,7 +112,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
           defaultDate={item.startsAt}
         />
         {isCustom ? (
-          <div className="cap-stack cap-full" data-gap="2">
+          <Stack gap={2} className="cap-full">
             <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
               Title
             </label>
@@ -122,9 +124,9 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
               defaultValue={item.customTitle ?? ""}
               className="cap-input"
             />
-          </div>
+          </Stack>
         ) : null}
-        <div className="cap-stack cap-full" data-gap="2">
+        <Stack gap={2} className="cap-full">
           <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
             Note
           </label>
@@ -135,7 +137,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
             defaultValue={item.note ?? ""}
             className="cap-input"
           />
-        </div>
+        </Stack>
         <div className="cap-full">
           <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
             Save item
@@ -158,7 +160,7 @@ export function AddItemForms({
   busy: boolean;
 }) {
   return (
-    <div className="cap-stack" data-gap="4">
+    <Stack gap={4}>
       <Panel size="sm">
         <Form method="post" className="cap-stack" data-gap="3">
           <input type="hidden" name="intent" value="item-add-abstract" />
@@ -167,9 +169,9 @@ export function AddItemForms({
             Add an accepted abstract
           </label>
           {unplaced.length === 0 ? (
-            <p className="cap-text cap-muted" data-size="small">
+            <Text size="small" tone="muted">
               No unplaced accepted abstracts.
-            </p>
+            </Text>
           ) : (
             <>
               <select
@@ -206,9 +208,9 @@ export function AddItemForms({
             Add an invited speaker
           </label>
           {speakers.length === 0 ? (
-            <p className="cap-text cap-muted" data-size="small">
+            <Text size="small" tone="muted">
               No invited speakers yet.
-            </p>
+            </Text>
           ) : (
             <>
               <select
@@ -264,6 +266,6 @@ export function AddItemForms({
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }

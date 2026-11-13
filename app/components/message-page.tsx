@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import type { ReactNode } from "react";
 
 // A page that is one message and one way onward: the title, a line of text and the action under them.
@@ -12,12 +14,12 @@ export function MessagePage({
 }) {
   return (
     <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           {title}
-        </h1>
+        </Title>
         <p>{text}</p>
-      </div>
+      </Stack>
       <div>{action}</div>
     </div>
   );

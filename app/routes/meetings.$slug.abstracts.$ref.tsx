@@ -1,3 +1,5 @@
+import { Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { htmlToText } from "@drdustinedwards/site-helpers/text";
 import { Link, routerRenderLink } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
@@ -68,10 +70,10 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         ]}
       />
 
-      <header className="cap-stack" data-gap="4">
-        <p className="cap-text cap-muted" data-size="small">
+      <Stack as="header" gap={4}>
+        <Text size="small" tone="muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract {codeLabel}
-        </p>
+        </Text>
         <RichText as="h1" className="cap-title" data-size="3" html={abstract.title} />
         {abstract.authors.length > 0 ? (
           <p>
@@ -100,19 +102,19 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         {abstract.affiliations.length > 0 ? (
-          <ol className="cap-text cap-stack cap-muted" data-size="small" data-gap="2">
+          <Text as="ol" data-gap="2" size="small" tone="muted" className="cap-stack">
             {abstract.affiliations.map((aff) => (
               <li key={aff.ordinal} className="affiliation">
-                <sup className="cap-text" data-weight="strong">
+                <Text as="sup" weight="strong">
                   {aff.ordinal}
-                </sup>
+                </Text>
                 <span>{joinParts([aff.institution, aff.department, aff.city, aff.country])}</span>
               </li>
             ))}
-          </ol>
+          </Text>
         ) : null}
         {metaLabel ? <p className="cap-label">{metaLabel}</p> : null}
-      </header>
+      </Stack>
 
       {abstract.bodyText ? (
         <RichText className="cap-stack" data-gap="4" html={abstract.bodyText} />
@@ -120,9 +122,9 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         <p className="cap-muted">No abstract body on record.</p>
       )}
 
-      <p className="cap-text doc-pager" data-size="small">
+      <Text size="small" className="doc-pager">
         <Link to={`/meetings/${edition.slug}/abstracts`}>Back to {edition.name} abstracts</Link>
-      </p>
+      </Text>
     </div>
   );
 }

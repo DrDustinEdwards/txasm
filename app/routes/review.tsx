@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import "capsomer/table.css";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
@@ -30,10 +32,10 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
   const { assignments } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <h1 className="cap-title" data-size="2">
+    <Stack gap={6}>
+      <Title as="h1" size={2}>
         Review
-      </h1>
+      </Title>
 
       {assignments.length === 0 ? (
         <p>
@@ -48,9 +50,9 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
               <th scope="col">Meeting</th>
               <th scope="col">Due</th>
               <th scope="col">Status</th>
-              <th scope="col" className="cap-text" data-align="end">
+              <Text as="th" scope="col" align="end">
                 <span className="cap-sr-only">Actions</span>
-              </th>
+              </Text>
             </tr>
           </thead>
           <tbody>
@@ -69,14 +71,14 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
                 </td>
                 <td>
                   {assignment.reviewSubmitted ? (
-                    <span className="cap-text" data-tone="ok">
+                    <Text as="span" tone="ok">
                       Review submitted
-                    </span>
+                    </Text>
                   ) : (
                     "Awaiting review"
                   )}
                 </td>
-                <td className="cap-text" data-align="end">
+                <Text as="td" align="end">
                   <Link
                     to={`/review/${assignment.assignmentId}`}
                     className="cap-text"
@@ -84,12 +86,12 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
                   >
                     {assignment.reviewSubmitted ? "View or edit" : "Review"}
                   </Link>
-                </td>
+                </Text>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
-    </div>
+    </Stack>
   );
 }

@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { SchemaFields } from "capsomer/react/schema-form";
@@ -109,15 +111,15 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
 
   return (
     <div className="cap-column cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Platform settings
-        </h1>
+        </Title>
         <p className="cap-muted">
           Organization identity and tunable defaults. These drive the site header, footer, and home
           page.
         </p>
-      </div>
+      </Stack>
 
       <FormStatus status={status} />
 

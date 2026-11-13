@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.program";
 import { jsonLd } from "@drdustinedwards/site-helpers/schema";
@@ -76,22 +78,22 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][number] }) {
   return (
-    <li className="cap-stack" data-gap="2">
+    <Stack as="li" gap={2}>
       <div className="cap-cluster" data-align="baseline" data-gap="3">
         <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
         <ProgramItemTitle item={item} />
       </div>
       {item.startsAt ? (
-        <p className="cap-text cap-muted" data-size="small">
+        <Text size="small" tone="muted">
           {formatDate(item.startsAt, DATE_TIME)}
-        </p>
+        </Text>
       ) : null}
       {item.note ? (
-        <p className="cap-text cap-muted" data-size="small">
+        <Text size="small" tone="muted">
           {item.note}
-        </p>
+        </Text>
       ) : null}
-    </li>
+    </Stack>
   );
 }
 
@@ -105,15 +107,15 @@ function SessionBlock({ session, level }: { session: ProgramSessionResolved; lev
       meta={session.moderator ? <p>Moderated by {session.moderator}</p> : undefined}
     >
       {session.items.length === 0 ? (
-        <p className="cap-text cap-muted" data-size="small">
+        <Text size="small" tone="muted">
           No items listed.
-        </p>
+        </Text>
       ) : (
-        <ol className="cap-stack" data-gap="4">
+        <Stack as="ol" gap={4}>
           {session.items.map((item) => (
             <ProgramItemView key={item.id} item={item} />
           ))}
-        </ol>
+        </Stack>
       )}
     </ScheduleSession>
   );
@@ -121,59 +123,51 @@ function SessionBlock({ session, level }: { session: ProgramSessionResolved; lev
 
 function SpeakerList({ speakers }: { speakers: SpeakerPublic[] }) {
   return (
-    <section className="cap-stack" data-gap="4">
-      <h2 className="cap-title" data-size="4">
-        Invited speakers
-      </h2>
-      <ul className="cap-stack">
+    <Stack as="section" gap={4}>
+      <Title size={4}>Invited speakers</Title>
+      <Stack as="ul">
         {speakers.map((speaker) => (
           <li key={speaker.id}>
             <article className="cap-card">
               <h3>{speaker.name}</h3>
               <div>
-                <p className="cap-text cap-muted" data-size="small">
+                <Text size="small" tone="muted">
                   {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
                     .filter((part) => part.length > 0)
                     .join(" . ")}
-                </p>
-                {speaker.talkTitle ? (
-                  <p className="cap-text" data-size="small">
-                    {speaker.talkTitle}
-                  </p>
-                ) : null}
+                </Text>
+                {speaker.talkTitle ? <Text size="small">{speaker.talkTitle}</Text> : null}
                 <RichText className="cap-text speaker-bio" data-size="small" html={speaker.bio} />
               </div>
             </article>
           </li>
         ))}
-      </ul>
-    </section>
+      </Stack>
+    </Stack>
   );
 }
 
 function SponsorList({ sponsors }: { sponsors: SponsorPublic[] }) {
   return (
-    <section className="cap-stack" data-gap="4">
-      <h2 className="cap-title" data-size="4">
-        Sponsors
-      </h2>
+    <Stack as="section" gap={4}>
+      <Title size={4}>Sponsors</Title>
       <ul className="cap-cluster">
         {sponsors.map((sponsor) => (
-          <li key={sponsor.id} className="cap-text" data-size="small">
+          <Text as="li" key={sponsor.id} size="small">
             <article className="cap-card">
               <h3>
                 {isHttpUrl(sponsor.url) ? <a href={sponsor.url}>{sponsor.name}</a> : sponsor.name}
               </h3>
               {sponsor.tier ? (
-                <p className="cap-text cap-muted" data-size="small">
+                <Text size="small" tone="muted">
                   {sponsor.tier}
-                </p>
+                </Text>
               ) : null}
             </article>
-          </li>
+          </Text>
         ))}
       </ul>
-    </section>
+    </Stack>
   );
 }
 
@@ -183,7 +177,7 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
   const venueLine = joinParts([edition.venueName, edition.city]);
 
   return (
-    <div className="cap-stack" data-gap="7">
+    <Stack gap={7}>
       <Breadcrumb
         renderLink={routerRenderLink}
         items={[
@@ -192,16 +186,16 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
           { label: `${edition.name} program` },
         ]}
       />
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           {edition.name}
-        </h1>
-        <p className="cap-text" data-size="lead" data-tone="ink">
+        </Title>
+        <Text size="lead" tone="ink">
           Program
-        </p>
+        </Text>
         {dateLine ? <p className="cap-muted">{dateLine}</p> : null}
         {venueLine ? <p className="cap-muted">{venueLine}</p> : null}
-      </div>
+      </Stack>
 
       {program === null ? (
         <Empty
@@ -211,7 +205,7 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
       ) : program.days.length === 0 ? (
         <p>The program has no sessions listed yet.</p>
       ) : (
-        <div className="cap-stack" data-gap="6">
+        <Stack gap={6}>
           {program.days.length > 1 ? (
             <ScheduleDayNav
               days={program.days.map((d) => d.key)}
@@ -234,7 +228,7 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
               <SessionBlock session={session} level={level as 3 | 4 | 5} />
             )}
           />
-        </div>
+        </Stack>
       )}
 
       {program && program.speakers.length > 0 ? <SpeakerList speakers={program.speakers} /> : null}
@@ -245,6 +239,6 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
           same schedule (days, concurrency groups, items, speakers, sponsors) into
           a print document via Browser Rendering to R2, mirroring the abstract
           book pipeline (book.server.ts). Not built in this pass. */}
-    </div>
+    </Stack>
   );
 }

@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useState } from "react";
 import { Banner } from "capsomer/react/banner";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
@@ -271,9 +273,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   if (!editable) {
     return (
       <div className="cap-column cap-stack" data-gap="6">
-        <h1 className="cap-title" data-size="2">
+        <Title as="h1" size={2}>
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
-        </h1>
+        </Title>
         <DecisionPanel decision={decision} />
         <Banner tone="warn">
           The submission deadline has passed. This abstract can no longer be edited.
@@ -292,17 +294,17 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-column cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="2">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={2}>
+        <Title as="h1" size={2}>
           Abstract
-        </h1>
-        <p className="cap-text cap-muted" data-size="small">
+        </Title>
+        <Text size="small" tone="muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
             ? ` . Deadline: ${formatDate(edition.submissionDeadline, DATE_TIME)}`
             : ""}
-        </p>
-      </div>
+        </Text>
+      </Stack>
 
       <DecisionPanel decision={decision} />
 
@@ -311,7 +313,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
       <Form method="post" className="cap-stack" data-gap="6">
         <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <RichTextField
             name="bodyText"
             label="Abstract body"
@@ -321,23 +323,22 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             describedBy="body-count"
             onValueChange={(value) => setBodyWords(richTextWords(value))}
           />
-          <p
+          <Text
             id="body-count"
             aria-live="polite"
-            className="cap-text"
-            data-size="small"
             data-weight={overLimit ? "strong" : undefined}
             data-tone={overLimit ? "crit" : "muted"}
+            size="small"
           >
             {bodyWords} / {edition.wordLimit} words
             {overLimit
               ? ". Over the limit. Trim the body to submit; you can still save a draft."
               : ""}
-          </p>
-        </div>
+          </Text>
+        </Stack>
 
         <div className="cap-grid" data-cols="2">
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="level" className="cap-field-label">
               Level
             </label>
@@ -349,9 +350,9 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                 </option>
               ))}
             </select>
-          </div>
+          </Stack>
 
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="categoryId" className="cap-field-label">
               Topic
             </label>
@@ -368,10 +369,10 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                 </option>
               ))}
             </select>
-          </div>
+          </Stack>
         </div>
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="presentationPreference" className="cap-field-label">
             Presentation preference
           </label>
@@ -387,7 +388,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
         <AffiliationsFieldset
           affiliations={affiliations}

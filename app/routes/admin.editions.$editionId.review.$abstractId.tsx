@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review.$abstractId";
 import { pageTitle } from "~/lib/site-meta";
@@ -48,10 +50,10 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-column cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Reviews for <RichText as="span" html={abstract.title} fallback="an untitled abstract" />
-        </h1>
+        </Title>
         <p>
           <Link
             to={`/admin/editions/${editionId}/review`}
@@ -61,42 +63,42 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
             Back to assignments
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {reviews.length === 0 ? (
         <p>No reviews submitted yet.</p>
       ) : (
-        <ul className="cap-stack">
+        <Stack as="ul">
           {reviews.map((review) => (
             <li key={review.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
-                  <span className="cap-text" data-size="small" data-weight="strong">
+                  <Text as="span" size="small" weight="strong">
                     {review.reviewerName || review.reviewerEmail}
-                  </span>
-                  <span className="cap-text cap-muted" data-size="small">
+                  </Text>
+                  <Text as="span" size="small" tone="muted">
                     {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
-                  </span>
+                  </Text>
                 </div>
-                <p className="cap-text" data-size="small">
-                  <span className="cap-text" data-weight="strong">
+                <Text size="small">
+                  <Text as="span" weight="strong">
                     Recommendation:
-                  </span>{" "}
+                  </Text>{" "}
                   {recommendationLabel(review.recommendation)}
-                </p>
+                </Text>
                 {review.overallComment ? (
-                  <div className="cap-stack" data-gap="2">
-                    <h2 className="cap-text" data-size="small" data-weight="strong">
+                  <Stack gap={2}>
+                    <Text as="h2" size="small" weight="strong">
                       Overall comment
-                    </h2>
+                    </Text>
                     <RichText className="cap-text" data-size="small" html={review.overallComment} />
-                  </div>
+                  </Stack>
                 ) : null}
                 {review.confidentialComment ? (
                   <div className="cap-banner cap-stack" data-gap="2" data-tone="warn">
-                    <h2 className="cap-text" data-size="small" data-weight="strong">
+                    <Text as="h2" size="small" weight="strong">
                       Confidential comment to chairs
-                    </h2>
+                    </Text>
                     <RichText
                       className="cap-text"
                       data-size="small"
@@ -107,7 +109,7 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
     </div>
   );

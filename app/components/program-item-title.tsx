@@ -1,3 +1,4 @@
+import { Text } from "capsomer/react/text";
 import { RichText } from "capsomer/react/trusted-html";
 import type { ProgramSessionResolved } from "~/lib/data-access";
 
@@ -11,9 +12,9 @@ export function ProgramItemTitle({ item }: { item: Item }) {
     return (
       <p>
         {item.abstractCode ? (
-          <span className="cap-text cap-muted" data-weight="strong">
+          <Text as="span" tone="muted" weight="strong">
             {item.abstractCode}{" "}
-          </span>
+          </Text>
         ) : null}
         <RichText
           as="span"
@@ -31,18 +32,14 @@ export function ProgramItemTitle({ item }: { item: Item }) {
   if (item.speakerId) {
     return (
       <p>
-        <span className="cap-text" data-weight="strong">
+        <Text as="span" weight="strong">
           {item.speakerName ?? "Invited speaker"}
-        </span>
+        </Text>
         {item.speakerTalkTitle ? (
           <span className="cap-muted"> . {item.speakerTalkTitle}</span>
         ) : null}
       </p>
     );
   }
-  return (
-    <p className="cap-text" data-weight="strong">
-      {item.customTitle}
-    </p>
-  );
+  return <Text weight="strong">{item.customTitle}</Text>;
 }

@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import "capsomer/table.css";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { MoneyField } from "capsomer/react/field";
@@ -90,18 +92,18 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Registration categories
-        </h1>
+        </Title>
         <p>
           {edition.name}.{" "}
           <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -119,9 +121,9 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               <th scope="col">Type</th>
               <th scope="col">Fee</th>
               <th scope="col">Active</th>
-              <th scope="col" className="cap-text" data-align="end">
+              <Text as="th" scope="col" align="end">
                 <span className="cap-sr-only">Actions</span>
-              </th>
+              </Text>
             </tr>
           </thead>
           <tbody>
@@ -131,7 +133,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                 <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
                 <td>{formatMoney(category.amountCents, category.currency)}</td>
                 <td>{category.active ? "Yes" : "No"}</td>
-                <td className="cap-text" data-align="end">
+                <Text as="td" align="end">
                   <div className="cap-cluster" data-justify="end">
                     <Link
                       to={`/admin/editions/${edition.id}/categories/${category.id}`}
@@ -155,7 +157,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                       </Form>
                     ) : null}
                   </div>
-                </td>
+                </Text>
               </tr>
             ))}
           </tbody>
@@ -165,7 +167,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
       <Panel title="Add a category">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="key" className="cap-field-label">
               Type
             </label>
@@ -176,8 +178,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                 </option>
               ))}
             </select>
-          </div>
-          <div className="cap-stack" data-gap="2">
+          </Stack>
+          <Stack gap={2}>
             <label htmlFor="label" className="cap-field-label">
               Label
             </label>
@@ -189,9 +191,9 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               placeholder="ASM Member"
               className="cap-input"
             />
-          </div>
+          </Stack>
           <MoneyField id="fee" name="fee" label="Fee (dollars)" required placeholder="45.00" />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="currency" className="cap-field-label">
               Currency
             </label>
@@ -202,8 +204,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               defaultValue="USD"
               className="cap-input"
             />
-          </div>
-          <div className="cap-stack" data-gap="2">
+          </Stack>
+          <Stack gap={2}>
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -215,12 +217,12 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               defaultValue={0}
               className="cap-input"
             />
-          </div>
+          </Stack>
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }

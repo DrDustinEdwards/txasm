@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
@@ -100,11 +102,11 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={6}>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Assign reviewers
-        </h1>
+        </Title>
         <p>
           {edition.name}.{" "}
           <Link
@@ -119,7 +121,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
             Edit meeting
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {reviewers.length === 0 ? (
         <Banner tone="info">
@@ -130,7 +132,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="cap-stack">
+        <Stack as="ul">
           {abstracts.map((abstract) => {
             const assigned = byAbstract.get(abstract.id) ?? [];
             const assignedIds = new Set(assigned.map((a) => a.reviewerId));
@@ -142,20 +144,20 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
               <li key={abstract.id} className="cap-panel">
                 <div className="cap-panel-body cap-stack" data-gap="4">
                   <div className="cap-spread">
-                    <div className="cap-stack" data-gap="2">
-                      <h2 className="cap-text" data-weight="strong">
+                    <Stack gap={2}>
+                      <Text as="h2" weight="strong">
                         <RichText
                           as="span"
                           html={abstract.title}
                           fallback={<span className="cap-muted">Untitled</span>}
                         />
-                      </h2>
-                      <p className="cap-text cap-muted" data-size="small">
+                      </Text>
+                      <Text size="small" tone="muted">
                         {abstract.authorNames.length > 0
                           ? abstract.authorNames.join(", ")
                           : "No authors listed"}
-                      </p>
-                    </div>
+                      </Text>
+                    </Stack>
                     <span className="cap-badge" data-variant="secondary">
                       {titleCase(abstract.status)}
                     </span>
@@ -167,30 +169,23 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                     </p>
                   ) : null}
 
-                  <div className="cap-stack" data-gap="3">
-                    <h3 className="cap-text" data-size="small" data-weight="strong">
+                  <Stack gap={3}>
+                    <Text as="h3" size="small" weight="strong">
                       Reviewers
-                    </h3>
+                    </Text>
                     {assigned.length === 0 ? (
-                      <p className="cap-text cap-muted" data-size="small">
+                      <Text size="small" tone="muted">
                         None assigned yet.
-                      </p>
+                      </Text>
                     ) : (
-                      <ul className="cap-stack" data-gap="2">
+                      <Stack as="ul" gap={2}>
                         {assigned.map((a) => (
-                          <li
-                            key={a.assignmentId}
-                            className="cap-text cap-spread"
-                            data-size="small"
-                          >
+                          <Text as="li" key={a.assignmentId} size="small" className="cap-spread">
                             <span>
                               {a.reviewerName || a.reviewerEmail}{" "}
-                              <span
-                                className="cap-text"
-                                data-tone={a.reviewSubmitted ? "ok" : "muted"}
-                              >
+                              <Text as="span" data-tone={a.reviewSubmitted ? "ok" : "muted"}>
                                 ({a.reviewSubmitted ? "review submitted" : "assigned"})
-                              </span>
+                              </Text>
                             </span>
                             <Form method="post">
                               <input type="hidden" name="intent" value="unassign" />
@@ -209,17 +204,17 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                                 </span>
                               </button>
                             </Form>
-                          </li>
+                          </Text>
                         ))}
-                      </ul>
+                      </Stack>
                     )}
-                  </div>
+                  </Stack>
 
                   {available.length > 0 ? (
                     <Form method="post" className="cap-cluster" data-align="end">
                       <input type="hidden" name="intent" value="assign" />
                       <input type="hidden" name="abstractId" value={abstract.id} />
-                      <div className="cap-stack" data-gap="2">
+                      <Stack gap={2}>
                         <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
                           Add a reviewer
                         </label>
@@ -238,7 +233,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                             </option>
                           ))}
                         </select>
-                      </div>
+                      </Stack>
                       <button
                         type="submit"
                         disabled={submitting}
@@ -249,12 +244,12 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                       </button>
                     </Form>
                   ) : reviewers.length > 0 ? (
-                    <p className="cap-text cap-muted" data-size="small">
+                    <Text size="small" tone="muted">
                       Every reviewer on this meeting is already assigned.
-                    </p>
+                    </Text>
                   ) : null}
 
-                  <p className="cap-text" data-size="small">
+                  <Text size="small">
                     <Link
                       to={`/admin/editions/${edition.id}/review/${abstract.id}`}
                       className="cap-text"
@@ -262,13 +257,13 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                     >
                       Read reviews ({abstract.reviewCount})
                     </Link>
-                  </p>
+                  </Text>
                 </div>
               </li>
             );
           })}
-        </ul>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 }

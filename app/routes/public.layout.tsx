@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useRouteLoaderData } from "react-router";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
@@ -167,14 +168,14 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
             <FooterLink label="Facebook group" url={settings.facebookUrl} />
           ) : null}
         </nav>
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           {/* Decorative footer wordmark; the copyright line below names the org, so
               the wrapper is aria-hidden to keep it out of assistive tech. */}
           <span aria-hidden="true">
             <BrandFooter />
           </span>
           {copyrightName ? <p className="cap-site-footer-note">&copy; {copyrightName}</p> : null}
-        </div>
+        </Stack>
       </div>
     </footer>
   );

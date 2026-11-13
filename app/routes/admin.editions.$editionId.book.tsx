@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useState } from "react";
 import { Panel } from "capsomer/react/panel";
 import { Form, useFetcher } from "react-router";
@@ -180,11 +182,11 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   }
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={6}>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Abstract book builder
-        </h1>
+        </Title>
         <p>
           {edition.name}.{" "}
           <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
@@ -195,13 +197,13 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           Generate a draft from the accepted abstracts, drag abstracts within and between sections
           to arrange them, then publish. Codes reflow live and freeze on publish.
         </p>
-      </div>
+      </Stack>
 
       <FormStatus status={status} />
 
       {!book ? (
         <Panel>
-          <div className="cap-stack" data-gap="4">
+          <Stack gap={4}>
             <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="generate" />
@@ -209,7 +211,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                 {busy ? "Generating..." : "Generate draft book"}
               </button>
             </fetcher.Form>
-          </div>
+          </Stack>
         </Panel>
       ) : (
         <>
@@ -218,10 +220,10 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
                 {published ? "Published" : "Draft"}
               </span>
-              <span className="cap-text cap-muted" data-size="small">
+              <Text as="span" size="small" tone="muted">
                 {book.includedCount} included
                 {book.publishedAt ? ` . published ${formatDate(book.publishedAt, DATE_TIME)}` : ""}
-              </span>
+              </Text>
               <span className="cap-cluster cap-push">
                 <a
                   href={`/admin/editions/${edition.id}/book/preview`}
@@ -281,9 +283,9 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           </Panel>
 
           {published ? (
-            <p className="cap-text cap-muted" data-size="small">
+            <Text size="small" tone="muted">
               This book is published and its codes are frozen. Reopen it to edit the arrangement.
-            </p>
+            </Text>
           ) : null}
 
           {book.sections.length === 0 ? (
@@ -308,14 +310,10 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
               busy={boardBusy}
               empty="Empty. Drag an abstract here."
               onMove={submitReorder}
-              renderLaneHead={(lane) => (
-                <h2 className="cap-title" data-size="5">
-                  {lane.label}
-                </h2>
-              )}
+              renderLaneHead={(lane) => <Title size={5}>{lane.label}</Title>}
               renderControls={(entry) =>
                 editable ? (
-                  <label className="cap-text cap-cluster" data-size="tiny" data-gap="2">
+                  <Text as="label" data-gap="2" size="tiny" className="cap-cluster">
                     <input
                       type="checkbox"
                       checked={entry.included}
@@ -323,14 +321,14 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                       onChange={(e) => toggleIncluded(entry.entryId, e.target.checked)}
                     />
                     In
-                  </label>
+                  </Text>
                 ) : null
               }
               renderItem={(entry) => (
                 <span className="book-entry">
-                  <span className="cap-text cap-muted cap-num cap-keep time-col" data-size="tiny">
+                  <Text as="span" size="tiny" tone="muted" className="cap-num cap-keep time-col">
                     {entry.code ?? "-"}
-                  </span>
+                  </Text>
                   <span className="cap-grow cap-stack" data-gap="1">
                     {/* Title is stored sanitized (em/sup/sub only). */}
                     <RichText
@@ -339,16 +337,16 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
                       data-weight="strong"
                       html={entry.title}
                     />
-                    <span className="cap-text cap-muted" data-size="tiny">
+                    <Text as="span" size="tiny" tone="muted">
                       {entry.presentingAuthorName ?? "No presenter"}
                       {entry.levelLabel ? ` . ${entry.levelLabel}` : ""}
                       {entry.formatLabel ? ` . ${entry.formatLabel}` : ""}
-                    </span>
+                    </Text>
                   </span>
                   {editable ? null : (
-                    <span className="cap-text cap-muted" data-size="tiny">
+                    <Text as="span" size="tiny" tone="muted">
                       {entry.included ? "" : "Excluded"}
-                    </span>
+                    </Text>
                   )}
                 </span>
               )}
@@ -397,6 +395,6 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           )
         ) : null}
       </GeneratedFile>
-    </div>
+    </Stack>
   );
 }

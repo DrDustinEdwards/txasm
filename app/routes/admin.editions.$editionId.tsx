@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
@@ -77,10 +79,10 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-column cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           {edition.name}
-        </h1>
+        </Title>
         <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
           <Link
@@ -151,7 +153,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             Sponsors
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -160,7 +162,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <Form method="post" className="cap-stack" noValidate>
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -171,10 +173,10 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
         <Panel title="Meeting dates and venue">
-          <div className="cap-stack">
+          <Stack>
             <DateTimeField
               id="meetingStartsAt"
               name="meetingStartsAt"
@@ -187,7 +189,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Ends"
               defaultDate={edition.meetingEndsAt}
             />
-            <div className="cap-stack" data-gap="2">
+            <Stack gap={2}>
               <label htmlFor="venueName" className="cap-field-label">
                 Venue
               </label>
@@ -199,8 +201,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
                 placeholder="University Conference Center"
                 className="cap-input"
               />
-            </div>
-            <div className="cap-stack" data-gap="2">
+            </Stack>
+            <Stack gap={2}>
               <label htmlFor="venueAddress" className="cap-field-label">
                 Address
               </label>
@@ -211,8 +213,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
                 defaultValue={edition.venueAddress ?? ""}
                 className="cap-input"
               />
-            </div>
-            <div className="cap-stack" data-gap="2">
+            </Stack>
+            <Stack gap={2}>
               <label htmlFor="city" className="cap-field-label">
                 City
               </label>
@@ -223,12 +225,12 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
                 defaultValue={edition.city ?? ""}
                 className="cap-input"
               />
-            </div>
-          </div>
+            </Stack>
+          </Stack>
         </Panel>
 
         <Panel title="Registration window">
-          <div className="cap-stack">
+          <Stack>
             <DateTimeField
               id="registrationOpensAt"
               name="registrationOpensAt"
@@ -241,11 +243,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Deadline"
               defaultDate={edition.registrationClosesAt}
             />
-          </div>
+          </Stack>
         </Panel>
 
         <Panel title="Submission window">
-          <div className="cap-stack">
+          <Stack>
             <DateTimeField
               id="submissionOpensAt"
               name="submissionOpensAt"
@@ -258,7 +260,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Deadline"
               defaultDate={edition.submissionDeadline}
             />
-          </div>
+          </Stack>
         </Panel>
 
         <div className="cap-cluster">

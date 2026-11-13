@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import {
   DECISION_OUTCOME_LABELS,
   type DecisionOutcome,
@@ -20,13 +22,11 @@ export function DecisionPanel({
     decision.outcome === "accept" ? "ok" : decision.outcome === "reject" ? "crit" : "warn";
   return (
     <section role="status" className="cap-banner cap-stack" data-gap="3" data-tone={tone}>
-      <h2 className="cap-title" data-size="5">
-        Decision
-      </h2>
-      <p className="cap-text" data-size="small">
-        <span className="cap-text" data-weight="strong">
+      <Title size={5}>Decision</Title>
+      <Text size="small">
+        <Text as="span" weight="strong">
           Outcome:
-        </span>{" "}
+        </Text>{" "}
         {DECISION_OUTCOME_LABELS[decision.outcome as DecisionOutcome] ?? decision.outcome}
         {decision.presentationType
           ? ` (${
@@ -34,14 +34,14 @@ export function DecisionPanel({
               decision.presentationType
             } presentation)`
           : ""}
-      </p>
+      </Text>
       {decision.decisionMessage ? (
-        <div className="cap-stack" data-gap="2">
-          <h3 className="cap-text" data-size="small" data-weight="strong">
+        <Stack gap={2}>
+          <Text as="h3" size="small" weight="strong">
             Message from the organizers
-          </h3>
+          </Text>
           <RichText className="cap-text" data-size="small" html={decision.decisionMessage} />
-        </div>
+        </Stack>
       ) : null}
     </section>
   );
@@ -57,40 +57,40 @@ export function ReadOnlyAbstract({
   affiliations: Array<{ institution: string }>;
 }) {
   return (
-    <div className="cap-stack">
+    <Stack>
       {bodyText.trim().length > 0 ? (
-        <section className="cap-stack" data-gap="2">
-          <h2 className="cap-text" data-size="small" data-weight="strong">
+        <Stack as="section" gap={2}>
+          <Text as="h2" size="small" weight="strong">
             Abstract
-          </h2>
+          </Text>
           <RichText html={bodyText} />
-        </section>
+        </Stack>
       ) : null}
       {authors.length > 0 ? (
-        <section className="cap-stack" data-gap="2">
-          <h2 className="cap-text" data-size="small" data-weight="strong">
+        <Stack as="section" gap={2}>
+          <Text as="h2" size="small" weight="strong">
             Authors
-          </h2>
+          </Text>
           <p>
             {authors
               .map((a) => `${a.firstName} ${a.lastName}`.trim())
               .filter(Boolean)
               .join(", ")}
           </p>
-        </section>
+        </Stack>
       ) : null}
       {affiliations.length > 0 ? (
-        <section className="cap-stack" data-gap="2">
-          <h2 className="cap-text" data-size="small" data-weight="strong">
+        <Stack as="section" gap={2}>
+          <Text as="h2" size="small" weight="strong">
             Affiliations
-          </h2>
+          </Text>
           <ol className="numbered">
             {affiliations.map((a, i) => (
               <li key={i}>{a.institution}</li>
             ))}
           </ol>
-        </section>
+        </Stack>
       ) : null}
-    </div>
+    </Stack>
   );
 }

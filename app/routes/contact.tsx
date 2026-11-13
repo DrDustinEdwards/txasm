@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useRouteLoaderData } from "react-router";
 import { Empty } from "capsomer/react/empty";
 import type { Route } from "./+types/contact";
@@ -25,46 +27,46 @@ export default function Contact() {
   const facebookUrl = settings?.facebookUrl ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
           Contact
-        </h1>
+        </Title>
         <p className="cap-muted cap-measure">
           Questions about meetings, registration, abstracts, or the awards program are welcome.
           Reach the branch by email or through the member group.
         </p>
-      </header>
+      </Stack>
 
-      <section aria-labelledby="reach-heading" className="cap-stack">
-        <h2 id="reach-heading" className="cap-title" data-size="4">
+      <Stack as="section" aria-labelledby="reach-heading">
+        <Title id="reach-heading" size={4}>
           Reach the branch
-        </h2>
-        <dl className="cap-stack">
+        </Title>
+        <Stack as="dl">
           {contactEmail ? (
-            <div className="cap-stack" data-gap="2">
+            <Stack gap={2}>
               <dt className="cap-label">Email</dt>
               <dd>
                 <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
               </dd>
-            </div>
+            </Stack>
           ) : null}
           {facebookUrl ? (
-            <div className="cap-stack" data-gap="2">
+            <Stack gap={2}>
               <dt className="cap-label">Facebook group</dt>
               <dd>
                 <a href={facebookUrl}>Join the member group</a>
               </dd>
-            </div>
+            </Stack>
           ) : null}
-        </dl>
+        </Stack>
         {!contactEmail && !facebookUrl ? (
           <Empty
             kind="nothing-yet"
             title="Contact details are being set up and will appear here."
           />
         ) : null}
-      </section>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

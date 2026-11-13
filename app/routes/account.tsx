@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useEffect, useState } from "react";
 import { isAPIError } from "better-auth/api";
 import {
@@ -308,17 +310,17 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   if (welcome) {
     return (
       <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
-        <div className="cap-stack" data-gap="3">
-          <h1 className="cap-title" data-size="2">
+        <Stack gap={3}>
+          <Title as="h1" size={2}>
             You are signed in
-          </h1>
+          </Title>
           {offerable ? (
             <p>
               Next time, skip the email. A passkey signs you in with your face, fingerprint or
               device PIN, and only works on this site, so it cannot be phished.
             </p>
           ) : null}
-        </div>
+        </Stack>
         {error ? (
           <p role="alert" className="cap-field-error">
             {error}
@@ -344,18 +346,16 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
-      <h1 className="cap-title" data-size="2">
+      <Title as="h1" size={2}>
         Account
-      </h1>
-      <div className="cap-stack" data-gap="3">
-        <h2 className="cap-title" data-size="5">
-          Email address
-        </h2>
+      </Title>
+      <Stack gap={3}>
+        <Title size={5}>Email address</Title>
         <p>
           Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this
           address, then confirm it from the new one. Your other devices are then signed out.
         </p>
-      </div>
+      </Stack>
       {!fresh ? (
         <p>
           <Link to="/signin?next=/account">Sign in again to change your email</Link>
@@ -400,19 +400,17 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           </div>
         </form>
       )}
-      <div className="cap-stack" data-gap="3">
-        <h2 className="cap-title" data-size="5">
-          Passkeys
-        </h2>
+      <Stack gap={3}>
+        <Title size={5}>Passkeys</Title>
         <p>
           A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in
           with an email link.
         </p>
-      </div>
+      </Stack>
       {passkeys.length === 0 ? (
         <p className="cap-muted">No passkeys yet.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4" aria-label="Your passkeys">
+        <Stack as="ul" aria-label="Your passkeys" gap={4}>
           {passkeys.map((p) =>
             renaming === p.id ? (
               <li key={p.id}>
@@ -451,11 +449,11 @@ export default function Account({ loaderData }: Route.ComponentProps) {
               <li key={p.id} className="cap-cluster">
                 <span>
                   {p.name}
-                  <span className="cap-text cap-muted" data-size="small">
+                  <Text as="span" size="small" tone="muted">
                     {p.provider !== p.name ? ` (${p.provider})` : ""}
                     {p.createdAt ? `, added ${formatDate(new Date(p.createdAt), DATE_TIME)}` : ""}
                     {`, ${p.lastUsedAt ? `last used ${formatDate(new Date(p.lastUsedAt), DATE_TIME)}` : "not used to sign in yet"}`}
-                  </span>
+                  </Text>
                 </span>
                 <button
                   type="button"
@@ -478,7 +476,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
               </li>
             ),
           )}
-        </ul>
+        </Stack>
       )}
       {secondPasskey ? (
         <p>
@@ -487,30 +485,28 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
       <div>{addButton}</div>
-      <div className="cap-stack" data-gap="3">
-        <h2 className="cap-title" data-size="5">
-          Signed-in devices
-        </h2>
+      <Stack gap={3}>
+        <Title size={5}>Signed-in devices</Title>
         <p>
           Where you are signed in. Sign out of a device you do not know, or one you no longer use.
         </p>
-      </div>
+      </Stack>
       {sessions === null ? (
         <p>
           <Link to="/signin?next=/account">Sign in again to see your devices</Link>
         </p>
       ) : (
         <>
-          <ul className="cap-stack" data-gap="4" aria-label="Your signed-in devices">
+          <Stack as="ul" aria-label="Your signed-in devices" gap={4}>
             {sessions.map((s) => (
               <li key={s.id} className="cap-cluster">
                 <span>
                   {s.device ?? "Unknown device"}
-                  <span className="cap-text cap-muted" data-size="small">
+                  <Text as="span" size="small" tone="muted">
                     {s.current
                       ? " (this device)"
                       : ` signed in ${formatDate(new Date(s.signedInAt), DATE_TIME)}, last active ${formatDate(new Date(s.lastActiveAt), DATE_TIME)}${s.location ? ` near ${s.location}` : ""}`}
-                  </span>
+                  </Text>
                 </span>
                 {s.current ? null : (
                   <button
@@ -525,7 +521,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                 )}
               </li>
             ))}
-          </ul>
+          </Stack>
           {sessions.length > 1 ? (
             <div>
               <button type="button" className="cap-btn" onClick={() => void signOutOtherDevices()}>
@@ -540,35 +536,31 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           {error ?? "That device was not signed out. Try again."}
         </p>
       ) : null}
-      <div className="cap-stack" data-gap="3">
-        <h2 className="cap-title" data-size="5">
-          Recent security activity
-        </h2>
+      <Stack gap={3}>
+        <Title size={5}>Recent security activity</Title>
         <p>
           Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out
           of that device.
         </p>
-      </div>
+      </Stack>
       {history.length === 0 ? (
         <p className="cap-muted">Nothing yet.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4" aria-label="Your recent security activity">
+        <Stack as="ul" aria-label="Your recent security activity" gap={4}>
           {history.map((h, i) => (
             <li key={`${new Date(h.at).getTime()}-${i}`}>
               {historyWords(h.kind, h.via)}
-              <span className="cap-text cap-muted" data-size="small">
+              <Text as="span" size="small" tone="muted">
                 {` ${formatDate(new Date(h.at), DATE_TIME)}`}
                 {h.device ? `, ${h.device}` : ""}
                 {h.location ? ` near ${h.location}` : ""}
-              </span>
+              </Text>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
-      <div className="cap-stack" data-gap="3">
-        <h2 className="cap-title" data-size="5">
-          Delete your account
-        </h2>
+      <Stack gap={3}>
+        <Title size={5}>Delete your account</Title>
         {deletionBlockers.length > 0 ? (
           <p>
             Your account holds a role in a Meeting (admin, chair or reviewer).{" "}
@@ -583,7 +575,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
             connected to an account. You can make a new account later with any email address.
           </p>
         )}
-      </div>
+      </Stack>
       {deletionBlockers.length > 0 ? null : !fresh ? (
         <p>
           <Link to="/signin?next=/account">Sign in again to delete your account</Link>

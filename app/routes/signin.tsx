@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
@@ -179,9 +181,9 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   if (sent) {
     return (
       <div className="cap-column cap-stack" data-width="narrow">
-        <h1 ref={confirmRef} tabIndex={-1} className="cap-title" data-size="2">
+        <Title as="h1" ref={confirmRef} tabIndex={-1} size={2}>
           Check your inbox
-        </h1>
+        </Title>
         <p>
           A sign-in link and code are on their way. Open the link, or type the code here. Both
           expire in {SIGN_IN_EXPIRES_IN_WORDS}.
@@ -231,19 +233,19 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
       {deleted ? <p role="status">Your account was deleted.</p> : null}
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           {next ? "Sign in again" : "Sign in"}
-        </h1>
+        </Title>
         <p>
           {next
             ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. "
             : null}
           Use your passkey, or get a sign-in link by email. No password needed.
         </p>
-      </div>
+      </Stack>
 
-      <div className="cap-stack" data-gap="3">
+      <Stack gap={3}>
         <button
           type="button"
           className="cap-btn"
@@ -257,7 +259,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
             {passkeyError}
           </p>
         ) : null}
-      </div>
+      </Stack>
 
       <p className="cap-muted">Or get a link by email</p>
 

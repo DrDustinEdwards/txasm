@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import "capsomer/filter-bar.css";
 import { Form } from "react-router";
 import { Row, RowList } from "capsomer/react/row-list";
@@ -60,17 +62,17 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
   const { awards, q, award, year, institution, results } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
           Awardees
-        </h1>
+        </Title>
         <p className="cap-muted cap-measure">
           The branch recognizes outstanding student, faculty, and service work with named awards
           presented at its meetings. Search across every award, or choose an award to see its
           recipients by year.
         </p>
-      </header>
+      </Stack>
 
       <Panel>
         <FilterBar label="Search awardees" Form={Form} applyLabel="Search" applyVariant="primary">
@@ -117,10 +119,10 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       </Panel>
 
       {results ? (
-        <section aria-label="Search results" className="cap-stack">
-          <h2 className="cap-title" data-size="5">
+        <Stack as="section" aria-label="Search results">
+          <Title size={5}>
             {results.length} {results.length === 1 ? "result" : "results"}
-          </h2>
+          </Title>
           {results.length === 0 ? (
             <p className="cap-muted">No awardees match that search. Try a broader term.</p>
           ) : (
@@ -131,9 +133,9 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
                     key={result.id}
                     title={
                       <>
-                        <span className="cap-text" data-weight="strong">
+                        <Text as="span" weight="strong">
                           {result.personName}
-                        </span>
+                        </Text>
                         {result.institution ? (
                           <span className="cap-muted"> &middot; {result.institution}</span>
                         ) : null}
@@ -153,13 +155,11 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
               </RowList>
             </Panel>
           )}
-        </section>
+        </Stack>
       ) : null}
 
-      <section aria-label="Awards" className="cap-stack">
-        <h2 className="cap-title" data-size="5">
-          All awards
-        </h2>
+      <Stack as="section" aria-label="Awards">
+        <Title size={5}>All awards</Title>
         {awards.length === 0 ? (
           <Empty
             kind="nothing-yet"
@@ -184,7 +184,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             ))}
           </ul>
         )}
-      </section>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

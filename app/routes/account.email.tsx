@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import { ButtonLink } from "capsomer/react/link";
 import {
@@ -116,12 +118,12 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
 
   return (
     <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Confirm the email change
-        </h1>
+        </Title>
         <p>This changes the email address your TXASM account signs in with.</p>
-      </div>
+      </Stack>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
       <form method="post" className="cap-stack">
         {actionData?.limited ? (

@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import "capsomer/table.css";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
@@ -45,10 +47,10 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
   const { abstracts } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <h1 className="cap-title" data-size="2">
+    <Stack gap={6}>
+      <Title as="h1" size={2}>
         My abstracts
-      </h1>
+      </Title>
 
       {abstracts.length === 0 ? (
         <p>
@@ -62,9 +64,9 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
               <th scope="col">Meeting</th>
               <th scope="col">Status</th>
               <th scope="col">Decision</th>
-              <th scope="col" className="cap-text" data-align="end">
+              <Text as="th" scope="col" align="end">
                 <span className="cap-sr-only">Actions</span>
-              </th>
+              </Text>
             </tr>
           </thead>
           <tbody>
@@ -96,7 +98,7 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                     <span className="cap-muted">Pending</span>
                   )}
                 </td>
-                <td className="cap-text" data-align="end">
+                <Text as="td" align="end">
                   <Link
                     to={`/abstracts/${abstract.id}/edit`}
                     className="cap-text"
@@ -104,12 +106,12 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                   >
                     {abstract.status === "draft" ? "Edit" : "View or edit"}
                   </Link>
-                </td>
+                </Text>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
-    </div>
+    </Stack>
   );
 }

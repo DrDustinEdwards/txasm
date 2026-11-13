@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "capsomer/react/tabs";
 import { Row, RowList } from "capsomer/react/row-list";
 import { Panel } from "capsomer/react/panel";
@@ -37,13 +39,13 @@ function OfficerCard({ officer }: { officer: Officer }) {
         <h3>{officer.name}</h3>
       </header>
       <div>
-        <p className="cap-text cap-muted" data-size="small">
+        <Text size="small" tone="muted">
           {officer.affiliation}
-        </p>
-        <p className="cap-text cap-muted" data-size="small">
+        </Text>
+        <Text size="small" tone="muted">
           {officer.location}
-        </p>
-        <div className="cap-text cap-stack officer-contact" data-size="small" data-gap="2">
+        </Text>
+        <Text as="div" data-gap="2" size="small" className="cap-stack officer-contact">
           {officer.phone ? (
             <p>
               <a href={`tel:${officer.phone}`}>{officer.phone}</a>
@@ -54,7 +56,7 @@ function OfficerCard({ officer }: { officer: Officer }) {
               <a href={`mailto:${officer.email}`}>{officer.email}</a>
             </p>
           ) : null}
-        </div>
+        </Text>
       </div>
     </article>
   );
@@ -64,16 +66,16 @@ function PastOfficerRow({ entry }: { entry: PastOfficer }) {
   return (
     <Row
       status={
-        <span className="cap-text cap-muted" data-size="small" data-weight="strong">
+        <Text as="span" size="small" tone="muted" weight="strong">
           {entry.term ?? "Dates not recorded"}
-        </span>
+        </Text>
       }
       title={
         entry.name ? (
           <>
-            <span className="cap-text" data-weight="strong">
+            <Text as="span" weight="strong">
               {entry.name}
-            </span>
+            </Text>
             {entry.institution ? (
               <span className="cap-muted"> &middot; {entry.institution}</span>
             ) : null}
@@ -117,22 +119,22 @@ function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
 export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
   const { officers, board, pastTabs } = loaderData;
   return (
-    <div className="cap-stack" data-gap="8">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={8}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
           Branch officers
-        </h1>
+        </Title>
         <p className="cap-muted cap-measure">
           The branch is run by elected officers and volunteers from member institutions across
           Texas. They organize the twice-yearly meetings, steward the awards program, and represent
           Texas microbiologists to the national society.
         </p>
-      </header>
+      </Stack>
 
-      <section aria-labelledby="current-officers-heading" className="cap-stack">
-        <h2 id="current-officers-heading" className="cap-title" data-size="4">
+      <Stack as="section" aria-labelledby="current-officers-heading">
+        <Title id="current-officers-heading" size={4}>
           Current officers
-        </h2>
+        </Title>
         <ul className="cap-grid" data-cols="2">
           {officers.map((officer) => (
             <li key={`${officer.role}-${officer.name}`}>
@@ -140,38 +142,38 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
             </li>
           ))}
         </ul>
-      </section>
+      </Stack>
 
-      <section aria-labelledby="advisory-board-heading" className="cap-stack">
-        <h2 id="advisory-board-heading" className="cap-title" data-size="4">
+      <Stack as="section" aria-labelledby="advisory-board-heading">
+        <Title id="advisory-board-heading" size={4}>
           Advisory board
-        </h2>
+        </Title>
         <ul className="cap-grid" data-cols="2">
           {board.map((member) => (
             <li key={member.name}>
               <article className="cap-card">
                 <h3>{member.name}</h3>
-                <p className="cap-text cap-muted" data-size="small">
+                <Text size="small" tone="muted">
                   {member.institution}
-                </p>
+                </Text>
               </article>
             </li>
           ))}
         </ul>
-      </section>
+      </Stack>
 
-      <section aria-labelledby="past-officers-heading" className="cap-stack">
-        <div className="cap-stack" data-gap="3">
-          <h2 id="past-officers-heading" className="cap-title" data-size="4">
+      <Stack as="section" aria-labelledby="past-officers-heading">
+        <Stack gap={3}>
+          <Title id="past-officers-heading" size={4}>
             Past branch officers
-          </h2>
+          </Title>
           <p className="cap-muted cap-measure">
             A history of those who have led the branch, by role. Choose a role to see its record of
             term, name, and institution.
           </p>
-        </div>
+        </Stack>
         <PastOfficersTabs tabs={pastTabs} />
-      </section>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

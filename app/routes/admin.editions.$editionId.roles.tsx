@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { capitalize } from "@drdustinedwards/site-helpers/text";
 import { Panel } from "capsomer/react/panel";
@@ -84,11 +86,11 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const reviewers = grants.filter((g) => g.role === "reviewer");
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
           Chairs and reviewers
-        </h1>
+        </Title>
         <p>
           {edition.name}.{" "}
           <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
@@ -99,7 +101,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
           Grant a role by email. The person must have signed in at least once so their account
           exists. Roles apply to this meeting only.
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -113,7 +115,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <Panel title="Add a chair or reviewer">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="email" className="cap-field-label">
               Email
             </label>
@@ -126,8 +128,8 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
               placeholder="person@university.edu"
               className="cap-input"
             />
-          </div>
-          <div className="cap-stack" data-gap="2">
+          </Stack>
+          <Stack gap={2}>
             <label htmlFor="role" className="cap-field-label">
               Role
             </label>
@@ -135,13 +137,13 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
               <option value="reviewer">Reviewer</option>
               <option value="chair">Chair</option>
             </select>
-          </div>
+          </Stack>
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add role"}
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }
 
@@ -155,23 +157,21 @@ function RoleList({
   grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
 }) {
   return (
-    <section className="cap-stack" data-gap="4">
-      <h2 className="cap-title" data-size="5">
-        {title}
-      </h2>
+    <Stack as="section" gap={4}>
+      <Title size={5}>{title}</Title>
       {grants.length === 0 ? (
         <p>{empty}</p>
       ) : (
-        <ul className="cap-stack" data-gap="3">
+        <Stack as="ul" gap={3}>
           {grants.map((grant) => (
             <li key={`${grant.userId}-${grant.role}`} className="cap-panel" data-size="sm">
               <div className="cap-panel-body cap-spread">
-                <span className="cap-text" data-size="small">
-                  <span className="cap-text" data-weight="strong">
+                <Text as="span" size="small">
+                  <Text as="span" weight="strong">
                     {grant.name || grant.email}
-                  </span>
+                  </Text>
                   {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
-                </span>
+                </Text>
                 <Form method="post">
                   <input type="hidden" name="intent" value="revoke" />
                   <input type="hidden" name="userId" value={grant.userId} />
@@ -186,8 +186,8 @@ function RoleList({
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
-    </section>
+    </Stack>
   );
 }

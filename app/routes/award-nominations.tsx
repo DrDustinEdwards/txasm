@@ -1,3 +1,4 @@
+import { Title } from "capsomer/react/text";
 import type { Route } from "./+types/award-nominations";
 import { getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
@@ -33,9 +34,9 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
 export default function AwardNominations({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-column cap-stack" data-width="reading" data-gap="4">
-      <h1 className="cap-title" data-size="2">
+      <Title as="h1" size={2}>
         {loaderData.title}
-      </h1>
+      </Title>
       <RichText className="page-prose" html={loaderData.html} />
     </div>
   );

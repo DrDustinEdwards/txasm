@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { ButtonLink, Link } from "capsomer/react/link";
 import type { Route } from "./+types/sponsorship";
 import { pageHead } from "~/lib/site-meta";
@@ -89,11 +91,11 @@ const SPONSOR_TIERS: SponsorTier[] = [
 
 export default function Sponsorship() {
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
           Sponsorship
-        </h1>
+        </Title>
         <p className="cap-muted cap-measure">
           Sponsors help the branch keep meeting registration affordable, fund the student awards,
           and support travel for early-career researchers. Support is welcome from companies,
@@ -104,12 +106,12 @@ export default function Sponsorship() {
             Sponsor registration
           </ButtonLink>
         </p>
-      </header>
+      </Stack>
 
-      <section aria-labelledby="tiers-heading" className="cap-stack">
-        <h2 id="tiers-heading" className="cap-title" data-size="4">
+      <Stack as="section" aria-labelledby="tiers-heading">
+        <Title id="tiers-heading" size={4}>
           Sponsorship levels
-        </h2>
+        </Title>
         <ul className="cap-grid" data-cols="2">
           {SPONSOR_TIERS.map((tier) => (
             <li key={tier.name}>
@@ -118,32 +120,32 @@ export default function Sponsorship() {
                   <h3>{tier.name}</h3>
                   <p>{tier.amount}</p>
                 </hgroup>
-                <div className="cap-stack" data-gap="2">
-                  <p className="cap-text cap-muted" data-size="small">
+                <Stack gap={2}>
+                  <Text size="small" tone="muted">
                     {tier.audience}
-                  </p>
-                  <ul className="cap-text bullets cap-muted tier-benefits" data-size="small">
+                  </Text>
+                  <Text as="ul" size="small" tone="muted" className="bullets tier-benefits">
                     {tier.benefits.map((benefit) => (
                       <li key={benefit}>{benefit}</li>
                     ))}
-                  </ul>
-                </div>
+                  </Text>
+                </Stack>
               </article>
             </li>
           ))}
         </ul>
-      </section>
+      </Stack>
 
-      <section aria-labelledby="contact-heading" className="cap-stack" data-gap="3">
-        <h2 id="contact-heading" className="cap-title" data-size="4">
+      <Stack as="section" aria-labelledby="contact-heading" gap={3}>
+        <Title id="contact-heading" size={4}>
           Become a sponsor
-        </h2>
+        </Title>
         <p className="cap-muted cap-measure">
           Complete the <a href={SPONSOR_REGISTRATION_URL}>sponsor registration form</a> to reserve a
           level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss
           sponsoring an upcoming meeting.
         </p>
-      </section>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
@@ -75,7 +77,7 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack" data-gap="2">
+      <Stack gap={2}>
         <label htmlFor={`${p}-section`} className="cap-field-label">
           Section
         </label>
@@ -91,7 +93,7 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
             </option>
           ))}
         </select>
-      </div>
+      </Stack>
       <TextField
         id={`${p}-role`}
         name="role"
@@ -158,9 +160,7 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
         <div className="cap-spread">
           <div className="cap-shrink">
             {row.role ? <p className="cap-label">{row.role}</p> : null}
-            <p className="cap-text" data-size="small">
-              {summary(row)}
-            </p>
+            <Text size="small">{summary(row)}</Text>
           </div>
           <Form method="post">
             <input type="hidden" name="intent" value="remove" />
@@ -204,7 +204,7 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
     groups.set(office, [...(groups.get(office) ?? []), row]);
   }
   return (
-    <div className="cap-stack" data-gap="4">
+    <Stack gap={4}>
       {[...groups].map(([office, officeRows]) => (
         <Disclosure
           key={office}
@@ -213,14 +213,14 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
           size="sm"
           marker="triangle"
         >
-          <ul className="cap-stack" data-gap="4">
+          <Stack as="ul" gap={4}>
             {officeRows.map((row) => (
               <OfficerRow key={row.id} row={row} submitting={submitting} />
             ))}
-          </ul>
+          </Stack>
         </Disclosure>
       ))}
-    </div>
+    </Stack>
   );
 }
 
@@ -233,15 +233,15 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-column cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+      <Stack as="header" gap={3}>
+        <Title as="h1" size={2}>
           Branch officers
-        </h1>
+        </Title>
         <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
           <Link to="/branch-officers">public page</Link> reads this list.
         </p>
-      </header>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-banner" data-tone="info">
@@ -252,22 +252,22 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
       {OFFICER_SECTIONS.map((section) => {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
-          <section key={section} aria-labelledby={`${section}-heading`} className="cap-stack">
-            <h2 id={`${section}-heading`} className="cap-title" data-size="5">
+          <Stack as="section" key={section} aria-labelledby={`${section}-heading`}>
+            <Title id={`${section}-heading`} size={5}>
               {OFFICER_SECTION_LABELS[section]}
-            </h2>
+            </Title>
             {sectionRows.length === 0 ? (
               <p className="cap-muted">None yet.</p>
             ) : section === "past" ? (
               <PastGroups rows={sectionRows} submitting={submitting} />
             ) : (
-              <ul className="cap-stack" data-gap="4">
+              <Stack as="ul" gap={4}>
                 {sectionRows.map((row) => (
                   <OfficerRow key={row.id} row={row} submitting={submitting} />
                 ))}
-              </ul>
+              </Stack>
             )}
-          </section>
+          </Stack>
         );
       })}
 

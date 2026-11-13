@@ -1,3 +1,5 @@
+import { Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { ComboboxFreeText, type ComboboxOption } from "capsomer/react/combobox";
 import { Panel } from "capsomer/react/panel";
 import { SortableList, useRows } from "capsomer/react/sortable-list";
@@ -83,11 +85,11 @@ export function AffiliationsFieldset({
   const oldIndex = (id: string) => rows.items.findIndex((r) => r.id === id);
   return (
     <Panel title="Affiliations">
-      <div className="cap-stack">
-        <p className="cap-text cap-muted" data-size="small">
+      <Stack>
+        <Text size="small" tone="muted">
           Number each affiliation once, then attach it to authors below. Start typing to pick a
           known institution or add a new one.
-        </p>
+        </Text>
         <SortableList
           aria-label="Affiliations"
           layout="stack"
@@ -99,9 +101,9 @@ export function AffiliationsFieldset({
           getId={rows.getId}
           getLabel={(row) => row.value.institution.trim() || `Affiliation ${row.index + 1}`}
           renderHead={(_, { index }) => (
-            <span className="cap-text" data-size="small">
+            <Text as="span" size="small">
               Affiliation {index + 1}
-            </span>
+            </Text>
           )}
           onReorder={(order) => {
             renumber(order.map(oldIndex));
@@ -115,9 +117,9 @@ export function AffiliationsFieldset({
           onAdd={() => onChange([...affiliations, emptyAffiliation()])}
           addLabel="Add affiliation"
           empty={
-            <p className="cap-text cap-muted" data-size="small">
+            <Text size="small" tone="muted">
               No affiliations added.
-            </p>
+            </Text>
           }
           renderItem={({ value: affiliation, index }) => (
             <div className="cap-grid" data-cols="2">
@@ -134,7 +136,7 @@ export function AffiliationsFieldset({
                   minSearchLength={2}
                 />
               </div>
-              <label className="cap-stack" data-gap="2">
+              <Stack as="label" gap={2}>
                 <span className="cap-field-label">Department</span>
                 <input
                   type="text"
@@ -142,8 +144,8 @@ export function AffiliationsFieldset({
                   onChange={(e) => updateAffiliation(index, { department: e.target.value })}
                   className="cap-input"
                 />
-              </label>
-              <label className="cap-stack" data-gap="2">
+              </Stack>
+              <Stack as="label" gap={2}>
                 <span className="cap-field-label">City</span>
                 <input
                   type="text"
@@ -151,8 +153,8 @@ export function AffiliationsFieldset({
                   onChange={(e) => updateAffiliation(index, { city: e.target.value })}
                   className="cap-input"
                 />
-              </label>
-              <label className="cap-stack" data-gap="2">
+              </Stack>
+              <Stack as="label" gap={2}>
                 <span className="cap-field-label">State or province</span>
                 <input
                   type="text"
@@ -160,8 +162,8 @@ export function AffiliationsFieldset({
                   onChange={(e) => updateAffiliation(index, { region: e.target.value })}
                   className="cap-input"
                 />
-              </label>
-              <label className="cap-stack" data-gap="2">
+              </Stack>
+              <Stack as="label" gap={2}>
                 <span className="cap-field-label">Country</span>
                 <input
                   type="text"
@@ -169,11 +171,11 @@ export function AffiliationsFieldset({
                   onChange={(e) => updateAffiliation(index, { country: e.target.value })}
                   className="cap-input"
                 />
-              </label>
+              </Stack>
             </div>
           )}
         />
-      </div>
+      </Stack>
     </Panel>
   );
 }
@@ -196,7 +198,7 @@ export function AuthorsFieldset({
   const rows = useRows(authors, onChange);
   return (
     <Panel title="Authors">
-      <div className="cap-stack">
+      <Stack>
         <SortableList
           aria-label="Authors"
           layout="stack"
@@ -208,18 +210,18 @@ export function AuthorsFieldset({
           getId={rows.getId}
           getLabel={(row) => authorName(row.value) || `Author ${row.index + 1}`}
           renderHead={(_, { index }) => (
-            <span className="cap-text" data-size="small">
+            <Text as="span" size="small">
               Author {index + 1}
-            </span>
+            </Text>
           )}
           onReorder={rows.onReorder}
           onRemove={rows.onRemove}
           onAdd={() => onChange([...authors, emptyAuthor()])}
           addLabel="Add author"
           renderItem={({ value: author, index }) => (
-            <div className="cap-stack" data-gap="4">
+            <Stack gap={4}>
               <div className="cap-grid" data-cols="2">
-                <label className="cap-stack" data-gap="2">
+                <Stack as="label" gap={2}>
                   <span className="cap-field-label">First name</span>
                   <input
                     type="text"
@@ -227,8 +229,8 @@ export function AuthorsFieldset({
                     onChange={(e) => updateAuthor(index, { firstName: e.target.value })}
                     className="cap-input"
                   />
-                </label>
-                <label className="cap-stack" data-gap="2">
+                </Stack>
+                <Stack as="label" gap={2}>
                   <span className="cap-field-label">Last name</span>
                   <input
                     type="text"
@@ -236,8 +238,8 @@ export function AuthorsFieldset({
                     onChange={(e) => updateAuthor(index, { lastName: e.target.value })}
                     className="cap-input"
                   />
-                </label>
-                <label className="cap-stack cap-full" data-gap="2">
+                </Stack>
+                <Stack as="label" gap={2} className="cap-full">
                   <span className="cap-field-label">Email</span>
                   <input
                     type="email"
@@ -245,7 +247,7 @@ export function AuthorsFieldset({
                     onChange={(e) => updateAuthor(index, { email: e.target.value })}
                     className="cap-input"
                   />
-                </label>
+                </Stack>
               </div>
               <div className="cap-cluster">
                 <label className="cap-check">
@@ -266,31 +268,31 @@ export function AuthorsFieldset({
                 </label>
               </div>
               {affiliations.length > 0 ? (
-                <fieldset className="cap-stack" data-gap="2">
-                  <legend className="cap-text" data-size="small">
+                <Stack as="fieldset" gap={2}>
+                  <Text as="legend" size="small">
                     Affiliations
-                  </legend>
+                  </Text>
                   <div className="cap-cluster">
                     {affiliations.map((_, affIndex) => {
                       const ordinal = affIndex + 1;
                       return (
-                        <label key={affIndex} className="cap-text cap-cluster" data-size="small">
+                        <Text as="label" key={affIndex} size="small" className="cap-cluster">
                           <input
                             type="checkbox"
                             checked={author.affiliationOrdinals.includes(ordinal)}
                             onChange={() => toggleAffiliationForAuthor(index, ordinal)}
                           />
                           {ordinal}
-                        </label>
+                        </Text>
                       );
                     })}
                   </div>
-                </fieldset>
+                </Stack>
               ) : null}
-            </div>
+            </Stack>
           )}
         />
-      </div>
+      </Stack>
     </Panel>
   );
 }

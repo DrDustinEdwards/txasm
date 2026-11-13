@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Empty } from "capsomer/react/empty";
 import type { Route } from "./+types/archive.$category";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -51,16 +53,16 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
   const { title, basePath, documents } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
           {title}
-        </h1>
+        </Title>
         <p className="cap-muted cap-measure">
           The branch's archive of {title.toLowerCase()} from past meetings. Open one to read it in
           the viewer or download the PDF.
         </p>
-      </header>
+      </Stack>
 
       <section aria-label={title}>
         {documents.length === 0 ? (
@@ -78,6 +80,6 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
           />
         )}
       </section>
-    </div>
+    </Stack>
   );
 }

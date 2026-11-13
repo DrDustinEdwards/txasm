@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
@@ -83,16 +85,16 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="3">
-        <h1 className="cap-title" data-size="2">
+    <Stack gap={7}>
+      <Stack as="header" gap={3}>
+        <Title as="h1" size={2}>
           Awards
-        </h1>
+        </Title>
         <p className="cap-muted">
           The branch's named awards. Edit an award to manage its recipients, the every-meeting
           maintenance path. Public pages read this data.
         </p>
-      </header>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-banner" data-tone="info">
@@ -103,7 +105,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
       {awards.length === 0 ? (
         <p className="cap-muted">No awards yet. Add the first below.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4">
+        <Stack as="ul" gap={4}>
           {awards.map((award) => (
             <li key={award.id} className="cap-panel">
               <div className="cap-panel-body cap-spread">
@@ -115,10 +117,10 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                   >
                     {award.name}
                   </Link>
-                  <p className="cap-text cap-muted" data-size="small">
+                  <Text size="small" tone="muted">
                     {award.slug} &middot; {award.recipientCount}{" "}
                     {award.recipientCount === 1 ? "recipient" : "recipients"}
-                  </p>
+                  </Text>
                 </div>
                 <div className="cap-cluster">
                   <Link
@@ -150,20 +152,20 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Add an award" headingId="add-award-heading">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <div className="cap-grid" data-cols="2">
-            <div className="cap-stack" data-gap="2">
+            <Stack gap={2}>
               <label htmlFor="name" className="cap-field-label">
                 Name
               </label>
               <input id="name" name="name" type="text" required className="cap-input" />
-            </div>
-            <div className="cap-stack" data-gap="2">
+            </Stack>
+            <Stack gap={2}>
               <label htmlFor="slug" className="cap-field-label">
                 Slug
               </label>
@@ -174,27 +176,27 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                 placeholder="s-e-sulkin-award"
                 className="cap-input"
               />
-              <p className="cap-text cap-muted" data-size="tiny">
+              <Text size="tiny" tone="muted">
                 Leave blank to derive from the name.
-              </p>
-            </div>
+              </Text>
+            </Stack>
           </div>
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="namesakeBio" className="cap-field-label">
               Namesake bio
             </label>
             <textarea id="namesakeBio" name="namesakeBio" rows={2} className="cap-input" />
-          </div>
-          <div className="cap-stack" data-gap="2">
+          </Stack>
+          <Stack gap={2}>
             <label htmlFor="description" className="cap-field-label">
               Description
             </label>
             <textarea id="description" name="description" rows={2} className="cap-input" />
-            <p className="cap-text cap-muted" data-size="tiny">
+            <Text size="tiny" tone="muted">
               Bio and description support italics, superscript, and subscript.
-            </p>
-          </div>
-          <div className="cap-stack short-field" data-gap="2">
+            </Text>
+          </Stack>
+          <Stack gap={2} className="short-field">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -206,12 +208,12 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
               defaultValue={0}
               className="cap-input"
             />
-          </div>
+          </Stack>
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add award"}
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }
