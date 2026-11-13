@@ -70,7 +70,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       </header>
 
       <Panel>
-        <FilterBar label="Search awardees" Form={Form} applyLabel="Search">
+        <FilterBar label="Search awardees" Form={Form} applyLabel="Search" applyVariant="primary">
           <Field label="Search term">
             <input
               id="q"

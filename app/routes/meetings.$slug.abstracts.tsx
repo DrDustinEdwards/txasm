@@ -137,6 +137,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         <FilterBar
           label="Filter abstracts"
           Form={Form}
+          applyVariant="primary"
           clearLabel="Clear"
           clearHref={filtered ? `/meetings/${edition.slug}/abstracts` : null}
           renderLink={routerRenderLink}
