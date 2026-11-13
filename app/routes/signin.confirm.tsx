@@ -1,3 +1,4 @@
+import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import {
   SIGN_IN_LINK_WORDS,
   confirmSignInLink,
@@ -23,8 +24,8 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Sign in"));
 }
 
-// The page's URL holds the token.
-export const headers = () => ({ "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+// The page's URL holds the token: a private page (no Web Analytics beacon, site-runtime PRIVATE_PAGE_HEADERS), never indexed.
+export const headers = () => ({ ...PRIVATE_PAGE_HEADERS, "X-Robots-Tag": "noindex" });
 
 export async function loader({ request }: Route.LoaderArgs) {
   // Whether this browser is signed in matters only once the link has failed.
