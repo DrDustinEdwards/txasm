@@ -103,8 +103,11 @@
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--line);
 }
+/* The ordinal is a superscript (capsomer/reset.css: line-height 0, raised 0.5em), so the row lines up on
+   the text's baseline; stretched, the ordinal sat above its institution. */
 .affiliation {
   display: flex;
+  align-items: baseline;
   gap: 0.5rem;
 }
 .speaker-bio {
