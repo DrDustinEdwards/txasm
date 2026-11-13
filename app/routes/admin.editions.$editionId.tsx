@@ -34,7 +34,6 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   return { edition };
 }
 
-
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const form = await readForm(request, FORM_LIMIT);
