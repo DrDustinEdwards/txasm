@@ -7,6 +7,7 @@ import {
 import { ButtonLink } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
+import { MessagePage } from "~/components/message-page";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -51,15 +52,11 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
   if (problem) {
     const words = SIGN_IN_LINK_WORDS[problem];
     return (
-      <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
-        <div className="cap-stack" data-gap="3">
-          <h1 className="cap-title" data-size="2">
-            {words.title}
-          </h1>
-          <p>{words.text}</p>
-        </div>
-        <div>
-          {problem === "signed-in" ? (
+      <MessagePage
+        title={words.title}
+        text={words.text}
+        action={
+          problem === "signed-in" ? (
             <ButtonLink to="/" variant="primary">
               Continue
             </ButtonLink>
@@ -67,9 +64,9 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
             <ButtonLink to="/signin" variant="primary">
               Get a new link
             </ButtonLink>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
     );
   }
 
