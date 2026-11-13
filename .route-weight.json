@@ -1,7 +1,7 @@
 {
   "linked_css": true,
   "enforce": true,
-  "budget_bytes": 250000,
+  "budget_bytes": 249000,
   "baseline": {
     "measured_at": "206ffbc",
     "routes": {
