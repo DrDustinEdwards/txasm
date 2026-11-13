@@ -8,7 +8,7 @@
 @import "capsomer/base.css";
 @import "capsomer/layout.css";
 @import "capsomer/icons.css";
-@import "capsomer/site-header.css";
+@import "capsomer/site-header-frame.css";
 @import "capsomer/dialog.css";
 @import "capsomer/panel.css";
 @import "capsomer/popover.css";
@@ -74,8 +74,8 @@
   }
 }
 .txasm-main {
-  --text-size: 1rem;
-  --leading: 1.5;
+  --text-size: var(--title-6);
+  --leading: var(--leading-normal);
   --fs-body: 1rem;
   --fs-detail: 0.875rem;
   --fs-lead: 1.125rem;
@@ -96,12 +96,12 @@
   width: auto;
 }
 .txasm-meeting {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 .txasm-footer {
   margin-top: var(--space-9);
   padding-block: 2.5rem;
-  border-top: 1px solid var(--line);
+  border-top: var(--line-w) solid var(--line);
   background: var(--raised);
   font-size: 0.875rem;
   & nav {
@@ -156,20 +156,20 @@
 /* Page type: one title per page, section and subsection headings, the lead
    paragraph under a title, and smaller lines. */
 .page-title {
-  font-size: 1.875rem;
-  line-height: 1.2;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: var(--title-2);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 .section-title {
-  font-size: 1.25rem;
-  line-height: 1.4;
-  font-weight: 600;
+  font-size: var(--title-4);
+  line-height: var(--leading-compact);
+  font-weight: var(--weight-semibold);
 }
 .subsection-title {
-  font-size: 1.125rem;
-  line-height: 1.5;
-  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: var(--leading-normal);
+  font-weight: var(--weight-semibold);
 }
 .lead {
   max-width: 42rem;
@@ -180,11 +180,11 @@
   line-height: 1.45;
 }
 .tiny {
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: var(--fs-small);
+  line-height: var(--leading-compact);
 }
 .strong {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .narrow {
@@ -197,30 +197,30 @@
 }
 
 .home-tagline {
-  font-size: 1.125rem;
+  font-size: var(--fs-h3);
   color: var(--text);
 }
 
 .officer-contact {
-  margin-top: 0.75rem;
+  margin-top: var(--space-4);
 }
 .tier-benefits {
-  margin-top: 0.75rem;
+  margin-top: var(--space-4);
 }
 .trail-years {
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 
 .rule-below {
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--line-w) solid var(--line);
 }
 .abstract-title {
-  font-size: 1.5rem;
+  font-size: var(--title-3);
 }
 .affiliation {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 .abstract-body {
   & sub {
@@ -233,16 +233,16 @@
 
 .program-item {
   align-items: baseline;
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 .speaker-bio {
-  margin-top: 0.5rem;
+  margin-top: var(--space-3);
 }
 .bullets {
   list-style: disc;
   padding-left: 1.25rem;
   & > li + li {
-    margin-top: 0.25rem;
+    margin-top: var(--space-2);
   }
 }
 
@@ -256,27 +256,27 @@
   }
   & h2 {
     margin-top: 2.5rem;
-    font-size: 1.5rem;
+    font-size: var(--title-3);
     line-height: 2rem;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text);
   }
   & h3 {
-    font-size: 1.125rem;
+    font-size: var(--fs-h3);
     line-height: 1.75rem;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text);
   }
   & ol {
     list-style: decimal;
-    padding-left: 1.5rem;
+    padding-left: var(--space-6);
   }
   & ul {
     list-style: disc;
-    padding-left: 1.5rem;
+    padding-left: var(--space-6);
   }
   & li + li {
-    margin-top: 0.5rem;
+    margin-top: var(--space-3);
   }
   & a {
     color: var(--accent-text);
@@ -286,8 +286,8 @@
     text-decoration: underline;
   }
   & a:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
+    outline: var(--focus-width) solid var(--ring);
+    outline-offset: var(--focus-offset);
   }
   & img {
     max-width: 100%;
@@ -319,10 +319,10 @@
   display: block;
 }
 .mt-2 {
-  margin-top: 0.5rem;
+  margin-top: var(--space-3);
 }
 .mt-3 {
-  margin-top: 0.75rem;
+  margin-top: var(--space-4);
 }
 /* A field that takes a whole row of a .cap-grid. */
 .span-2 {
@@ -343,10 +343,10 @@
   margin-inline: auto;
 }
 .row-pad {
-  padding-block: 0.5rem;
+  padding-block: var(--space-3);
 }
 .divided > * + * {
-  border-top: 1px solid var(--line);
+  border-top: var(--line-w) solid var(--line);
 }
 .cell-end {
   text-align: end;
@@ -365,8 +365,8 @@
   flex: none;
   width: 3rem;
   height: 3rem;
-  padding: 0.25rem;
-  border: 1px solid var(--line);
+  padding: var(--space-2);
+  border: var(--line-w) solid var(--line);
   border-radius: var(--radius-s);
   background: var(--surface);
   object-fit: contain;
@@ -377,12 +377,12 @@
 /* The compact disclosure cards of the admin pages: 12px around the card, a bare summary, an 8px marker gap, a 12px
    gap above the body. */
 :root {
-  --disclosure-pad: 12px;
+  --disclosure-pad: var(--space-4);
   --disclosure-summary-pad: 0;
   --disclosure-summary-min-h: 0;
   --disclosure-body-pad: 0;
-  --disclosure-body-gap: 12px;
-  --disclosure-marker-gap: 8px;
+  --disclosure-body-gap: var(--space-4);
+  --disclosure-marker-gap: var(--space-3);
 }
 
 /* Repeatable rows (authors, affiliations): boxed items 12px in and 16px apart, 12px between the head and the
@@ -390,17 +390,17 @@
    red. */
 .sort-card,
 .sort-plain {
-  --sortable-card-pad: 12px;
+  --sortable-card-pad: var(--space-4);
   --sortable-card-radius: var(--radius-m);
-  --sortable-gap: 16px;
+  --sortable-gap: var(--space-5);
   --sortable-remove-ink: var(--crit);
   --sortable-remove-hover-ink: var(--crit);
   --sortable-remove-fs: 14px;
-  --sortable-remove-weight: 600;
-  --sortable-item-gap: 12px;
-  --sortable-steps-gap: 16px;
+  --sortable-remove-weight: var(--weight-semibold);
+  --sortable-item-gap: var(--space-4);
+  --sortable-steps-gap: var(--space-5);
   --sortable-step-ink: var(--text);
-  --sortable-remove-pad-inline: 8px;
+  --sortable-remove-pad-inline: var(--space-3);
   --sortable-body-pad-inline: 0;
 }
 /* "Add affiliation" and "Add author" sit 16px under their list: the form's own gap, nothing added. */
@@ -412,40 +412,40 @@
   --sortable-item-border: 0;
   --sortable-item-bg: transparent;
   --sortable-card-pad: 0;
-  --sortable-item-gap: 4px;
+  --sortable-item-gap: var(--space-2);
 }
 
 /* A session's program items: 12px rows 8px apart, the text and the buttons on one baseline 12px apart (the buttons
    drop 12px under a long title), then "Edit item" 8px under them; Up and Down in the text color and 16px apart, Remove a bare word in the link
    color; an empty session is its words. */
 .sort-rows {
-  --sortable-gap: 8px;
+  --sortable-gap: var(--space-3);
   --sortable-item-wrap: wrap;
-  --sortable-steps-gap: 16px;
+  --sortable-steps-gap: var(--space-5);
   --sortable-step-ink: var(--text);
   --sortable-empty-pad: 0;
   --sortable-empty-border: 0;
-  --sortable-item-pad: 12px;
-  --sortable-item-gap: 12px;
-  --sortable-foot-gap: 8px;
+  --sortable-item-pad: var(--space-4);
+  --sortable-item-gap: var(--space-4);
+  --sortable-foot-gap: var(--space-3);
   --sortable-item-align: baseline;
   --sortable-remove-pad-inline: 0;
   --sortable-remove-ink: var(--accent-text);
   --sortable-remove-hover-ink: var(--accent-text);
   --sortable-remove-fs: 14px;
-  --sortable-remove-weight: 600;
+  --sortable-remove-weight: var(--weight-semibold);
 }
 
 /* The abstract book: each section a bordered box, each entry a bordered 8px row; an excluded entry is dashed,
    sunken and faded. */
 .sort-book {
-  --sortable-gap: 8px;
-  --sortable-item-pad: 8px;
-  --sortable-item-gap: 8px;
+  --sortable-gap: var(--space-3);
+  --sortable-item-pad: var(--space-3);
+  --sortable-item-gap: var(--space-3);
   --sortable-item-radius: var(--radius-s);
   --sortable-item-border: 1px solid var(--line);
   --sortable-item-bg: var(--surface);
-  --sortable-lane-pad: 12px;
+  --sortable-lane-pad: var(--space-4);
   --sortable-lane-border: 1px solid var(--line);
   --sortable-lane-radius: var(--radius-m);
   --sortable-lane-bg: var(--surface);
@@ -453,14 +453,14 @@
 .book-excluded {
   border-style: dashed;
   background: var(--sunken);
-  opacity: 0.6;
+  opacity: var(--opacity-muted);
 }
 /* An entry's own text, inside the item. */
 .book-entry {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-3);
   font-size: 0.875rem;
 }
 
