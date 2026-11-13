@@ -15,7 +15,7 @@ import {
   type CodeRefusal,
 } from "@dustinedwards/site-runtime/sign-in-form";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
-import { authClient, signalAfterPasskeySignIn } from "~/lib/auth-client";
+import { authClient, signalAfterPasskeySignIn } from "~/lib/auth-client.client";
 import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";

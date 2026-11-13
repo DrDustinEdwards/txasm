@@ -9,6 +9,8 @@ import { getActor, getDataAccess } from "~/lib/data-access";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
 import { RichText } from "capsomer/react/trusted-html";
+// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
+import "capsomer/table.css";
 
 // A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
