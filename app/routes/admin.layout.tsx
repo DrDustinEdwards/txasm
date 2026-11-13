@@ -1,3 +1,4 @@
+import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import { Icon, type IconName } from "capsomer/react/icons";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
@@ -13,6 +14,9 @@ import { THEME_COOKIE, THEME_PREF_KEY } from "~/lib/theme";
 
 // The admin and chair areas are apps: every route under this layout hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
+
+// Every admin and chair page is a private page: no Web Analytics beacon (site-runtime PRIVATE_PAGE_HEADERS).
+export const headers = () => PRIVATE_PAGE_HEADERS;
 
 // Admin shell, on Capsomer's AdminShell (the user variant: txasm is not one of
 // the family's own apps, so it has no strip). The shell titles the tab
