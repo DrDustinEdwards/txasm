@@ -21,7 +21,7 @@ import {
 } from "~/lib/vocab";
 import { DateTimeField } from "capsomer/react/field";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { FORM_LIMIT, parseDateTime } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Edit meeting"));
@@ -34,15 +34,6 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   return { edition };
 }
 
-function parseDate(value: FormDataEntryValue | null): Date | null {
-  const raw = String(value ?? "").trim();
-  if (!raw) return null;
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError("Enter a valid date and time.");
-  }
-  return date;
-}
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
@@ -56,12 +47,12 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   try {
     const patch: EditionPatch = {
       status: status as EditionStatus,
-      registrationOpensAt: parseDate(form.get("registrationOpensAt")),
-      registrationClosesAt: parseDate(form.get("registrationClosesAt")),
-      submissionOpensAt: parseDate(form.get("submissionOpensAt")),
-      submissionDeadline: parseDate(form.get("submissionDeadline")),
-      meetingStartsAt: parseDate(form.get("meetingStartsAt")),
-      meetingEndsAt: parseDate(form.get("meetingEndsAt")),
+      registrationOpensAt: parseDateTime(form.get("registrationOpensAt")),
+      registrationClosesAt: parseDateTime(form.get("registrationClosesAt")),
+      submissionOpensAt: parseDateTime(form.get("submissionOpensAt")),
+      submissionDeadline: parseDateTime(form.get("submissionDeadline")),
+      meetingStartsAt: parseDateTime(form.get("meetingStartsAt")),
+      meetingEndsAt: parseDateTime(form.get("meetingEndsAt")),
       venueName: String(form.get("venueName") ?? ""),
       venueAddress: String(form.get("venueAddress") ?? ""),
       city: String(form.get("city") ?? ""),
