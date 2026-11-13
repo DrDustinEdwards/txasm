@@ -14,6 +14,9 @@ import { BODY_TAGS } from "~/lib/richtext";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
+import "capsomer/toolbar.css";
+import "capsomer/rich-text-field.css";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Invited speakers"));

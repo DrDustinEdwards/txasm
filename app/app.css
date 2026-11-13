@@ -16,22 +16,17 @@
 @import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
-@import "capsomer/toolbar.css";
-@import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
 @import "capsomer/tabs.css";
 @import "capsomer/banner.css";
 @import "capsomer/status.css";
 @import "capsomer/empty.css";
 @import "capsomer/error-page.css";
-@import "capsomer/table.css";
 @import "capsomer/filter-bar.css";
 @import "capsomer/form-status.css";
-@import "capsomer/listbox.css";
 @import "capsomer/picture.css";
 @import "capsomer/card.css";
 @import "capsomer/row-list.css";
-@import "capsomer/combobox.css";
 @import "capsomer/trusted-html.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
