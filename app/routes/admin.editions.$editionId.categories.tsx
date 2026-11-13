@@ -1,3 +1,4 @@
+import "capsomer/table.css";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { MoneyField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";

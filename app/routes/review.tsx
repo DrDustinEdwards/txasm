@@ -1,3 +1,4 @@
+import "capsomer/table.css";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
 import type { Route } from "./+types/review";

@@ -1,3 +1,4 @@
+import "capsomer/filter-bar.css";
 import { Form } from "react-router";
 import { Row, RowList } from "capsomer/react/row-list";
 import { Panel } from "capsomer/react/panel";
