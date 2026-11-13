@@ -89,6 +89,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       }));
   return {
     welcome,
+    userId: current.user.id,
     email: current.user.email,
     // Changing the email and deleting the account need a sign-in in the last FRESH_SECONDS (site-runtime ./sign-in).
     fresh: Date.now() - new Date(current.session.createdAt).getTime() < FRESH_SECONDS * 1000,
@@ -164,6 +165,7 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
 export default function Account({ loaderData }: Route.ComponentProps) {
   const {
     welcome,
+    userId,
     email,
     fresh,
     deletionBlockers,
@@ -196,11 +198,12 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   useEffect(() => {
     if (welcome) return;
     void signalPasskeys({
+      user: userId,
       rpId,
       credentialIds: credentialKey ? credentialKey.split(" ") : [],
       name: email,
     });
-  }, [welcome, rpId, credentialKey, email]);
+  }, [welcome, userId, rpId, credentialKey, email]);
 
   // Better Auth mails the current address to approve, then the new one to confirm
   // (app/lib/auth.server.ts). An address already in use gets the same answer, so the
