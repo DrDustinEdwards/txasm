@@ -5,7 +5,7 @@ import { SortableList } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { utcInputValue } from "capsomer/behavior/time";
+import { DateTimeField } from "capsomer/react/field";
 import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
@@ -116,18 +116,12 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
         <input type="hidden" name="intent" value="item-update" />
         <input type="hidden" name="itemId" value={item.id} />
         <KindSelect id={`itemkind-${item.id}`} defaultValue={item.kind} />
-        <div className="cap-stack" data-gap="2">
-          <label htmlFor={`itemtime-${item.id}`} className="cap-field-label">
-            Time
-          </label>
-          <input
-            id={`itemtime-${item.id}`}
-            name="startsAt"
-            type="datetime-local"
-            defaultValue={utcInputValue(item.startsAt)}
-            className="cap-input"
-          />
-        </div>
+        <DateTimeField
+          id={`itemtime-${item.id}`}
+          name="startsAt"
+          label="Time"
+          defaultDate={item.startsAt}
+        />
         {isCustom ? (
           <div className="cap-stack span-2" data-gap="2">
             <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">

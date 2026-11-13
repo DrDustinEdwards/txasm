@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { MoneyField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
@@ -191,22 +192,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               className="cap-input"
             />
           </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="fee" className="cap-field-label">
-              Fee (dollars)
-            </label>
-            <input
-              id="fee"
-              name="fee"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.01"
-              required
-              placeholder="45.00"
-              className="cap-input"
-            />
-          </div>
+          <MoneyField id="fee" name="fee" label="Fee (dollars)" required placeholder="45.00" />
           <div className="cap-stack" data-gap="2">
             <label htmlFor="currency" className="cap-field-label">
               Currency

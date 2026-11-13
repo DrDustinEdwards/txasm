@@ -1,4 +1,5 @@
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
+import { fromDateTimeLocal } from "capsomer/behavior/field";
 import { Panel } from "capsomer/react/panel";
 import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
@@ -71,7 +72,7 @@ function parseKind(value: FormDataEntryValue | null): ProgramItemKind | undefine
   return raw ? (raw as ProgramItemKind) : undefined;
 }
 
-function parseWhen(value: FormDataEntryValue | null): Date | null {
+function parseDay(value: FormDataEntryValue | null): Date | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
   const date = new Date(raw);
@@ -146,9 +147,9 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       await da.programSessions.create(actor, {
         editionId,
         title: String(form.get("title") ?? ""),
-        sessionDate: parseWhen(form.get("sessionDate")),
-        startsAt: parseWhen(form.get("startsAt")),
-        endsAt: parseWhen(form.get("endsAt")),
+        sessionDate: parseDay(form.get("sessionDate")),
+        startsAt: fromDateTimeLocal(form.get("startsAt")),
+        endsAt: fromDateTimeLocal(form.get("endsAt")),
         location: String(form.get("location") ?? ""),
         moderator: String(form.get("moderator") ?? ""),
       });
@@ -167,9 +168,9 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     if (intent === "session-update") {
       await da.programSessions.update(actor, String(form.get("sessionId") ?? ""), {
         title: String(form.get("title") ?? ""),
-        sessionDate: parseWhen(form.get("sessionDate")),
-        startsAt: parseWhen(form.get("startsAt")),
-        endsAt: parseWhen(form.get("endsAt")),
+        sessionDate: parseDay(form.get("sessionDate")),
+        startsAt: fromDateTimeLocal(form.get("startsAt")),
+        endsAt: fromDateTimeLocal(form.get("endsAt")),
         location: String(form.get("location") ?? ""),
         moderator: String(form.get("moderator") ?? ""),
       });
@@ -235,7 +236,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
         customTitle: String(form.get("customTitle") ?? ""),
         kind: parseKind(form.get("kind")),
         note: String(form.get("note") ?? ""),
-        startsAt: parseWhen(form.get("startsAt")),
+        startsAt: fromDateTimeLocal(form.get("startsAt")),
       });
       return { ok: "Item added to the session." };
     }
@@ -245,7 +246,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
         kind: parseKind(form.get("kind")),
         customTitle: String(form.get("customTitle") ?? ""),
         note: String(form.get("note") ?? ""),
-        startsAt: parseWhen(form.get("startsAt")),
+        startsAt: fromDateTimeLocal(form.get("startsAt")),
       });
       return { ok: "Item saved." };
     }

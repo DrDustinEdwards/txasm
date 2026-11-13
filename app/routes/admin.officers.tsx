@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
@@ -70,39 +71,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 type Row = Route.ComponentProps["loaderData"]["rows"][number];
 
-function Field({
-  id,
-  name,
-  label,
-  defaultValue,
-  type = "text",
-  hint,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  defaultValue?: string | number | null;
-  type?: string;
-  hint?: string;
-}) {
-  return (
-    <div className="cap-stack" data-gap="2">
-      <label htmlFor={id} className="cap-field-label">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        step={type === "number" ? "1" : undefined}
-        defaultValue={defaultValue ?? ""}
-        className="cap-input"
-      />
-      {hint ? <p className="tiny cap-muted">{hint}</p> : null}
-    </div>
-  );
-}
-
 function OfficerFields({ row, section }: { row?: Row; section: OfficerSection }) {
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
@@ -124,43 +92,50 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
           ))}
         </select>
       </div>
-      <Field
+      <TextField
         id={`${p}-role`}
         name="role"
         label="Office"
-        defaultValue={row?.role}
-        hint="President, Treasurer, and so on. Past officers are grouped by office."
+        defaultValue={row?.role ?? ""}
+        help="President, Treasurer, and so on. Past officers are grouped by office."
       />
-      <Field id={`${p}-name`} name="name" label="Name" defaultValue={row?.name} />
-      <Field
+      <TextField id={`${p}-name`} name="name" label="Name" defaultValue={row?.name ?? ""} />
+      <TextField
         id={`${p}-affiliation`}
         name="affiliation"
         label="Affiliation or institution"
-        defaultValue={row?.affiliation}
+        defaultValue={row?.affiliation ?? ""}
       />
-      <Field
+      <TextField
         id={`${p}-term`}
         name="term"
         label="Term"
-        defaultValue={row?.term}
-        hint="Past officers only, e.g. 2024-2025."
+        defaultValue={row?.term ?? ""}
+        help="Past officers only, e.g. 2024-2025."
       />
-      <Field
+      <TextField
         id={`${p}-location`}
         name="location"
         label="Location"
-        defaultValue={row?.location}
-        hint="Current officers only."
+        defaultValue={row?.location ?? ""}
+        help="Current officers only."
       />
-      <Field id={`${p}-phone`} name="phone" label="Phone" defaultValue={row?.phone} />
-      <Field id={`${p}-email`} name="email" label="Email" type="email" defaultValue={row?.email} />
-      <Field
+      <TextField id={`${p}-phone`} name="phone" label="Phone" defaultValue={row?.phone ?? ""} />
+      <TextField
+        id={`${p}-email`}
+        name="email"
+        label="Email"
+        type="email"
+        defaultValue={row?.email ?? ""}
+      />
+      <TextField
         id={`${p}-sortOrder`}
         name="sortOrder"
         label="Sort order"
         type="number"
+        step={1}
         defaultValue={row?.sortOrder ?? 0}
-        hint="Lower comes first."
+        help="Lower comes first."
       />
     </div>
   );

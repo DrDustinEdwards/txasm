@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { MoneyField } from "capsomer/react/field";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories.$categoryId";
 import { pageTitle } from "~/lib/site-meta";
@@ -6,7 +7,7 @@ import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
-import { moneyInputValue, parseMoneyInput } from "@dustinedwards/site-runtime/money";
+import { parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
@@ -96,22 +97,13 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="cap-stack" data-gap="2">
-          <label htmlFor="fee" className="cap-field-label">
-            Fee (dollars)
-          </label>
-          <input
-            id="fee"
-            name="fee"
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="0.01"
-            required
-            defaultValue={moneyInputValue(category.amountCents, category.currency)}
-            className="cap-input"
-          />
-        </div>
+        <MoneyField
+          id="fee"
+          name="fee"
+          label="Fee (dollars)"
+          required
+          defaultCents={category.amountCents}
+        />
         <div className="cap-stack" data-gap="2">
           <label htmlFor="currency" className="cap-field-label">
             Currency

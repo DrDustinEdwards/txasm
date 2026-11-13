@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
+import { SchemaFields } from "capsomer/react/schema-form";
+import { TextField } from "capsomer/react/field";
+import { RepeaterField } from "capsomer/react/repeater-field";
+import { rowsFromForm } from "capsomer/behavior/repeater-field";
+import type { FieldSpec } from "capsomer/behavior/schema-form";
 import { ActionResult } from "capsomer/react/message";
 import { Panel } from "capsomer/react/panel";
 import type { Route } from "./+types/admin.settings";
@@ -36,20 +41,33 @@ function parseWordLimit(value: FormDataEntryValue | null): number {
   return n;
 }
 
-function parseFooterLinks(value: FormDataEntryValue | null): FooterLink[] {
-  const raw = String(value ?? "[]");
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new ValidationError("Could not read the footer links. Try again.");
-  }
-  if (!Array.isArray(parsed)) return [];
-  return parsed.map((entry) => ({
-    label: String((entry as Record<string, unknown>)?.label ?? ""),
-    url: String((entry as Record<string, unknown>)?.url ?? ""),
-  }));
+function parseFooterLinks(form: FormData): FooterLink[] {
+  const rows = rowsFromForm(form, "footerLinks", ["label", "url"]);
+  if (!rows) throw new ValidationError("Could not read the footer links. Try again.");
+  return rows.map(({ label, url }) => ({ label: label ?? "", url: url ?? "" }));
 }
+
+// The settings form's fields, by section. The action reads them itself (parseYear, parseWordLimit) so
+// its messages stay in the admin's words; data-access validates and authorizes the write.
+const IDENTITY: FieldSpec[] = [
+  { key: "shortName", label: "Wordmark (short name)", kind: "text", placeholder: "TXASM" },
+  { key: "orgName", label: "Display name", kind: "text", placeholder: "Texas Branch ASM" },
+  { key: "orgFullName", label: "Full organization name", kind: "text", wide: true },
+  { key: "tagline", label: "Tagline", kind: "text", wide: true },
+  { key: "foundingYear", label: "Founding year", kind: "number" },
+  { key: "contactEmail", label: "Contact email", kind: "email" },
+  {
+    key: "facebookUrl",
+    label: "Facebook URL",
+    kind: "url",
+    wide: true,
+    placeholder: "https://www.facebook.com/groups/...",
+  },
+];
+const DEFAULTS: FieldSpec[] = [
+  { key: "defaultCurrency", label: "Default currency", kind: "text", placeholder: "usd" },
+  { key: "defaultAbstractWordLimit", label: "Default abstract word limit", kind: "number" },
+];
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
@@ -65,7 +83,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       foundingYear: parseYear(form.get("foundingYear"), "Founding year"),
       contactEmail: String(form.get("contactEmail") ?? ""),
       facebookUrl: String(form.get("facebookUrl") ?? ""),
-      footerLinks: parseFooterLinks(form.get("footerLinks")),
+      footerLinks: parseFooterLinks(form),
       defaultCurrency: String(form.get("defaultCurrency") ?? ""),
       defaultAbstractWordLimit: parseWordLimit(form.get("defaultAbstractWordLimit")),
     };
@@ -80,36 +98,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   return { ok: "Settings saved." };
 }
 
-function TextField({
-  name,
-  label,
-  defaultValue,
-  type = "text",
-  placeholder,
-}: {
-  name: string;
-  label: string;
-  defaultValue: string;
-  type?: string;
-  placeholder?: string;
-}) {
-  return (
-    <div className="cap-stack" data-gap="2">
-      <label htmlFor={name} className="cap-field-label">
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        className="cap-input"
-      />
-    </div>
-  );
-}
-
 export default function PlatformSettingsScreen({ loaderData }: Route.ComponentProps) {
   const { settings } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -117,16 +105,6 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
   const submitting = navigation.state === "submitting";
 
   const [footerLinks, setFooterLinks] = useState<FooterLink[]>(() => settings.footerLinks);
-
-  function updateLink(index: number, patch: Partial<FooterLink>) {
-    setFooterLinks((prev) => prev.map((link, i) => (i === index ? { ...link, ...patch } : link)));
-  }
-  function addLink() {
-    setFooterLinks((prev) => [...prev, { label: "", url: "" }]);
-  }
-  function removeLink(index: number) {
-    setFooterLinks((prev) => prev.filter((_, i) => i !== index));
-  }
 
   return (
     <div className="form-page cap-stack" data-gap="7">
@@ -142,113 +120,42 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
 
       <Form method="post" className="cap-stack" data-gap="7" noValidate>
         <Panel title="Identity">
-          <div className="cap-stack">
-            <div className="cap-grid" data-cols="2">
-              <TextField
-                name="shortName"
-                label="Wordmark (short name)"
-                defaultValue={settings.shortName}
-                placeholder="TXASM"
-              />
-              <TextField
-                name="orgName"
-                label="Display name"
-                defaultValue={settings.orgName}
-                placeholder="Texas Branch ASM"
-              />
-            </div>
-            <TextField
-              name="orgFullName"
-              label="Full organization name"
-              defaultValue={settings.orgFullName}
-            />
-            <TextField name="tagline" label="Tagline" defaultValue={settings.tagline} />
-            <div className="cap-grid" data-cols="2">
-              <TextField
-                name="foundingYear"
-                label="Founding year"
-                type="number"
-                defaultValue={settings.foundingYear === null ? "" : String(settings.foundingYear)}
-              />
-              <TextField
-                name="contactEmail"
-                label="Contact email"
-                type="email"
-                defaultValue={settings.contactEmail ?? ""}
-              />
-            </div>
-            <TextField
-              name="facebookUrl"
-              label="Facebook URL"
-              type="url"
-              defaultValue={settings.facebookUrl ?? ""}
-              placeholder="https://www.facebook.com/groups/..."
-            />
-          </div>
+          <SchemaFields specs={IDENTITY} values={settings} />
         </Panel>
 
         <Panel title="Footer links">
-          <div className="cap-stack">
-            {footerLinks.length === 0 ? (
-              <p className="small cap-muted">No footer links. Add one below.</p>
-            ) : (
-              <ol className="cap-stack" data-gap="4">
-                {footerLinks.map((link, index) => (
-                  <li key={index} className="grid-pair-action">
-                    <label className="cap-stack" data-gap="2">
-                      <span className="cap-field-label">Label</span>
-                      <input
-                        type="text"
-                        value={link.label}
-                        onChange={(e) => updateLink(index, { label: e.target.value })}
-                        className="cap-input"
-                      />
-                    </label>
-                    <label className="cap-stack" data-gap="2">
-                      <span className="cap-field-label">URL or path</span>
-                      <input
-                        type="text"
-                        value={link.url}
-                        onChange={(e) => updateLink(index, { url: e.target.value })}
-                        placeholder="/branch-officers"
-                        className="cap-input"
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => removeLink(index)}
-                      className="small strong"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ol>
+          <RepeaterField
+            legend="Footer links"
+            rows={footerLinks}
+            onChange={setFooterLinks}
+            newRow={() => ({ label: "", url: "" })}
+            rowLabel={(i) => `Link ${i + 1}`}
+            addLabel="Add footer link"
+            name="footerLinks"
+            json
+          >
+            {(link, { set, name }) => (
+              <>
+                <TextField
+                  label="Label"
+                  name={name("label")}
+                  value={link.label}
+                  onChange={(e) => set({ label: e.target.value })}
+                />
+                <TextField
+                  label="URL or path"
+                  name={name("url")}
+                  value={link.url}
+                  onChange={(e) => set({ url: e.target.value })}
+                  placeholder="/branch-officers"
+                />
+              </>
             )}
-            <button type="button" onClick={addLink} className="cap-btn" data-size="sm">
-              Add footer link
-            </button>
-            <input type="hidden" name="footerLinks" value={JSON.stringify(footerLinks)} />
-          </div>
+          </RepeaterField>
         </Panel>
 
         <Panel title="Defaults">
-          <div className="cap-stack">
-            <div className="cap-grid" data-cols="2">
-              <TextField
-                name="defaultCurrency"
-                label="Default currency"
-                defaultValue={settings.defaultCurrency}
-                placeholder="usd"
-              />
-              <TextField
-                name="defaultAbstractWordLimit"
-                label="Default abstract word limit"
-                type="number"
-                defaultValue={String(settings.defaultAbstractWordLimit)}
-              />
-            </div>
-          </div>
+          <SchemaFields specs={DEFAULTS} values={settings} />
         </Panel>
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

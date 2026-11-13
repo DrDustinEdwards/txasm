@@ -16,6 +16,8 @@
 @import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
+@import "capsomer/repeater-field.css";
+@import "capsomer/schema-form.css";
 @import "capsomer/toolbar.css";
 @import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
@@ -347,14 +349,6 @@
 .form-page {
   max-width: 42rem;
   margin-inline: auto;
-}
-.grid-pair-action {
-  display: grid;
-  gap: 0.5rem;
-  @media (width >= 640px) {
-    grid-template-columns: 1fr 1fr auto;
-    align-items: end;
-  }
 }
 .row-pad {
   padding-block: 0.5rem;

@@ -1,5 +1,6 @@
 // The form body ceiling (read with site-runtime's readForm), and the field parsers the admin actions share. Each
 // parser throws ValidationError, in words for the admin, when a field does not parse.
+import { fromDateTimeLocal } from "capsomer/behavior/field";
 import { ValidationError } from "./data-access";
 
 /** A form of text fields: sign-in, an abstract, a review, an admin setting. */
@@ -24,4 +25,13 @@ export function parseYear(value: FormDataEntryValue | null, label = "Year"): num
     throw new ValidationError(`${label} must be a whole number.`);
   }
   return n;
+}
+
+// A datetime-local value, read as UTC (the Worker's zone, and the form's, see DateTimeField); null when the
+// field is blank.
+export function parseDateTime(value: FormDataEntryValue | null): Date | null {
+  if (String(value ?? "").trim() === "") return null;
+  const date = fromDateTimeLocal(value);
+  if (!date) throw new ValidationError("Enter a valid date and time.");
+  return date;
 }

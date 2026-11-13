@@ -3,7 +3,7 @@ import { Panel } from "capsomer/react/panel";
 import { isoDay } from "@drdustinedwards/site-helpers/xml";
 import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { utcInputValue } from "capsomer/behavior/time";
+import { DateTimeField } from "capsomer/react/field";
 import { Disclosure } from "capsomer/react/disclosure";
 import { AddItemForms, SessionItems } from "./items";
 import { type SpeakerOption } from "./shared";
@@ -58,30 +58,18 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`start-${idBase}`} className="cap-field-label">
-          Starts
-        </label>
-        <input
-          id={`start-${idBase}`}
-          name="startsAt"
-          type="datetime-local"
-          defaultValue={utcInputValue(session?.startsAt ?? null)}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`end-${idBase}`} className="cap-field-label">
-          Ends
-        </label>
-        <input
-          id={`end-${idBase}`}
-          name="endsAt"
-          type="datetime-local"
-          defaultValue={utcInputValue(session?.endsAt ?? null)}
-          className="cap-input"
-        />
-      </div>
+      <DateTimeField
+        id={`start-${idBase}`}
+        name="startsAt"
+        label="Starts"
+        defaultDate={session?.startsAt ?? null}
+      />
+      <DateTimeField
+        id={`end-${idBase}`}
+        name="endsAt"
+        label="Ends"
+        defaultDate={session?.endsAt ?? null}
+      />
       <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`mod-${idBase}`} className="cap-field-label">
           Moderator (optional)

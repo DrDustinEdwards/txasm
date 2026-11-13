@@ -15,13 +15,13 @@ import type {
   SpeakerPublic,
   SponsorPublic,
 } from "./data-access";
-import { clock, dayLabel, slotLabel, zoneLine } from "capsomer/behavior/schedule";
+import { dayLabel, slotLabel, zoneLine } from "capsomer/behavior/schedule";
 import { coverArt, coverFontFaces, coverStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { escapeCssString, joinParts } from "./format";
-import { dateRange } from "capsomer/behavior/time";
+import { dateRange, formatDate } from "capsomer/behavior/time";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
 
 // The meeting's times, in UTC like the rest of the site; the schedule says so once.
@@ -59,7 +59,7 @@ function itemBlock(item: ProgramSessionResolved["items"][number]): string {
     body = `<span class="item-title">${escapeHtml(item.customTitle ?? "")}</span>`;
   }
   const time = item.startsAt
-    ? `<span class="item-time">${escapeHtml(clock(item.startsAt.getTime(), ZONE))}</span>`
+    ? `<span class="item-time">${escapeHtml(formatDate(item.startsAt, { style: "time", zone: ZONE }) ?? "")}</span>`
     : "";
   const note = item.note ? `<p class="item-note">${escapeHtml(item.note)}</p>` : "";
   return `<li class="item">${time}${kind}${body}${note}</li>`;

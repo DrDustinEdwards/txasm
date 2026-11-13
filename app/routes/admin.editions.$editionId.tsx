@@ -19,9 +19,9 @@ import {
   type EditionStatus,
   type Season,
 } from "~/lib/vocab";
-import { utcInputValue } from "capsomer/behavior/time";
+import { DateTimeField } from "capsomer/react/field";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { FORM_LIMIT, parseDateTime } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Edit meeting"));
@@ -32,16 +32,6 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const edition = await getDataAccess(env).editions.getById(actor, params.editionId);
   return { edition };
-}
-
-function parseDate(value: FormDataEntryValue | null): Date | null {
-  const raw = String(value ?? "").trim();
-  if (!raw) return null;
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError("Enter a valid date and time.");
-  }
-  return date;
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -56,12 +46,12 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   try {
     const patch: EditionPatch = {
       status: status as EditionStatus,
-      registrationOpensAt: parseDate(form.get("registrationOpensAt")),
-      registrationClosesAt: parseDate(form.get("registrationClosesAt")),
-      submissionOpensAt: parseDate(form.get("submissionOpensAt")),
-      submissionDeadline: parseDate(form.get("submissionDeadline")),
-      meetingStartsAt: parseDate(form.get("meetingStartsAt")),
-      meetingEndsAt: parseDate(form.get("meetingEndsAt")),
+      registrationOpensAt: parseDateTime(form.get("registrationOpensAt")),
+      registrationClosesAt: parseDateTime(form.get("registrationClosesAt")),
+      submissionOpensAt: parseDateTime(form.get("submissionOpensAt")),
+      submissionDeadline: parseDateTime(form.get("submissionDeadline")),
+      meetingStartsAt: parseDateTime(form.get("meetingStartsAt")),
+      meetingEndsAt: parseDateTime(form.get("meetingEndsAt")),
       venueName: String(form.get("venueName") ?? ""),
       venueAddress: String(form.get("venueAddress") ?? ""),
       city: String(form.get("city") ?? ""),
@@ -151,30 +141,18 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
 
         <Panel title="Meeting dates and venue">
           <div className="cap-stack">
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="meetingStartsAt" className="cap-field-label">
-                Starts
-              </label>
-              <input
-                id="meetingStartsAt"
-                name="meetingStartsAt"
-                type="datetime-local"
-                defaultValue={utcInputValue(edition.meetingStartsAt)}
-                className="cap-input"
-              />
-            </div>
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="meetingEndsAt" className="cap-field-label">
-                Ends
-              </label>
-              <input
-                id="meetingEndsAt"
-                name="meetingEndsAt"
-                type="datetime-local"
-                defaultValue={utcInputValue(edition.meetingEndsAt)}
-                className="cap-input"
-              />
-            </div>
+            <DateTimeField
+              id="meetingStartsAt"
+              name="meetingStartsAt"
+              label="Starts"
+              defaultDate={edition.meetingStartsAt}
+            />
+            <DateTimeField
+              id="meetingEndsAt"
+              name="meetingEndsAt"
+              label="Ends"
+              defaultDate={edition.meetingEndsAt}
+            />
             <div className="cap-stack" data-gap="2">
               <label htmlFor="venueName" className="cap-field-label">
                 Venue
@@ -217,59 +195,35 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
 
         <Panel title="Registration window">
           <div className="cap-stack">
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="registrationOpensAt" className="cap-field-label">
-                Opens
-              </label>
-              <input
-                id="registrationOpensAt"
-                name="registrationOpensAt"
-                type="datetime-local"
-                defaultValue={utcInputValue(edition.registrationOpensAt)}
-                className="cap-input"
-              />
-            </div>
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="registrationClosesAt" className="cap-field-label">
-                Deadline
-              </label>
-              <input
-                id="registrationClosesAt"
-                name="registrationClosesAt"
-                type="datetime-local"
-                defaultValue={utcInputValue(edition.registrationClosesAt)}
-                className="cap-input"
-              />
-            </div>
+            <DateTimeField
+              id="registrationOpensAt"
+              name="registrationOpensAt"
+              label="Opens"
+              defaultDate={edition.registrationOpensAt}
+            />
+            <DateTimeField
+              id="registrationClosesAt"
+              name="registrationClosesAt"
+              label="Deadline"
+              defaultDate={edition.registrationClosesAt}
+            />
           </div>
         </Panel>
 
         <Panel title="Submission window">
           <div className="cap-stack">
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="submissionOpensAt" className="cap-field-label">
-                Opens
-              </label>
-              <input
-                id="submissionOpensAt"
-                name="submissionOpensAt"
-                type="datetime-local"
-                defaultValue={utcInputValue(edition.submissionOpensAt)}
-                className="cap-input"
-              />
-            </div>
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="submissionDeadline" className="cap-field-label">
-                Deadline
-              </label>
-              <input
-                id="submissionDeadline"
-                name="submissionDeadline"
-                type="datetime-local"
-                defaultValue={utcInputValue(edition.submissionDeadline)}
-                className="cap-input"
-              />
-            </div>
+            <DateTimeField
+              id="submissionOpensAt"
+              name="submissionOpensAt"
+              label="Opens"
+              defaultDate={edition.submissionOpensAt}
+            />
+            <DateTimeField
+              id="submissionDeadline"
+              name="submissionDeadline"
+              label="Deadline"
+              defaultDate={edition.submissionDeadline}
+            />
           </div>
         </Panel>
 
