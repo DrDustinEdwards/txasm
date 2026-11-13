@@ -9,7 +9,6 @@
 @import "capsomer/layout.css";
 @import "capsomer/icons.css";
 @import "capsomer/site-header.css";
-@import "capsomer/admin-shell.css";
 @import "capsomer/dialog.css";
 @import "capsomer/panel.css";
 @import "capsomer/popover.css";
@@ -17,8 +16,6 @@
 @import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
-@import "capsomer/repeater-field.css";
-@import "capsomer/schema-form.css";
 @import "capsomer/toolbar.css";
 @import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
