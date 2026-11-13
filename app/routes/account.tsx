@@ -36,6 +36,7 @@ import { authClient } from "~/lib/auth-client.client";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
 import { readForm } from "@dustinedwards/site-runtime/body";
+import { useHydrated } from "capsomer/react/hooks";
 
 // An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -181,6 +182,9 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   const deleting = useNavigation().formData?.get("intent") === "delete";
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // The email form saves through script; pressed before the page hydrates, the browser would send it as a
+  // GET and put the new address in the URL, so its button waits.
+  const hydrated = useHydrated();
   const [emailNote, setEmailNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   // The offer shows only where this device can make a passkey (a platform authenticator); null until the browser says.
@@ -388,7 +392,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
             ) : null}
           </div>
           <div>
-            <button type="submit" className="cap-btn">
+            <button type="submit" className="cap-btn" disabled={!hydrated}>
               Change email
             </button>
           </div>
