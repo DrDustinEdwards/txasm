@@ -1,7 +1,7 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Banner } from "capsomer/react/banner";
-import { ActionResult } from "capsomer/react/message";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
 import { pageTitle } from "~/lib/site-meta";
@@ -139,6 +139,7 @@ function AbstractSections({
 export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const { assignment, edition, abstract, authors, review } = loaderData;
   const actionData = useActionData<typeof action>();
+  const status = useActionStatus(actionData);
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
 
@@ -167,7 +168,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </div>
       </Panel>
 
-      <ActionResult data={actionData} />
+      <FormStatus status={status} />
 
       {editable ? (
         <Form method="post" className="cap-stack" data-gap="6">
