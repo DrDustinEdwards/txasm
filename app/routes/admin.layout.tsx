@@ -1,5 +1,5 @@
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
-import { Icon, type IconName } from "capsomer/react/icons";
+import { Icon, iconAdd, iconAssign, iconAward, iconBook, iconCalendar, iconClock, iconDecide, iconDocument, iconOverview, iconPeople, iconQueue, iconRoles, iconSettings, iconTag, iconTicket } from "capsomer/react/icons";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
@@ -48,22 +48,22 @@ type Entry = AdminEntry & { end?: boolean };
 
 // Menu glyphs: Capsomer's icon set, drawn at the menu's own size (.cap-admin-icon).
 const ICONS = {
-  meetings: "calendar",
-  add: "add",
-  award: "award",
-  people: "people",
-  document: "document",
-  settings: "settings",
-  overview: "overview",
-  ticket: "ticket",
-  tag: "tag",
-  roles: "roles",
-  assign: "assign",
-  decide: "decide",
-  program: "clock",
-  book: "book",
-  queue: "queue",
-} as const satisfies Record<string, IconName>;
+  meetings: iconCalendar,
+  add: iconAdd,
+  award: iconAward,
+  people: iconPeople,
+  document: iconDocument,
+  settings: iconSettings,
+  overview: iconOverview,
+  ticket: iconTicket,
+  tag: iconTag,
+  roles: iconRoles,
+  assign: iconAssign,
+  decide: iconDecide,
+  program: iconClock,
+  book: iconBook,
+  queue: iconQueue,
+} as const;
 
 // The phone's bottom bar: at most four of the pages a person reaches first, under one-word
 // labels so none crowds or wraps; every page stays in the header's sheet (Capsomer's admin-shell:
@@ -100,7 +100,7 @@ function adminNav(isAdmin: boolean, isReviewer: boolean, editionId?: string): En
     group,
     label,
     href,
-    icon: <Icon name={ICONS[icon]} className="cap-admin-icon" />,
+    icon: <Icon d={ICONS[icon]} className="cap-admin-icon" />,
     end,
   });
   const meeting = `/admin/editions/${editionId}`;
