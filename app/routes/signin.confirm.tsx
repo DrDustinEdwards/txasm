@@ -4,7 +4,7 @@ import {
   confirmSignInLink,
   signInLinkProblem,
 } from "@dustinedwards/site-runtime/sign-in";
-import { Link } from "capsomer/react/link";
+import { ButtonLink } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
 import { pageTitle } from "~/lib/site-meta";
@@ -60,13 +60,13 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
         </div>
         <div>
           {problem === "signed-in" ? (
-            <Link to="/" className="cap-btn" data-variant="primary">
+            <ButtonLink to="/" variant="primary">
               Continue
-            </Link>
+            </ButtonLink>
           ) : (
-            <Link to="/signin" className="cap-btn" data-variant="primary">
+            <ButtonLink to="/signin" variant="primary">
               Get a new link
-            </Link>
+            </ButtonLink>
           )}
         </div>
       </div>

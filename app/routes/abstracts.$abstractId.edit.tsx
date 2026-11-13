@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Banner } from "capsomer/react/banner";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { ActionResult } from "capsomer/react/message";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { pageTitle } from "~/lib/site-meta";
@@ -212,6 +212,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const { abstract, edition, categories, editable, decision } = loaderData;
   const actionData = useActionData<typeof action>();
+  const status = useActionStatus(actionData);
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
 
@@ -305,7 +306,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
       <DecisionPanel decision={decision} />
 
-      <ActionResult data={actionData} />
+      <FormStatus status={status} />
 
       <Form method="post" className="cap-stack" data-gap="6">
         <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />

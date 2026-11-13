@@ -3,6 +3,8 @@ import { Panel } from "capsomer/react/panel";
 import { Link, routerRenderLink } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
+import { FilterBar } from "capsomer/react/filter-bar";
+import { countText } from "capsomer/content";
 import type { Route } from "./+types/meetings.$slug.abstracts";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess, type PublicAbstractSummary } from "~/lib/data-access";
@@ -136,7 +138,15 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
       </header>
 
       <Panel>
-        <Form method="get" aria-label="Filter abstracts" className="cap-grid filters" data-cols="4">
+        <FilterBar
+          label="Filter abstracts"
+          Form={Form}
+          applyVariant="primary"
+          clearLabel="Clear"
+          clearHref={filtered ? `/meetings/${edition.slug}/abstracts` : null}
+          renderLink={routerRenderLink}
+          count={countText(abstracts.length, total, { noun: "abstract", plural: "abstracts" })}
+        >
           <Field label="Level">
             <select id="level" name="level" defaultValue={filters.level} className="cap-select">
               <option value="">All levels</option>
@@ -168,22 +178,8 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
               <option value={NO_TOPIC}>{untopicedLabel}</option>
             </select>
           </Field>
-          <div className="cap-cluster">
-            <button type="submit" className="cap-btn" data-variant="primary">
-              Apply
-            </button>
-            {filtered ? (
-              <Link to={`/meetings/${edition.slug}/abstracts`} className="cap-btn">
-                Clear
-              </Link>
-            ) : null}
-          </div>
-        </Form>
+        </FilterBar>
       </Panel>
-
-      <p className="cap-text cap-muted" data-size="small" aria-live="polite">
-        {filtered ? `${abstracts.length} of ${total} abstracts` : `${total} abstracts`}
-      </p>
 
       {groups.length === 0 ? (
         <Empty kind="no-match" title="No abstracts match these filters." />

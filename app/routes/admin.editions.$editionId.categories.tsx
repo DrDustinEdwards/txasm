@@ -2,6 +2,7 @@ import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { MoneyField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
+import { Table } from "capsomer/react/table";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -110,61 +111,54 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
       {categories.length === 0 ? (
         <p>No categories yet. Add the first below.</p>
       ) : (
-        <div
-          className="cap-table-wrap"
-          role="region"
-          aria-label="Registration categories"
-          tabIndex={0}
-        >
-          <table className="cap-table">
-            <thead>
-              <tr>
-                <th scope="col">Label</th>
-                <th scope="col">Type</th>
-                <th scope="col">Fee</th>
-                <th scope="col">Active</th>
-                <th scope="col" className="cap-text" data-align="end">
-                  <span className="cap-sr-only">Actions</span>
-                </th>
+        <Table caption="Registration categories" captionHidden>
+          <thead>
+            <tr>
+              <th scope="col">Label</th>
+              <th scope="col">Type</th>
+              <th scope="col">Fee</th>
+              <th scope="col">Active</th>
+              <th scope="col" className="cap-text" data-align="end">
+                <span className="cap-sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((category) => (
+              <tr key={category.id}>
+                <td>{category.label}</td>
+                <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
+                <td>{formatMoney(category.amountCents, category.currency)}</td>
+                <td>{category.active ? "Yes" : "No"}</td>
+                <td className="cap-text" data-align="end">
+                  <div className="cap-cluster" data-justify="end">
+                    <Link
+                      to={`/admin/editions/${edition.id}/categories/${category.id}`}
+                      className="cap-text"
+                      data-weight="strong"
+                    >
+                      Edit
+                    </Link>
+                    {category.active ? (
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="deactivate" />
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <button
+                          type="submit"
+                          className="cap-btn cap-muted"
+                          data-variant="link"
+                          data-size="sm"
+                        >
+                          Deactivate
+                        </button>
+                      </Form>
+                    ) : null}
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td>{category.label}</td>
-                  <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
-                  <td>{formatMoney(category.amountCents, category.currency)}</td>
-                  <td>{category.active ? "Yes" : "No"}</td>
-                  <td className="cap-text" data-align="end">
-                    <div className="cap-cluster" data-justify="end">
-                      <Link
-                        to={`/admin/editions/${edition.id}/categories/${category.id}`}
-                        className="cap-text"
-                        data-weight="strong"
-                      >
-                        Edit
-                      </Link>
-                      {category.active ? (
-                        <Form method="post">
-                          <input type="hidden" name="intent" value="deactivate" />
-                          <input type="hidden" name="categoryId" value={category.id} />
-                          <button
-                            type="submit"
-                            className="cap-btn cap-muted"
-                            data-variant="link"
-                            data-size="sm"
-                          >
-                            Deactivate
-                          </button>
-                        </Form>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </Table>
       )}
 
       <Panel title="Add a category">

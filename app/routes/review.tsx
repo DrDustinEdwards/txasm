@@ -1,4 +1,5 @@
 import { Link } from "capsomer/react/link";
+import { Table } from "capsomer/react/table";
 import type { Route } from "./+types/review";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -39,61 +40,54 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
           up here.
         </p>
       ) : (
-        <div
-          className="cap-table-wrap"
-          role="region"
-          aria-label="Your review assignments"
-          tabIndex={0}
-        >
-          <table className="cap-table">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Meeting</th>
-                <th scope="col">Due</th>
-                <th scope="col">Status</th>
-                <th scope="col" className="cap-text" data-align="end">
-                  <span className="cap-sr-only">Actions</span>
-                </th>
+        <Table caption="Your review assignments" captionHidden>
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Meeting</th>
+              <th scope="col">Due</th>
+              <th scope="col">Status</th>
+              <th scope="col" className="cap-text" data-align="end">
+                <span className="cap-sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {assignments.map((assignment) => (
+              <tr key={assignment.assignmentId}>
+                <td>
+                  <RichText
+                    as="span"
+                    html={assignment.title}
+                    fallback={<span className="cap-muted">Untitled</span>}
+                  />
+                </td>
+                <td>{assignment.editionName}</td>
+                <td>
+                  {assignment.dueAt ? formatDate(assignment.dueAt, DATE_TIME) : "No due date"}
+                </td>
+                <td>
+                  {assignment.reviewSubmitted ? (
+                    <span className="cap-text" data-tone="ok">
+                      Review submitted
+                    </span>
+                  ) : (
+                    "Awaiting review"
+                  )}
+                </td>
+                <td className="cap-text" data-align="end">
+                  <Link
+                    to={`/review/${assignment.assignmentId}`}
+                    className="cap-text"
+                    data-weight="strong"
+                  >
+                    {assignment.reviewSubmitted ? "View or edit" : "Review"}
+                  </Link>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {assignments.map((assignment) => (
-                <tr key={assignment.assignmentId}>
-                  <td>
-                    <RichText
-                      as="span"
-                      html={assignment.title}
-                      fallback={<span className="cap-muted">Untitled</span>}
-                    />
-                  </td>
-                  <td>{assignment.editionName}</td>
-                  <td>
-                    {assignment.dueAt ? formatDate(assignment.dueAt, DATE_TIME) : "No due date"}
-                  </td>
-                  <td>
-                    {assignment.reviewSubmitted ? (
-                      <span className="cap-text" data-tone="ok">
-                        Review submitted
-                      </span>
-                    ) : (
-                      "Awaiting review"
-                    )}
-                  </td>
-                  <td className="cap-text" data-align="end">
-                    <Link
-                      to={`/review/${assignment.assignmentId}`}
-                      className="cap-text"
-                      data-weight="strong"
-                    >
-                      {assignment.reviewSubmitted ? "View or edit" : "Review"}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   );

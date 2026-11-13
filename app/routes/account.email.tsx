@@ -1,5 +1,5 @@
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
-import { Link } from "capsomer/react/link";
+import { ButtonLink } from "capsomer/react/link";
 import {
   confirmEmailLink,
   emailLinkResult,
@@ -32,9 +32,9 @@ export const headers = () => ({ ...PRIVATE_PAGE_HEADERS, "X-Robots-Tag": "noinde
 
 export async function loader({ request }: Route.LoaderArgs) {
   const result = emailLinkResult(request.url);
-  // After the change is made, the address the password manager should show for this account's passkeys.
-  const email = result.done === "changed" ? ((await getSessionUser(request))?.email ?? null) : null;
-  return { ...result, email };
+  // After the change is made, the account's id and the address the password manager should show for its passkeys.
+  const user = result.done === "changed" ? await getSessionUser(request) : null;
+  return { ...result, userId: user?.id ?? null, email: user?.email ?? null };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -73,12 +73,12 @@ const PROBLEM_WORDS: Record<EmailLinkProblem, { title: string; text: string }> =
 };
 
 export default function EmailChangeConfirm({ loaderData, actionData }: Route.ComponentProps) {
-  const { done, problem, email } = loaderData;
+  const { done, problem, userId, email } = loaderData;
 
   // The change is made: the password manager shows the new address on this account's passkeys.
   useEffect(() => {
-    if (email) void signalCurrentUserDetails({ name: email });
-  }, [email]);
+    if (email) void signalCurrentUserDetails({ user: userId, name: email });
+  }, [userId, email]);
 
   if (done) {
     return (
@@ -94,9 +94,9 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
           </p>
         </div>
         <div>
-          <Link to="/account" className="cap-btn" data-variant="primary">
+          <ButtonLink to="/account" variant="primary">
             Go to your account
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -113,9 +113,9 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
           <p>{words.text}</p>
         </div>
         <div>
-          <Link to="/account" className="cap-btn" data-variant="primary">
+          <ButtonLink to="/account" variant="primary">
             Go to your account
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );

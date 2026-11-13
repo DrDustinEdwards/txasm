@@ -10,7 +10,8 @@ import {
 import type { Route } from "./+types/public.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
-import { BrandFooter, BrandWordmark } from "~/lib/brand";
+import { BrandFooter } from "~/components/brand-footer";
+import { BrandWordmark } from "~/components/brand-wordmark";
 import type { PlatformSettings } from "~/lib/data-access";
 import { useRouteHydrates } from "~/components/site-chrome";
 import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";

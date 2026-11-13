@@ -2,7 +2,7 @@ import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { prepareUpload, RefusedError } from "@dustinedwards/site-api";
-import { Link } from "capsomer/react/link";
+import { ButtonLink } from "capsomer/react/link";
 import type { Route } from "./+types/admin.documents";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
@@ -483,26 +483,24 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <nav aria-label="Filter by category" className="cap-cluster">
-        <Link
+        <ButtonLink
           to="/admin/documents"
-          className="cap-btn"
-          data-size="sm"
-          data-variant={filter ? "quiet" : "primary"}
+          size="sm"
+          variant={filter ? "quiet" : "primary"}
           aria-current={filter ? undefined : "page"}
         >
           All
-        </Link>
+        </ButtonLink>
         {DOCUMENT_CATEGORIES.map((c) => (
-          <Link
+          <ButtonLink
             key={c}
             to={`/admin/documents?category=${c}`}
-            className="cap-btn"
-            data-size="sm"
-            data-variant={filter === c ? "primary" : "quiet"}
+            size="sm"
+            variant={filter === c ? "primary" : "quiet"}
             aria-current={filter === c ? "page" : undefined}
           >
             {DOCUMENT_CATEGORY_LABELS[c]}
-          </Link>
+          </ButtonLink>
         ))}
       </nav>
 

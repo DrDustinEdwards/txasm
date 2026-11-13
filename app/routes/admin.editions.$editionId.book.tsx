@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Panel } from "capsomer/react/panel";
 import { Form, useFetcher } from "react-router";
-import { ActionResult } from "capsomer/react/message";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { SortableBoard } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
@@ -125,6 +125,7 @@ function arrangementFrom(sections: BookSectionView[]): BookArrangementInput {
 export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps) {
   const { edition, pdf } = loaderData;
   const fetcher = useFetcher<typeof action>();
+  const status = useActionStatus(fetcher.data);
   const [book, setBook] = useState<BookView | null>(loaderData.book);
 
   // The action returns the authoritative BookView (with reflowed codes); adopt it
@@ -196,7 +197,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         </p>
       </div>
 
-      <ActionResult data={fetcher.data} />
+      <FormStatus status={status} />
 
       {!book ? (
         <Panel>

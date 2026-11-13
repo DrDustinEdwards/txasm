@@ -1,7 +1,7 @@
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
 import { fromDateTimeLocal } from "capsomer/behavior/field";
 import { Panel } from "capsomer/react/panel";
-import { ActionResult } from "capsomer/react/message";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
@@ -282,6 +282,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   const { edition, schedule, unplaced, speakers, document } = loaderData;
   const actionData = useActionData<typeof action>();
+  const status = useActionStatus(actionData);
   const navigation = useNavigation();
   const busy = navigation.state === "submitting";
   const [searchParams, setSearchParams] = useSearchParams();
@@ -322,7 +323,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <ActionResult data={actionData} />
+      <FormStatus status={status} />
 
       <ScheduleDayNav
         days={keys}

@@ -15,9 +15,13 @@ export async function signalAfterPasskeySignIn(): Promise<void> {
       authClient.passkey.listUserPasskeys(),
       authClient.getSession(),
     ]);
-    const email = session.data?.user.email;
-    if (!passkeys.data || !email) return;
-    await signalPasskeys({ credentialIds: passkeys.data.map((p) => p.credentialID), name: email });
+    const user = session.data?.user;
+    if (!passkeys.data || !user?.email) return;
+    await signalPasskeys({
+      user: user.id,
+      credentialIds: passkeys.data.map((p) => p.credentialID),
+      name: user.email,
+    });
   } catch {
     // The signal is a courtesy to the password manager; the person is signed in either way.
   }
