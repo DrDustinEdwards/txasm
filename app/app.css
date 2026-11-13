@@ -6,9 +6,9 @@
 @import "capsomer/site-txasm.css";
 @import "capsomer/fallback-fonts.css";
 @import "capsomer/base.css";
+@import "capsomer/layout.css";
 @import "capsomer/icons.css";
 @import "capsomer/site-header.css";
-@import "capsomer/admin-shell.css";
 @import "capsomer/dialog.css";
 @import "capsomer/panel.css";
 @import "capsomer/popover.css";
@@ -16,8 +16,6 @@
 @import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
-@import "capsomer/repeater-field.css";
-@import "capsomer/schema-form.css";
 @import "capsomer/toolbar.css";
 @import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
@@ -27,6 +25,8 @@
 @import "capsomer/empty.css";
 @import "capsomer/error-page.css";
 @import "capsomer/table.css";
+@import "capsomer/filter-bar.css";
+@import "capsomer/form-status.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
 @import "capsomer/card.css";
@@ -216,9 +216,6 @@
   gap: 0.5rem;
 }
 
-.filters {
-  align-items: end;
-}
 .rule-below {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--line);

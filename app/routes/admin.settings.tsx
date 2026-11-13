@@ -5,7 +5,7 @@ import { TextField } from "capsomer/react/field";
 import { RepeaterField } from "capsomer/react/repeater-field";
 import { rowsFromForm } from "capsomer/behavior/repeater-field";
 import type { FieldSpec } from "capsomer/behavior/schema-form";
-import { ActionResult } from "capsomer/react/message";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Panel } from "capsomer/react/panel";
 import type { Route } from "./+types/admin.settings";
 import { pageTitle } from "~/lib/site-meta";
@@ -101,6 +101,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 export default function PlatformSettingsScreen({ loaderData }: Route.ComponentProps) {
   const { settings } = loaderData;
   const actionData = useActionData<typeof action>();
+  const status = useActionStatus(actionData);
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
 
@@ -116,7 +117,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         </p>
       </div>
 
-      <ActionResult data={actionData} />
+      <FormStatus status={status} />
 
       <Form method="post" className="cap-stack" data-gap="7" noValidate>
         <Panel title="Identity">

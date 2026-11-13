@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
-import { ActionResult } from "capsomer/react/message";
+import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
 import { pageTitle } from "~/lib/site-meta";
@@ -113,6 +113,7 @@ type AbstractRow = Route.ComponentProps["loaderData"]["abstracts"][number];
 export default function Decisions({ loaderData }: Route.ComponentProps) {
   const { edition, abstracts } = loaderData;
   const actionData = useActionData<typeof action>();
+  const status = useActionStatus(actionData);
 
   return (
     <div className="cap-stack" data-gap="6">
@@ -134,7 +135,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <ActionResult data={actionData} />
+      <FormStatus status={status} />
 
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
