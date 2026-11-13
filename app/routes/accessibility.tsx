@@ -32,7 +32,9 @@ export default function Accessibility() {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">{STATEMENT.title}</h1>
+        <h1 className="cap-title" data-size="2">
+          {STATEMENT.title}
+        </h1>
       </header>
       <RichText html={STATEMENT.html} className="cap-stack" measure />
     </div>

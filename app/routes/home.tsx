@@ -40,8 +40,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="cap-stack" data-gap="6">
-      <h1 className="page-title">{settings?.orgFullName ?? ""}</h1>
-      {settings?.tagline ? <p className="lead home-tagline">{settings.tagline}</p> : null}
+      <h1 className="cap-title" data-size="2">
+        {settings?.orgFullName ?? ""}
+      </h1>
+      {settings?.tagline ? (
+        <p className="cap-text cap-measure" data-size="lead" data-tone="ink">
+          {settings.tagline}
+        </p>
+      ) : null}
       {loaderData ? <RichText className="page-prose" html={loaderData.html} /> : null}
     </div>
   );

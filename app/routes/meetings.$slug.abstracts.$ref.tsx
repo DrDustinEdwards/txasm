@@ -54,7 +54,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
   ]);
 
   return (
-    <div className="reading cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-width="reading" data-gap="6">
       <Breadcrumb
         renderLink={routerRenderLink}
         items={[
@@ -69,10 +69,10 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
       />
 
       <header className="cap-stack" data-gap="4">
-        <p className="small cap-muted">
+        <p className="cap-text cap-muted" data-size="small">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract {codeLabel}
         </p>
-        <RichText as="h1" className="page-title abstract-title" html={abstract.title} />
+        <RichText as="h1" className="cap-title" data-size="3" html={abstract.title} />
         {abstract.authors.length > 0 ? (
           <p>
             {abstract.authors.map((author, i) => (
@@ -100,10 +100,12 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         {abstract.affiliations.length > 0 ? (
-          <ol className="cap-stack small cap-muted" data-gap="2">
+          <ol className="cap-text cap-stack cap-muted" data-size="small" data-gap="2">
             {abstract.affiliations.map((aff) => (
               <li key={aff.ordinal} className="affiliation">
-                <sup className="strong">{aff.ordinal}</sup>
+                <sup className="cap-text" data-weight="strong">
+                  {aff.ordinal}
+                </sup>
                 <span>{joinParts([aff.institution, aff.department, aff.city, aff.country])}</span>
               </li>
             ))}
@@ -118,7 +120,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         <p className="cap-muted">No abstract body on record.</p>
       )}
 
-      <p className="small doc-pager">
+      <p className="cap-text doc-pager" data-size="small">
         <Link to={`/meetings/${edition.slug}/abstracts`}>Back to {edition.name} abstracts</Link>
       </p>
     </div>

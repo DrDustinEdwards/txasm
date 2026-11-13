@@ -84,7 +84,7 @@ export function AffiliationsFieldset({
   return (
     <Panel title="Affiliations">
       <div className="cap-stack">
-        <p className="small cap-muted">
+        <p className="cap-text cap-muted" data-size="small">
           Number each affiliation once, then attach it to authors below. Start typing to pick a
           known institution or add a new one.
         </p>
@@ -98,7 +98,11 @@ export function AffiliationsFieldset({
           items={rows.items}
           getId={rows.getId}
           getLabel={(row) => row.value.institution.trim() || `Affiliation ${row.index + 1}`}
-          renderHead={(_, { index }) => <span className="small">Affiliation {index + 1}</span>}
+          renderHead={(_, { index }) => (
+            <span className="cap-text" data-size="small">
+              Affiliation {index + 1}
+            </span>
+          )}
           onReorder={(order) => {
             renumber(order.map(oldIndex));
             rows.onReorder(order);
@@ -110,10 +114,14 @@ export function AffiliationsFieldset({
           }}
           onAdd={() => onChange([...affiliations, emptyAffiliation()])}
           addLabel="Add affiliation"
-          empty={<p className="small cap-muted">No affiliations added.</p>}
+          empty={
+            <p className="cap-text cap-muted" data-size="small">
+              No affiliations added.
+            </p>
+          }
           renderItem={({ value: affiliation, index }) => (
             <div className="cap-grid" data-cols="2">
-              <div className="span-2">
+              <div className="cap-full">
                 <ComboboxFreeText
                   id={`institution-${index}`}
                   label="Institution"
@@ -199,7 +207,11 @@ export function AuthorsFieldset({
           items={rows.items}
           getId={rows.getId}
           getLabel={(row) => authorName(row.value) || `Author ${row.index + 1}`}
-          renderHead={(_, { index }) => <span className="small">Author {index + 1}</span>}
+          renderHead={(_, { index }) => (
+            <span className="cap-text" data-size="small">
+              Author {index + 1}
+            </span>
+          )}
           onReorder={rows.onReorder}
           onRemove={rows.onRemove}
           onAdd={() => onChange([...authors, emptyAuthor()])}
@@ -225,7 +237,7 @@ export function AuthorsFieldset({
                     className="cap-input"
                   />
                 </label>
-                <label className="cap-stack span-2" data-gap="2">
+                <label className="cap-stack cap-full" data-gap="2">
                   <span className="cap-field-label">Email</span>
                   <input
                     type="email"
@@ -255,12 +267,14 @@ export function AuthorsFieldset({
               </div>
               {affiliations.length > 0 ? (
                 <fieldset className="cap-stack" data-gap="2">
-                  <legend className="small">Affiliations</legend>
+                  <legend className="cap-text" data-size="small">
+                    Affiliations
+                  </legend>
                   <div className="cap-cluster">
                     {affiliations.map((_, affIndex) => {
                       const ordinal = affIndex + 1;
                       return (
-                        <label key={affIndex} className="cap-cluster small">
+                        <label key={affIndex} className="cap-text cap-cluster" data-size="small">
                           <input
                             type="checkbox"
                             checked={author.affiliationOrdinals.includes(ordinal)}

@@ -60,8 +60,10 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Awardees</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          Awardees
+        </h1>
+        <p className="cap-muted cap-measure">
           The branch recognizes outstanding student, faculty, and service work with named awards
           presented at its meetings. Search across every award, or choose an award to see its
           recipients by year.
@@ -119,7 +121,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
 
       {results ? (
         <section aria-label="Search results" className="cap-stack">
-          <h2 className="subsection-title">
+          <h2 className="cap-title" data-size="5">
             {results.length} {results.length === 1 ? "result" : "results"}
           </h2>
           {results.length === 0 ? (
@@ -132,7 +134,9 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
                     key={result.id}
                     title={
                       <>
-                        <span className="strong">{result.personName}</span>
+                        <span className="cap-text" data-weight="strong">
+                          {result.personName}
+                        </span>
                         {result.institution ? (
                           <span className="cap-muted"> &middot; {result.institution}</span>
                         ) : null}
@@ -156,7 +160,9 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <section aria-label="Awards" className="cap-stack">
-        <h2 className="subsection-title">All awards</h2>
+        <h2 className="cap-title" data-size="5">
+          All awards
+        </h2>
         {awards.length === 0 ? (
           <Empty
             kind="nothing-yet"
@@ -169,7 +175,12 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
                 <Link to={`/awards/${a.slug}`}>
                   <article className="cap-card">
                     <h3>{a.name}</h3>
-                    <RichText as="p" className="small cap-muted" html={a.description} />
+                    <RichText
+                      as="p"
+                      className="cap-text cap-muted"
+                      data-size="small"
+                      html={a.description}
+                    />
                   </article>
                 </Link>
               </li>

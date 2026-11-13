@@ -10,7 +10,7 @@ import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
-import { RichText } from "capsomer/react/trusted-html";
+import { ProgramItemTitle } from "~/components/program-item-title";
 
 type Item = ProgramSessionResolved["items"][number];
 
@@ -59,7 +59,11 @@ export function SessionItems({
       getId={(item) => item.id}
       getLabel={itemLabel}
       busy={listBusy}
-      empty={<p className="small cap-muted">No items in this session yet.</p>}
+      empty={
+        <p className="cap-text cap-muted" data-size="small">
+          No items in this session yet.
+        </p>
+      }
       onReorder={(order) =>
         post([
           ["intent", "item-reorder"],
@@ -82,26 +86,9 @@ export function SessionItems({
 // What the item is: its kind, its title or speaker, and its note.
 function ItemBody({ item }: { item: Item }) {
   return (
-    <div className="small">
+    <div className="cap-text" data-size="small">
       <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-      {item.abstractId ? (
-        <p>
-          {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-          <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
-          {item.presentingAuthorName ? (
-            <span className="cap-muted"> . {item.presentingAuthorName}</span>
-          ) : null}
-        </p>
-      ) : item.speakerId ? (
-        <p>
-          <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-          {item.speakerTalkTitle ? (
-            <span className="cap-muted"> . {item.speakerTalkTitle}</span>
-          ) : null}
-        </p>
-      ) : (
-        <p className="strong">{item.customTitle}</p>
-      )}
+      <ProgramItemTitle item={item} />
       {item.note ? <p className="cap-muted">{item.note}</p> : null}
     </div>
   );
@@ -123,7 +110,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
           defaultDate={item.startsAt}
         />
         {isCustom ? (
-          <div className="cap-stack span-2" data-gap="2">
+          <div className="cap-stack cap-full" data-gap="2">
             <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
               Title
             </label>
@@ -137,7 +124,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
             />
           </div>
         ) : null}
-        <div className="cap-stack span-2" data-gap="2">
+        <div className="cap-stack cap-full" data-gap="2">
           <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
             Note
           </label>
@@ -149,7 +136,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
             className="cap-input"
           />
         </div>
-        <div className="span-2">
+        <div className="cap-full">
           <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
             Save item
           </button>
@@ -180,7 +167,9 @@ export function AddItemForms({
             Add an accepted abstract
           </label>
           {unplaced.length === 0 ? (
-            <p className="small cap-muted">No unplaced accepted abstracts.</p>
+            <p className="cap-text cap-muted" data-size="small">
+              No unplaced accepted abstracts.
+            </p>
           ) : (
             <>
               <select
@@ -217,7 +206,9 @@ export function AddItemForms({
             Add an invited speaker
           </label>
           {speakers.length === 0 ? (
-            <p className="small cap-muted">No invited speakers yet.</p>
+            <p className="cap-text cap-muted" data-size="small">
+              No invited speakers yet.
+            </p>
           ) : (
             <>
               <select

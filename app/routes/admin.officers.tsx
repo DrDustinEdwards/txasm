@@ -156,9 +156,11 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
     <li className="cap-panel">
       <div className="cap-panel-body cap-stack" data-gap="4">
         <div className="cap-spread">
-          <div className="shrink">
+          <div className="cap-shrink">
             {row.role ? <p className="cap-label">{row.role}</p> : null}
-            <p className="small">{summary(row)}</p>
+            <p className="cap-text" data-size="small">
+              {summary(row)}
+            </p>
           </div>
           <Form method="post">
             <input type="hidden" name="intent" value="remove" />
@@ -171,7 +173,8 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
                   action: "Remove entry",
                 })
               }
-              className="small strong"
+              className="cap-btn"
+              data-variant="link"
             >
               Remove
             </button>
@@ -229,9 +232,11 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="7">
+    <div className="cap-column cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="3">
-        <h1 className="page-title">Branch officers</h1>
+        <h1 className="cap-title" data-size="2">
+          Branch officers
+        </h1>
         <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
           <Link to="/branch-officers">public page</Link> reads this list.
@@ -248,7 +253,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
           <section key={section} aria-labelledby={`${section}-heading`} className="cap-stack">
-            <h2 id={`${section}-heading`} className="subsection-title">
+            <h2 id={`${section}-heading`} className="cap-title" data-size="5">
               {OFFICER_SECTION_LABELS[section]}
             </h2>
             {sectionRows.length === 0 ? (

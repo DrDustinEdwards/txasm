@@ -122,14 +122,20 @@ function AbstractSections({
   ];
   const filled = sections.filter(([, html]) => html.trim().length > 0);
   if (filled.length === 0) {
-    return <p className="small cap-muted">This abstract has no section content.</p>;
+    return (
+      <p className="cap-text cap-muted" data-size="small">
+        This abstract has no section content.
+      </p>
+    );
   }
   return (
     <div className="cap-stack">
       {filled.map(([label, html]) => (
         <section key={label} className="cap-stack" data-gap="2">
-          <h3 className="small strong">{label}</h3>
-          <RichText className="small" html={html} />
+          <h3 className="cap-text" data-size="small" data-weight="strong">
+            {label}
+          </h3>
+          <RichText className="cap-text" data-size="small" html={html} />
         </section>
       ))}
     </div>
@@ -149,12 +155,12 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const editable = !edition.deadlinePassed;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="2">
-        <h1 className="page-title">
+        <h1 className="cap-title" data-size="2">
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
-        <p className="small cap-muted">
+        <p className="cap-text cap-muted" data-size="small">
           {edition.name}
           {authorLine ? ` . ${authorLine}` : ""}
           {assignment.dueAt ? ` . Due: ${formatDate(assignment.dueAt, DATE_TIME)}` : ""}
@@ -174,7 +180,9 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
           <input type="hidden" name="intent" value="submit" />
 
           <fieldset className="cap-stack" data-gap="3">
-            <legend className="small strong">Recommendation</legend>
+            <legend className="cap-text" data-size="small" data-weight="strong">
+              Recommendation
+            </legend>
             <div className="cap-cluster">
               {RECOMMENDATION_OPTIONS.map((option) => (
                 <label key={option.value} className="cap-check">
@@ -213,7 +221,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
               {review?.status === "submitted" ? "Update review" : "Submit review"}
             </button>
-            <Link to="/review" className="small strong">
+            <Link to="/review" className="cap-text" data-size="small" data-weight="strong">
               Back to review
             </Link>
           </div>
@@ -226,19 +234,24 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
           {review ? (
             <Panel title="Your review">
               <div className="cap-stack" data-gap="3">
-                <p className="small">
-                  <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
+                <p className="cap-text" data-size="small">
+                  <span className="cap-text" data-weight="strong">
+                    Recommendation:
+                  </span>{" "}
+                  {review.recommendation ?? "None"}
                 </p>
                 {review.overallComment ? (
                   <div className="cap-stack" data-gap="2">
-                    <h3 className="small strong">Overall comment</h3>
-                    <RichText className="small" html={review.overallComment} />
+                    <h3 className="cap-text" data-size="small" data-weight="strong">
+                      Overall comment
+                    </h3>
+                    <RichText className="cap-text" data-size="small" html={review.overallComment} />
                   </div>
                 ) : null}
               </div>
             </Panel>
           ) : null}
-          <Link to="/review" className="strong">
+          <Link to="/review" className="cap-text" data-weight="strong">
             Back to review
           </Link>
         </div>
@@ -246,7 +259,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
 
       <Panel title="Have a conflict of interest?">
         <div className="cap-stack" data-gap="4">
-          <p className="small cap-muted">
+          <p className="cap-text cap-muted" data-size="small">
             If you should not review this abstract, declare a conflict. This removes the assignment
             and the abstract will be reassigned by a chair.
           </p>

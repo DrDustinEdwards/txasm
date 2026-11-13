@@ -77,9 +77,16 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
             { label: award.name },
           ]}
         />
-        <h1 className="page-title">{award.name}</h1>
-        <RichText as="p" className="lead" html={award.description} />
-        <RichText as="p" className="lead small" html={award.namesakeBio} />
+        <h1 className="cap-title" data-size="2">
+          {award.name}
+        </h1>
+        <RichText as="p" className="cap-muted cap-measure" html={award.description} />
+        <RichText
+          as="p"
+          className="cap-text cap-muted cap-measure"
+          data-size="small"
+          html={award.namesakeBio}
+        />
       </header>
 
       {years.length === 0 ? (
@@ -93,7 +100,9 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
         <div className="cap-stack" data-gap="7">
           {years.map((group) => (
             <section key={group.year} aria-label={`Recipients ${group.year}`} className="cap-stack">
-              <h2 className="section-title">{group.year}</h2>
+              <h2 className="cap-title" data-size="4">
+                {group.year}
+              </h2>
               {group.categories.map((bucket, index) => (
                 <div
                   key={bucket.category ?? `uncategorized-${index}`}

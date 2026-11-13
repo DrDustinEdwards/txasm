@@ -123,9 +123,13 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
       />
 
       <header className="cap-stack" data-gap="3">
-        <h1 className="page-title">{edition.name}</h1>
-        <p className="home-tagline cap-muted">Abstracts</p>
-        <p className="small cap-muted">
+        <h1 className="cap-title" data-size="2">
+          {edition.name}
+        </h1>
+        <p className="cap-text" data-size="lead" data-tone="ink">
+          Abstracts
+        </p>
+        <p className="cap-text cap-muted" data-size="small">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} ·{" "}
           <Link to={`/meetings/${edition.slug}/program`}>Program</Link>
         </p>
@@ -177,7 +181,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         </Form>
       </Panel>
 
-      <p className="small cap-muted" aria-live="polite">
+      <p className="cap-text cap-muted" data-size="small" aria-live="polite">
         {filtered ? `${abstracts.length} of ${total} abstracts` : `${total} abstracts`}
       </p>
 
@@ -189,7 +193,9 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
             const label = group.topic ?? untopicedLabel;
             return (
               <section key={group.topic ?? NO_TOPIC} aria-label={label} className="cap-stack">
-                <h2 className="section-title rule-below">{label}</h2>
+                <h2 className="cap-title rule-below" data-size="4">
+                  {label}
+                </h2>
                 <ul className="cap-stack">
                   {group.abstracts.map((abstract) => {
                     const line = metaLine(abstract);
@@ -197,7 +203,11 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                       <li key={abstract.number}>
                         <article className="cap-card">
                           <header>
-                            <p className="small strong cap-muted">
+                            <p
+                              className="cap-text cap-muted"
+                              data-size="small"
+                              data-weight="strong"
+                            >
                               {abstract.code ?? abstract.number}
                             </p>
                             <h3>
@@ -211,7 +221,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                           </header>
                           <div className="cap-stack" data-gap="2">
                             {abstract.authors.length > 0 ? (
-                              <p className="small cap-muted">
+                              <p className="cap-text cap-muted" data-size="small">
                                 {abstract.authors.map((a) => a.name).join(", ")}
                               </p>
                             ) : null}

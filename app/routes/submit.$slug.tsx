@@ -100,16 +100,18 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Submit an abstract</h1>
+        <h1 className="cap-title" data-size="2">
+          Submit an abstract
+        </h1>
         <p>{edition.name}</p>
         {edition.submissionDeadline ? (
-          <p className="small cap-muted">
+          <p className="cap-text cap-muted" data-size="small">
             Submission deadline: {formatDate(edition.submissionDeadline, DATE_TIME)}
           </p>
         ) : null}
-        <p className="small cap-muted">
+        <p className="cap-text cap-muted" data-size="small">
           Your abstract and its author names stay in the Meeting archive for good. Deleting your
           account later does not remove them.
         </p>
@@ -139,7 +141,9 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
 
       {mine.length > 0 ? (
         <section className="cap-stack" data-gap="4">
-          <h2 className="subsection-title">Your abstracts for this meeting</h2>
+          <h2 className="cap-title" data-size="5">
+            Your abstracts for this meeting
+          </h2>
           <ul className="divided">
             {mine.map((abstract) => (
               <li key={abstract.id} className="cap-spread row-pad">
@@ -149,11 +153,15 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
                     html={abstract.title}
                     fallback={<span className="cap-muted">Untitled</span>}
                   />{" "}
-                  <span className="small cap-muted">
+                  <span className="cap-text cap-muted" data-size="small">
                     ({ABSTRACT_STATUS_LABELS[abstract.status]})
                   </span>
                 </span>
-                <Link to={`/abstracts/${abstract.id}/edit`} className="strong">
+                <Link
+                  to={`/abstracts/${abstract.id}/edit`}
+                  className="cap-text"
+                  data-weight="strong"
+                >
                   Continue
                 </Link>
               </li>

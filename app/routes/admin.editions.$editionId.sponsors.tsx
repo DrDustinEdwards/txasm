@@ -76,7 +76,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
   const idBase = sponsor ? sponsor.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack span-2" data-gap="2">
+      <div className="cap-stack cap-full" data-gap="2">
         <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
@@ -122,7 +122,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           className="cap-input"
         />
       </div>
-      <div className="cap-stack span-2" data-gap="2">
+      <div className="cap-stack cap-full" data-gap="2">
         <label htmlFor={`url-${idBase}`} className="cap-field-label">
           Website
         </label>
@@ -149,10 +149,12 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Sponsors</h1>
+        <h1 className="cap-title" data-size="2">
+          Sponsors
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
@@ -174,8 +176,10 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
                   <div>
-                    <p className="strong">{sponsor.name}</p>
-                    <p className="small cap-muted">
+                    <p className="cap-text" data-weight="strong">
+                      {sponsor.name}
+                    </p>
+                    <p className="cap-text cap-muted" data-size="small">
                       {[sponsor.tier ?? "", sponsor.url ?? ""]
                         .filter((p) => p.length > 0)
                         .join(" . ")}
@@ -192,7 +196,8 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                           action: "Remove sponsor",
                         })
                       }
-                      className="small strong"
+                      className="cap-btn"
+                      data-variant="link"
                     >
                       Remove
                     </button>

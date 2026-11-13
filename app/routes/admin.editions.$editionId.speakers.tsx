@@ -146,7 +146,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="cap-stack span-2" data-gap="2">
+      <div className="cap-stack cap-full" data-gap="2">
         <label htmlFor={`talk-${idBase}`} className="cap-field-label">
           Talk title
         </label>
@@ -158,7 +158,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="span-2">
+      <div className="cap-full">
         <RichTextField
           name="bio"
           label="Bio"
@@ -181,16 +181,22 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Invited speakers</h1>
+        <h1 className="cap-title" data-size="2">
+          Invited speakers
+        </h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
         <p className="cap-muted">
           Keynotes and award lectures for the meeting. Attach a speaker to a session on the{" "}
-          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
+          <Link
+            to={`/admin/editions/${edition.id}/program`}
+            className="cap-text"
+            data-weight="strong"
+          >
             program
           </Link>
           . Headshot upload comes later.
@@ -212,8 +218,10 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
                   <div>
-                    <p className="strong">{speaker.name}</p>
-                    <p className="small cap-muted">
+                    <p className="cap-text" data-weight="strong">
+                      {speaker.name}
+                    </p>
+                    <p className="cap-text cap-muted" data-size="small">
                       {[
                         speaker.role ? speakerRoleLabel(speaker.role) : "",
                         speaker.affiliation ?? "",
@@ -221,7 +229,11 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                         .filter((p) => p.length > 0)
                         .join(" . ")}
                     </p>
-                    {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+                    {speaker.talkTitle ? (
+                      <p className="cap-text" data-size="small">
+                        {speaker.talkTitle}
+                      </p>
+                    ) : null}
                   </div>
                   <Form method="post">
                     <input type="hidden" name="intent" value="remove" />
@@ -234,7 +246,8 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                           action: "Remove speaker",
                         })
                       }
-                      className="small strong"
+                      className="cap-btn"
+                      data-variant="link"
                     >
                       Remove
                     </button>

@@ -81,9 +81,9 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
 
   if (done) {
     return (
-      <div className="narrow cap-stack" data-gap="6">
+      <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
         <div className="cap-stack" data-gap="3">
-          <h1 className="page-title">
+          <h1 className="cap-title" data-size="2">
             {done === "approved" ? "Change approved" : "Your email address changed"}
           </h1>
           <p>
@@ -104,9 +104,11 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
   if (problem) {
     const words = PROBLEM_WORDS[problem];
     return (
-      <div className="narrow cap-stack" data-gap="6">
+      <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
         <div className="cap-stack" data-gap="3">
-          <h1 className="page-title">{words.title}</h1>
+          <h1 className="cap-title" data-size="2">
+            {words.title}
+          </h1>
           <p>{words.text}</p>
         </div>
         <div>
@@ -119,9 +121,11 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
   }
 
   return (
-    <div className="narrow cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
       <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Confirm the email change</h1>
+        <h1 className="cap-title" data-size="2">
+          Confirm the email change
+        </h1>
         <p>This changes the email address your TXASM account signs in with.</p>
       </div>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}

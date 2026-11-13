@@ -269,8 +269,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
   if (!editable) {
     return (
-      <div className="form-page cap-stack" data-gap="6">
-        <h1 className="page-title">
+      <div className="cap-column cap-stack" data-gap="6">
+        <h1 className="cap-title" data-size="2">
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
         <DecisionPanel decision={decision} />
@@ -282,7 +282,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           authors={loaderData.authors}
           affiliations={loaderData.affiliations}
         />
-        <Link to="/my/abstracts" className="strong">
+        <Link to="/my/abstracts" className="cap-text" data-weight="strong">
           Back to my abstracts
         </Link>
       </div>
@@ -290,10 +290,12 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-gap="6">
       <div className="cap-stack" data-gap="2">
-        <h1 className="page-title">Abstract</h1>
-        <p className="small cap-muted">
+        <h1 className="cap-title" data-size="2">
+          Abstract
+        </h1>
+        <p className="cap-text cap-muted" data-size="small">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
             ? ` . Deadline: ${formatDate(edition.submissionDeadline, DATE_TIME)}`
@@ -321,7 +323,10 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           <p
             id="body-count"
             aria-live="polite"
-            className={overLimit ? "small strong crit-text" : "small cap-muted"}
+            className="cap-text"
+            data-size="small"
+            data-weight={overLimit ? "strong" : undefined}
+            data-tone={overLimit ? "crit" : "muted"}
           >
             {bodyWords} / {edition.wordLimit} words
             {overLimit
@@ -430,11 +435,17 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             onClick={(e) =>
               confirmSubmit(e, { title: "Withdraw this abstract?", action: "Withdraw abstract" })
             }
-            className="small strong crit-text"
+            className="cap-btn crit-text"
+            data-variant="link"
           >
             Withdraw
           </button>
-          <Link to="/my/abstracts" className="small strong cap-muted">
+          <Link
+            to="/my/abstracts"
+            className="cap-text cap-muted"
+            data-size="small"
+            data-weight="strong"
+          >
             Back
           </Link>
         </div>

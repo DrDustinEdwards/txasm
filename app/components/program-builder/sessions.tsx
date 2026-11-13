@@ -19,7 +19,7 @@ export function SessionFields({
   const idBase = session ? session.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack span-2" data-gap="2">
+      <div className="cap-stack cap-full" data-gap="2">
         <label htmlFor={`title-${idBase}`} className="cap-field-label">
           Title
         </label>
@@ -70,7 +70,7 @@ export function SessionFields({
         label="Ends"
         defaultDate={session?.endsAt ?? null}
       />
-      <div className="cap-stack span-2" data-gap="2">
+      <div className="cap-stack cap-full" data-gap="2">
         <label htmlFor={`mod-${idBase}`} className="cap-field-label">
           Moderator (optional)
         </label>
@@ -113,13 +113,17 @@ export function SessionCard({
       <div className="cap-stack">
         <div className="cap-spread">
           <div>
-            <H className="strong">{session.title}</H>
-            <p className="small cap-muted">
+            <H className="cap-text" data-weight="strong">
+              {session.title}
+            </H>
+            <p className="cap-text cap-muted" data-size="small">
               {session.location ? session.location : "No room set"} ·{" "}
               {slotLabel(session.startsAt?.getTime() ?? null, session.endsAt?.getTime() ?? null)}
             </p>
             {session.moderator ? (
-              <p className="small cap-muted">Moderated by {session.moderator}</p>
+              <p className="cap-text cap-muted" data-size="small">
+                Moderated by {session.moderator}
+              </p>
             ) : null}
           </div>
           <div className="cap-cluster">
@@ -155,7 +159,9 @@ export function SessionCard({
         </div>
 
         <div className="cap-stack" data-gap="3">
-          <Sub className="small strong">Items</Sub>
+          <Sub className="cap-text" data-size="small" data-weight="strong">
+            Items
+          </Sub>
           <SessionItems session={session} busy={busy} />
         </div>
 
@@ -185,7 +191,8 @@ export function SessionCard({
                     action: "Delete session",
                   })
                 }
-                className="small strong"
+                className="cap-btn"
+                data-variant="link"
               >
                 Delete session
               </button>
@@ -213,7 +220,7 @@ export function ConcurrentSessionForm({
       <Form method="post" className="cap-cluster" data-align="end">
         <input type="hidden" name="intent" value="session-add-concurrent" />
         <input type="hidden" name="sessionId" value={source.id} />
-        <div className="grow cap-stack" data-gap="2">
+        <div className="cap-grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
             Add a concurrent session (parallel track)
           </label>
@@ -226,7 +233,7 @@ export function ConcurrentSessionForm({
             className="cap-input"
           />
         </div>
-        <div className="grow cap-stack" data-gap="2">
+        <div className="cap-grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
             Room
           </label>

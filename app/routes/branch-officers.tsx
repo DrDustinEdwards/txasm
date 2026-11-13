@@ -37,9 +37,13 @@ function OfficerCard({ officer }: { officer: Officer }) {
         <h3>{officer.name}</h3>
       </header>
       <div>
-        <p className="small cap-muted">{officer.affiliation}</p>
-        <p className="small cap-muted">{officer.location}</p>
-        <div className="cap-stack small officer-contact" data-gap="2">
+        <p className="cap-text cap-muted" data-size="small">
+          {officer.affiliation}
+        </p>
+        <p className="cap-text cap-muted" data-size="small">
+          {officer.location}
+        </p>
+        <div className="cap-text cap-stack officer-contact" data-size="small" data-gap="2">
           {officer.phone ? (
             <p>
               <a href={`tel:${officer.phone}`}>{officer.phone}</a>
@@ -59,11 +63,17 @@ function OfficerCard({ officer }: { officer: Officer }) {
 function PastOfficerRow({ entry }: { entry: PastOfficer }) {
   return (
     <Row
-      status={<span className="small strong cap-muted">{entry.term ?? "Dates not recorded"}</span>}
+      status={
+        <span className="cap-text cap-muted" data-size="small" data-weight="strong">
+          {entry.term ?? "Dates not recorded"}
+        </span>
+      }
       title={
         entry.name ? (
           <>
-            <span className="strong">{entry.name}</span>
+            <span className="cap-text" data-weight="strong">
+              {entry.name}
+            </span>
             {entry.institution ? (
               <span className="cap-muted"> &middot; {entry.institution}</span>
             ) : null}
@@ -109,8 +119,10 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="8">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Branch officers</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          Branch officers
+        </h1>
+        <p className="cap-muted cap-measure">
           The branch is run by elected officers and volunteers from member institutions across
           Texas. They organize the twice-yearly meetings, steward the awards program, and represent
           Texas microbiologists to the national society.
@@ -118,7 +130,7 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
       </header>
 
       <section aria-labelledby="current-officers-heading" className="cap-stack">
-        <h2 id="current-officers-heading" className="section-title">
+        <h2 id="current-officers-heading" className="cap-title" data-size="4">
           Current officers
         </h2>
         <ul className="cap-grid" data-cols="2">
@@ -131,7 +143,7 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
       </section>
 
       <section aria-labelledby="advisory-board-heading" className="cap-stack">
-        <h2 id="advisory-board-heading" className="section-title">
+        <h2 id="advisory-board-heading" className="cap-title" data-size="4">
           Advisory board
         </h2>
         <ul className="cap-grid" data-cols="2">
@@ -139,7 +151,9 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
             <li key={member.name}>
               <article className="cap-card">
                 <h3>{member.name}</h3>
-                <p className="small cap-muted">{member.institution}</p>
+                <p className="cap-text cap-muted" data-size="small">
+                  {member.institution}
+                </p>
               </article>
             </li>
           ))}
@@ -148,10 +162,10 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
 
       <section aria-labelledby="past-officers-heading" className="cap-stack">
         <div className="cap-stack" data-gap="3">
-          <h2 id="past-officers-heading" className="section-title">
+          <h2 id="past-officers-heading" className="cap-title" data-size="4">
             Past branch officers
           </h2>
-          <p className="lead">
+          <p className="cap-muted cap-measure">
             A history of those who have led the branch, by role. Choose a role to see its record of
             term, name, and institution.
           </p>

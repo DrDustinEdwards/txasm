@@ -24,7 +24,9 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="6">
       <div className="cap-spread">
-        <h1 className="page-title">Meetings</h1>
+        <h1 className="cap-title" data-size="2">
+          Meetings
+        </h1>
         <Link to="/admin/editions/new" className="cap-btn" data-variant="primary">
           Create meeting
         </Link>
@@ -47,7 +49,7 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
                   Year
                 </th>
                 <th scope="col">Status</th>
-                <th scope="col" className="cell-end">
+                <th scope="col" className="cap-text" data-align="end">
                   <span className="cap-sr-only">Actions</span>
                 </th>
               </tr>
@@ -56,15 +58,23 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
               {editions.map((edition) => (
                 <tr key={edition.id}>
                   <td>
-                    <Link to={`/admin/editions/${edition.id}`} className="strong">
+                    <Link
+                      to={`/admin/editions/${edition.id}`}
+                      className="cap-text"
+                      data-weight="strong"
+                    >
                       {edition.name}
                     </Link>
                   </td>
                   <td data-drop="1">{titleCase(edition.season)}</td>
                   <td data-drop="2">{edition.year}</td>
                   <td>{titleCase(edition.status)}</td>
-                  <td className="cell-end">
-                    <Link to={`/admin/editions/${edition.id}/categories`} className="strong">
+                  <td className="cap-text" data-align="end">
+                    <Link
+                      to={`/admin/editions/${edition.id}/categories`}
+                      className="cap-text"
+                      data-weight="strong"
+                    >
                       Categories
                     </Link>
                   </td>

@@ -249,12 +249,14 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="7">
+    <div className="cap-column cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="3">
-        <p className="small">
+        <p className="cap-text" data-size="small">
           <Link to="/admin/awards">All awards</Link>
         </p>
-        <h1 className="page-title">{award.name}</h1>
+        <h1 className="cap-title" data-size="2">
+          {award.name}
+        </h1>
         <p className="cap-muted">
           Public page: <Link to={`/awards/${award.slug}`}>/awards/{award.slug}</Link>
         </p>
@@ -319,7 +321,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               defaultValue={award.description ?? ""}
               className="cap-input"
             />
-            <p className="tiny cap-muted">
+            <p className="cap-text cap-muted" data-size="tiny">
               Bio and description support italics, superscript, and subscript.
             </p>
           </div>
@@ -343,7 +345,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
       </Panel>
 
       <section aria-labelledby="recipients-heading" className="cap-stack">
-        <h2 id="recipients-heading" className="subsection-title">
+        <h2 id="recipients-heading" className="cap-title" data-size="5">
           Recipients
         </h2>
         {recipients.length === 0 ? (
@@ -354,11 +356,11 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               <li key={recipient.id} className="cap-panel">
                 <div className="cap-panel-body cap-stack" data-gap="4">
                   <div className="cap-spread">
-                    <div className="shrink">
-                      <p className="strong">
+                    <div className="cap-shrink">
+                      <p className="cap-text" data-weight="strong">
                         {recipient.year} &middot; {recipient.personName}
                       </p>
-                      <p className="small cap-muted">
+                      <p className="cap-text cap-muted" data-size="small">
                         {[
                           recipient.category ?? "",
                           recipient.placement ?? "",
@@ -380,7 +382,8 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                             action: "Remove recipient",
                           })
                         }
-                        className="small strong"
+                        className="cap-btn"
+                        data-variant="link"
                       >
                         Remove
                       </button>

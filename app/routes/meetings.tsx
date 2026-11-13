@@ -69,8 +69,10 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
   return (
     <div className="cap-stack" data-gap="7">
       <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Meetings</h1>
-        <p className="lead">
+        <h1 className="cap-title" data-size="2">
+          Meetings
+        </h1>
+        <p className="cap-muted cap-measure">
           The branch meets twice a year. Search the accepted abstracts across all meetings, or open
           a meeting for its program and full abstract archive.
         </p>
@@ -128,7 +130,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
 
       {results ? (
         <section aria-label="Search results" className="cap-stack">
-          <h2 className="subsection-title">
+          <h2 className="cap-title" data-size="5">
             {results.length} {results.length === 1 ? "result" : "results"}
           </h2>
           {results.length === 0 ? (
@@ -158,7 +160,9 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <section aria-label="Meetings" className="cap-stack">
-        <h2 className="subsection-title">All meetings</h2>
+        <h2 className="cap-title" data-size="5">
+          All meetings
+        </h2>
         {meetings.length === 0 ? (
           <Empty
             kind="nothing-yet"
@@ -172,12 +176,12 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
                 <li key={m.slug}>
                   <article className="cap-card">
                     <h3>{m.name}</h3>
-                    <p className="small cap-muted">
+                    <p className="cap-text cap-muted" data-size="small">
                       {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
                         .filter((p) => p.length > 0)
                         .join(" · ")}
                     </p>
-                    <footer className="cap-cluster small">
+                    <footer className="cap-text cap-cluster" data-size="small">
                       <Link to={`/meetings/${m.slug}/abstracts`}>
                         Abstracts ({m.abstractCount})
                       </Link>
