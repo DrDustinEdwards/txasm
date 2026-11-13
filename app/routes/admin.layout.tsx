@@ -25,7 +25,7 @@ import "capsomer/disclosure.css";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
-import { BrandMark } from "~/lib/brand";
+import { BrandMark } from "~/components/brand-mark";
 import { initialsOf } from "capsomer/react/site-header";
 import { THEME_COOKIE, THEME_PREF_KEY } from "~/lib/theme";
 
