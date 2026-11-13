@@ -1,5 +1,5 @@
 import { routerRenderLink } from "capsomer/react/link";
-import { Outlet, useLocation, useRouteLoaderData } from "react-router";
+import { Outlet, useLocation, useMatches, useRouteLoaderData } from "react-router";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 import {
   SiteHeader,
@@ -12,7 +12,7 @@ import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandFooter, BrandWordmark } from "~/lib/brand";
 import type { PlatformSettings } from "~/lib/data-access";
-import { useRouteHydrates } from "~/components/site-chrome";
+import { routeHydrates } from "capsomer/react/document";
 import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";
 import { FEED_PATH } from "~/lib/site-meta";
 
@@ -79,7 +79,7 @@ function PublicHeader({
   theme: Theme | null;
 }) {
   const { pathname } = useLocation();
-  const hydrates = useRouteHydrates();
+  const hydrates = routeHydrates(useMatches());
   const sections: HeaderSection[] = [
     {
       id: "officers",
