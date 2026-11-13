@@ -1,5 +1,22 @@
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
-import { Icon, iconAdd, iconAssign, iconAward, iconBook, iconCalendar, iconClock, iconDecide, iconDocument, iconOverview, iconPeople, iconQueue, iconRoles, iconSettings, iconTag, iconTicket } from "capsomer/react/icons";
+import {
+  Icon,
+  iconAdd,
+  iconAssign,
+  iconAward,
+  iconBook,
+  iconCalendar,
+  iconClock,
+  iconDecide,
+  iconDocument,
+  iconOverview,
+  iconPeople,
+  iconQueue,
+  iconRoles,
+  iconSettings,
+  iconTag,
+  iconTicket,
+} from "capsomer/react/icons";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
