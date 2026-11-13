@@ -2,12 +2,17 @@ import { Empty } from "capsomer/react/empty";
 import type { Route } from "./+types/archive.$category";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
-import { DocumentList } from "~/components/document-list";
-import { ARCHIVE_SEGMENTS, CATEGORY_PATHS } from "~/lib/document-nav";
+import { DocumentList } from "capsomer/react/document-archive";
+import { routerRenderLink } from "capsomer/react/link";
+import { ARCHIVE_SEGMENTS, CATEGORY_PATHS, documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import documentList from "~/styles/document-list.css?url";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: documentList }];
+
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location, loaderData }: Route.MetaArgs) {
@@ -46,8 +51,8 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
   const { title, basePath, documents } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">{title}</h1>
         <p className="lead">
           The branch's archive of {title.toLowerCase()} from past meetings. Open one to read it in
@@ -59,7 +64,16 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
         {documents.length === 0 ? (
           <Empty kind="nothing-yet" title="Documents are being added and will be listed here." />
         ) : (
-          <DocumentList documents={documents} basePath={basePath} />
+          <DocumentList
+            docs={documents.map((d) => ({
+              key: d.slug,
+              title: d.title,
+              href: `${basePath}/${d.slug}`,
+              detail: documentSubtitle(d) || undefined,
+            }))}
+            label={title}
+            renderLink={routerRenderLink}
+          />
         )}
       </section>
     </div>

@@ -6,7 +6,8 @@ import {
 import { Link } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 
@@ -19,7 +20,7 @@ import { getAuth, getSessionUser } from "~/lib/auth.server";
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Sign in");
+  return privateMeta(pageTitle(matches, "Sign in"));
 }
 
 // The page's URL holds the token.
@@ -49,8 +50,8 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
   if (problem) {
     const words = SIGN_IN_LINK_WORDS[problem];
     return (
-      <div className="narrow stack-6">
-        <div className="stack-2">
+      <div className="narrow cap-stack" data-gap="6">
+        <div className="cap-stack" data-gap="3">
           <h1 className="page-title">{words.title}</h1>
           <p>{words.text}</p>
         </div>
@@ -70,10 +71,10 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
   }
 
   return (
-    <div className="narrow stack-6">
+    <div className="narrow cap-stack" data-gap="6">
       <h1 className="page-title">Sign in to TXASM</h1>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
-      <form method="post" className="stack-4">
+      <form method="post" className="cap-stack">
         {actionData?.limited ? (
           <p role="alert" className="cap-field-error">
             Too many tries. Wait a minute, then try again.

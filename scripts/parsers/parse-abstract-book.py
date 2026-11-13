@@ -285,14 +285,16 @@ def parse_affiliations(raw_lines):
     positions = []
     for m in AFFIL_SPLIT_RE.finditer(combined):
         num = m.group(1) or m.group(2)
-        positions.append((num, m.end()))
+        positions.append((num, m.start(), m.end()))
 
     if not positions:
         return [{'num': None, 'text': combined}]
 
     affiliations = []
-    for i, (num, start) in enumerate(positions):
-        end = positions[i + 1][1] - len(positions[i + 1][0]) - 1 if i + 1 < len(positions) else len(combined)
+    for i, (num, _match_start, start) in enumerate(positions):
+        # Text ends where the next ordinal starts (its match start, so "2. " or
+        # "2) " never leaves the digit on this affiliation).
+        end = positions[i + 1][1] if i + 1 < len(positions) else len(combined)
         text = combined[start:end].strip().rstrip(',; ')
         if text:
             affiliations.append({'num': str(num), 'text': text})

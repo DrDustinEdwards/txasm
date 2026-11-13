@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { SchemaFields } from "capsomer/react/schema-form";
 import { TextField } from "capsomer/react/field";
 import { RepeaterField } from "capsomer/react/repeater-field";
 import { rowsFromForm } from "capsomer/behavior/repeater-field";
 import type { FieldSpec } from "capsomer/behavior/schema-form";
+import { ActionResult } from "capsomer/react/message";
+import { Panel } from "capsomer/react/panel";
 import type { Route } from "./+types/admin.settings";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -19,7 +22,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Platform settings");
+  return privateMeta(pageTitle(matches, "Platform settings"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -103,16 +106,9 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
 
   const [footerLinks, setFooterLinks] = useState<FooterLink[]>(() => settings.footerLinks);
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
-
   return (
-    <div className="form-page stack-8">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Platform settings</h1>
         <p className="cap-muted">
           Organization identity and tunable defaults. These drive the site header, footer, and home
@@ -120,23 +116,14 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {typeof error === "string" ? error : typeof ok === "string" ? ok : ""}
-      </p>
+      <ActionResult data={actionData} />
 
-      <Form method="post" className="stack-8" noValidate>
-        <fieldset className="card stack-4">
-          <legend className="legend">Identity</legend>
+      <Form method="post" className="cap-stack" data-gap="7" noValidate>
+        <Panel title="Identity">
           <SchemaFields specs={IDENTITY} values={settings} />
-        </fieldset>
+        </Panel>
 
-        <div className="card">
+        <Panel title="Footer links">
           <RepeaterField
             legend="Footer links"
             rows={footerLinks}
@@ -165,12 +152,11 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
               </>
             )}
           </RepeaterField>
-        </div>
+        </Panel>
 
-        <fieldset className="card stack-4">
-          <legend className="legend">Defaults</legend>
+        <Panel title="Defaults">
           <SchemaFields specs={DEFAULTS} values={settings} />
-        </fieldset>
+        </Panel>
 
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Saving..." : "Save settings"}

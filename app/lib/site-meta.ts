@@ -1,33 +1,26 @@
-import { articleDates, defineHead, shareCard } from "@drdustinedwards/site-helpers/head";
+import {
+  articleDates,
+  defineHead,
+  rootLoaderData,
+  shareCard,
+} from "@drdustinedwards/site-helpers/head";
 import { graph, thing, website } from "@drdustinedwards/site-helpers/schema";
 import type { PageSearch, PlatformSettings } from "./data-access";
 import { CATEGORY_PATHS } from "./document-nav";
 
 // The root loader (settings) is always in the matches chain. Pull the org short
 // name from there so page titles track the settings value instead of hardcoding
-// the branch name in every route. React Router 8 names a match's data
-// `loaderData`; the older `data` is gone. Type-only import, erased at build.
-type RootMatch = { id: string; loaderData?: { settings?: PlatformSettings; origin?: string } };
+// the branch name in every route. Type-only import, erased at build.
+type RootData = { settings?: PlatformSettings; origin?: string };
+type Matches = ReadonlyArray<{ id: string; loaderData?: unknown } | undefined>;
 
-const rootData = (matches: ReadonlyArray<{ id: string } | undefined>) =>
-  (matches as ReadonlyArray<RootMatch | undefined>).find((match) => match?.id === "root")
-    ?.loaderData;
-
-function titleSuffix(matches: ReadonlyArray<{ id: string } | undefined>): string {
-  const shortName = rootData(matches)?.settings?.shortName ?? "";
+function titleSuffix(matches: Matches): string {
+  const shortName = rootLoaderData<RootData>(matches)?.settings?.shortName ?? "";
   return shortName ? ` | ${shortName}` : "";
 }
 
-export function pageTitle(
-  matches: ReadonlyArray<{ id: string } | undefined>,
-  pageName: string,
-): string {
+export function pageTitle(matches: Matches, pageName: string): string {
   return `${pageName}${titleSuffix(matches)}`;
-}
-
-/** A signed-in or admin page's meta: its title and noindex (the Worker also sends X-Robots-Tag on these paths). */
-export function privateMeta(matches: ReadonlyArray<{ id: string } | undefined>, pageName: string) {
-  return [{ title: pageTitle(matches, pageName) }, { name: "robots", content: "noindex" }];
 }
 
 /**
@@ -36,15 +29,8 @@ export function privateMeta(matches: ReadonlyArray<{ id: string } | undefined>, 
  * the workers.dev copy is never indexed as a site of its own.
  */
 export const SITE_ORIGIN = "https://txasm.org";
-
-/**
- * Where the site is served now (wrangler.jsonc vars.PUBLIC_ORIGIN), which IndexNow, webmentions, Carrel's links and its
- * preview name, since they tell other sites about a page that must be reachable there today. Until the cutover that
- * is workers.dev; at the cutover the var becomes SITE_ORIGIN (or goes, and this falls back to it), the one change.
- */
-export function publicOrigin(env: { PUBLIC_ORIGIN?: string }): string {
-  return env.PUBLIC_ORIGIN ? new URL(env.PUBLIC_ORIGIN).origin : SITE_ORIGIN;
-}
+// Where the site is served now is site-runtime's publicOrigin(env, SITE_ORIGIN) (wrangler.jsonc vars.PUBLIC_ORIGIN):
+// IndexNow, webmentions, Carrel's links and its preview name it. At the cutover the var becomes SITE_ORIGIN, or goes.
 
 /** The site's IndexNow key, public by the protocol's design: served as /<key>.txt and sent with each changed page. */
 export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
@@ -58,9 +44,6 @@ export const SIGN_IN_CONFIRM_PATH = "/signin/confirm";
 /** Where an email change's two links open (app/lib/auth.server.ts): under /account, so it is private. */
 export const EMAIL_CONFIRM_PATH = "/account/email";
 
-/** The vulnerability contact /.well-known/security.txt lists, and the date it is next confirmed by. */
-export const SECURITY_CONTACT = "security@dustinedwards.info";
-export const SECURITY_TXT_EXPIRES = "2027-09-28T00:00:00Z";
 /** The site's short name: og:site_name, and the error page's title when the settings are out of reach. */
 export const SITE_NAME = "Texas Branch ASM";
 const SITE_CARD = shareCard(
@@ -104,7 +87,7 @@ const SECTIONS: Record<string, string> = {
  * the old site, which has no card.
  */
 export function pageHead(
-  matches: ReadonlyArray<{ id: string } | undefined>,
+  matches: Matches,
   {
     name,
     search,
@@ -127,7 +110,7 @@ export function pageHead(
     suffix: titleSuffix(matches),
     sections: SECTIONS,
   });
-  const origin = rootData(matches)?.origin ?? SITE_ORIGIN;
+  const origin = rootLoaderData<RootData>(matches)?.origin ?? SITE_ORIGIN;
   const image = search?.image
     ? {
         url: `${origin}${search.image.url}`,

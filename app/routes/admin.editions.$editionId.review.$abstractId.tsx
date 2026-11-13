@@ -1,13 +1,16 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review.$abstractId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, getDataAccess } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Reviews");
+  return privateMeta(pageTitle(matches, "Reviews"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -44,15 +47,10 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
   const { editionId, abstract, reviews } = loaderData;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">
-          Reviews for{" "}
-          {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-          ) : (
-            "an untitled abstract"
-          )}
+          Reviews for <RichText as="span" html={abstract.title} fallback="an untitled abstract" />
         </h1>
         <p>
           <Link to={`/admin/editions/${editionId}/review`} className="strong">
@@ -64,39 +62,35 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
       {reviews.length === 0 ? (
         <p>No reviews submitted yet.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {reviews.map((review) => (
-            <li key={review.id} className="card stack-3">
-              <div className="spread">
-                <span className="small strong">{review.reviewerName || review.reviewerEmail}</span>
-                <span className="small cap-muted">
-                  {review.submittedAt ? formatDateTime(review.submittedAt) : null}
-                </span>
+            <li key={review.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <span className="small strong">
+                    {review.reviewerName || review.reviewerEmail}
+                  </span>
+                  <span className="small cap-muted">
+                    {review.submittedAt ? formatDate(review.submittedAt, DATE_TIME) : null}
+                  </span>
+                </div>
+                <p className="small">
+                  <span className="strong">Recommendation:</span>{" "}
+                  {recommendationLabel(review.recommendation)}
+                </p>
+                {review.overallComment ? (
+                  <div className="cap-stack" data-gap="2">
+                    <h2 className="small strong">Overall comment</h2>
+                    <RichText className="small" html={review.overallComment} />
+                  </div>
+                ) : null}
+                {review.confidentialComment ? (
+                  <div className="cap-banner cap-stack" data-gap="2" data-tone="warn">
+                    <h2 className="small strong">Confidential comment to chairs</h2>
+                    <RichText className="small" html={review.confidentialComment} />
+                  </div>
+                ) : null}
               </div>
-              <p className="small">
-                <span className="strong">Recommendation:</span>{" "}
-                {recommendationLabel(review.recommendation)}
-              </p>
-              {review.overallComment ? (
-                <div className="stack-1">
-                  <h2 className="small strong">Overall comment</h2>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{ __html: review.overallComment }}
-                  />
-                </div>
-              ) : null}
-              {review.confidentialComment ? (
-                <div className="cap-banner stack-1" data-tone="warn">
-                  <h2 className="small strong">Confidential comment to chairs</h2>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{
-                      __html: review.confidentialComment,
-                    }}
-                  />
-                </div>
-              ) : null}
             </li>
           ))}
         </ul>

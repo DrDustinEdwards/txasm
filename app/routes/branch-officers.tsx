@@ -1,4 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "capsomer/react/tabs";
+import { Row, RowList } from "capsomer/react/row-list";
+import { Panel } from "capsomer/react/panel";
 import type { Route } from "./+types/branch-officers";
 import { pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -29,22 +31,26 @@ export function meta({ matches }: Route.MetaArgs) {
 
 function OfficerCard({ officer }: { officer: Officer }) {
   return (
-    <article className="card">
-      <p className="cap-label">{officer.role}</p>
-      <h3 className="subsection-title">{officer.name}</h3>
-      <p className="small cap-muted">{officer.affiliation}</p>
-      <p className="small cap-muted">{officer.location}</p>
-      <div className="stack-1 small officer-contact">
-        {officer.phone ? (
-          <p>
-            <a href={`tel:${officer.phone}`}>{officer.phone}</a>
-          </p>
-        ) : null}
-        {officer.email ? (
-          <p>
-            <a href={`mailto:${officer.email}`}>{officer.email}</a>
-          </p>
-        ) : null}
+    <article className="cap-card">
+      <header>
+        <p className="cap-label">{officer.role}</p>
+        <h3>{officer.name}</h3>
+      </header>
+      <div>
+        <p className="small cap-muted">{officer.affiliation}</p>
+        <p className="small cap-muted">{officer.location}</p>
+        <div className="cap-stack small officer-contact" data-gap="2">
+          {officer.phone ? (
+            <p>
+              <a href={`tel:${officer.phone}`}>{officer.phone}</a>
+            </p>
+          ) : null}
+          {officer.email ? (
+            <p>
+              <a href={`mailto:${officer.email}`}>{officer.email}</a>
+            </p>
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -52,10 +58,10 @@ function OfficerCard({ officer }: { officer: Officer }) {
 
 function PastOfficerRow({ entry }: { entry: PastOfficer }) {
   return (
-    <li className="past-officer">
-      <span className="small strong cap-muted">{entry.term ?? "Dates not recorded"}</span>
-      <span>
-        {entry.name ? (
+    <Row
+      status={<span className="small strong cap-muted">{entry.term ?? "Dates not recorded"}</span>}
+      title={
+        entry.name ? (
           <>
             <span className="strong">{entry.name}</span>
             {entry.institution ? (
@@ -64,9 +70,9 @@ function PastOfficerRow({ entry }: { entry: PastOfficer }) {
           </>
         ) : (
           <span className="cap-muted">Not recorded</span>
-        )}
-      </span>
-    </li>
+        )
+      }
+    />
   );
 }
 
@@ -85,11 +91,13 @@ function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
       </TabsList>
       {tabs.map((tab) => (
         <TabsContent key={tab.id} value={tab.id}>
-          <ul className="card-list">
-            {tab.entries.map((entry, entryIndex) => (
-              <PastOfficerRow key={`${tab.id}-${entryIndex}`} entry={entry} />
-            ))}
-          </ul>
+          <Panel flush>
+            <RowList label={tab.label}>
+              {tab.entries.map((entry, entryIndex) => (
+                <PastOfficerRow key={`${tab.id}-${entryIndex}`} entry={entry} />
+              ))}
+            </RowList>
+          </Panel>
         </TabsContent>
       ))}
     </Tabs>
@@ -99,8 +107,8 @@ function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
 export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
   const { officers, board, pastTabs } = loaderData;
   return (
-    <div className="stack-10">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="8">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Branch officers</h1>
         <p className="lead">
           The branch is run by elected officers and volunteers from member institutions across
@@ -109,11 +117,11 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <section aria-labelledby="current-officers-heading" className="stack-4">
+      <section aria-labelledby="current-officers-heading" className="cap-stack">
         <h2 id="current-officers-heading" className="section-title">
           Current officers
         </h2>
-        <ul className="grid-2">
+        <ul className="cap-grid" data-cols="2">
           {officers.map((officer) => (
             <li key={`${officer.role}-${officer.name}`}>
               <OfficerCard officer={officer} />
@@ -122,22 +130,24 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
         </ul>
       </section>
 
-      <section aria-labelledby="advisory-board-heading" className="stack-4">
+      <section aria-labelledby="advisory-board-heading" className="cap-stack">
         <h2 id="advisory-board-heading" className="section-title">
           Advisory board
         </h2>
-        <ul className="grid-2">
+        <ul className="cap-grid" data-cols="2">
           {board.map((member) => (
-            <li key={member.name} className="card">
-              <p className="strong">{member.name}</p>
-              <p className="small cap-muted">{member.institution}</p>
+            <li key={member.name}>
+              <article className="cap-card">
+                <h3>{member.name}</h3>
+                <p className="small cap-muted">{member.institution}</p>
+              </article>
             </li>
           ))}
         </ul>
       </section>
 
-      <section aria-labelledby="past-officers-heading" className="stack-4">
-        <div className="stack-2">
+      <section aria-labelledby="past-officers-heading" className="cap-stack">
+        <div className="cap-stack" data-gap="3">
           <h2 id="past-officers-heading" className="section-title">
             Past branch officers
           </h2>

@@ -1,4 +1,6 @@
 import { Form } from "react-router";
+import { Row, RowList } from "capsomer/react/row-list";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
@@ -7,6 +9,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -55,8 +58,8 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
   const { awards, q, award, year, institution, results } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Awardees</h1>
         <p className="lead">
           The branch recognizes outstanding student, faculty, and service work with named awards
@@ -65,85 +68,94 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" role="search" aria-label="Search awardees" className="card stack-4">
-        <Field label="Search term">
-          <input
-            id="q"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder="Name, institution, or mentor"
-            className="cap-input"
-          />
-        </Field>
-        <div className="grid-3">
-          <Field label="Award">
-            <select id="award" name="award" defaultValue={award} className="cap-select">
-              <option value="">All awards</option>
-              {awards.map((a) => (
-                <option key={a.slug} value={a.slug}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Year">
+      <Panel>
+        <Form method="get" role="search" aria-label="Search awardees" className="cap-stack">
+          <Field label="Search term">
             <input
-              id="year"
-              name="year"
-              type="text"
-              defaultValue={year}
-              placeholder="2025-26"
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Name, institution, or mentor"
               className="cap-input"
             />
           </Field>
-          <Field label="Institution">
-            <input
-              id="institution"
-              name="institution"
-              type="text"
-              defaultValue={institution}
-              className="cap-input"
-            />
-          </Field>
-        </div>
-        <button type="submit" className="cap-btn" data-variant="primary">
-          Search
-        </button>
-      </Form>
+          <div className="cap-grid">
+            <Field label="Award">
+              <select id="award" name="award" defaultValue={award} className="cap-select">
+                <option value="">All awards</option>
+                {awards.map((a) => (
+                  <option key={a.slug} value={a.slug}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Year">
+              <input
+                id="year"
+                name="year"
+                type="text"
+                defaultValue={year}
+                placeholder="2025-26"
+                className="cap-input"
+              />
+            </Field>
+            <Field label="Institution">
+              <input
+                id="institution"
+                name="institution"
+                type="text"
+                defaultValue={institution}
+                className="cap-input"
+              />
+            </Field>
+          </div>
+          <button type="submit" className="cap-btn" data-variant="primary">
+            Search
+          </button>
+        </Form>
+      </Panel>
 
       {results ? (
-        <section aria-label="Search results" className="stack-4">
+        <section aria-label="Search results" className="cap-stack">
           <h2 className="subsection-title">
             {results.length} {results.length === 1 ? "result" : "results"}
           </h2>
           {results.length === 0 ? (
             <p className="cap-muted">No awardees match that search. Try a broader term.</p>
           ) : (
-            <ul className="card-list">
-              {results.map((result) => (
-                <li key={result.id}>
-                  <p>
-                    <span className="strong">{result.personName}</span>
-                    {result.institution ? (
-                      <span className="cap-muted"> &middot; {result.institution}</span>
-                    ) : null}
-                  </p>
-                  <p className="small cap-muted">
-                    <Link to={`/awards/${result.awardSlug}`}>{result.awardName}</Link>
-                    {" · "}
-                    {result.year}
-                    {result.placement ? ` · ${result.placement}` : ""}
-                    {result.mentor ? ` · Mentor: ${result.mentor}` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <Panel flush>
+              <RowList label="Search results">
+                {results.map((result) => (
+                  <Row
+                    key={result.id}
+                    title={
+                      <>
+                        <span className="strong">{result.personName}</span>
+                        {result.institution ? (
+                          <span className="cap-muted"> &middot; {result.institution}</span>
+                        ) : null}
+                      </>
+                    }
+                    detail={
+                      <>
+                        <Link to={`/awards/${result.awardSlug}`}>{result.awardName}</Link>
+                        {" · "}
+                        {result.year}
+                        {result.placement ? ` · ${result.placement}` : ""}
+                        {result.mentor ? ` · Mentor: ${result.mentor}` : ""}
+                      </>
+                    }
+                  />
+                ))}
+              </RowList>
+            </Panel>
           )}
         </section>
       ) : null}
 
-      <section aria-label="Awards" className="stack-4">
+      <section aria-label="Awards" className="cap-stack">
         <h2 className="subsection-title">All awards</h2>
         {awards.length === 0 ? (
           <Empty
@@ -151,17 +163,14 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             title="The awards archive is being compiled and will appear here."
           />
         ) : (
-          <ul className="grid-2">
+          <ul className="cap-card-grid">
             {awards.map((a) => (
               <li key={a.slug}>
-                <Link to={`/awards/${a.slug}`} className="card card-link">
-                  <h3 className="subsection-title">{a.name}</h3>
-                  {a.description ? (
-                    <p
-                      className="small cap-muted"
-                      dangerouslySetInnerHTML={{ __html: a.description }}
-                    />
-                  ) : null}
+                <Link to={`/awards/${a.slug}`}>
+                  <article className="cap-card">
+                    <h3>{a.name}</h3>
+                    <RichText as="p" className="small cap-muted" html={a.description} />
+                  </article>
                 </Link>
               </li>
             ))}

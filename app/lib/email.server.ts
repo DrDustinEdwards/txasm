@@ -10,7 +10,7 @@ import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { type Mail, type SendOutcome, sendEmail as send } from "@dustinedwards/site-runtime/email";
 import { SIGN_IN_EXPIRES_IN_WORDS, type NoticeDetail } from "@dustinedwards/site-runtime/sign-in";
 import { emailChange, magicLink, renderEmail, securityNotice } from "capsomer/email";
-import { extractPlainText } from "./richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 
 // The email config, read off env without the generated type: SEND_EMAIL is not in it while the binding is commented out.
 type EmailEnv = {
@@ -41,7 +41,7 @@ export function sendEmail(
 // ---------------------------------------------------------------------------
 // Template builders. Pure functions returning EmailContent. Plain professional
 // copy, no secrets. Plain-text fields that may carry stored HTML are stripped
-// with extractPlainText.
+// with richTextPlain.
 // ---------------------------------------------------------------------------
 
 function htmlParagraphs(lines: string[]): string {
@@ -101,7 +101,7 @@ export function decisionEmail(input: {
   message?: string | null;
 }): EmailContent {
   const meeting = input.meetingName;
-  const title = extractPlainText(input.title).trim() || "your abstract";
+  const title = richTextPlain(input.title).trim() || "your abstract";
 
   let lead: string;
   if (input.outcome === "accept") {
@@ -116,7 +116,7 @@ export function decisionEmail(input: {
   if (input.outcome === "accept" && input.presentationType) {
     lines.push(`Presentation type: ${presentationLabel(input.presentationType)}.`);
   }
-  const message = input.message ? extractPlainText(input.message).trim() : "";
+  const message = input.message ? richTextPlain(input.message).trim() : "";
   if (message) {
     lines.push("Message from the organizers:");
     lines.push(message);

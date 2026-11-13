@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `uq_program_item_abstract` ON `program_item` (`abstract_id`);

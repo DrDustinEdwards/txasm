@@ -6,7 +6,6 @@ import {
   unique,
   index,
   primaryKey,
-  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 // Column factories. crypto.randomUUID is available in the Workers runtime.
@@ -857,7 +856,12 @@ export const programItem = sqliteTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("ix_program_item_session").on(t.sessionId)],
+  (t) => [
+    index("ix_program_item_session").on(t.sessionId),
+    // One placement per abstract (NULLs, i.e. custom and speaker items, are
+    // distinct in SQLite). Closes the check-then-insert race in addAbstractItem.
+    unique("uq_program_item_abstract").on(t.abstractId),
+  ],
 );
 
 // ---------------------------------------------------------------------------
@@ -1108,147 +1112,25 @@ export const mediaChange = sqliteTable("media_change", {
   mediaKey: text("media_key").notNull(),
 });
 
-// A count of the 404s the site serves, per path, referring host and UTC day (site-runtime
-// ./not-found, written by countNotFound in workers/app.ts). The shape is site-runtime's
-// NOT_FOUND_SQL, reached by NOT_FOUND_UPGRADE_SQL (migration 0024): the pathname only, never the
-// query, which can carry a sign-in token, and of the Referer only its host.
-export const page404Daily = sqliteTable(
-  "page_404_daily",
-  {
-    id: text("id").primaryKey(),
-    day: tsMs("day").notNull(),
-    path: text("path").notNull(),
-    hitCount: integer("hit_count").notNull().default(0),
-    referrerHost: text("referrer_host").notNull().default(""),
-    kind: text("kind").notNull().default("page"),
-  },
-  (t) => [uniqueIndex("page_404_daily_day_path_referrer_uq").on(t.day, t.path, t.referrerHost)],
-);
+// site-runtime's own tables, so drizzle-kit knows them: the 404 count (./not-found, written by countNotFound in
+// workers/app.ts), the auth event log (./sign-in eventsDb: /account's security history, /health's spike check, the
+// daily prune) and each scheduled job's last runs (./cron, written by runJobs, read by /health's cron check).
+export { authEvents, cronRuns, page404Daily } from "@dustinedwards/site-runtime/drizzle";
 
-// The auth event log as rows (site-runtime ./sign-in, eventsDb): each sign-in event's time, OWASP name, change or
-// scope, way in, user, device and coarse place; never an address, token or code. A person's security history on
-// /account reads it, /health's spike check counts it, and the daily cron prunes it. The shape is its AUTH_EVENTS_SQL.
-export const authEvents = sqliteTable(
-  "auth_events",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    at: integer("at").notNull(),
-    event: text("event").notNull(),
-    change: text("change"),
-    via: text("via"),
-    userId: text("user_id"),
-    device: text("device"),
-    location: text("location"),
-    // The sign-in's device id (AUTH_EVENTS_DEVICE_SQL), for the new-device notice.
-    deviceId: text("device_id"),
-  },
-  (t) => [index("auth_events_user").on(t.userId, t.at), index("auth_events_at").on(t.at, t.event)],
-);
-
-// Each scheduled job's last start, success and failure, in epoch ms (site-runtime ./cron, written
-// by runJobs in workers/app.ts and read by /health's cron check). The shape is its CRON_SQL.
-export const cronRuns = sqliteTable("cron_runs", {
-  name: text("name").primaryKey(),
-  everyMinutes: integer("every_minutes").notNull(),
-  firstStartedAt: integer("first_started_at"),
-  lastStartedAt: integer("last_started_at"),
-  lastOkAt: integer("last_ok_at"),
-  lastFailedAt: integer("last_failed_at"),
-  lastError: text("last_error"),
-});
-
-// An update Carrel scheduled on a live page (site-api's schedules, migration 0026): its own source, which replaces
-// the page's at publish_at, when the per-minute cron's runSchedules applies it. One per page at most. The shape is
-// site-api's SCHEDULED_UPDATES_SQL, read and written through its d1ScheduledUpdates in the Carrel pages path
-// (data-access/pages.ts). Times are UTC ISO text, so the due scan is a text comparison.
-export const scheduledUpdates = sqliteTable(
-  "scheduled_updates",
-  {
-    contentId: text("content_id").primaryKey(),
-    source: text("source").notNull(),
-    publishAt: text("publish_at").notNull(),
-    changeId: text("change_id").notNull(),
-    scheduledAt: text("scheduled_at").notNull(),
-  },
-  (t) => [index("scheduled_updates_due").on(t.publishAt)],
-);
-
-// site-api's own store (SITE_API_STORE_SQL, migration 0027), read and written only through its d1SiteApiStore in
-// app/lib/carrel/handler.server.ts: each Carrel write's answer under its change id for 7 days (site_api_writes), so a
-// retry answers the same and runs nothing; the publish hooks that failed, for the cron to run again (hook_retries);
-// only the SHA-256 of each preview link's token (preview_links); and the pages each page last sent webmentions to
-// (webmention_targets). Named here so drizzle-kit's snapshot knows them; no query here reads them.
-export const siteApiWrites = sqliteTable(
-  "site_api_writes",
-  {
-    changeId: text("change_id").primaryKey(),
-    route: text("route").notNull(),
-    requestHash: text("request_hash").notNull(),
-    status: integer("status"),
-    response: text("response"),
-    state: text("state").notNull(),
-    at: text("at").notNull(),
-  },
-  (t) => [index("site_api_writes_at").on(t.at)],
-);
-
-export const hookRetries = sqliteTable(
-  "hook_retries",
-  {
-    id: text("id").primaryKey(),
-    hook: text("hook").notNull(),
-    event: text("event").notNull(),
-    attempts: integer("attempts").notNull(),
-    nextAt: text("next_at").notNull(),
-    lastError: text("last_error").notNull(),
-  },
-  (t) => [index("hook_retries_due").on(t.nextAt)],
-);
-
-export const previewLinks = sqliteTable(
-  "preview_links",
-  {
-    tokenHash: text("token_hash").primaryKey(),
-    contentId: text("content_id").notNull(),
-    createdAt: text("created_at").notNull(),
-    expiresAt: text("expires_at").notNull(),
-    revokedAt: text("revoked_at"),
-    changeId: text("change_id").notNull(),
-  },
-  (t) => [index("preview_links_content").on(t.contentId, t.expiresAt)],
-);
-
-export const webmentionTargets = sqliteTable("webmention_targets", {
-  source: text("source").primaryKey(),
-  targets: text("targets").notNull(),
-  sentAt: text("sent_at").notNull(),
-});
-
-// site-api 0.21.0 (SITE_API_STORE_SQL_V0_21): the media file each upload's duplicates key became, so a picture the
-// adapter converted or shrank is still found when it is sent again.
-export const mediaUploads = sqliteTable("media_uploads", {
-  sha256: text("sha256").primaryKey(),
-  mediaId: text("media_id").notNull(),
-  at: text("at").notNull(),
-});
-
-// site-api 0.22.0 (SITE_API_STORE_SQL_V0_22): the public path of each live item Carrel deleted or trashed, so its old
-// address answers 410 (gone_paths), and each publish hook's run for GET /hooks/recent (hook_runs).
-export const gonePaths = sqliteTable("gone_paths", {
-  path: text("path").primaryKey(),
-  goneAt: text("gone_at").notNull(),
-});
-
-export const hookRuns = sqliteTable(
-  "hook_runs",
-  {
-    changeId: text("change_id").notNull(),
-    hook: text("hook").notNull(),
-    ok: integer("ok").notNull(),
-    at: text("at").notNull(),
-  },
-  (t) => [index("hook_runs_change").on(t.changeId), index("hook_runs_at").on(t.at)],
-);
+// site-api's own tables, so drizzle-kit knows them: Carrel's scheduled updates on live pages (SCHEDULED_UPDATES_SQL,
+// migration 0026, read and written through d1ScheduledUpdates in data-access/pages.ts) and its store
+// (SITE_API_STORE_SQL, migration 0027, read and written only through d1SiteApiStore in
+// app/lib/carrel/handler.server.ts). No query here reads them.
+export {
+  gonePaths,
+  hookRetries,
+  hookRuns,
+  mediaUploads,
+  previewLinks,
+  scheduledUpdates,
+  siteApiWrites,
+  webmentionTargets,
+} from "@dustinedwards/site-api/drizzle";
 
 // ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of

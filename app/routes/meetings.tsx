@@ -1,4 +1,7 @@
 import { Form } from "react-router";
+import { routerRenderLink } from "capsomer/react/link";
+import { Row, RowList } from "capsomer/react/row-list";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
@@ -16,6 +19,7 @@ import {
 } from "~/lib/vocab";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -63,8 +67,8 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
   const { meetings, q, level, format, meeting, results } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Meetings</h1>
         <p className="lead">
           The branch meets twice a year. Search the accepted abstracts across all meetings, or open
@@ -72,84 +76,88 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
         </p>
       </header>
 
-      <Form method="get" role="search" aria-label="Search abstracts" className="card stack-4">
-        <Field label="Search abstracts">
-          <input
-            id="q"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder="Author, title, or topic"
-            className="cap-input"
-          />
-        </Field>
-        <div className="grid-3">
-          <Field label="Level">
-            <select id="level" name="level" defaultValue={level} className="cap-select">
-              <option value="">All levels</option>
-              {ABSTRACT_LEVELS.map((l) => (
-                <option key={l} value={l}>
-                  {ABSTRACT_LEVEL_LABELS[l]}
-                </option>
-              ))}
-            </select>
+      <Panel>
+        <Form method="get" role="search" aria-label="Search abstracts" className="cap-stack">
+          <Field label="Search abstracts">
+            <input
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Author, title, or topic"
+              className="cap-input"
+            />
           </Field>
-          <Field label="Format">
-            <select id="format" name="format" defaultValue={format} className="cap-select">
-              <option value="">All formats</option>
-              {ABSTRACT_FORMATS.map((f) => (
-                <option key={f} value={f}>
-                  {ABSTRACT_FORMAT_LABELS[f]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Meeting">
-            <select id="meeting" name="meeting" defaultValue={meeting} className="cap-select">
-              <option value="">All meetings</option>
-              {meetings.map((m) => (
-                <option key={m.slug} value={m.slug}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        <button type="submit" className="cap-btn" data-variant="primary">
-          Search
-        </button>
-      </Form>
+          <div className="cap-grid">
+            <Field label="Level">
+              <select id="level" name="level" defaultValue={level} className="cap-select">
+                <option value="">All levels</option>
+                {ABSTRACT_LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {ABSTRACT_LEVEL_LABELS[l]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Format">
+              <select id="format" name="format" defaultValue={format} className="cap-select">
+                <option value="">All formats</option>
+                {ABSTRACT_FORMATS.map((f) => (
+                  <option key={f} value={f}>
+                    {ABSTRACT_FORMAT_LABELS[f]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Meeting">
+              <select id="meeting" name="meeting" defaultValue={meeting} className="cap-select">
+                <option value="">All meetings</option>
+                {meetings.map((m) => (
+                  <option key={m.slug} value={m.slug}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <button type="submit" className="cap-btn" data-variant="primary">
+            Search
+          </button>
+        </Form>
+      </Panel>
 
       {results ? (
-        <section aria-label="Search results" className="stack-4">
+        <section aria-label="Search results" className="cap-stack">
           <h2 className="subsection-title">
             {results.length} {results.length === 1 ? "result" : "results"}
           </h2>
           {results.length === 0 ? (
             <p className="cap-muted">No abstracts match that search. Try a broader term.</p>
           ) : (
-            <ul className="card-list">
-              {results.map((result) => (
-                <li key={`${result.editionSlug}-${result.number}`}>
-                  <Link
-                    to={`/meetings/${result.editionSlug}/abstracts/${result.number}`}
-                    className="strong"
-                  >
-                    <span dangerouslySetInnerHTML={{ __html: result.title }} />
-                  </Link>
-                  <p className="small cap-muted">
-                    {[result.presentingAuthorName ?? "", result.editionName, result.topic ?? ""]
+            <Panel flush>
+              <RowList label="Search results">
+                {results.map((result) => (
+                  <Row
+                    key={`${result.editionSlug}-${result.number}`}
+                    href={`/meetings/${result.editionSlug}/abstracts/${result.number}`}
+                    renderLink={routerRenderLink}
+                    title={<RichText as="span" html={result.title} />}
+                    detail={[
+                      result.presentingAuthorName ?? "",
+                      result.editionName,
+                      result.topic ?? "",
+                    ]
                       .filter((p) => p.length > 0)
                       .join(" · ")}
-                  </p>
-                </li>
-              ))}
-            </ul>
+                  />
+                ))}
+              </RowList>
+            </Panel>
           )}
         </section>
       ) : null}
 
-      <section aria-label="Meetings" className="stack-4">
+      <section aria-label="Meetings" className="cap-stack">
         <h2 className="subsection-title">All meetings</h2>
         {meetings.length === 0 ? (
           <Empty
@@ -157,21 +165,25 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
             title="Meetings appear here once their programs are published."
           />
         ) : (
-          <ul className="stack-4">
+          <ul className="cap-stack">
             {meetings.map((m) => {
               const venue = venueLine(m.venueName, m.city);
               return (
-                <li key={m.slug} className="card stack-1">
-                  <h3 className="subsection-title">{m.name}</h3>
-                  <p className="small cap-muted">
-                    {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
-                      .filter((p) => p.length > 0)
-                      .join(" · ")}
-                  </p>
-                  <p className="cluster small">
-                    <Link to={`/meetings/${m.slug}/abstracts`}>Abstracts ({m.abstractCount})</Link>
-                    <Link to={`/meetings/${m.slug}/program`}>Program</Link>
-                  </p>
+                <li key={m.slug}>
+                  <article className="cap-card">
+                    <h3>{m.name}</h3>
+                    <p className="small cap-muted">
+                      {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
+                        .filter((p) => p.length > 0)
+                        .join(" · ")}
+                    </p>
+                    <footer className="cap-cluster small">
+                      <Link to={`/meetings/${m.slug}/abstracts`}>
+                        Abstracts ({m.abstractCount})
+                      </Link>
+                      <Link to={`/meetings/${m.slug}/program`}>Program</Link>
+                    </footer>
+                  </article>
                 </li>
               );
             })}

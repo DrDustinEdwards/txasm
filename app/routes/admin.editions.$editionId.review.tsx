@@ -1,7 +1,10 @@
 import { Form, useActionData, useNavigation } from "react-router";
+import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { titleCase } from "@drdustinedwards/site-helpers/text";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -12,9 +15,10 @@ import {
 } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Assign reviewers");
+  return privateMeta(pageTitle(matches, "Assign reviewers"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -81,13 +85,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   const { edition, abstracts, reviewers, assignments } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -103,8 +100,8 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Assign reviewers</h1>
         <p>
           {edition.name}.{" "}
@@ -119,15 +116,15 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
       </div>
 
       {reviewers.length === 0 ? (
-        <p role="status" className="card card-s card-sunken small">
+        <Banner tone="info">
           No reviewers on this meeting yet. Add reviewers first under Chairs and reviewers.
-        </p>
+        </Banner>
       ) : null}
 
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {abstracts.map((abstract) => {
             const assigned = byAbstract.get(abstract.id) ?? [];
             const assignedIds = new Set(assigned.map((a) => a.reviewerId));
@@ -136,112 +133,119 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
               rowError && "abstractId" in rowError ? rowError.abstractId === abstract.id : false;
 
             return (
-              <li key={abstract.id} className="card stack-3">
-                <div className="spread">
-                  <div className="stack-1">
-                    <h2 className="strong">
-                      {abstract.title ? (
-                        <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-                      ) : (
-                        <span className="cap-muted">Untitled</span>
-                      )}
-                    </h2>
-                    <p className="small cap-muted">
-                      {abstract.authorNames.length > 0
-                        ? abstract.authorNames.join(", ")
-                        : "No authors listed"}
-                    </p>
-                  </div>
-                  <span className="cap-badge" data-variant="secondary">
-                    {titleCase(abstract.status)}
-                  </span>
-                </div>
-
-                {showError && rowError && "error" in rowError ? (
-                  <p role="alert" className="cap-alert">
-                    {rowError.error}
-                  </p>
-                ) : null}
-
-                <div className="stack-2">
-                  <h3 className="small strong">Reviewers</h3>
-                  {assigned.length === 0 ? (
-                    <p className="small cap-muted">None assigned yet.</p>
-                  ) : (
-                    <ul className="stack-1">
-                      {assigned.map((a) => (
-                        <li key={a.assignmentId} className="spread small">
-                          <span>
-                            {a.reviewerName || a.reviewerEmail}{" "}
-                            <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
-                              ({a.reviewSubmitted ? "review submitted" : "assigned"})
-                            </span>
-                          </span>
-                          <Form method="post">
-                            <input type="hidden" name="intent" value="unassign" />
-                            <input type="hidden" name="abstractId" value={abstract.id} />
-                            <input type="hidden" name="assignmentId" value={a.assignmentId} />
-                            <button type="submit" className="link-button strong">
-                              Unassign
-                              <span className="cap-sr-only">
-                                {" "}
-                                {a.reviewerName || a.reviewerEmail}
-                              </span>
-                            </button>
-                          </Form>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                {available.length > 0 ? (
-                  <Form method="post" className="cluster cluster-end">
-                    <input type="hidden" name="intent" value="assign" />
-                    <input type="hidden" name="abstractId" value={abstract.id} />
-                    <div className="stack-1">
-                      <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
-                        Add a reviewer
-                      </label>
-                      <select
-                        id={`reviewer-${abstract.id}`}
-                        name="reviewerId"
-                        defaultValue=""
-                        className="cap-select"
-                      >
-                        <option value="" disabled>
-                          Choose a reviewer
-                        </option>
-                        {available.map((r) => (
-                          <option key={r.userId} value={r.userId}>
-                            {r.name ? `${r.name} (${r.email})` : r.email}
-                          </option>
-                        ))}
-                      </select>
+              <li key={abstract.id} className="cap-panel">
+                <div className="cap-panel-body cap-stack" data-gap="4">
+                  <div className="cap-spread">
+                    <div className="cap-stack" data-gap="2">
+                      <h2 className="strong">
+                        <RichText
+                          as="span"
+                          html={abstract.title}
+                          fallback={<span className="cap-muted">Untitled</span>}
+                        />
+                      </h2>
+                      <p className="small cap-muted">
+                        {abstract.authorNames.length > 0
+                          ? abstract.authorNames.join(", ")
+                          : "No authors listed"}
+                      </p>
                     </div>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="cap-btn"
-                      data-variant="primary"
-                    >
-                      Assign
-                    </button>
-                  </Form>
-                ) : reviewers.length > 0 ? (
-                  <p className="small cap-muted">
-                    Every reviewer on this meeting is already assigned.
-                  </p>
-                ) : null}
+                    <span className="cap-badge" data-variant="secondary">
+                      {titleCase(abstract.status)}
+                    </span>
+                  </div>
 
-                <p className="small">
-                  <Link
-                    to={`/admin/editions/${edition.id}/review/${abstract.id}`}
-                    className="strong"
-                  >
-                    Read reviews ({abstract.reviewCount})
-                  </Link>
-                </p>
+                  {showError && rowError && "error" in rowError ? (
+                    <p role="alert" className="cap-alert">
+                      {rowError.error}
+                    </p>
+                  ) : null}
+
+                  <div className="cap-stack" data-gap="3">
+                    <h3 className="small strong">Reviewers</h3>
+                    {assigned.length === 0 ? (
+                      <p className="small cap-muted">None assigned yet.</p>
+                    ) : (
+                      <ul className="cap-stack" data-gap="2">
+                        {assigned.map((a) => (
+                          <li key={a.assignmentId} className="cap-spread small">
+                            <span>
+                              {a.reviewerName || a.reviewerEmail}{" "}
+                              <span className={a.reviewSubmitted ? "ok-text" : "cap-muted"}>
+                                ({a.reviewSubmitted ? "review submitted" : "assigned"})
+                              </span>
+                            </span>
+                            <Form method="post">
+                              <input type="hidden" name="intent" value="unassign" />
+                              <input type="hidden" name="abstractId" value={abstract.id} />
+                              <input type="hidden" name="assignmentId" value={a.assignmentId} />
+                              <button
+                                type="submit"
+                                className="cap-btn"
+                                data-variant="link"
+                                data-size="sm"
+                              >
+                                Unassign
+                                <span className="cap-sr-only">
+                                  {" "}
+                                  {a.reviewerName || a.reviewerEmail}
+                                </span>
+                              </button>
+                            </Form>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {available.length > 0 ? (
+                    <Form method="post" className="cap-cluster" data-align="end">
+                      <input type="hidden" name="intent" value="assign" />
+                      <input type="hidden" name="abstractId" value={abstract.id} />
+                      <div className="cap-stack" data-gap="2">
+                        <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
+                          Add a reviewer
+                        </label>
+                        <select
+                          id={`reviewer-${abstract.id}`}
+                          name="reviewerId"
+                          defaultValue=""
+                          className="cap-select"
+                        >
+                          <option value="" disabled>
+                            Choose a reviewer
+                          </option>
+                          {available.map((r) => (
+                            <option key={r.userId} value={r.userId}>
+                              {r.name ? `${r.name} (${r.email})` : r.email}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="cap-btn"
+                        data-variant="primary"
+                      >
+                        Assign
+                      </button>
+                    </Form>
+                  ) : reviewers.length > 0 ? (
+                    <p className="small cap-muted">
+                      Every reviewer on this meeting is already assigned.
+                    </p>
+                  ) : null}
+
+                  <p className="small">
+                    <Link
+                      to={`/admin/editions/${edition.id}/review/${abstract.id}`}
+                      className="strong"
+                    >
+                      Read reviews ({abstract.reviewCount})
+                    </Link>
+                  </p>
+                </div>
               </li>
             );
           })}

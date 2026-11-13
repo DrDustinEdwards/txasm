@@ -1,4 +1,5 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { computeBookCodes, type NumberingEntry } from "../book-numbering";
 import {
@@ -9,8 +10,8 @@ import {
   type PresentationType,
   type Season,
 } from "../vocab";
-import { extractPlainText } from "../richtext";
-import { byIdChunks, type DB } from "./core";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
+import { type DB } from "./core";
 
 // Book author and affiliation shapes shared by the arranged renderer. Title and
 // body fields hold the stored sanitized HTML (em/sup/sub only) and are rendered
@@ -155,7 +156,7 @@ export function inBookOrder<R extends { categoryId: string | null; title: string
   categories: Array<{ id: string }>,
 ): R[] {
   const byTitle = (a: R, b: R) =>
-    extractPlainText(a.title).localeCompare(extractPlainText(b.title), "en", {
+    richTextPlain(a.title).localeCompare(richTextPlain(b.title), "en", {
       sensitivity: "base",
     });
   const group = (categoryId: string | null) =>
@@ -169,18 +170,16 @@ export async function presentingAuthorNames(
   db: DB,
   abstractIds: string[],
 ): Promise<Map<string, string | null>> {
-  const rows = await byIdChunks(abstractIds, (part) =>
-    db
-      .select({
-        abstractId: schema.author.abstractId,
-        firstName: schema.author.firstName,
-        lastName: schema.author.lastName,
-        isPresenting: schema.author.isPresenting,
-      })
-      .from(schema.author)
-      .where(inArray(schema.author.abstractId, part))
-      .orderBy(schema.author.ordinal),
-  );
+  const rows = await db
+    .select({
+      abstractId: schema.author.abstractId,
+      firstName: schema.author.firstName,
+      lastName: schema.author.lastName,
+      isPresenting: schema.author.isPresenting,
+    })
+    .from(schema.author)
+    .where(inList(schema.author.abstractId, abstractIds))
+    .orderBy(schema.author.ordinal);
   return new Map(
     abstractIds.map((id) => {
       const authors = rows.filter((a) => a.abstractId === id);
@@ -222,39 +221,31 @@ export async function assembleBookAbstracts(
   // The links are filtered by abstract id (a join on author), not by the larger
   // set of author ids, so they chunk like everything else here.
   const [authorRows, affiliationRows, links, decisionRows] = await Promise.all([
-    byIdChunks(abstractIds, (part) =>
-      db
-        .select()
-        .from(schema.author)
-        .where(inArray(schema.author.abstractId, part))
-        .orderBy(schema.author.ordinal),
-    ),
-    byIdChunks(abstractIds, (part) =>
-      db
-        .select()
-        .from(schema.affiliation)
-        .where(inArray(schema.affiliation.abstractId, part))
-        .orderBy(schema.affiliation.ordinal),
-    ),
-    byIdChunks(abstractIds, (part) =>
-      db
-        .select({
-          authorId: schema.authorAffiliation.authorId,
-          affiliationId: schema.authorAffiliation.affiliationId,
-        })
-        .from(schema.authorAffiliation)
-        .innerJoin(schema.author, eq(schema.authorAffiliation.authorId, schema.author.id))
-        .where(inArray(schema.author.abstractId, part)),
-    ),
-    byIdChunks(abstractIds, (part) =>
-      db
-        .select({
-          abstractId: schema.decision.abstractId,
-          presentationType: schema.decision.presentationType,
-        })
-        .from(schema.decision)
-        .where(inArray(schema.decision.abstractId, part)),
-    ),
+    db
+      .select()
+      .from(schema.author)
+      .where(inList(schema.author.abstractId, abstractIds))
+      .orderBy(schema.author.ordinal),
+    db
+      .select()
+      .from(schema.affiliation)
+      .where(inList(schema.affiliation.abstractId, abstractIds))
+      .orderBy(schema.affiliation.ordinal),
+    db
+      .select({
+        authorId: schema.authorAffiliation.authorId,
+        affiliationId: schema.authorAffiliation.affiliationId,
+      })
+      .from(schema.authorAffiliation)
+      .innerJoin(schema.author, eq(schema.authorAffiliation.authorId, schema.author.id))
+      .where(inList(schema.author.abstractId, abstractIds)),
+    db
+      .select({
+        abstractId: schema.decision.abstractId,
+        presentationType: schema.decision.presentationType,
+      })
+      .from(schema.decision)
+      .where(inList(schema.decision.abstractId, abstractIds)),
   ]);
 
   const affOrdinalById = new Map(affiliationRows.map((a) => [a.id, a.ordinal]));
@@ -323,18 +314,19 @@ export async function recomputeBookCodes(db: DB, bookId: string): Promise<void> 
     .where(eq(schema.bookEntry.bookId, bookId));
   if (entries.length === 0) return;
 
-  const absRows = await byIdChunks(
-    entries.map((e) => e.abstractId),
-    (part) =>
-      db
-        .select({
-          id: schema.abstract.id,
-          level: schema.abstract.level,
-          format: schema.abstract.format,
-        })
-        .from(schema.abstract)
-        .where(inArray(schema.abstract.id, part)),
-  );
+  const absRows = await db
+    .select({
+      id: schema.abstract.id,
+      level: schema.abstract.level,
+      format: schema.abstract.format,
+    })
+    .from(schema.abstract)
+    .where(
+      inList(
+        schema.abstract.id,
+        entries.map((e) => e.abstractId),
+      ),
+    );
   const absById = new Map(absRows.map((a) => [a.id, a]));
   const parts = await assembleBookAbstracts(
     db,
@@ -397,17 +389,15 @@ export async function loadBookView(db: DB, editionId: string): Promise<BookView 
     .orderBy(schema.bookEntry.sortOrder);
 
   const absIds = entries.map((e) => e.abstractId);
-  const absRows = await byIdChunks(absIds, (part) =>
-    db
-      .select({
-        id: schema.abstract.id,
-        title: schema.abstract.title,
-        level: schema.abstract.level,
-        format: schema.abstract.format,
-      })
-      .from(schema.abstract)
-      .where(inArray(schema.abstract.id, part)),
-  );
+  const absRows = await db
+    .select({
+      id: schema.abstract.id,
+      title: schema.abstract.title,
+      level: schema.abstract.level,
+      format: schema.abstract.format,
+    })
+    .from(schema.abstract)
+    .where(inList(schema.abstract.id, absIds));
   const absById = new Map(absRows.map((a) => [a.id, a]));
   const parts = await assembleBookAbstracts(db, absIds);
 

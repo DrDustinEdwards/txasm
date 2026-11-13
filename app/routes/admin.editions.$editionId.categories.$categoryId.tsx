@@ -1,17 +1,18 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { dollarsToCents } from "capsomer/behavior/field";
 import { MoneyField } from "capsomer/react/field";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories.$categoryId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
+import { parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Edit category");
+  return privateMeta(pageTitle(matches, "Edit category"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -32,7 +33,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const currency = String(form.get("currency") ?? "usd");
   const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
   const active = form.get("active") != null;
-  const amountCents = dollarsToCents(form.get("fee"));
+  const amountCents = parseMoneyInput(String(form.get("fee") ?? ""), currency);
 
   if (amountCents === null) {
     return { error: "Enter a fee of zero or more dollars." };
@@ -70,8 +71,8 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-1">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="2">
         <h1 className="page-title">Edit category</h1>
         <p>Type: {category.key}</p>
       </div>
@@ -82,8 +83,8 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="stack-4" noValidate>
-        <div className="stack-1">
+      <Form method="post" className="cap-stack" noValidate>
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="label" className="cap-field-label">
             Label
           </label>
@@ -103,7 +104,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
           required
           defaultCents={category.amountCents}
         />
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="currency" className="cap-field-label">
             Currency
           </label>
@@ -115,7 +116,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="sortOrder" className="cap-field-label">
             Sort order
           </label>
@@ -128,14 +129,14 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             className="cap-input"
           />
         </div>
-        <div className="cluster">
+        <div className="cap-cluster">
           <input id="active" name="active" type="checkbox" defaultChecked={category.active} />
           <label htmlFor="active" className="small strong">
             Active
           </label>
         </div>
 
-        <div className="cluster">
+        <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>

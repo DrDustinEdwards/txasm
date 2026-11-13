@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -14,15 +16,18 @@ import {
   type DecisionOutcome,
   type PresentationType,
 } from "~/lib/vocab";
-import { formatDateTime } from "~/lib/format";
-import { RichEditor } from "~/components/rich-editor";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { RichText } from "capsomer/react/trusted-html";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Decisions");
+  return privateMeta(pageTitle(matches, "Decisions"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -109,17 +114,9 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   const { edition, abstracts } = loaderData;
   const actionData = useActionData<typeof action>();
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
-
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
-
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Decisions</h1>
         <p>
           {edition.name}.{" "}
@@ -137,20 +134,12 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {error ?? ok ?? ""}
-      </p>
+      <ActionResult data={actionData} />
 
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="stack-6">
+        <ul className="cap-stack" data-gap="6">
           {abstracts.map((abstract) => (
             <DecisionRow key={abstract.id} editionId={edition.id} abstract={abstract} />
           ))}
@@ -176,149 +165,151 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
   const summary = abstract.recommendationSummary;
 
   return (
-    <li className="card stack-4">
-      <div className="spread">
-        <div className="stack-1">
-          <h2 className="strong">
-            {abstract.title ? (
-              <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-            ) : (
-              <span className="cap-muted">Untitled</span>
-            )}
-          </h2>
-          <p className="small cap-muted">
-            {abstract.authorNames.length > 0
-              ? abstract.authorNames.join(", ")
-              : "No authors listed"}
-          </p>
-          <p className="small cap-muted">
-            Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews: {abstract.reviewCount}{" "}
-            (accept {summary.accept} / revise {summary.revise} / reject {summary.reject}) .{" "}
-            <Link to={`/admin/editions/${editionId}/review/${abstract.id}`} className="strong">
-              Read reviews
-            </Link>
-          </p>
-        </div>
-        {decision ? (
-          <span className="cap-badge" data-variant="secondary">
-            {outcomeLabel(decision.outcome)}
-            {decision.presentationType
-              ? ` . ${
-                  PRESENTATION_TYPE_LABELS[decision.presentationType as PresentationType] ??
-                  decision.presentationType
-                }`
-              : ""}
-          </span>
-        ) : null}
-      </div>
-
-      {decision ? (
-        <p className="small cap-muted">
-          Current decision recorded {formatDateTime(decision.decidedAt)}.
-        </p>
-      ) : null}
-
-      {decision ? (
-        <div className="stack-1">
-          <div className="cluster">
-            <Form method="post">
-              <input type="hidden" name="intent" value="notify" />
-              <input type="hidden" name="abstractId" value={abstract.id} />
-              <button type="submit" disabled={submitting} className="cap-btn">
-                Notify author
-              </button>
-            </Form>
-            <span className="small cap-muted">
-              {decision.notifyState === "emailed"
-                ? "Author emailed."
-                : decision.notifyState === "in_app"
-                  ? "Author notified in-app."
-                  : "Not notified yet."}
+    <li className="cap-panel">
+      <div className="cap-panel-body cap-stack">
+        <div className="cap-spread">
+          <div className="cap-stack" data-gap="2">
+            <h2 className="strong">
+              <RichText
+                as="span"
+                html={abstract.title}
+                fallback={<span className="cap-muted">Untitled</span>}
+              />
+            </h2>
+            <p className="small cap-muted">
+              {abstract.authorNames.length > 0
+                ? abstract.authorNames.join(", ")
+                : "No authors listed"}
+            </p>
+            <p className="small cap-muted">
+              Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews: {abstract.reviewCount}{" "}
+              (accept {summary.accept} / revise {summary.revise} / reject {summary.reject}) .{" "}
+              <Link to={`/admin/editions/${editionId}/review/${abstract.id}`} className="strong">
+                Read reviews
+              </Link>
+            </p>
+          </div>
+          {decision ? (
+            <span className="cap-badge" data-variant="secondary">
+              {outcomeLabel(decision.outcome)}
+              {decision.presentationType
+                ? ` . ${
+                    PRESENTATION_TYPE_LABELS[decision.presentationType as PresentationType] ??
+                    decision.presentationType
+                  }`
+                : ""}
             </span>
-          </div>
-          <p className="tiny cap-muted">
-            Until email goes live at cutover, this marks the author as notified in-app. The author
-            already sees the decision when signed in.
-          </p>
+          ) : null}
         </div>
-      ) : null}
 
-      <Form method="post" className="stack-4">
-        <input type="hidden" name="intent" value="decide" />
-        <input type="hidden" name="abstractId" value={abstract.id} />
+        {decision ? (
+          <p className="small cap-muted">
+            Current decision recorded {formatDate(decision.decidedAt, DATE_TIME)}.
+          </p>
+        ) : null}
 
-        <fieldset className="stack-2">
-          <legend className="small strong">Outcome</legend>
-          <div className="cluster">
-            {OUTCOME_OPTIONS.map((option) => (
-              <label key={option.value} className="cap-check">
-                <input
-                  type="radio"
-                  name="outcome"
-                  value={option.value}
-                  required
-                  checked={outcome === option.value}
-                  onChange={() => setOutcome(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {outcome === "accept" ? (
-          <div className="stack-1">
-            <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
-              Presentation type
-            </label>
-            <select
-              id={`presentation-${abstract.id}`}
-              name="presentationType"
-              required
-              defaultValue={decision?.presentationType ?? "oral"}
-              className="cap-select"
-            >
-              {PRESENTATION_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {PRESENTATION_TYPE_LABELS[type]}
-                </option>
-              ))}
-            </select>
+        {decision ? (
+          <div className="cap-stack" data-gap="2">
+            <div className="cap-cluster">
+              <Form method="post">
+                <input type="hidden" name="intent" value="notify" />
+                <input type="hidden" name="abstractId" value={abstract.id} />
+                <button type="submit" disabled={submitting} className="cap-btn">
+                  Notify author
+                </button>
+              </Form>
+              <span className="small cap-muted">
+                {decision.notifyState === "emailed"
+                  ? "Author emailed."
+                  : decision.notifyState === "in_app"
+                    ? "Author notified in-app."
+                    : "Not notified yet."}
+              </span>
+            </div>
+            <p className="tiny cap-muted">
+              Until email goes live at cutover, this marks the author as notified in-app. The author
+              already sees the decision when signed in.
+            </p>
           </div>
         ) : null}
 
-        <RichEditor
-          name="decisionMessage"
-          label="Message to the author (optional)"
-          mode="body"
-          initialHTML={decision?.decisionMessage ?? ""}
-          describedById={`decision-help-${abstract.id}`}
-        />
-        <p id={`decision-help-${abstract.id}`} className="small cap-muted">
-          Shown to the author with the decision.
-        </p>
-
-        <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
-          {decision ? "Update decision" : "Save decision"}
-        </button>
-      </Form>
-
-      {decision ? (
-        <Form method="post">
-          <input type="hidden" name="intent" value="clear" />
+        <Form method="post" className="cap-stack">
+          <input type="hidden" name="intent" value="decide" />
           <input type="hidden" name="abstractId" value={abstract.id} />
-          <button
-            type="submit"
-            disabled={submitting}
-            onClick={(e) =>
-              confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
-            }
-            className="small strong link-button"
-          >
-            Clear decision
+
+          <fieldset className="cap-stack" data-gap="3">
+            <legend className="small strong">Outcome</legend>
+            <div className="cap-cluster">
+              {OUTCOME_OPTIONS.map((option) => (
+                <label key={option.value} className="cap-check">
+                  <input
+                    type="radio"
+                    name="outcome"
+                    value={option.value}
+                    required
+                    checked={outcome === option.value}
+                    onChange={() => setOutcome(option.value)}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {outcome === "accept" ? (
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
+                Presentation type
+              </label>
+              <select
+                id={`presentation-${abstract.id}`}
+                name="presentationType"
+                required
+                defaultValue={decision?.presentationType ?? "oral"}
+                className="cap-select"
+              >
+                {PRESENTATION_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {PRESENTATION_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          <RichTextField
+            name="decisionMessage"
+            label="Message to the author (optional)"
+            tags={BODY_TAGS}
+            lines="multi"
+            initialHTML={decision?.decisionMessage ?? ""}
+            help="Shown to the author with the decision."
+          />
+
+          <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
+            {decision ? "Update decision" : "Save decision"}
           </button>
         </Form>
-      ) : null}
+
+        {decision ? (
+          <Form method="post">
+            <input type="hidden" name="intent" value="clear" />
+            <input type="hidden" name="abstractId" value={abstract.id} />
+            <button
+              type="submit"
+              disabled={submitting}
+              onClick={(e) =>
+                confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
+              }
+              className="cap-btn"
+              data-variant="link"
+              data-size="sm"
+            >
+              Clear decision
+            </button>
+          </Form>
+        ) : null}
+      </div>
     </li>
   );
 }

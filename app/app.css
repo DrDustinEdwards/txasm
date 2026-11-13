@@ -6,9 +6,11 @@
 @import "capsomer/site-txasm.css";
 @import "capsomer/fallback-fonts.css";
 @import "capsomer/base.css";
+@import "capsomer/icons.css";
 @import "capsomer/site-header.css";
 @import "capsomer/admin-shell.css";
 @import "capsomer/dialog.css";
+@import "capsomer/panel.css";
 @import "capsomer/popover.css";
 @import "capsomer/theme-switch.css";
 @import "capsomer/breadcrumb.css";
@@ -16,6 +18,8 @@
 @import "capsomer/field.css";
 @import "capsomer/repeater-field.css";
 @import "capsomer/schema-form.css";
+@import "capsomer/toolbar.css";
+@import "capsomer/rich-text-field.css";
 @import "capsomer/select.css";
 @import "capsomer/tabs.css";
 @import "capsomer/banner.css";
@@ -25,6 +29,10 @@
 @import "capsomer/table.css";
 @import "capsomer/listbox.css";
 @import "capsomer/picture.css";
+@import "capsomer/card.css";
+@import "capsomer/row-list.css";
+@import "capsomer/combobox.css";
+@import "capsomer/trusted-html.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,
@@ -184,68 +192,6 @@
   font-weight: 600;
 }
 
-/* Rhythm and layout: a stack spaces its children (the number is Tailwind's
-   step it replaced, in quarters of a rem), a cluster lines them up and wraps,
-   a spread pushes them to both ends. */
-.stack-1 > * + * {
-  margin-top: 0.25rem;
-}
-.stack-2 > * + * {
-  margin-top: 0.5rem;
-}
-.stack-3 > * + * {
-  margin-top: 0.75rem;
-}
-.stack-4 > * + * {
-  margin-top: 1rem;
-}
-.stack-6 > * + * {
-  margin-top: 1.5rem;
-}
-.stack-8 > * + * {
-  margin-top: 2rem;
-}
-.stack-10 > * + * {
-  margin-top: 2.5rem;
-}
-/* A check or a button straight in a stack takes its own line, as a block would. */
-[class*="stack-"] > :is(.cap-check, .cap-btn) {
-  display: flex;
-  width: fit-content;
-}
-.cluster {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-}
-.spread {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-.grid-2,
-.grid-3,
-.grid-4 {
-  display: grid;
-  gap: 1rem;
-  @media (width >= 640px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (width >= 640px) {
-  .grid-3,
-  .grid-4 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (width >= 1024px) {
-  .grid-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
 .narrow {
   max-width: 28rem;
   margin-inline: auto;
@@ -263,34 +209,10 @@
 .officer-contact {
   margin-top: 0.75rem;
 }
-.past-officer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  @media (width >= 640px) {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 1rem;
-    & > :first-child {
-      flex: none;
-      width: 7rem;
-    }
-  }
-}
-
-.doc-pager {
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
-
 .tier-benefits {
   margin-top: 0.75rem;
 }
 .trail-years {
-  gap: 0.5rem;
-}
-
-.recipient {
   gap: 0.5rem;
 }
 
@@ -300,17 +222,6 @@
 .rule-below {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--line);
-}
-.abstract-row {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1rem;
-  & > :first-child {
-    flex: none;
-  }
-  & > :last-child {
-    min-width: 0;
-  }
 }
 .abstract-title {
   font-size: 1.5rem;
@@ -332,87 +243,8 @@
   align-items: baseline;
   gap: 0.5rem;
 }
-.tracks {
-  overflow-x: auto;
-  & > div {
-    display: grid;
-    gap: 1rem;
-  }
-}
 .speaker-bio {
   margin-top: 0.5rem;
-}
-.sponsor {
-  padding: 0.5rem 0.75rem;
-}
-
-/* The PDF viewer's frame; pdf.js paints the canvas. */
-.pdf-viewer {
-  padding: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--raised);
-}
-.pdf-viewer-bar {
-  gap: 0.5rem;
-}
-.pdf-viewer-zoom {
-  gap: 0.25rem;
-  margin-left: auto;
-  & > span {
-    width: 3rem;
-    text-align: center;
-  }
-}
-.pdf-viewer-page {
-  max-height: 80vh;
-  overflow: auto;
-  padding: 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-  & canvas {
-    display: block;
-    max-width: 100%;
-    margin-inline: auto;
-  }
-  /* Until its first page is drawn, the canvas holds a US Letter page at the viewer's scale (1.2), the size most
-     documents draw at, so the page below does not jump when it arrives (Lighthouse CLS). */
-  & canvas:not([data-sized]) {
-    width: 734px;
-    aspect-ratio: 612 / 792;
-  }
-}
-.pdf-viewer-error {
-  padding: 1.5rem;
-}
-
-/* A card, and a list of rows in one card. */
-.card {
-  padding: 1.25rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-}
-.card-list {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  & > li {
-    padding: 0.75rem 1rem;
-  }
-  & > li + li {
-    border-top: 1px solid var(--line);
-  }
-}
-/* A card that is one link: the edge darkens on hover. */
-.card-link {
-  display: block;
-  height: 100%;
-  text-decoration: none;
-  &:hover {
-    border-color: var(--line-strong);
-  }
 }
 .bullets {
   list-style: disc;
@@ -480,46 +312,13 @@
   }
 }
 
-/* Card variants: smaller padding, a sunken note, a dashed add-row, a warning edge. */
-.card-s {
-  padding: 0.75rem;
-  border-radius: var(--radius-m);
-}
-.card-sunken {
-  background: var(--sunken);
-}
-.card-dashed {
-  border-style: dashed;
-}
-.card-warn {
-  border-color: var(--warn);
-}
-
 /* More layout pieces for the admin and author screens. */
-.cluster-start {
-  align-items: flex-start;
-}
-.cluster-end {
-  align-items: flex-end;
-}
-.cluster-tight {
-  gap: 0.25rem;
-}
-.cluster-right {
-  justify-content: flex-end;
-}
-.push-end {
-  margin-inline-start: auto;
-}
 .grow {
   flex: 1;
   min-width: 0;
 }
 .shrink {
   min-width: 0;
-}
-.relative {
-  position: relative;
 }
 .inline {
   display: inline;
@@ -533,10 +332,9 @@
 .mt-3 {
   margin-top: 0.75rem;
 }
+/* A field that takes a whole row of a .cap-grid. */
 .span-2 {
-  @media (width >= 640px) {
-    grid-column: span 2;
-  }
+  grid-column: 1 / -1;
 }
 .short-field {
   max-width: 10rem;
@@ -558,16 +356,6 @@
 .divided > * + * {
   border-top: 1px solid var(--line);
 }
-.legend {
-  padding-inline: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-.summary {
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
 .cell-end {
   text-align: end;
 }
@@ -581,23 +369,6 @@
 .crit-text {
   color: var(--crit);
 }
-/* A button that reads as a link (a form's submit inside running text). */
-.link-button {
-  border: 0;
-  padding: 0;
-  background: none;
-  cursor: pointer;
-  &:not(.crit-text, .cap-muted) {
-    color: var(--accent-text);
-  }
-  &:hover {
-    text-decoration: underline;
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-}
 .logo-thumb {
   flex: none;
   width: 3rem;
@@ -609,63 +380,101 @@
   object-fit: contain;
 }
 
-/* The program builder's concurrent tracks: one column per track, scrolling
-   sideways on a narrow screen rather than crushing. */
-.track-scroll {
-  overflow-x: auto;
-}
-.track-grid {
-  display: grid;
-  gap: 1rem;
+/* txasm's own look on Capsomer's parts, set by their tokens and slots (Capsomer's "A site's own look"). */
+
+/* The compact disclosure cards of the admin pages: 12px around the card, a bare summary, an 8px marker gap, a 12px
+   gap above the body. */
+:root {
+  --disclosure-pad: 12px;
+  --disclosure-summary-pad: 0;
+  --disclosure-summary-min-h: 0;
+  --disclosure-body-pad: 0;
+  --disclosure-body-gap: 12px;
+  --disclosure-marker-gap: 8px;
 }
 
-/* The abstract book's running order: a dashed, faded row is left out; a
-   draggable row shows the grab cursor. */
+/* Repeatable rows (authors, affiliations): boxed items 12px in and 16px apart, 12px between the head and the
+   fields, the fields flush with the head; Up and Down in the text color and 16px apart, Remove a boxed button in
+   red. */
+.sort-card,
+.sort-plain {
+  --sortable-card-pad: 12px;
+  --sortable-card-radius: var(--radius-m);
+  --sortable-gap: 16px;
+  --sortable-remove-ink: var(--crit);
+  --sortable-remove-hover-ink: var(--crit);
+  --sortable-remove-fs: 14px;
+  --sortable-remove-weight: 600;
+  --sortable-item-gap: 12px;
+  --sortable-steps-gap: 16px;
+  --sortable-step-ink: var(--text);
+  --sortable-remove-pad-inline: 8px;
+  --sortable-body-pad-inline: 0;
+}
+/* "Add affiliation" and "Add author" sit 16px under their list: the form's own gap, nothing added. */
+:is(.sort-card, .sort-plain) + [data-cap-part="add"] {
+  --sortable-add-gap: 0;
+}
+/* Affiliations have no box per row: no inset, and the fields 4px under the head. */
+.sort-plain {
+  --sortable-item-border: 0;
+  --sortable-item-bg: transparent;
+  --sortable-card-pad: 0;
+  --sortable-item-gap: 4px;
+}
+
+/* A session's program items: 12px rows 8px apart, the text and the buttons on one baseline 12px apart (the buttons
+   drop 12px under a long title), then "Edit item" 8px under them; Up and Down in the text color and 16px apart, Remove a bare word in the link
+   color; an empty session is its words. */
+.sort-rows {
+  --sortable-gap: 8px;
+  --sortable-item-wrap: wrap;
+  --sortable-steps-gap: 16px;
+  --sortable-step-ink: var(--text);
+  --sortable-empty-pad: 0;
+  --sortable-empty-border: 0;
+  --sortable-item-pad: 12px;
+  --sortable-item-gap: 12px;
+  --sortable-foot-gap: 8px;
+  --sortable-item-align: baseline;
+  --sortable-remove-pad-inline: 0;
+  --sortable-remove-ink: var(--accent-text);
+  --sortable-remove-hover-ink: var(--accent-text);
+  --sortable-remove-fs: 14px;
+  --sortable-remove-weight: 600;
+}
+
+/* The abstract book: each section a bordered box, each entry a bordered 8px row; an excluded entry is dashed,
+   sunken and faded. */
+.sort-book {
+  --sortable-gap: 8px;
+  --sortable-item-pad: 8px;
+  --sortable-item-gap: 8px;
+  --sortable-item-radius: var(--radius-s);
+  --sortable-item-border: 1px solid var(--line);
+  --sortable-item-bg: var(--surface);
+  --sortable-lane-pad: 12px;
+  --sortable-lane-border: 1px solid var(--line);
+  --sortable-lane-radius: var(--radius-m);
+  --sortable-lane-bg: var(--surface);
+}
+.book-excluded {
+  border-style: dashed;
+  background: var(--sunken);
+  opacity: 0.6;
+}
+/* An entry's own text, inside the item. */
 .book-entry {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  background: var(--surface);
   font-size: 0.875rem;
-  &[data-excluded] {
-    border-style: dashed;
-    background: var(--sunken);
-    opacity: 0.6;
-  }
-  &[data-draggable] {
-    cursor: grab;
-  }
 }
 
-/* The institution suggestions under their input. */
-.suggest-popup {
-  position: absolute;
-  z-index: 40;
-  inset-inline: 0;
-  margin-top: 0.25rem;
-  max-height: 15rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--raised);
-  box-shadow: var(--shadow-m);
-}
 .date-field {
   width: auto;
 }
-/* The rich editor's editable box: room for a title or a body. */
-.rich-input {
-  min-height: 3rem;
-  height: auto;
-  padding-block: 0.5rem;
-  &[data-mode="body"] {
-    min-height: 7rem;
-  }
-}
-
 /* The admin page is a grid: its column must be able to shrink below a wide
    table, so the table's own region scrolls instead of the page. */
 .cap-admin-page > * {

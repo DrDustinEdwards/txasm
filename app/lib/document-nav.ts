@@ -1,3 +1,4 @@
+import { adjacent } from "capsomer/behavior/document-archive";
 import { SEASON_LABELS, type DocumentCategory, type Season } from "./vocab";
 
 // Public URL structure for the document archive, kept in one place so the index
@@ -37,15 +38,14 @@ export function documentSubtitle(doc: ArchiveDoc): string {
   return parts.join(" · ");
 }
 
-// Neighboring slugs within an ordered category list, for Previous and Next.
-export function adjacentSlugs(
-  list: Array<{ slug: string }>,
+// Previous and Next within an ordered category list, as the pager names them.
+export function neighbors(
+  list: Array<{ slug: string; title: string }>,
   slug: string,
-): { prevSlug: string | null; nextSlug: string | null } {
-  const index = list.findIndex((d) => d.slug === slug);
-  if (index < 0) return { prevSlug: null, nextSlug: null };
-  return {
-    prevSlug: index > 0 ? list[index - 1].slug : null,
-    nextSlug: index < list.length - 1 ? list[index + 1].slug : null,
-  };
+  basePath: string,
+): { prev: { title: string; href: string } | null; next: { title: string; href: string } | null } {
+  const { prev, next } = adjacent(list, slug, (d) => d.slug);
+  const link = (d: { slug: string; title: string } | null) =>
+    d ? { title: d.title, href: `${basePath}/${d.slug}` } : null;
+  return { prev: link(prev), next: link(next) };
 }

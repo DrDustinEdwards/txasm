@@ -1,7 +1,8 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.new";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -17,7 +18,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "New meeting");
+  return privateMeta(pageTitle(matches, "New meeting"));
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -72,8 +73,8 @@ export default function NewEdition() {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">New meeting</h1>
         <p>Each meeting has a season and year, and the two together must be unique.</p>
       </div>
@@ -84,8 +85,8 @@ export default function NewEdition() {
         </p>
       ) : null}
 
-      <Form method="post" className="stack-4" noValidate>
-        <div className="stack-1">
+      <Form method="post" className="cap-stack" noValidate>
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="name" className="cap-field-label">
             Name
           </label>
@@ -99,7 +100,7 @@ export default function NewEdition() {
           />
         </div>
 
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="season" className="cap-field-label">
             Season
           </label>
@@ -112,7 +113,7 @@ export default function NewEdition() {
           </select>
         </div>
 
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="year" className="cap-field-label">
             Year
           </label>
@@ -129,7 +130,7 @@ export default function NewEdition() {
           />
         </div>
 
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -142,7 +143,7 @@ export default function NewEdition() {
           </select>
         </div>
 
-        <div className="cluster">
+        <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Creating..." : "Create meeting"}
           </button>

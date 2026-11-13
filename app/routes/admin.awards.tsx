@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.awards";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -9,13 +10,14 @@ import {
   ValidationError,
   getDataAccess,
 } from "~/lib/data-access";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Awards");
+  return privateMeta(pageTitle(matches, "Awards"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -81,8 +83,8 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <header className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="3">
         <h1 className="page-title">Awards</h1>
         <p className="cap-muted">
           The branch's named awards. Edit an award to manage its recipients, the every-meeting
@@ -99,58 +101,57 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
       {awards.length === 0 ? (
         <p className="cap-muted">No awards yet. Add the first below.</p>
       ) : (
-        <ul className="stack-3">
+        <ul className="cap-stack" data-gap="4">
           {awards.map((award) => (
-            <li key={award.id} className="card spread">
-              <div className="shrink">
-                <Link to={`/admin/awards/${award.slug}`} className="strong">
-                  {award.name}
-                </Link>
-                <p className="small cap-muted">
-                  {award.slug} &middot; {award.recipientCount}{" "}
-                  {award.recipientCount === 1 ? "recipient" : "recipients"}
-                </p>
-              </div>
-              <div className="cluster">
-                <Link to={`/admin/awards/${award.slug}`} className="small strong">
-                  Manage
-                </Link>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="awardId" value={award.id} />
-                  <button
-                    type="submit"
-                    onClick={(e) =>
-                      confirmSubmit(e, {
-                        title: `Remove ${award.name} and all its recipients?`,
-                        action: "Remove award",
-                      })
-                    }
-                    className="small strong"
-                  >
-                    Remove
-                  </button>
-                </Form>
+            <li key={award.id} className="cap-panel">
+              <div className="cap-panel-body cap-spread">
+                <div className="shrink">
+                  <Link to={`/admin/awards/${award.slug}`} className="strong">
+                    {award.name}
+                  </Link>
+                  <p className="small cap-muted">
+                    {award.slug} &middot; {award.recipientCount}{" "}
+                    {award.recipientCount === 1 ? "recipient" : "recipients"}
+                  </p>
+                </div>
+                <div className="cap-cluster">
+                  <Link to={`/admin/awards/${award.slug}`} className="small strong">
+                    Manage
+                  </Link>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="awardId" value={award.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${award.name} and all its recipients?`,
+                          action: "Remove award",
+                        })
+                      }
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </Form>
+                </div>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section aria-labelledby="add-award-heading" className="card stack-4">
-        <h2 id="add-award-heading" className="subsection-title">
-          Add an award
-        </h2>
-        <Form method="post" className="stack-4" noValidate>
+      <Panel title="Add an award" headingId="add-award-heading">
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="grid-2">
-            <div className="stack-1">
+          <div className="cap-grid" data-cols="2">
+            <div className="cap-stack" data-gap="2">
               <label htmlFor="name" className="cap-field-label">
                 Name
               </label>
               <input id="name" name="name" type="text" required className="cap-input" />
             </div>
-            <div className="stack-1">
+            <div className="cap-stack" data-gap="2">
               <label htmlFor="slug" className="cap-field-label">
                 Slug
               </label>
@@ -164,13 +165,13 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
               <p className="tiny cap-muted">Leave blank to derive from the name.</p>
             </div>
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="namesakeBio" className="cap-field-label">
               Namesake bio
             </label>
             <textarea id="namesakeBio" name="namesakeBio" rows={2} className="cap-input" />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="description" className="cap-field-label">
               Description
             </label>
@@ -179,7 +180,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
               Bio and description support italics, superscript, and subscript.
             </p>
           </div>
-          <div className="stack-1 short-field">
+          <div className="cap-stack short-field" data-gap="2">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -196,7 +197,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add award"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

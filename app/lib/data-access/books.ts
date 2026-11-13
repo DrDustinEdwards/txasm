@@ -1,6 +1,7 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { inList, chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
-import { extractPlainText } from "../richtext";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { ABSTRACT_LEVELS, type AbstractFormat, type AbstractLevel } from "../vocab";
 import {
   assembleBookAbstracts,
@@ -17,11 +18,8 @@ import {
 } from "./book-model";
 import {
   type Actor,
-  byIdChunks,
-  chunk,
   type DB,
   ForbiddenError,
-  insertChunkSize,
   isChair,
   NotFoundError,
   ValidationError,
@@ -144,7 +142,7 @@ export function createBooks(db: DB) {
             (px?.firstName ?? "").localeCompare(py?.firstName ?? "", "en", {
               sensitivity: "base",
             }) ||
-            extractPlainText(x.title).localeCompare(extractPlainText(y.title), "en", {
+            richTextPlain(x.title).localeCompare(richTextPlain(y.title), "en", {
               sensitivity: "base",
             })
           );
@@ -188,10 +186,10 @@ export function createBooks(db: DB) {
       }
       // A row binds one parameter per column (timestamps included), so each
       // batch stays under D1's limit of 100.
-      for (const batch of chunk(sectionRows, insertChunkSize(9))) {
+      for (const batch of chunked(sectionRows, rowsPerInsert(9))) {
         await db.insert(schema.bookSection).values(batch);
       }
-      for (const batch of chunk(entryRows, insertChunkSize(9))) {
+      for (const batch of chunked(entryRows, rowsPerInsert(9))) {
         await db.insert(schema.bookEntry).values(batch);
       }
       await recomputeBookCodes(db, bookId);
@@ -356,10 +354,15 @@ export function createBooks(db: DB) {
         .orderBy(schema.bookEntry.sortOrder);
       const entries = allEntries.filter((e) => e.included);
 
-      const absRows = await byIdChunks(
-        entries.map((e) => e.abstractId),
-        (part) => db.select().from(schema.abstract).where(inArray(schema.abstract.id, part)),
-      );
+      const absRows = await db
+        .select()
+        .from(schema.abstract)
+        .where(
+          inList(
+            schema.abstract.id,
+            entries.map((e) => e.abstractId),
+          ),
+        );
       const absById = new Map(absRows.map((a) => [a.id, a]));
       const parts = await assembleBookAbstracts(
         db,

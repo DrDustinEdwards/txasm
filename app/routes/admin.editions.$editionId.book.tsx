@@ -1,8 +1,14 @@
-import { type DragEvent, useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Panel } from "capsomer/react/panel";
 import { Form, useFetcher } from "react-router";
+import { ActionResult } from "capsomer/react/message";
+import { SortableBoard } from "capsomer/react/sortable-list";
+// Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
+import "capsomer/sortable-list.css";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.book";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import {
@@ -13,13 +19,23 @@ import {
   type BookView,
 } from "~/lib/data-access";
 import { publishArrangedBook } from "~/lib/book-pdf.server";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
+import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { GeneratedFile } from "capsomer/react/generated-file";
+import { Status } from "capsomer/react/status";
+import { Time } from "capsomer/react/time";
+import { RichText } from "capsomer/react/trusted-html";
+import generatedFile from "~/styles/generated-file.css?url";
+
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: generatedFile }];
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Abstract book builder");
+  return privateMeta(pageTitle(matches, "Abstract book builder"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -106,36 +122,10 @@ function arrangementFrom(sections: BookSectionView[]): BookArrangementInput {
   };
 }
 
-function moveEntry(
-  sections: BookSectionView[],
-  entryId: string,
-  targetSectionId: string,
-  targetIndex: number,
-): BookSectionView[] {
-  let moved: BookSectionView["entries"][number] | undefined;
-  const stripped = sections.map((s) => {
-    const idx = s.entries.findIndex((e) => e.entryId === entryId);
-    if (idx < 0) return s;
-    moved = s.entries[idx];
-    return { ...s, entries: s.entries.filter((e) => e.entryId !== entryId) };
-  });
-  if (!moved) return sections;
-  const entry = moved;
-  return stripped.map((s) => {
-    if (s.sectionId !== targetSectionId) return s;
-    const entries = [...s.entries];
-    const clamped = Math.max(0, Math.min(targetIndex, entries.length));
-    entries.splice(clamped, 0, entry);
-    return { ...s, entries };
-  });
-}
-
 export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps) {
   const { edition, pdf } = loaderData;
   const fetcher = useFetcher<typeof action>();
   const [book, setBook] = useState<BookView | null>(loaderData.book);
-  const [dragId, setDragId] = useState<string | null>(null);
-  const statusRef = useRef<HTMLParagraphElement>(null);
 
   // The action returns the authoritative BookView (with reflowed codes); adopt it
   // whenever a builder mutation resolves. Adjusted while rendering, not in an
@@ -158,63 +148,26 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
     setBook(loaderData.book);
   }
 
-  const fetcherMsg =
-    fetcher.data && "error" in fetcher.data
-      ? (fetcher.data as { error?: string }).error
-      : fetcher.data && "ok" in fetcher.data
-        ? (fetcher.data as { ok?: string }).ok
-        : null;
-  const fetcherError = Boolean(fetcher.data && "error" in fetcher.data && fetcher.data.error);
-  useEffect(() => {
-    if (fetcherMsg) statusRef.current?.focus();
-  }, [fetcherMsg]);
-
   const busy = fetcher.state !== "idle";
+  // A move is shown at once and saved behind it, so the board stays usable (and the pressed control keeps focus)
+  // while it saves; any other save under way disables it.
+  const boardBusy = busy && fetcher.formData?.get("intent") !== "reorder";
   const published = book?.status === "published";
   const editable = Boolean(book) && !published;
 
-  function submitReorder(nextSections: BookSectionView[]) {
+  // A move on the board: every section's new order, shown at once and saved. The action answers with the
+  // reflowed codes, which the book adopts above.
+  function submitReorder(lists: Record<string, string[]>) {
     if (!book) return;
-    setBook({ ...book, sections: nextSections });
+    const byId = new Map(book.sections.flatMap((s) => s.entries).map((e) => [e.entryId, e]));
+    const sections = book.sections.map((s) => ({
+      ...s,
+      entries: (lists[s.sectionId] ?? []).flatMap((id) => byId.get(id) ?? []),
+    }));
+    setBook({ ...book, sections });
     void fetcher.submit(
-      {
-        intent: "reorder",
-        arrangement: JSON.stringify(arrangementFrom(nextSections)),
-      },
+      { intent: "reorder", arrangement: JSON.stringify(arrangementFrom(sections)) },
       { method: "post" },
-    );
-  }
-
-  function onDropOnEntry(targetSectionId: string, targetIndex: number, event: DragEvent) {
-    event.preventDefault();
-    if (!book || !dragId || !editable) return;
-    submitReorder(moveEntry(book.sections, dragId, targetSectionId, targetIndex));
-    setDragId(null);
-  }
-
-  function onDropOnSection(targetSectionId: string, event: DragEvent) {
-    event.preventDefault();
-    if (!book || !dragId || !editable) return;
-    const target = book.sections.find((s) => s.sectionId === targetSectionId);
-    const end = target ? target.entries.length : 0;
-    submitReorder(moveEntry(book.sections, dragId, targetSectionId, end));
-    setDragId(null);
-  }
-
-  function nudge(section: BookSectionView, index: number, direction: -1 | 1) {
-    if (!book) return;
-    const target = index + direction;
-    if (target < 0 || target >= section.entries.length) return;
-    submitReorder(
-      moveEntry(book.sections, section.entries[index].entryId, section.sectionId, target),
-    );
-  }
-
-  function moveToSection(entryId: string, targetSectionId: string) {
-    if (!book) return;
-    const target = book.sections.find((s) => s.sectionId === targetSectionId);
-    submitReorder(
-      moveEntry(book.sections, entryId, targetSectionId, target ? target.entries.length : 0),
     );
   }
 
@@ -226,8 +179,8 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
   }
 
   return (
-    <div className="stack-6">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Abstract book builder</h1>
         <p>
           {edition.name}.{" "}
@@ -241,90 +194,86 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         </p>
       </div>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={fetcherError ? "alert" : "status"}
-        className={fetcherError || fetcherMsg ? "cap-alert" : "cap-sr-only"}
-        data-tone={fetcherError ? "crit" : "ok"}
-      >
-        {fetcherMsg ?? ""}
-      </p>
+      <ActionResult data={fetcher.data} />
 
       {!book ? (
-        <section className="card stack-3">
-          <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
-          <fetcher.Form method="post">
-            <input type="hidden" name="intent" value="generate" />
-            <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
-              {busy ? "Generating..." : "Generate draft book"}
-            </button>
-          </fetcher.Form>
-        </section>
+        <Panel>
+          <div className="cap-stack" data-gap="4">
+            <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="generate" />
+              <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
+                {busy ? "Generating..." : "Generate draft book"}
+              </button>
+            </fetcher.Form>
+          </div>
+        </Panel>
       ) : (
         <>
-          <div className="card card-s cluster">
-            <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
-              {published ? "Published" : "Draft"}
-            </span>
-            <span className="small cap-muted">
-              {book.includedCount} included
-              {book.publishedAt ? ` . published ${formatDateTime(book.publishedAt)}` : ""}
-            </span>
-            <span className="cluster push-end">
-              <a
-                href={`/admin/editions/${edition.id}/book/preview`}
-                target="_blank"
-                rel="noreferrer"
-                className="small strong"
-              >
-                Open preview
-                <span className="cap-sr-only"> (opens in a new tab)</span>
-              </a>
-              {published ? (
-                <fetcher.Form method="post">
-                  <input type="hidden" name="intent" value="reopen" />
-                  <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-                    Reopen to edit
-                  </button>
-                </fetcher.Form>
-              ) : (
-                <fetcher.Form method="post">
-                  <input type="hidden" name="intent" value="publish" />
+          <Panel size="sm">
+            <div className="cap-cluster">
+              <span className="cap-badge" data-tone={published ? "ok" : "warn"}>
+                {published ? "Published" : "Draft"}
+              </span>
+              <span className="small cap-muted">
+                {book.includedCount} included
+                {book.publishedAt ? ` . published ${formatDate(book.publishedAt, DATE_TIME)}` : ""}
+              </span>
+              <span className="cap-cluster cap-push">
+                <a
+                  href={`/admin/editions/${edition.id}/book/preview`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="small strong"
+                >
+                  Open preview
+                  <span className="cap-sr-only"> (opens in a new tab)</span>
+                </a>
+                {published ? (
+                  <fetcher.Form method="post">
+                    <input type="hidden" name="intent" value="reopen" />
+                    <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+                      Reopen to edit
+                    </button>
+                  </fetcher.Form>
+                ) : (
+                  <fetcher.Form method="post">
+                    <input type="hidden" name="intent" value="publish" />
+                    <button
+                      type="submit"
+                      disabled={busy}
+                      className="cap-btn"
+                      data-variant="primary"
+                      data-size="sm"
+                    >
+                      Publish
+                    </button>
+                  </fetcher.Form>
+                )}
+                <fetcher.Form
+                  method="post"
+                  onSubmit={(e) =>
+                    confirmSubmit(e, {
+                      title: "Regenerate the book?",
+                      lead: "This rebuilds the arrangement from the accepted abstracts and discards manual ordering.",
+                      action: "Regenerate",
+                    })
+                  }
+                >
+                  <input type="hidden" name="intent" value="generate" />
                   <button
                     type="submit"
-                    disabled={busy}
+                    disabled={busy || published}
+                    title={published ? "Reopen the book before regenerating." : undefined}
                     className="cap-btn"
-                    data-variant="primary"
                     data-size="sm"
                   >
-                    Publish
+                    Regenerate
                   </button>
                 </fetcher.Form>
-              )}
-              <fetcher.Form
-                method="post"
-                onSubmit={(e) =>
-                  confirmSubmit(e, {
-                    title: "Regenerate the book?",
-                    lead: "This rebuilds the arrangement from the accepted abstracts and discards manual ordering.",
-                    action: "Regenerate",
-                  })
-                }
-              >
-                <input type="hidden" name="intent" value="generate" />
-                <button
-                  type="submit"
-                  disabled={busy || published}
-                  title={published ? "Reopen the book before regenerating." : undefined}
-                  className="cap-btn"
-                  data-size="sm"
-                >
-                  Regenerate
-                </button>
-              </fetcher.Form>
-            </span>
-          </div>
+              </span>
+            </div>
+          </Panel>
 
           {published ? (
             <p className="small cap-muted">
@@ -332,161 +281,104 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
             </p>
           ) : null}
 
-          <div className="stack-4">
-            {book.sections.length === 0 ? (
-              <p>No sections. There may be no accepted abstracts for this meeting yet.</p>
-            ) : (
-              book.sections.map((section) => (
-                <section
-                  key={section.sectionId}
-                  onDragOver={(e) => {
-                    if (editable) e.preventDefault();
-                  }}
-                  onDrop={(e) => onDropOnSection(section.sectionId, e)}
-                  className="card card-s"
-                >
-                  <h2 className="subsection-title">{section.title}</h2>
-                  <ul className="stack-2">
-                    {section.entries.map((entry, index) => (
-                      // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- drag to reorder is the pointer path; the Move up and Move down buttons are the keyboard one
-                      <li
-                        key={entry.entryId}
-                        draggable={editable}
-                        onDragStart={() => setDragId(entry.entryId)}
-                        onDragEnd={() => setDragId(null)}
-                        onDragOver={(e) => {
-                          if (editable) e.preventDefault();
-                        }}
-                        onDrop={(e) => onDropOnEntry(section.sectionId, index, e)}
-                        className="book-entry"
-                        data-excluded={entry.included ? undefined : ""}
-                        data-draggable={editable ? "" : undefined}
-                      >
-                        <span className="tiny cap-muted cap-num time-col">{entry.code ?? "-"}</span>
-                        <span className="grow">
-                          <span
-                            className="strong"
-                            // Title is stored sanitized (em/sup/sub only).
-                            dangerouslySetInnerHTML={{ __html: entry.title }}
-                          />
-                          <span className="tiny cap-muted block">
-                            {entry.presentingAuthorName ?? "No presenter"}
-                            {entry.levelLabel ? ` . ${entry.levelLabel}` : ""}
-                            {entry.formatLabel ? ` . ${entry.formatLabel}` : ""}
-                          </span>
-                        </span>
-                        {editable ? (
-                          <span className="cluster cluster-tight">
-                            <button
-                              type="button"
-                              aria-label="Move up"
-                              disabled={busy || index === 0}
-                              onClick={() => nudge(section, index, -1)}
-                              className="cap-btn"
-                              data-size="sm"
-                            >
-                              {"↑"}
-                            </button>
-                            <button
-                              type="button"
-                              aria-label="Move down"
-                              disabled={busy || index === section.entries.length - 1}
-                              onClick={() => nudge(section, index, 1)}
-                              className="cap-btn"
-                              data-size="sm"
-                            >
-                              {"↓"}
-                            </button>
-                            <label className="cap-sr-only" htmlFor={`move-${entry.entryId}`}>
-                              Move to section
-                            </label>
-                            <select
-                              id={`move-${entry.entryId}`}
-                              value={section.sectionId}
-                              disabled={busy}
-                              onChange={(e) => moveToSection(entry.entryId, e.target.value)}
-                              className="cap-select"
-                              data-size="sm"
-                            >
-                              {book.sections.map((s) => (
-                                <option key={s.sectionId} value={s.sectionId}>
-                                  {s.title}
-                                </option>
-                              ))}
-                            </select>
-                            <label className="cluster cluster-tight tiny">
-                              <input
-                                type="checkbox"
-                                checked={entry.included}
-                                disabled={busy}
-                                onChange={(e) => toggleIncluded(entry.entryId, e.target.checked)}
-                              />
-                              In
-                            </label>
-                          </span>
-                        ) : (
-                          <span className="tiny cap-muted">{entry.included ? "" : "Excluded"}</span>
-                        )}
-                      </li>
-                    ))}
-                    {section.entries.length === 0 ? (
-                      <li className="card card-s card-dashed tiny cap-muted">
-                        Empty. Drag an abstract here.
-                      </li>
-                    ) : null}
-                  </ul>
-                </section>
-              ))
-            )}
-          </div>
+          {book.sections.length === 0 ? (
+            <p>No sections. There may be no accepted abstracts for this meeting yet.</p>
+          ) : (
+            <SortableBoard
+              aria-label="Abstract book sections"
+              className="sort-book"
+              steps="bordered"
+              grip={false}
+              itemClassName={(entry) => (entry.included ? undefined : "book-excluded")}
+              lanes={book.sections.map((section) => ({
+                id: section.sectionId,
+                label: section.title,
+                items: section.entries,
+              }))}
+              getId={(entry) => entry.entryId}
+              getLabel={(entry) =>
+                [entry.code, richTextPlain(entry.title)].filter(Boolean).join(" ")
+              }
+              readOnly={published}
+              busy={boardBusy}
+              empty="Empty. Drag an abstract here."
+              onMove={submitReorder}
+              renderLaneHead={(lane) => <h2 className="subsection-title">{lane.label}</h2>}
+              renderControls={(entry) =>
+                editable ? (
+                  <label className="cap-cluster tiny" data-gap="2">
+                    <input
+                      type="checkbox"
+                      checked={entry.included}
+                      disabled={busy}
+                      onChange={(e) => toggleIncluded(entry.entryId, e.target.checked)}
+                    />
+                    In
+                  </label>
+                ) : null
+              }
+              renderItem={(entry) => (
+                <span className="book-entry">
+                  <span className="tiny cap-muted cap-num time-col">{entry.code ?? "-"}</span>
+                  <span className="grow">
+                    {/* Title is stored sanitized (em/sup/sub only). */}
+                    <RichText as="span" className="strong" html={entry.title} />
+                    <span className="tiny cap-muted block">
+                      {entry.presentingAuthorName ?? "No presenter"}
+                      {entry.levelLabel ? ` . ${entry.levelLabel}` : ""}
+                      {entry.formatLabel ? ` . ${entry.formatLabel}` : ""}
+                    </span>
+                  </span>
+                  {editable ? null : (
+                    <span className="tiny cap-muted">{entry.included ? "" : "Excluded"}</span>
+                  )}
+                </span>
+              )}
+            />
+          )}
         </>
       )}
 
       {/* The published book's PDF, produced on publish via Browser Rendering and
-          delivered through the document/R2 path. Publish it to the public archive. */}
-      <section className="card stack-3">
-        <h2 className="subsection-title">Book PDF</h2>
-        <p className="small cap-muted">
-          The PDF is produced from the arranged book when you publish, via Browser Rendering.
-          Publish it to the archive to make it public.
-        </p>
-        {!pdf ? (
-          <p className="small">No PDF yet. Publish the book to produce it.</p>
-        ) : pdf.genStatus === "ready" ? (
-          <div className="stack-1 small">
-            <p>
-              <span className="strong ok-text">Ready</span>
-              {pdf.generatedAt ? ` . ${formatDateTime(pdf.generatedAt)}` : ""}
-              {typeof pdf.abstractCount === "number" ? ` . ${pdf.abstractCount} abstracts` : ""}
-            </p>
-            <p>
-              <a href={`/admin/editions/${edition.id}/book/download`} className="strong">
-                Download the PDF
-              </a>
-            </p>
-            <p>
-              {pdf.status === "published" ? (
-                <span className="strong ok-text">Published to the archive</span>
-              ) : (
-                <Form method="post" className="inline">
-                  <input type="hidden" name="intent" value="pdf-publish" />
-                  <input type="hidden" name="documentId" value={pdf.id} />
-                  <button type="submit" className="cap-btn" data-size="sm">
-                    Publish to archive
-                  </button>
-                </Form>
-              )}
-            </p>
-          </div>
-        ) : pdf.genStatus === "generating" ? (
-          <p className="small">The PDF is rendering. Refresh in a minute.</p>
-        ) : (
-          <p className="small">
-            The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML
-            preview is available above.
-          </p>
-        )}
-      </section>
+          delivered through the document/R2 path. Publishing the book is what makes
+          it, so the panel has no Generate button. Publish it to the public archive. */}
+      <GeneratedFile
+        title="Book PDF"
+        description="The PDF is produced from the arranged book when you publish, via Browser Rendering. Publish it to the archive to make it public."
+        record={pdf?.record}
+        downloadHref={`/admin/editions/${edition.id}/book/download`}
+        generate={false}
+        messages={{
+          none: "Publish the book to produce it.",
+          generating: "The PDF is rendering. Refresh in a minute.",
+          failed:
+            "The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML preview is available above.",
+          ...(pdf?.generatedAt && typeof pdf.abstractCount === "number"
+            ? {
+                ready: (
+                  <>
+                    Made <Time at={pdf.generatedAt} format="exact" />, {pdf.abstractCount}{" "}
+                    abstracts.
+                  </>
+                ),
+              }
+            : {}),
+        }}
+      >
+        {pdf?.record.generatedAt ? (
+          pdf.status === "published" ? (
+            <Status tone="ok">Published to the archive</Status>
+          ) : (
+            <Form method="post">
+              <input type="hidden" name="intent" value="pdf-publish" />
+              <input type="hidden" name="documentId" value={pdf.id} />
+              <button type="submit" className="cap-btn">
+                Publish to archive
+              </button>
+            </Form>
+          )
+        ) : null}
+      </GeneratedFile>
     </div>
   );
 }

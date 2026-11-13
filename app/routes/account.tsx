@@ -27,19 +27,21 @@ import {
   signalUnknownCredential,
 } from "@dustinedwards/site-runtime/sign-in-client";
 import type { Route } from "./+types/account";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getAuth } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
 import { authClient } from "~/lib/auth-client";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
 import { readForm } from "@dustinedwards/site-runtime/body";
 
 // An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Account");
+  return privateMeta(pageTitle(matches, "Account"));
 }
 
 // A security history row's kind (site-runtime securityHistory), in words; a sign-in says how.
@@ -302,8 +304,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
 
   if (welcome) {
     return (
-      <div className="narrow stack-6">
-        <div className="stack-2">
+      <div className="narrow cap-stack" data-gap="6">
+        <div className="cap-stack" data-gap="3">
           <h1 className="page-title">You are signed in</h1>
           {offerable ? (
             <p>
@@ -318,7 +320,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         {offerable ? (
-          <Form method="post" className="cluster">
+          <Form method="post" className="cap-cluster">
             {addButton}
             <button
               type="submit"
@@ -336,9 +338,9 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="narrow stack-6">
+    <div className="narrow cap-stack" data-gap="6">
       <h1 className="page-title">Account</h1>
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Email address</h2>
         <p>
           Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this
@@ -351,7 +353,8 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : (
         <form
-          className="stack-3"
+          className="cap-stack"
+          data-gap="4"
           onSubmit={(event) => {
             event.preventDefault();
             void changeEmail(event.currentTarget);
@@ -388,7 +391,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           </div>
         </form>
       )}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Passkeys</h2>
         <p>
           A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in
@@ -398,12 +401,12 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       {passkeys.length === 0 ? (
         <p className="cap-muted">No passkeys yet.</p>
       ) : (
-        <ul className="stack-3" aria-label="Your passkeys">
+        <ul className="cap-stack" data-gap="4" aria-label="Your passkeys">
           {passkeys.map((p) =>
             renaming === p.id ? (
               <li key={p.id}>
                 <form
-                  className="cluster"
+                  className="cap-cluster"
                   onSubmit={(event) => {
                     event.preventDefault();
                     void renamePasskey(p.id, event.currentTarget);
@@ -434,13 +437,13 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                 </form>
               </li>
             ) : (
-              <li key={p.id} className="cluster">
+              <li key={p.id} className="cap-cluster">
                 <span>
                   {p.name}
                   <span className="small cap-muted">
                     {p.provider !== p.name ? ` (${p.provider})` : ""}
-                    {p.createdAt ? `, added ${formatDateTime(new Date(p.createdAt))}` : ""}
-                    {`, ${p.lastUsedAt ? `last used ${formatDateTime(new Date(p.lastUsedAt))}` : "not used to sign in yet"}`}
+                    {p.createdAt ? `, added ${formatDate(new Date(p.createdAt), DATE_TIME)}` : ""}
+                    {`, ${p.lastUsedAt ? `last used ${formatDate(new Date(p.lastUsedAt), DATE_TIME)}` : "not used to sign in yet"}`}
                   </span>
                 </span>
                 <button
@@ -473,7 +476,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
       <div>{addButton}</div>
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Signed-in devices</h2>
         <p>
           Where you are signed in. Sign out of a device you do not know, or one you no longer use.
@@ -485,15 +488,15 @@ export default function Account({ loaderData }: Route.ComponentProps) {
         </p>
       ) : (
         <>
-          <ul className="stack-3" aria-label="Your signed-in devices">
+          <ul className="cap-stack" data-gap="4" aria-label="Your signed-in devices">
             {sessions.map((s) => (
-              <li key={s.id} className="cluster">
+              <li key={s.id} className="cap-cluster">
                 <span>
                   {s.device ?? "Unknown device"}
                   <span className="small cap-muted">
                     {s.current
                       ? " (this device)"
-                      : ` signed in ${formatDateTime(new Date(s.signedInAt))}, last active ${formatDateTime(new Date(s.lastActiveAt))}${s.location ? ` near ${s.location}` : ""}`}
+                      : ` signed in ${formatDate(new Date(s.signedInAt), DATE_TIME)}, last active ${formatDate(new Date(s.lastActiveAt), DATE_TIME)}${s.location ? ` near ${s.location}` : ""}`}
                   </span>
                 </span>
                 {s.current ? null : (
@@ -501,7 +504,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
                     type="button"
                     className="cap-btn"
                     data-variant="quiet"
-                    aria-label={`Sign out ${s.device ?? "Unknown device"}, signed in ${formatDateTime(new Date(s.signedInAt))}`}
+                    aria-label={`Sign out ${s.device ?? "Unknown device"}, signed in ${formatDate(new Date(s.signedInAt), DATE_TIME)}`}
                     onClick={() => void signOut.submit({ session: s.id }, { method: "post" })}
                   >
                     Sign out
@@ -524,7 +527,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           {error ?? "That device was not signed out. Try again."}
         </p>
       ) : null}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Recent security activity</h2>
         <p>
           Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out
@@ -534,12 +537,12 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       {history.length === 0 ? (
         <p className="cap-muted">Nothing yet.</p>
       ) : (
-        <ul className="stack-3" aria-label="Your recent security activity">
+        <ul className="cap-stack" data-gap="4" aria-label="Your recent security activity">
           {history.map((h, i) => (
             <li key={`${new Date(h.at).getTime()}-${i}`}>
               {historyWords(h.kind, h.via)}
               <span className="small cap-muted">
-                {` ${formatDateTime(new Date(h.at))}`}
+                {` ${formatDate(new Date(h.at), DATE_TIME)}`}
                 {h.device ? `, ${h.device}` : ""}
                 {h.location ? ` near ${h.location}` : ""}
               </span>
@@ -547,7 +550,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           ))}
         </ul>
       )}
-      <div className="stack-2">
+      <div className="cap-stack" data-gap="3">
         <h2 className="subsection-title">Delete your account</h2>
         {deletionBlockers.length > 0 ? (
           <p>
@@ -569,7 +572,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           <Link to="/signin?next=/account">Sign in again to delete your account</Link>
         </p>
       ) : (
-        <Form method="post" className="stack-3">
+        <Form method="post" className="cap-stack" data-gap="4">
           <input type="hidden" name="intent" value="delete" />
           <label className="cap-check">
             <input type="checkbox" name="confirm" required />I understand my account is deleted for

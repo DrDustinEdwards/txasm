@@ -32,8 +32,8 @@ export default function Trail() {
   const foundingYear = rootData?.settings?.foundingYear ?? null;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Host cities of the Texas Branch</h1>
         <p className="lead">
           The branch has gathered across Texas twice a year since its
@@ -42,7 +42,7 @@ export default function Trail() {
         </p>
       </header>
 
-      <section aria-labelledby="trail-heading" className="stack-4">
+      <section aria-labelledby="trail-heading" className="cap-stack">
         <h2 id="trail-heading" className="section-title">
           Meetings on record
         </h2>
@@ -50,11 +50,13 @@ export default function Trail() {
           The host city for each year is being added. The years currently on record are listed
           below.
         </Banner>
-        <ul className="grid-4 trail-years">
+        <ul className="cap-grid trail-years" data-cols="4">
           {MEETING_YEARS.map((year) => (
-            <li key={year} className="card">
-              <p className="strong">{year}</p>
-              <p className="small cap-muted">Host city to be added</p>
+            <li key={year}>
+              <article className="cap-card">
+                <h3>{year}</h3>
+                <p className="small cap-muted">Host city to be added</p>
+              </article>
             </li>
           ))}
         </ul>

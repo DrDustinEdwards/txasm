@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import { SPEAKER_ROLES, type SpeakerRole } from "../vocab";
 import {
   type Actor,
@@ -10,6 +11,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "./core";
+import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
 // ---------------------------------------------------------------------------
 // Invited speakers and sponsors. Both are per-edition and chair/admin managed.
@@ -170,7 +172,7 @@ export function createInvitedSpeakers(db: DB) {
 function sponsorUrl(raw: string | null | undefined): string | null {
   const url = raw?.trim() ?? "";
   if (!url) return null;
-  if (!/^https?:\/\//i.test(url)) {
+  if (!isHttpUrl(url)) {
     throw new ValidationError("The sponsor link must start with http:// or https://.");
   }
   return url;

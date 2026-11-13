@@ -1,5 +1,5 @@
 import { htmlToText } from "@drdustinedwards/site-helpers/text";
-import { Link } from "capsomer/react/link";
+import { Link, routerRenderLink } from "capsomer/react/link";
 import type { Route } from "./+types/meetings.$slug.abstracts.$ref";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
@@ -7,8 +7,8 @@ import { joinParts } from "~/lib/format";
 import { ABSTRACT_FORMAT_LABELS, ABSTRACT_LEVEL_LABELS, SEASON_LABELS } from "~/lib/vocab";
 import { SITE_NAME, pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
-import { renderLink } from "~/components/site-chrome";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import { RichText } from "capsomer/react/trusted-html";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -54,9 +54,9 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
   ]);
 
   return (
-    <div className="reading stack-6">
+    <div className="reading cap-stack" data-gap="6">
       <Breadcrumb
-        renderLink={renderLink}
+        renderLink={routerRenderLink}
         items={[
           { label: "Home", href: "/" },
           { label: "Meetings", href: "/meetings" },
@@ -68,14 +68,11 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
         ]}
       />
 
-      <header className="stack-3">
+      <header className="cap-stack" data-gap="4">
         <p className="small cap-muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} · Abstract {codeLabel}
         </p>
-        <h1
-          className="page-title abstract-title"
-          dangerouslySetInnerHTML={{ __html: abstract.title }}
-        />
+        <RichText as="h1" className="page-title abstract-title" html={abstract.title} />
         {abstract.authors.length > 0 ? (
           <p>
             {abstract.authors.map((author, i) => (
@@ -103,7 +100,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
           </p>
         ) : null}
         {abstract.affiliations.length > 0 ? (
-          <ol className="stack-1 small cap-muted">
+          <ol className="cap-stack small cap-muted" data-gap="2">
             {abstract.affiliations.map((aff) => (
               <li key={aff.ordinal} className="affiliation">
                 <sup className="strong">{aff.ordinal}</sup>
@@ -116,10 +113,7 @@ export default function AbstractPage({ loaderData }: Route.ComponentProps) {
       </header>
 
       {abstract.bodyText ? (
-        <div
-          className="stack-3 abstract-body"
-          dangerouslySetInnerHTML={{ __html: abstract.bodyText }}
-        />
+        <RichText className="cap-stack abstract-body" data-gap="4" html={abstract.bodyText} />
       ) : (
         <p className="cap-muted">No abstract body on record.</p>
       )}

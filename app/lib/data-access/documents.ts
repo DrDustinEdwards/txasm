@@ -1,4 +1,6 @@
+import { slugify } from "@drdustinedwards/site-helpers/slug";
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { type GeneratedRecord, mayStart } from "capsomer/behavior/generated-file";
 import * as schema from "../../db/schema";
 import {
   DOCUMENT_CATEGORIES,
@@ -25,15 +27,6 @@ import {
 // the generate-record flow (source "generated") and the uploaded archive
 // (source "uploaded").
 // ---------------------------------------------------------------------------
-
-// Same slug shape as awards: lowercase, non-alphanumerics collapsed to hyphens.
-function normalizeDocumentSlug(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 function assertDocumentCategory(value: string): DocumentCategory {
   if (!DOCUMENT_CATEGORIES.includes(value as DocumentCategory)) {
@@ -209,6 +202,14 @@ export function createDocuments(db: DB) {
         abstractCount: row.abstractCount,
         generatedAt: row.generatedAt,
         updatedAt: row.updatedAt,
+        // What Capsomer's generated-file panel reads. A run's start is the row's
+        // updatedAt; the file is offered only when ready, since the download
+        // routes serve a ready file only.
+        record: {
+          status: row.genStatus,
+          startedAt: row.updatedAt,
+          generatedAt: row.genStatus === "ready" ? row.generatedAt : null,
+        } satisfies GeneratedRecord,
       };
     },
 
@@ -219,7 +220,7 @@ export function createDocuments(db: DB) {
       const category = assertDocumentCategory(input.category);
       const title = input.title.trim();
       if (!title) throw new ValidationError("Document title is required.");
-      const slug = normalizeDocumentSlug(input.slug || title);
+      const slug = slugify(input.slug || title);
       if (!slug) throw new ValidationError("Document slug is required.");
       const clash = await db.query.document.findFirst({
         where: eq(schema.document.slug, slug),
@@ -273,7 +274,7 @@ export function createDocuments(db: DB) {
         set.title = title;
       }
       if (patch.slug !== undefined) {
-        const slug = normalizeDocumentSlug(patch.slug);
+        const slug = slugify(patch.slug);
         if (!slug) throw new ValidationError("Document slug is required.");
         if (slug !== row.slug) {
           const clash = await db.query.document.findFirst({
@@ -326,15 +327,16 @@ export function createDocuments(db: DB) {
       });
       if (!ed) throw new NotFoundError("meeting not found");
 
-      const STALE_MS = 5 * 60 * 1000;
       const existing = await findGeneratedDoc(db, editionId, category);
-      if (existing && existing.genStatus === "generating") {
-        const age = Date.now() - existing.updatedAt.getTime();
-        if (age < STALE_MS) {
-          throw new ValidationError(
-            "A document is already being generated for this meeting. Give it a minute, then refresh.",
-          );
-        }
+      // Capsomer's generated-file lock: a run marked generating holds it for 5
+      // minutes from its start (updatedAt), after which it is taken to have died.
+      if (
+        existing?.genStatus === "generating" &&
+        !mayStart({ status: "generating", startedAt: existing.updatedAt })
+      ) {
+        throw new ValidationError(
+          "A document is already being generated for this meeting. Give it a minute, then refresh.",
+        );
       }
       if (existing) {
         await db

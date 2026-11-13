@@ -1,18 +1,22 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.speakers";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
-import { RichEditor } from "~/components/rich-editor";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Invited speakers");
+  return privateMeta(pageTitle(matches, "Invited speakers"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -83,8 +87,8 @@ type Speaker = Route.ComponentProps["loaderData"]["speakers"][number];
 function SpeakerFields({ speaker }: { speaker?: Speaker }) {
   const idBase = speaker ? speaker.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
@@ -98,7 +102,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`affiliation-${idBase}`} className="cap-field-label">
           Affiliation
         </label>
@@ -111,7 +115,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`role-${idBase}`} className="cap-field-label">
           Role
         </label>
@@ -129,7 +133,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`sort-${idBase}`} className="cap-field-label">
           Sort order
         </label>
@@ -142,7 +146,7 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`talk-${idBase}`} className="cap-field-label">
           Talk title
         </label>
@@ -155,7 +159,13 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
         />
       </div>
       <div className="span-2">
-        <RichEditor name="bio" label="Bio" mode="body" initialHTML={speaker?.bio ?? ""} />
+        <RichTextField
+          name="bio"
+          label="Bio"
+          tags={BODY_TAGS}
+          lines="multi"
+          initialHTML={speaker?.bio ?? ""}
+        />
       </div>
     </div>
   );
@@ -169,8 +179,8 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Invited speakers</h1>
         <p>
           {edition.name}.{" "}
@@ -196,63 +206,66 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       {speakers.length === 0 ? (
         <p>No invited speakers yet. Add the first below.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {speakers.map((speaker) => (
-            <li key={speaker.id} className="card stack-3">
-              <div className="spread">
-                <div>
-                  <p className="strong">{speaker.name}</p>
-                  <p className="small cap-muted">
-                    {[speaker.role ? speakerRoleLabel(speaker.role) : "", speaker.affiliation ?? ""]
-                      .filter((p) => p.length > 0)
-                      .join(" . ")}
-                  </p>
-                  {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+            <li key={speaker.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div>
+                    <p className="strong">{speaker.name}</p>
+                    <p className="small cap-muted">
+                      {[
+                        speaker.role ? speakerRoleLabel(speaker.role) : "",
+                        speaker.affiliation ?? "",
+                      ]
+                        .filter((p) => p.length > 0)
+                        .join(" . ")}
+                    </p>
+                    {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
+                  </div>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="speakerId" value={speaker.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${speaker.name}?`,
+                          action: "Remove speaker",
+                        })
+                      }
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </Form>
                 </div>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="speakerId" value={speaker.id} />
-                  <button
-                    type="submit"
-                    onClick={(e) =>
-                      confirmSubmit(e, {
-                        title: `Remove ${speaker.name}?`,
-                        action: "Remove speaker",
-                      })
-                    }
-                    className="small strong"
-                  >
-                    Remove
-                  </button>
-                </Form>
-              </div>
 
-              <details className="card card-s">
-                <summary className="summary">Edit speaker</summary>
-                <Form method="post" className="stack-3 mt-3" noValidate>
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="speakerId" value={speaker.id} />
-                  <SpeakerFields speaker={speaker} />
-                  <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
-                    Save speaker
-                  </button>
-                </Form>
-              </details>
+                <Disclosure summary="Edit speaker" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                    <input type="hidden" name="intent" value="update" />
+                    <input type="hidden" name="speakerId" value={speaker.id} />
+                    <SpeakerFields speaker={speaker} />
+                    <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
+                      Save speaker
+                    </button>
+                  </Form>
+                </Disclosure>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section className="card stack-4">
-        <h2 className="subsection-title">Add a speaker</h2>
-        <Form method="post" className="stack-4" noValidate>
+      <Panel title="Add a speaker">
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SpeakerFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add speaker"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

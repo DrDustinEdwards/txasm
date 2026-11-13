@@ -2,11 +2,17 @@ import type { Route } from "./+types/newsletters";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { Empty } from "capsomer/react/empty";
-import { DocumentList } from "~/components/document-list";
+import { DocumentList } from "capsomer/react/document-archive";
+import { routerRenderLink } from "capsomer/react/link";
+import { documentSubtitle } from "~/lib/document-nav";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
+import documentList from "~/styles/document-list.css?url";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
+// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
+export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: documentList }];
+
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -35,8 +41,8 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
   const { documents } = loaderData;
 
   return (
-    <div className="stack-8">
-      <header className="stack-3">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="4">
         <h1 className="page-title">Newsletters</h1>
         <p className="lead">
           The branch newsletter shares meeting recaps, award announcements, and news from member
@@ -50,7 +56,16 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
         </section>
       ) : (
         <section aria-label="Newsletter archive">
-          <DocumentList documents={documents} basePath="/newsletters" />
+          <DocumentList
+            docs={documents.map((d) => ({
+              key: d.slug,
+              title: d.title,
+              href: `/newsletters/${d.slug}`,
+              detail: documentSubtitle(d) || undefined,
+            }))}
+            label="Newsletter archive"
+            renderLink={routerRenderLink}
+          />
         </section>
       )}
     </div>

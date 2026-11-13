@@ -1,7 +1,10 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { capitalize } from "@drdustinedwards/site-helpers/text";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.roles";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -14,7 +17,7 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Chairs and reviewers");
+  return privateMeta(pageTitle(matches, "Chairs and reviewers"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -70,10 +73,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action." };
 }
 
-function roleLabel(role: string) {
-  return role.charAt(0).toUpperCase() + role.slice(1);
-}
-
 export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const { edition, grants } = loaderData;
   const actionData = useActionData<typeof action>();
@@ -85,8 +84,8 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const reviewers = grants.filter((g) => g.role === "reviewer");
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Chairs and reviewers</h1>
         <p>
           {edition.name}.{" "}
@@ -109,11 +108,10 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <RoleList title="Chairs" empty="No chairs yet." grants={chairs} />
       <RoleList title="Reviewers" empty="No reviewers yet." grants={reviewers} />
 
-      <section className="card stack-4">
-        <h2 className="subsection-title">Add a chair or reviewer</h2>
-        <Form method="post" className="stack-4" noValidate>
+      <Panel title="Add a chair or reviewer">
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="email" className="cap-field-label">
               Email
             </label>
@@ -127,7 +125,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="role" className="cap-field-label">
               Role
             </label>
@@ -140,7 +138,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
             {submitting ? "Adding..." : "Add role"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }
@@ -155,29 +153,31 @@ function RoleList({
   grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
 }) {
   return (
-    <section className="stack-3">
+    <section className="cap-stack" data-gap="4">
       <h2 className="subsection-title">{title}</h2>
       {grants.length === 0 ? (
         <p>{empty}</p>
       ) : (
-        <ul className="stack-2">
+        <ul className="cap-stack" data-gap="3">
           {grants.map((grant) => (
-            <li key={`${grant.userId}-${grant.role}`} className="card card-s spread">
-              <span className="small">
-                <span className="strong">{grant.name || grant.email}</span>
-                {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
-              </span>
-              <Form method="post">
-                <input type="hidden" name="intent" value="revoke" />
-                <input type="hidden" name="userId" value={grant.userId} />
-                <input type="hidden" name="role" value={grant.role} />
-                <button type="submit" className="link-button small strong">
-                  Remove{" "}
-                  <span className="cap-sr-only">
-                    {roleLabel(grant.role)} {grant.email}
-                  </span>
-                </button>
-              </Form>
+            <li key={`${grant.userId}-${grant.role}`} className="cap-panel" data-size="sm">
+              <div className="cap-panel-body cap-spread">
+                <span className="small">
+                  <span className="strong">{grant.name || grant.email}</span>
+                  {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
+                </span>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="revoke" />
+                  <input type="hidden" name="userId" value={grant.userId} />
+                  <input type="hidden" name="role" value={grant.role} />
+                  <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
+                    Remove{" "}
+                    <span className="cap-sr-only">
+                      {capitalize(grant.role)} {grant.email}
+                    </span>
+                  </button>
+                </Form>
+              </div>
             </li>
           ))}
         </ul>

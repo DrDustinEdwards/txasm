@@ -1,9 +1,10 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { dollarsToCents } from "capsomer/behavior/field";
 import { MoneyField } from "capsomer/react/field";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -12,12 +13,12 @@ import {
   REGISTRATION_CATEGORY_KEY_LABELS,
   type RegistrationCategoryKey,
 } from "~/lib/vocab";
-import { formatMoney } from "~/lib/format";
+import { formatMoney, parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Registration categories");
+  return privateMeta(pageTitle(matches, "Registration categories"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -46,7 +47,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const label = String(form.get("label") ?? "").trim();
     const currency = String(form.get("currency") ?? "usd");
     const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
-    const amountCents = dollarsToCents(form.get("fee"));
+    const amountCents = parseMoneyInput(String(form.get("fee") ?? ""), currency);
 
     if (!(REGISTRATION_CATEGORY_KEYS as readonly string[]).includes(key)) {
       return { error: "Choose a category type." };
@@ -87,8 +88,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Registration categories</h1>
         <p>
           {edition.name}.{" "}
@@ -133,7 +134,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                   <td>{formatMoney(category.amountCents, category.currency)}</td>
                   <td>{category.active ? "Yes" : "No"}</td>
                   <td className="cell-end">
-                    <div className="cluster cluster-right">
+                    <div className="cap-cluster" data-justify="end">
                       <Link
                         to={`/admin/editions/${edition.id}/categories/${category.id}`}
                         className="strong"
@@ -144,7 +145,12 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                         <Form method="post">
                           <input type="hidden" name="intent" value="deactivate" />
                           <input type="hidden" name="categoryId" value={category.id} />
-                          <button type="submit" className="link-button strong cap-muted">
+                          <button
+                            type="submit"
+                            className="cap-btn cap-muted"
+                            data-variant="link"
+                            data-size="sm"
+                          >
                             Deactivate
                           </button>
                         </Form>
@@ -158,11 +164,10 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
         </div>
       )}
 
-      <section className="card stack-4">
-        <h2 className="subsection-title">Add a category</h2>
-        <Form method="post" className="stack-4" noValidate>
+      <Panel title="Add a category">
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="key" className="cap-field-label">
               Type
             </label>
@@ -174,7 +179,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               ))}
             </select>
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="label" className="cap-field-label">
               Label
             </label>
@@ -188,7 +193,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
             />
           </div>
           <MoneyField id="fee" name="fee" label="Fee (dollars)" required placeholder="45.00" />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="currency" className="cap-field-label">
               Currency
             </label>
@@ -200,7 +205,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               className="cap-input"
             />
           </div>
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -217,7 +222,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

@@ -1,8 +1,11 @@
-import { useEffect, useRef } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
+import { Banner } from "capsomer/react/banner";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review.$assignmentId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
@@ -13,17 +16,20 @@ import {
   getActor,
   getDataAccess,
 } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
-import { RichEditor } from "~/components/rich-editor";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS } from "~/lib/richtext";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { RichText } from "capsomer/react/trusted-html";
 
 // An app: the review form and its rich-text comment. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Review abstract");
+  return privateMeta(pageTitle(matches, "Review abstract"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -119,11 +125,11 @@ function AbstractSections({
     return <p className="small cap-muted">This abstract has no section content.</p>;
   }
   return (
-    <div className="stack-4">
+    <div className="cap-stack">
       {filled.map(([label, html]) => (
-        <section key={label} className="stack-1">
+        <section key={label} className="cap-stack" data-gap="2">
           <h3 className="small strong">{label}</h3>
-          <div className="small" dangerouslySetInnerHTML={{ __html: html }} />
+          <RichText className="small" html={html} />
         </section>
       ))}
     </div>
@@ -135,12 +141,6 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state === "submitting";
-  const error = actionData?.error ?? null;
-
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
 
   const authorLine = authors
     .map((a) => `${a.firstName} ${a.lastName}`.trim())
@@ -149,43 +149,33 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
   const editable = !edition.deadlinePassed;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-1">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="2">
         <h1 className="page-title">
-          {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-          ) : (
-            "Untitled abstract"
-          )}
+          <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
         <p className="small cap-muted">
           {edition.name}
           {authorLine ? ` . ${authorLine}` : ""}
-          {assignment.dueAt ? ` . Due: ${formatDateTime(assignment.dueAt)}` : ""}
+          {assignment.dueAt ? ` . Due: ${formatDate(assignment.dueAt, DATE_TIME)}` : ""}
         </p>
       </div>
 
-      <section className="card stack-3">
-        <h2 className="subsection-title">Abstract</h2>
-        <AbstractSections abstract={abstract} />
-      </section>
+      <Panel title="Abstract">
+        <div className="cap-stack" data-gap="4">
+          <AbstractSections abstract={abstract} />
+        </div>
+      </Panel>
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error ? "cap-alert" : "cap-sr-only"}
-      >
-        {error ?? ""}
-      </p>
+      <ActionResult data={actionData} />
 
       {editable ? (
-        <Form method="post" className="stack-6">
+        <Form method="post" className="cap-stack" data-gap="6">
           <input type="hidden" name="intent" value="submit" />
 
-          <fieldset className="stack-2">
+          <fieldset className="cap-stack" data-gap="3">
             <legend className="small strong">Recommendation</legend>
-            <div className="cluster">
+            <div className="cap-cluster">
               {RECOMMENDATION_OPTIONS.map((option) => (
                 <label key={option.value} className="cap-check">
                   <input
@@ -201,29 +191,25 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             </div>
           </fieldset>
 
-          <RichEditor
+          <RichTextField
             name="overallComment"
             label="Overall comment"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={review?.overallComment ?? ""}
-            describedById="overall-help"
+            help="Shared with the chairs. Optional."
           />
-          <p id="overall-help" className="small cap-muted">
-            Shared with the chairs. Optional.
-          </p>
 
-          <RichEditor
+          <RichTextField
             name="confidentialComment"
             label="Confidential comment to chairs"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={review?.confidentialComment ?? ""}
-            describedById="confidential-help"
+            help="Seen only by chairs and admins, never by the authors. Optional."
           />
-          <p id="confidential-help" className="small cap-muted">
-            Seen only by chairs and admins, never by the authors. Optional.
-          </p>
 
-          <div className="cluster">
+          <div className="cap-cluster">
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
               {review?.status === "submitted" ? "Update review" : "Submit review"}
             </button>
@@ -233,26 +219,24 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
           </div>
         </Form>
       ) : (
-        <div className="stack-4">
-          <p role="status" className="card card-s card-sunken small">
+        <div className="cap-stack">
+          <Banner tone="warn">
             The review deadline has passed. This review can no longer be edited.
-          </p>
+          </Banner>
           {review ? (
-            <section className="card stack-2">
-              <h2 className="subsection-title">Your review</h2>
-              <p className="small">
-                <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
-              </p>
-              {review.overallComment ? (
-                <div className="stack-1">
-                  <h3 className="small strong">Overall comment</h3>
-                  <div
-                    className="small"
-                    dangerouslySetInnerHTML={{ __html: review.overallComment }}
-                  />
-                </div>
-              ) : null}
-            </section>
+            <Panel title="Your review">
+              <div className="cap-stack" data-gap="3">
+                <p className="small">
+                  <span className="strong">Recommendation:</span> {review.recommendation ?? "None"}
+                </p>
+                {review.overallComment ? (
+                  <div className="cap-stack" data-gap="2">
+                    <h3 className="small strong">Overall comment</h3>
+                    <RichText className="small" html={review.overallComment} />
+                  </div>
+                ) : null}
+              </div>
+            </Panel>
           ) : null}
           <Link to="/review" className="strong">
             Back to review
@@ -260,46 +244,48 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <section className="card card-warn stack-3">
-        <h2 className="subsection-title">Have a conflict of interest?</h2>
-        <p className="small cap-muted">
-          If you should not review this abstract, declare a conflict. This removes the assignment
-          and the abstract will be reassigned by a chair.
-        </p>
-        <Form
-          method="post"
-          className="stack-3"
-          onSubmit={(e) =>
-            confirmSubmit(e, {
-              title: "Declare a conflict and remove this assignment?",
-              action: "Declare conflict",
-            })
-          }
-        >
-          <input type="hidden" name="intent" value="conflict" />
-          <input type="hidden" name="abstractId" value={abstract.id} />
-          <div className="stack-1">
-            <label htmlFor="reason" className="cap-field-label">
-              Reason
-            </label>
-            <select id="reason" name="reason" defaultValue="colleague" className="cap-select">
-              <option value="author">I am an author</option>
-              <option value="coauthor">I have co-authored with an author</option>
-              <option value="colleague">An author is a close colleague</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="stack-1">
-            <label htmlFor="note" className="cap-field-label">
-              Note (optional)
-            </label>
-            <textarea id="note" name="note" rows={2} className="cap-input" />
-          </div>
-          <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
-            I have a conflict
-          </button>
-        </Form>
-      </section>
+      <Panel title="Have a conflict of interest?">
+        <div className="cap-stack" data-gap="4">
+          <p className="small cap-muted">
+            If you should not review this abstract, declare a conflict. This removes the assignment
+            and the abstract will be reassigned by a chair.
+          </p>
+          <Form
+            method="post"
+            className="cap-stack"
+            data-gap="4"
+            onSubmit={(e) =>
+              confirmSubmit(e, {
+                title: "Declare a conflict and remove this assignment?",
+                action: "Declare conflict",
+              })
+            }
+          >
+            <input type="hidden" name="intent" value="conflict" />
+            <input type="hidden" name="abstractId" value={abstract.id} />
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="reason" className="cap-field-label">
+                Reason
+              </label>
+              <select id="reason" name="reason" defaultValue="colleague" className="cap-select">
+                <option value="author">I am an author</option>
+                <option value="coauthor">I have co-authored with an author</option>
+                <option value="colleague">An author is a close colleague</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="note" className="cap-field-label">
+                Note (optional)
+              </label>
+              <textarea id="note" name="note" rows={2} className="cap-input" />
+            </div>
+            <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
+              I have a conflict
+            </button>
+          </Form>
+        </div>
+      </Panel>
     </div>
   );
 }

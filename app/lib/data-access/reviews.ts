@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { inList, chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import { CONFLICT_REASONS, type ConflictReason, REVIEW_RECOMMENDATIONS } from "../vocab";
 import {
   type Actor,
@@ -116,7 +118,7 @@ export function createReviews(db: DB) {
         .select()
         .from(schema.rubricCriterion)
         .where(
-          inArray(
+          inList(
             schema.rubricCriterion.id,
             input.scores.map((s) => s.criterionId),
           ),
@@ -143,55 +145,41 @@ export function createReviews(db: DB) {
       const existing = await db.query.review.findFirst({
         where: eq(schema.review.assignmentId, assignment.id),
       });
-      let reviewId: string;
-      if (existing) {
-        await db
-          .update(schema.review)
-          .set({
-            recommendation: input.recommendation,
-            overallComment: overall && !isEmptyRichText(overall) ? overall : null,
-            confidentialComment:
-              confidential && !isEmptyRichText(confidential) ? confidential : null,
-            status: "submitted",
-            submittedAt: new Date(),
-          })
-          .where(eq(schema.review.id, existing.id));
-        reviewId = existing.id;
-      } else {
-        const [created] = await db
-          .insert(schema.review)
-          .values({
-            assignmentId: assignment.id,
-            editionId: assignment.editionId,
-            abstractId: assignment.abstractId,
-            reviewerId: actor.userId,
-            recommendation: input.recommendation,
-            overallComment: overall && !isEmptyRichText(overall) ? overall : null,
-            confidentialComment:
-              confidential && !isEmptyRichText(confidential) ? confidential : null,
-            status: "submitted",
-            submittedAt: new Date(),
-          })
-          .returning();
-        reviewId = created.id;
-      }
+      const reviewId = existing?.id ?? crypto.randomUUID();
+      const reviewFields = {
+        recommendation: input.recommendation,
+        overallComment: overall && !isEmptyRichText(overall) ? overall : null,
+        confidentialComment: confidential && !isEmptyRichText(confidential) ? confidential : null,
+        status: "submitted" as const,
+        submittedAt: new Date(),
+      };
 
-      // Replace scores as a set. With no rubric this phase, that is zero scores.
-      await db.delete(schema.reviewScore).where(eq(schema.reviewScore.reviewId, reviewId));
-      if (input.scores.length > 0) {
-        await db.insert(schema.reviewScore).values(
-          input.scores.map((s) => ({
-            reviewId,
-            criterionId: s.criterionId,
-            score: s.score,
-          })),
-        );
-      }
-
-      await db
-        .update(schema.reviewAssignment)
-        .set({ status: "completed" })
-        .where(eq(schema.reviewAssignment.id, assignment.id));
+      // The review, its scores (replaced as a set; with no rubric this phase, zero scores) and
+      // the assignment's status are one db.batch, which D1 runs as a transaction: a failure
+      // leaves no review without its scores. Every authorization check is above.
+      await db.batch([
+        existing
+          ? db.update(schema.review).set(reviewFields).where(eq(schema.review.id, existing.id))
+          : db.insert(schema.review).values({
+              id: reviewId,
+              assignmentId: assignment.id,
+              editionId: assignment.editionId,
+              abstractId: assignment.abstractId,
+              reviewerId: actor.userId,
+              ...reviewFields,
+            }),
+        db.delete(schema.reviewScore).where(eq(schema.reviewScore.reviewId, reviewId)),
+        // A score row binds 4 columns (id, review_id, criterion_id, score).
+        ...chunked(input.scores, rowsPerInsert(4)).map((part) =>
+          db
+            .insert(schema.reviewScore)
+            .values(part.map((s) => ({ reviewId, criterionId: s.criterionId, score: s.score }))),
+        ),
+        db
+          .update(schema.reviewAssignment)
+          .set({ status: "completed" })
+          .where(eq(schema.reviewAssignment.id, assignment.id)),
+      ]);
 
       return { id: reviewId };
     },

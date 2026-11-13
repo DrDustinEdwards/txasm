@@ -1,12 +1,4 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useMatches,
-  useRouteLoaderData,
-} from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteLoaderData } from "react-router";
 
 import type { Route } from "./+types/root";
 import { iconLinks } from "@drdustinedwards/site-helpers/icons";
@@ -17,6 +9,7 @@ import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
 import { SITE_NAME } from "~/lib/site-meta";
+import { useRouteHydrates } from "~/components/site-chrome";
 // Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
 // from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file carries
 // Inter's optical sizes, as the Google request asked for.
@@ -59,14 +52,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // account, the admin and chair areas) hydrate. Every other page is read-only and sends no React: its header, theme
   // button, tabs and PDF viewer run from /site.js (app/site.ts) and its islands, and its forms are plain GETs and
   // POSTs that React Router's loaders and actions answer as documents.
-  const hydrates = useMatches().some(
-    (m) => (m.handle as { hydrate?: boolean } | undefined)?.hydrate === true,
-  );
+  const hydrates = useRouteHydrates();
   return (
     <html lang="en" data-theme={theme} data-family="navy" data-cap-site="txasm">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="text-scale" content="scale" />
         <Meta />
         <Links />
         {/* Same-origin, so script-src 'self' allows it and it needs no nonce. Not on a hydrating page, whose React

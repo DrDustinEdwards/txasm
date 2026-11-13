@@ -1,12 +1,14 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { titleCase } from "@drdustinedwards/site-helpers/text";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Admin");
+  return privateMeta(pageTitle(matches, "Admin"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -16,19 +18,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return { editions };
 }
 
-function titleCase(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 export default function AdminIndex({ loaderData }: Route.ComponentProps) {
   const { editions } = loaderData;
 
   return (
-    <div className="stack-6">
-      <div className="spread">
+    <div className="cap-stack" data-gap="6">
+      <div className="cap-spread">
         <h1 className="page-title">Meetings</h1>
         <Link to="/admin/editions/new" className="cap-btn" data-variant="primary">
           Create meeting

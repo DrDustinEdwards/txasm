@@ -1,7 +1,9 @@
-import { likeContains } from "@drdustinedwards/site-helpers/search";
-import { type AnyColumn, type SQL, and, desc, eq, or, sql } from "drizzle-orm";
+import { slugify } from "@drdustinedwards/site-helpers/slug";
+import { likeContains } from "@dustinedwards/site-runtime/d1";
+import { type AnyColumn, type SQL, and, desc, eq, or } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { isEmptyRichText, sanitizeBody } from "../richtext";
+import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
+import { sanitizeBody } from "../richtext";
 import {
   type Actor,
   AlreadyExistsError,
@@ -91,17 +93,6 @@ export interface AwardYearGroup {
 export interface AwardSearchResult extends AwardRecipientView {
   awardSlug: string;
   awardName: string;
-}
-
-// Normalize an award slug to the live-site shape: lowercase, spaces and runs of
-// non-alphanumerics collapsed to single hyphens, trimmed of leading/trailing
-// hyphens. Keeps seed slugs and admin-entered slugs consistent.
-function normalizeAwardSlug(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 // Group flat recipient rows into years, then categories within each year,
@@ -210,7 +201,7 @@ export function createAwards(db: DB) {
 
     async create(actor: Actor, input: AwardInput) {
       if (!isAdmin(actor)) throw new ForbiddenError();
-      const slug = normalizeAwardSlug(input.slug || input.name || "");
+      const slug = slugify(input.slug || input.name || "");
       if (!slug) throw new ValidationError("Award slug is required.");
       const name = input.name.trim();
       if (!name) throw new ValidationError("Award name is required.");
@@ -244,7 +235,7 @@ export function createAwards(db: DB) {
 
       const set: Partial<typeof schema.award.$inferInsert> = {};
       if (patch.slug !== undefined) {
-        const slug = normalizeAwardSlug(patch.slug);
+        const slug = slugify(patch.slug);
         if (!slug) throw new ValidationError("Award slug is required.");
         if (slug !== row.slug) {
           const clash = await db.query.award.findFirst({
@@ -400,13 +391,12 @@ export function createAwardRecipients(db: DB) {
     // Public search across person, institution, mentor, year, and award name and
     // slug, with optional award/year/institution filters. Every term is bound as
     // a query parameter, never string-interpolated, and matches as typed: its %,
-    // _ and backslash are escaped (Prelum likeContains, ESCAPE '\\'), so "50%"
+    // _ and backslash are escaped (site-runtime likeContains, ESCAPE '\\'), so "50%"
     // or "E_coli" is not a wildcard, as in public-abstracts.ts.
     async search(query: string, filters: AwardSearchFilters = {}): Promise<AwardSearchResult[]> {
       const term = query.trim();
       const conditions = [];
-      const contains = (column: AnyColumn, value: string): SQL =>
-        sql`${column} LIKE ${likeContains(value)} ESCAPE '\\'`;
+      const contains = (column: AnyColumn, value: string): SQL => likeContains(column, value);
       if (term) {
         conditions.push(
           or(

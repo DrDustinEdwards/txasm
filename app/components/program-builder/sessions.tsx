@@ -1,8 +1,12 @@
 import { Form } from "react-router";
-import type { ProgramAbstractOption, ProgramDay, ProgramSessionResolved } from "~/lib/data-access";
+import { Panel } from "capsomer/react/panel";
+import { isoDay } from "@drdustinedwards/site-helpers/xml";
+import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
+import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { DateTimeField } from "capsomer/react/field";
-import { AddItemForms, ItemRow } from "./items";
-import { slotTimeLine, type SpeakerOption, toDateInput } from "./shared";
+import { Disclosure } from "capsomer/react/disclosure";
+import { AddItemForms, SessionItems } from "./items";
+import { type SpeakerOption } from "./shared";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function SessionFields({
@@ -14,8 +18,8 @@ export function SessionFields({
 }) {
   const idBase = session ? session.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1 span-2">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`title-${idBase}`} className="cap-field-label">
           Title
         </label>
@@ -29,7 +33,7 @@ export function SessionFields({
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`date-${idBase}`} className="cap-field-label">
           Date
         </label>
@@ -37,11 +41,11 @@ export function SessionFields({
           id={`date-${idBase}`}
           name="sessionDate"
           type="date"
-          defaultValue={toDateInput(session?.sessionDate ?? null) || defaultDate || ""}
+          defaultValue={isoDay(session?.sessionDate) || defaultDate || ""}
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`loc-${idBase}`} className="cap-field-label">
           Room
         </label>
@@ -66,7 +70,7 @@ export function SessionFields({
         label="Ends"
         defaultDate={session?.endsAt ?? null}
       />
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`mod-${idBase}`} className="cap-field-label">
           Moderator (optional)
         </label>
@@ -83,8 +87,11 @@ export function SessionFields({
   );
 }
 
-function SessionColumn({
+// One session in the builder's Schedule: its facts, its items and its controls.
+// `level` is the heading level Capsomer's Schedule gives the session's title.
+export function SessionCard({
   session,
+  level,
   dayIndex,
   dayCount,
   busy,
@@ -92,183 +99,121 @@ function SessionColumn({
   speakers,
 }: {
   session: ProgramSessionResolved;
+  level: 3 | 4 | 5;
   dayIndex: number;
   dayCount: number;
   busy: boolean;
   unplaced: ProgramAbstractOption[];
   speakers: SpeakerOption[];
 }) {
+  const H = `h${level}` as "h3" | "h4" | "h5";
+  const Sub = `h${level + 1}` as "h4" | "h5" | "h6";
   return (
-    <div className="card stack-4">
-      <div className="spread">
-        <div>
-          <h3 className="strong">{session.title}</h3>
-          <p className="small cap-muted">
-            {session.location ? session.location : "No room set"} . {slotTimeLine(session)}
-          </p>
-          {session.moderator ? (
-            <p className="small cap-muted">Moderated by {session.moderator}</p>
-          ) : null}
+    <Panel>
+      <div className="cap-stack">
+        <div className="cap-spread">
+          <div>
+            <H className="strong">{session.title}</H>
+            <p className="small cap-muted">
+              {session.location ? session.location : "No room set"} ·{" "}
+              {slotLabel(session.startsAt?.getTime() ?? null, session.endsAt?.getTime() ?? null)}
+            </p>
+            {session.moderator ? (
+              <p className="small cap-muted">Moderated by {session.moderator}</p>
+            ) : null}
+          </div>
+          <div className="cap-cluster">
+            <Form method="post">
+              <input type="hidden" name="intent" value="session-move" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <input type="hidden" name="direction" value="up" />
+              <button
+                type="submit"
+                disabled={busy || dayIndex === 0}
+                aria-label={`Move ${session.title} earlier`}
+                className="cap-btn"
+                data-size="sm"
+              >
+                Up
+              </button>
+            </Form>
+            <Form method="post">
+              <input type="hidden" name="intent" value="session-move" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <input type="hidden" name="direction" value="down" />
+              <button
+                type="submit"
+                disabled={busy || dayIndex === dayCount - 1}
+                aria-label={`Move ${session.title} later`}
+                className="cap-btn"
+                data-size="sm"
+              >
+                Down
+              </button>
+            </Form>
+          </div>
         </div>
-        <div className="cluster">
-          <Form method="post">
-            <input type="hidden" name="intent" value="session-move" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <input type="hidden" name="direction" value="up" />
-            <button
-              type="submit"
-              disabled={busy || dayIndex === 0}
-              aria-label={`Move ${session.title} earlier`}
-              className="cap-btn"
-              data-size="sm"
-            >
-              Up
-            </button>
-          </Form>
-          <Form method="post">
-            <input type="hidden" name="intent" value="session-move" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <input type="hidden" name="direction" value="down" />
-            <button
-              type="submit"
-              disabled={busy || dayIndex === dayCount - 1}
-              aria-label={`Move ${session.title} later`}
-              className="cap-btn"
-              data-size="sm"
-            >
-              Down
-            </button>
-          </Form>
+
+        <div className="cap-stack" data-gap="3">
+          <Sub className="small strong">Items</Sub>
+          <SessionItems session={session} busy={busy} />
         </div>
-      </div>
 
-      <div className="stack-2">
-        <h4 className="small strong">Items</h4>
-        {session.items.length === 0 ? (
-          <p className="small cap-muted">No items in this session yet.</p>
-        ) : (
-          <ol className="stack-2">
-            {session.items.map((item, itemIndex) => (
-              <ItemRow
-                key={item.id}
-                session={session}
-                item={item}
-                index={itemIndex}
-                count={session.items.length}
-                busy={busy}
-              />
-            ))}
-          </ol>
-        )}
-      </div>
-
-      <details className="card card-s">
-        <summary className="summary">Add an item</summary>
-        <div className="mt-3">
+        <Disclosure summary="Add an item" variant="card" size="sm" marker="triangle">
           <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
-        </div>
-      </details>
+        </Disclosure>
 
-      <details className="card card-s">
-        <summary className="summary">Edit or delete session</summary>
-        <div className="stack-3 mt-3">
-          <Form method="post" className="stack-3" noValidate>
-            <input type="hidden" name="intent" value="session-update" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <SessionFields session={session} />
-            <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
-              Save session
-            </button>
-          </Form>
-          <Form method="post">
-            <input type="hidden" name="intent" value="session-delete" />
-            <input type="hidden" name="sessionId" value={session.id} />
-            <button
-              type="submit"
-              disabled={busy}
-              onClick={(e) =>
-                confirmSubmit(e, {
-                  title: "Delete this session and its items?",
-                  action: "Delete session",
-                })
-              }
-              className="small strong"
-            >
-              Delete session
-            </button>
-          </Form>
-        </div>
-      </details>
-    </div>
+        <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
+          <div className="cap-stack" data-gap="4">
+            <Form method="post" className="cap-stack" data-gap="4" noValidate>
+              <input type="hidden" name="intent" value="session-update" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <SessionFields session={session} />
+              <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
+                Save session
+              </button>
+            </Form>
+            <Form method="post">
+              <input type="hidden" name="intent" value="session-delete" />
+              <input type="hidden" name="sessionId" value={session.id} />
+              <button
+                type="submit"
+                disabled={busy}
+                onClick={(e) =>
+                  confirmSubmit(e, {
+                    title: "Delete this session and its items?",
+                    action: "Delete session",
+                  })
+                }
+                className="small strong"
+              >
+                Delete session
+              </button>
+            </Form>
+          </div>
+        </Disclosure>
+      </div>
+    </Panel>
   );
 }
 
-export function Slot({
-  group,
-  flatIndexOf,
-  dayCount,
+// The form under a slot's tracks that adds a parallel track: a session with the
+// slot's first session's day and times, in another room.
+export function ConcurrentSessionForm({
+  slot,
   busy,
-  unplaced,
-  speakers,
 }: {
-  group: ProgramDay["groups"][number];
-  flatIndexOf: (id: string) => number;
-  dayCount: number;
+  slot: ScheduleSlot<ProgramSessionResolved>;
   busy: boolean;
-  unplaced: ProgramAbstractOption[];
-  speakers: SpeakerOption[];
 }) {
-  const trackCount = group.sessions.length;
-  const source = group.sessions[0];
+  const source = slot.items[0];
+  if (!source) return null;
   return (
-    <section className="stack-3">
-      <div className="spread">
-        <h3 className="small strong">
-          {slotTimeLine(source)}
-          {trackCount > 1 ? (
-            <span className="tiny strong cap-muted">{trackCount} parallel tracks</span>
-          ) : null}
-        </h3>
-      </div>
-
-      {trackCount === 1 ? (
-        <SessionColumn
-          session={source}
-          dayIndex={flatIndexOf(source.id)}
-          dayCount={dayCount}
-          busy={busy}
-          unplaced={unplaced}
-          speakers={speakers}
-        />
-      ) : (
-        // N dynamic columns, one per concurrent track. minmax keeps each track
-        // readable and lets the row scroll on narrow screens rather than crush.
-        <div className="track-scroll">
-          <div
-            className="track-grid"
-            style={{
-              gridTemplateColumns: `repeat(${trackCount}, minmax(18rem, 1fr))`,
-            }}
-          >
-            {group.sessions.map((session) => (
-              <SessionColumn
-                key={session.id}
-                session={session}
-                dayIndex={flatIndexOf(session.id)}
-                dayCount={dayCount}
-                busy={busy}
-                unplaced={unplaced}
-                speakers={speakers}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Form method="post" className="card card-s card-dashed cluster cluster-end">
+    <Panel size="sm">
+      <Form method="post" className="cap-cluster" data-align="end">
         <input type="hidden" name="intent" value="session-add-concurrent" />
         <input type="hidden" name="sessionId" value={source.id} />
-        <div className="grow stack-1">
+        <div className="grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
             Add a concurrent session (parallel track)
           </label>
@@ -281,7 +226,7 @@ export function Slot({
             className="cap-input"
           />
         </div>
-        <div className="grow stack-1">
+        <div className="grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
             Room
           </label>
@@ -297,6 +242,6 @@ export function Slot({
           Add track
         </button>
       </Form>
-    </section>
+    </Panel>
   );
 }

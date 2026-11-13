@@ -1,4 +1,5 @@
-import { and, count, desc, eq, inArray, like } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { inList, likeContains } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   DEFAULT_CURRENCY,
@@ -76,31 +77,6 @@ export function normalizeCurrency(currency?: string) {
 // and the ensure path use this same function so the unique index lines up.
 function normalizeInstitutionName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ").replace(/[%_]/g, "");
-}
-
-export function createRegistrations(_db: DB) {
-  return {
-    // Attendee scoping: a user reads their own registration; a chair reads any
-    // in the edition. The PayPal capture webhook flips status to paid out of band.
-    // Bodies land in Part B once PayPal credentials exist.
-    listForEdition(_actor: Actor, _editionId: string): Promise<unknown[]> {
-      throw new Error("not implemented");
-    },
-    getMine(_actor: Actor, _editionId: string): Promise<unknown> {
-      throw new Error("not implemented");
-    },
-    startCheckout(
-      _actor: Actor,
-      _input: { editionId: string; categoryId: string },
-    ): Promise<{ approveUrl: string }> {
-      // Creates a PayPal order and returns its approval link for the payer.
-      throw new Error("not implemented");
-    },
-    markPaidFromWebhook(_input: { paypalOrderId: string }): Promise<unknown> {
-      // Called by the verified PayPal webhook, not by a user, so it has no Actor.
-      throw new Error("not implemented");
-    },
-  };
 }
 
 export function createEditions(db: DB) {
@@ -252,7 +228,7 @@ export function createEditions(db: DB) {
         .from(schema.abstract)
         .where(
           and(
-            inArray(
+            inList(
               schema.abstract.editionId,
               rows.map((r) => r.id),
             ),
@@ -483,8 +459,6 @@ export function createInstitutions(db: DB) {
     async search(actor: Actor, query: string) {
       const normalized = normalizeInstitutionName(query);
       if (!normalized) return [];
-      // The normalized name has no % or _ (stripped in normalize), so it is safe
-      // to interpolate into the LIKE pattern.
       return db
         .select({
           id: schema.institution.id,
@@ -494,7 +468,7 @@ export function createInstitutions(db: DB) {
           country: schema.institution.country,
         })
         .from(schema.institution)
-        .where(like(schema.institution.normalizedName, `%${normalized}%`))
+        .where(likeContains(schema.institution.normalizedName, normalized))
         .orderBy(schema.institution.name)
         .limit(10);
     },

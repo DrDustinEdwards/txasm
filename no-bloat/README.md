@@ -1,10 +1,10 @@
-# Routine no-bloat checks (warn only)
+# Routine no-bloat checks
 
-Three checks run on every pull request: Knip and jscpd in `checks / Repo checks` (`.github/workflows/checks.yml`, devkit's pr.yml with `no-bloat-warn-only`), where **they report and never block a merge** (defaults, not laws), and route weight in `.github/workflows/route-weight.yml`, a gate against `.route-weight.json`. Removal happens in the cleanup phases, not here.
+Three checks run on every pull request: Knip and jscpd in `checks / Repo checks` (`.github/workflows/checks.yml`, devkit's pr.yml), where **a count off its baseline fails the check** (the ratchet: lower the baseline in the same change when a count falls; only a new test raises it), and route weight in `.github/workflows/route-weight.yml`, a gate against `.route-weight.json`. Removal happens in the cleanup phases, not here.
 
 | Check                               | Tool                                      | Command                                    | Reads                                |
 | ----------------------------------- | ----------------------------------------- | ------------------------------------------ | ------------------------------------ |
-| Unused files, exports, dependencies | Knip, through devkit's `devkit-no-bloat`  | `npx devkit-no-bloat --warn-only`          | `knip.json`, `.no-bloat.json`        |
+| Unused files, exports, dependencies | Knip, through devkit's `devkit-no-bloat`  | `npx devkit-no-bloat`                      | `knip.json`, `.no-bloat.json`        |
 | Duplicated blocks                   | jscpd, through devkit's `devkit-no-bloat` | (the same run)                             | `.jscpd.json`, `.no-bloat.json`      |
 | JS and CSS weight per route, gzip   | devkit's `devkit-route-weight`            | `npm run build && npx devkit-route-weight` | `build/client`, `.route-weight.json` |
 

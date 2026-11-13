@@ -10,6 +10,8 @@ import {
   ValidationError,
 } from "./core";
 import { normalizeCurrency } from "./editions";
+import { isEmail } from "@dustinedwards/site-runtime/email";
+import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
 // ---------------------------------------------------------------------------
 // Platform settings. A single row of org identity and tunable defaults, read by
@@ -156,14 +158,14 @@ export function createSettings(db: DB) {
       }
       if (patch.contactEmail !== undefined) {
         const email = patch.contactEmail?.trim() ?? "";
-        if (email && !email.includes("@")) {
+        if (email && !isEmail(email)) {
           throw new ValidationError("Enter a valid contact email.");
         }
         set.contactEmail = email || null;
       }
       if (patch.facebookUrl !== undefined) {
         const url = patch.facebookUrl?.trim() ?? "";
-        if (url && !/^https?:\/\//i.test(url)) {
+        if (url && !isHttpUrl(url)) {
           throw new ValidationError("The Facebook URL must start with http.");
         }
         set.facebookUrl = url || null;

@@ -1,16 +1,19 @@
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/review";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import { getActor, getDataAccess } from "~/lib/data-access";
-import { formatDateTime } from "~/lib/format";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
+import { RichText } from "capsomer/react/trusted-html";
 
 // A signed-in reviewer's page, the way into review. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Review");
+  return privateMeta(pageTitle(matches, "Review"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -25,7 +28,7 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
   const { assignments } = loaderData;
 
   return (
-    <div className="stack-6">
+    <div className="cap-stack" data-gap="6">
       <h1 className="page-title">Review</h1>
 
       {assignments.length === 0 ? (
@@ -56,14 +59,16 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
               {assignments.map((assignment) => (
                 <tr key={assignment.assignmentId}>
                   <td>
-                    {assignment.title ? (
-                      <span dangerouslySetInnerHTML={{ __html: assignment.title }} />
-                    ) : (
-                      <span className="cap-muted">Untitled</span>
-                    )}
+                    <RichText
+                      as="span"
+                      html={assignment.title}
+                      fallback={<span className="cap-muted">Untitled</span>}
+                    />
                   </td>
                   <td>{assignment.editionName}</td>
-                  <td>{assignment.dueAt ? formatDateTime(assignment.dueAt) : "No due date"}</td>
+                  <td>
+                    {assignment.dueAt ? formatDate(assignment.dueAt, DATE_TIME) : "No due date"}
+                  </td>
                   <td>
                     {assignment.reviewSubmitted ? (
                       <span className="ok-text">Review submitted</span>

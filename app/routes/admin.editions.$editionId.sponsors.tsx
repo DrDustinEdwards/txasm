@@ -1,7 +1,10 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.sponsors";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
@@ -11,7 +14,7 @@ import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Sponsors");
+  return privateMeta(pageTitle(matches, "Sponsors"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -72,8 +75,8 @@ type Sponsor = Route.ComponentProps["loaderData"]["sponsors"][number];
 function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
   const idBase = sponsor ? sponsor.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1 span-2">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`name-${idBase}`} className="cap-field-label">
           Name
         </label>
@@ -87,7 +90,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`tier-${idBase}`} className="cap-field-label">
           Tier
         </label>
@@ -106,7 +109,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           ))}
         </datalist>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`sort-${idBase}`} className="cap-field-label">
           Sort order
         </label>
@@ -119,7 +122,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`url-${idBase}`} className="cap-field-label">
           Website
         </label>
@@ -144,8 +147,8 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <div className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">Sponsors</h1>
         <p>
           {edition.name}.{" "}
@@ -165,62 +168,62 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       {sponsors.length === 0 ? (
         <p>No sponsors yet. Add the first below.</p>
       ) : (
-        <ul className="stack-4">
+        <ul className="cap-stack">
           {sponsors.map((sponsor) => (
-            <li key={sponsor.id} className="card stack-3">
-              <div className="spread">
-                <div>
-                  <p className="strong">{sponsor.name}</p>
-                  <p className="small cap-muted">
-                    {[sponsor.tier ?? "", sponsor.url ?? ""]
-                      .filter((p) => p.length > 0)
-                      .join(" . ")}
-                  </p>
+            <li key={sponsor.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div>
+                    <p className="strong">{sponsor.name}</p>
+                    <p className="small cap-muted">
+                      {[sponsor.tier ?? "", sponsor.url ?? ""]
+                        .filter((p) => p.length > 0)
+                        .join(" . ")}
+                    </p>
+                  </div>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="sponsorId" value={sponsor.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) =>
+                        confirmSubmit(e, {
+                          title: `Remove ${sponsor.name}?`,
+                          action: "Remove sponsor",
+                        })
+                      }
+                      className="small strong"
+                    >
+                      Remove
+                    </button>
+                  </Form>
                 </div>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="sponsorId" value={sponsor.id} />
-                  <button
-                    type="submit"
-                    onClick={(e) =>
-                      confirmSubmit(e, {
-                        title: `Remove ${sponsor.name}?`,
-                        action: "Remove sponsor",
-                      })
-                    }
-                    className="small strong"
-                  >
-                    Remove
-                  </button>
-                </Form>
-              </div>
 
-              <details className="card card-s">
-                <summary className="summary">Edit sponsor</summary>
-                <Form method="post" className="stack-3 mt-3" noValidate>
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="sponsorId" value={sponsor.id} />
-                  <SponsorFields sponsor={sponsor} />
-                  <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
-                    Save sponsor
-                  </button>
-                </Form>
-              </details>
+                <Disclosure summary="Edit sponsor" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                    <input type="hidden" name="intent" value="update" />
+                    <input type="hidden" name="sponsorId" value={sponsor.id} />
+                    <SponsorFields sponsor={sponsor} />
+                    <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
+                      Save sponsor
+                    </button>
+                  </Form>
+                </Disclosure>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <section className="card stack-4">
-        <h2 className="subsection-title">Add a sponsor</h2>
-        <Form method="post" className="stack-4" noValidate>
+      <Panel title="Add a sponsor">
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SponsorFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add sponsor"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

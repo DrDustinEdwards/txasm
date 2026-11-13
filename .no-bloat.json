@@ -4,24 +4,31 @@
     "jscpd": "jscpd@4.3.0"
   },
   "baseline": {
-    "measured_at": "d280a09",
+    "measured_at": "cf6432a",
     "knip": {
-      "Unused exports": 1,
-      "Unused exported types": 1
+      "files": 2,
+      "dependencies": 1,
+      "exports": 3,
+      "types": 1
     },
     "jscpd": {
-      "clones": 44,
-      "lines": 491,
-      "percentage": 1.74
+      "clones": 50,
+      "lines": 549,
+      "percentage": 1.86,
+      "unread": 2
+    },
+    "shared copies": {
+      "clones": 0,
+      "lines": 0
     },
     "tests": {
-      "files": 6,
-      "cases": 26
+      "files": 9,
+      "cases": 36
     },
     "comments": {
-      "lines": 1921,
-      "code": 21215,
-      "percentage": 8.3
+      "lines": 4116,
+      "code": 49523,
+      "percentage": 7.67
     }
   }
 }

@@ -1,7 +1,9 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import {
@@ -19,10 +21,10 @@ import {
 } from "~/lib/vocab";
 import { DateTimeField } from "capsomer/react/field";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT, parseDateTime } from "~/lib/form.server";
+import { FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Edit meeting");
+  return privateMeta(pageTitle(matches, "Edit meeting"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -30,6 +32,16 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const edition = await getDataAccess(env).editions.getById(actor, params.editionId);
   return { edition };
+}
+
+function parseDate(value: FormDataEntryValue | null): Date | null {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) {
+    throw new ValidationError("Enter a valid date and time.");
+  }
+  return date;
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -44,12 +56,12 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   try {
     const patch: EditionPatch = {
       status: status as EditionStatus,
-      registrationOpensAt: parseDateTime(form.get("registrationOpensAt")),
-      registrationClosesAt: parseDateTime(form.get("registrationClosesAt")),
-      submissionOpensAt: parseDateTime(form.get("submissionOpensAt")),
-      submissionDeadline: parseDateTime(form.get("submissionDeadline")),
-      meetingStartsAt: parseDateTime(form.get("meetingStartsAt")),
-      meetingEndsAt: parseDateTime(form.get("meetingEndsAt")),
+      registrationOpensAt: parseDate(form.get("registrationOpensAt")),
+      registrationClosesAt: parseDate(form.get("registrationClosesAt")),
+      submissionOpensAt: parseDate(form.get("submissionOpensAt")),
+      submissionDeadline: parseDate(form.get("submissionDeadline")),
+      meetingStartsAt: parseDate(form.get("meetingStartsAt")),
+      meetingEndsAt: parseDate(form.get("meetingEndsAt")),
       venueName: String(form.get("venueName") ?? ""),
       venueAddress: String(form.get("venueAddress") ?? ""),
       city: String(form.get("city") ?? ""),
@@ -74,8 +86,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-2">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="3">
         <h1 className="page-title">{edition.name}</h1>
         <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
@@ -123,8 +135,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="stack-4" noValidate>
-        <div className="stack-1">
+      <Form method="post" className="cap-stack" noValidate>
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -137,92 +149,95 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <fieldset className="card stack-4">
-          <legend className="legend">Meeting dates and venue</legend>
-          <DateTimeField
-            id="meetingStartsAt"
-            name="meetingStartsAt"
-            label="Starts"
-            defaultDate={edition.meetingStartsAt}
-          />
-          <DateTimeField
-            id="meetingEndsAt"
-            name="meetingEndsAt"
-            label="Ends"
-            defaultDate={edition.meetingEndsAt}
-          />
-          <div className="stack-1">
-            <label htmlFor="venueName" className="cap-field-label">
-              Venue
-            </label>
-            <input
-              id="venueName"
-              name="venueName"
-              type="text"
-              defaultValue={edition.venueName ?? ""}
-              placeholder="University Conference Center"
-              className="cap-input"
+        <Panel title="Meeting dates and venue">
+          <div className="cap-stack">
+            <DateTimeField
+              id="meetingStartsAt"
+              name="meetingStartsAt"
+              label="Starts"
+              defaultDate={edition.meetingStartsAt}
+            />
+            <DateTimeField
+              id="meetingEndsAt"
+              name="meetingEndsAt"
+              label="Ends"
+              defaultDate={edition.meetingEndsAt}
+            />
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="venueName" className="cap-field-label">
+                Venue
+              </label>
+              <input
+                id="venueName"
+                name="venueName"
+                type="text"
+                defaultValue={edition.venueName ?? ""}
+                placeholder="University Conference Center"
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="venueAddress" className="cap-field-label">
+                Address
+              </label>
+              <input
+                id="venueAddress"
+                name="venueAddress"
+                type="text"
+                defaultValue={edition.venueAddress ?? ""}
+                className="cap-input"
+              />
+            </div>
+            <div className="cap-stack" data-gap="2">
+              <label htmlFor="city" className="cap-field-label">
+                City
+              </label>
+              <input
+                id="city"
+                name="city"
+                type="text"
+                defaultValue={edition.city ?? ""}
+                className="cap-input"
+              />
+            </div>
+          </div>
+        </Panel>
+
+        <Panel title="Registration window">
+          <div className="cap-stack">
+            <DateTimeField
+              id="registrationOpensAt"
+              name="registrationOpensAt"
+              label="Opens"
+              defaultDate={edition.registrationOpensAt}
+            />
+            <DateTimeField
+              id="registrationClosesAt"
+              name="registrationClosesAt"
+              label="Deadline"
+              defaultDate={edition.registrationClosesAt}
             />
           </div>
-          <div className="stack-1">
-            <label htmlFor="venueAddress" className="cap-field-label">
-              Address
-            </label>
-            <input
-              id="venueAddress"
-              name="venueAddress"
-              type="text"
-              defaultValue={edition.venueAddress ?? ""}
-              className="cap-input"
+        </Panel>
+
+        <Panel title="Submission window">
+          <div className="cap-stack">
+            <DateTimeField
+              id="submissionOpensAt"
+              name="submissionOpensAt"
+              label="Opens"
+              defaultDate={edition.submissionOpensAt}
+            />
+            <DateTimeField
+              id="submissionDeadline"
+              name="submissionDeadline"
+              label="Deadline"
+              defaultDate={edition.submissionDeadline}
             />
           </div>
-          <div className="stack-1">
-            <label htmlFor="city" className="cap-field-label">
-              City
-            </label>
-            <input
-              id="city"
-              name="city"
-              type="text"
-              defaultValue={edition.city ?? ""}
-              className="cap-input"
-            />
-          </div>
-        </fieldset>
+        </Panel>
 
-        <fieldset className="card stack-4">
-          <legend className="legend">Registration window</legend>
-          <DateTimeField
-            id="registrationOpensAt"
-            name="registrationOpensAt"
-            label="Opens"
-            defaultDate={edition.registrationOpensAt}
-          />
-          <DateTimeField
-            id="registrationClosesAt"
-            name="registrationClosesAt"
-            label="Deadline"
-            defaultDate={edition.registrationClosesAt}
-          />
-        </fieldset>
-
-        <fieldset className="card stack-4">
-          <legend className="legend">Submission window</legend>
-          <DateTimeField
-            id="submissionOpensAt"
-            name="submissionOpensAt"
-            label="Opens"
-            defaultDate={edition.submissionOpensAt}
-          />
-          <DateTimeField
-            id="submissionDeadline"
-            name="submissionDeadline"
-            label="Deadline"
-            defaultDate={edition.submissionDeadline}
-          />
-        </fieldset>
-
-        <div className="cluster">
+        <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>

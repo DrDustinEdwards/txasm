@@ -1,17 +1,21 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { TextField } from "capsomer/react/field";
+import { Panel } from "capsomer/react/panel";
+import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.officers";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
 import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Branch officers");
+  return privateMeta(pageTitle(matches, "Branch officers"));
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -67,44 +71,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 type Row = Route.ComponentProps["loaderData"]["rows"][number];
 
-function Field({
-  id,
-  name,
-  label,
-  defaultValue,
-  type = "text",
-  hint,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  defaultValue?: string | number | null;
-  type?: string;
-  hint?: string;
-}) {
-  return (
-    <div className="stack-1">
-      <label htmlFor={id} className="cap-field-label">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        step={type === "number" ? "1" : undefined}
-        defaultValue={defaultValue ?? ""}
-        className="cap-input"
-      />
-      {hint ? <p className="tiny cap-muted">{hint}</p> : null}
-    </div>
-  );
-}
-
 function OfficerFields({ row, section }: { row?: Row; section: OfficerSection }) {
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`${p}-section`} className="cap-field-label">
           Section
         </label>
@@ -121,43 +92,44 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
           ))}
         </select>
       </div>
-      <Field
+      <TextField
         id={`${p}-role`}
         name="role"
         label="Office"
-        defaultValue={row?.role}
-        hint="President, Treasurer, and so on. Past officers are grouped by office."
+        defaultValue={row?.role ?? ""}
+        help="President, Treasurer, and so on. Past officers are grouped by office."
       />
-      <Field id={`${p}-name`} name="name" label="Name" defaultValue={row?.name} />
-      <Field
+      <TextField id={`${p}-name`} name="name" label="Name" defaultValue={row?.name ?? ""} />
+      <TextField
         id={`${p}-affiliation`}
         name="affiliation"
         label="Affiliation or institution"
-        defaultValue={row?.affiliation}
+        defaultValue={row?.affiliation ?? ""}
       />
-      <Field
+      <TextField
         id={`${p}-term`}
         name="term"
         label="Term"
-        defaultValue={row?.term}
-        hint="Past officers only, e.g. 2024-2025."
+        defaultValue={row?.term ?? ""}
+        help="Past officers only, e.g. 2024-2025."
       />
-      <Field
+      <TextField
         id={`${p}-location`}
         name="location"
         label="Location"
-        defaultValue={row?.location}
-        hint="Current officers only."
+        defaultValue={row?.location ?? ""}
+        help="Current officers only."
       />
-      <Field id={`${p}-phone`} name="phone" label="Phone" defaultValue={row?.phone} />
-      <Field id={`${p}-email`} name="email" label="Email" type="email" defaultValue={row?.email} />
-      <Field
+      <TextField id={`${p}-phone`} name="phone" label="Phone" defaultValue={row?.phone ?? ""} />
+      <TextField id={`${p}-email`} name="email" label="Email" type="email" defaultValue={row?.email ?? ""} />
+      <TextField
         id={`${p}-sortOrder`}
         name="sortOrder"
         label="Sort order"
         type="number"
+        step={1}
         defaultValue={row?.sortOrder ?? 0}
-        hint="Lower comes first."
+        help="Lower comes first."
       />
     </div>
   );
@@ -175,40 +147,41 @@ function summary(row: Row): string {
 function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
   const section = row.section;
   return (
-    <li className="card stack-3">
-      <div className="spread">
-        <div className="shrink">
-          {row.role ? <p className="cap-label">{row.role}</p> : null}
-          <p className="small">{summary(row)}</p>
+    <li className="cap-panel">
+      <div className="cap-panel-body cap-stack" data-gap="4">
+        <div className="cap-spread">
+          <div className="shrink">
+            {row.role ? <p className="cap-label">{row.role}</p> : null}
+            <p className="small">{summary(row)}</p>
+          </div>
+          <Form method="post">
+            <input type="hidden" name="intent" value="remove" />
+            <input type="hidden" name="id" value={row.id} />
+            <button
+              type="submit"
+              onClick={(e) =>
+                confirmSubmit(e, {
+                  title: `Remove ${row.name ?? "this entry"}?`,
+                  action: "Remove entry",
+                })
+              }
+              className="small strong"
+            >
+              Remove
+            </button>
+          </Form>
         </div>
-        <Form method="post">
-          <input type="hidden" name="intent" value="remove" />
-          <input type="hidden" name="id" value={row.id} />
-          <button
-            type="submit"
-            onClick={(e) =>
-              confirmSubmit(e, {
-                title: `Remove ${row.name ?? "this entry"}?`,
-                action: "Remove entry",
-              })
-            }
-            className="small strong"
-          >
-            Remove
-          </button>
-        </Form>
+        <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
+          <Form method="post" className="cap-stack" data-gap="4" noValidate>
+            <input type="hidden" name="intent" value="update" />
+            <input type="hidden" name="id" value={row.id} />
+            <OfficerFields row={row} section={section} />
+            <button type="submit" disabled={submitting} className="cap-btn">
+              Save
+            </button>
+          </Form>
+        </Disclosure>
       </div>
-      <details className="card card-s">
-        <summary className="summary">Edit</summary>
-        <Form method="post" className="stack-3 mt-3" noValidate>
-          <input type="hidden" name="intent" value="update" />
-          <input type="hidden" name="id" value={row.id} />
-          <OfficerFields row={row} section={section} />
-          <button type="submit" disabled={submitting} className="cap-btn">
-            Save
-          </button>
-        </Form>
-      </details>
     </li>
   );
 }
@@ -222,18 +195,21 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
     groups.set(office, [...(groups.get(office) ?? []), row]);
   }
   return (
-    <div className="stack-3">
+    <div className="cap-stack" data-gap="4">
       {[...groups].map(([office, officeRows]) => (
-        <details key={office} className="card card-s">
-          <summary className="summary">
-            {office} ({officeRows.length})
-          </summary>
-          <ul className="stack-3 mt-3">
+        <Disclosure
+          key={office}
+          summary={`${office} (${officeRows.length})`}
+          variant="card"
+          size="sm"
+          marker="triangle"
+        >
+          <ul className="cap-stack" data-gap="4">
             {officeRows.map((row) => (
               <OfficerRow key={row.id} row={row} submitting={submitting} />
             ))}
           </ul>
-        </details>
+        </Disclosure>
       ))}
     </div>
   );
@@ -247,8 +223,8 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page stack-8">
-      <header className="stack-2">
+    <div className="form-page cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="3">
         <h1 className="page-title">Branch officers</h1>
         <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
@@ -265,7 +241,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
       {OFFICER_SECTIONS.map((section) => {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
-          <section key={section} aria-labelledby={`${section}-heading`} className="stack-4">
+          <section key={section} aria-labelledby={`${section}-heading`} className="cap-stack">
             <h2 id={`${section}-heading`} className="subsection-title">
               {OFFICER_SECTION_LABELS[section]}
             </h2>
@@ -274,7 +250,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
             ) : section === "past" ? (
               <PastGroups rows={sectionRows} submitting={submitting} />
             ) : (
-              <ul className="stack-3">
+              <ul className="cap-stack" data-gap="4">
                 {sectionRows.map((row) => (
                   <OfficerRow key={row.id} row={row} submitting={submitting} />
                 ))}
@@ -284,18 +260,15 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
         );
       })}
 
-      <section aria-labelledby="add-officer-heading" className="card stack-4">
-        <h2 id="add-officer-heading" className="subsection-title">
-          Add a person
-        </h2>
-        <Form method="post" className="stack-4" noValidate>
+      <Panel title="Add a person" headingId="add-officer-heading">
+        <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <OfficerFields section="officer" />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }

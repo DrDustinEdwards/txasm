@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Banner } from "capsomer/react/banner";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { ActionResult } from "capsomer/react/message";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/abstracts.$abstractId.edit";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { forbidden, requireUser } from "~/lib/auth.server";
 import {
@@ -26,11 +29,14 @@ import {
   PRESENTATION_PREFERENCES,
   type PresentationPreference,
 } from "~/lib/vocab";
-import { formatDateTime } from "~/lib/format";
-import { countWords } from "~/lib/richtext";
-import { RichEditor } from "~/components/rich-editor";
+import { DATE_TIME } from "~/lib/format";
+import { formatDate } from "capsomer/behavior/time";
+import { richTextWords } from "capsomer/behavior/rich-text-field";
+import { RichTextField } from "capsomer/react/rich-text-field";
+import { BODY_TAGS, TITLE_TAGS } from "~/lib/richtext";
 import {
   AffiliationsFieldset,
+  type InstitutionSuggestion,
   type AffiliationState,
   AuthorsFieldset,
   type AuthorState,
@@ -40,12 +46,13 @@ import { DecisionPanel, ReadOnlyAbstract } from "~/components/abstract-read-only
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
+import { RichText } from "capsomer/react/trusted-html";
 
 // An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Edit abstract");
+  return privateMeta(pageTitle(matches, "Edit abstract"));
 }
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
@@ -214,49 +221,62 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   const [affiliations, setAffiliations] = useState<AffiliationState[]>(
     () => loaderData.affiliations,
   );
-  const [bodyWords, setBodyWords] = useState(() => countWords(abstract.bodyText));
+  const [bodyWords, setBodyWords] = useState(() => richTextWords(abstract.bodyText));
   const overLimit = bodyWords > edition.wordLimit;
 
-  const statusRef = useRef<HTMLParagraphElement>(null);
-  const error = actionData && "error" in actionData ? actionData.error : null;
-  const ok = actionData && "ok" in actionData ? actionData.ok : null;
+  function updateAuthor(index: number, patch: Partial<AuthorState>) {
+    setAuthors((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
+  }
+  function toggleAffiliationForAuthor(index: number, ordinal: number) {
+    setAuthors((prev) =>
+      prev.map((a, i) => {
+        if (i !== index) return a;
+        const has = a.affiliationOrdinals.includes(ordinal);
+        return {
+          ...a,
+          affiliationOrdinals: has
+            ? a.affiliationOrdinals.filter((o) => o !== ordinal)
+            : [...a.affiliationOrdinals, ordinal].sort((x, y) => x - y),
+        };
+      }),
+    );
+  }
 
-  useEffect(() => {
-    if (actionData) statusRef.current?.focus();
-  }, [actionData]);
-
-  // A removed affiliation renumbers the ordinals authors point at.
-  function changeAffiliations(next: AffiliationState[]) {
-    if (next.length < affiliations.length) {
-      const removedOrdinal = affiliations.findIndex((a) => !next.includes(a)) + 1;
-      if (removedOrdinal > 0) {
-        setAuthors((prev) =>
-          prev.map((a) => ({
-            ...a,
-            affiliationOrdinals: a.affiliationOrdinals
-              .filter((o) => o !== removedOrdinal)
-              .map((o) => (o > removedOrdinal ? o - 1 : o)),
-          })),
-        );
-      }
-    }
-    setAffiliations(next);
+  function updateAffiliation(index: number, patch: Partial<AffiliationState>) {
+    setAffiliations((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
+  }
+  function selectInstitution(index: number, suggestion: InstitutionSuggestion) {
+    updateAffiliation(index, {
+      institution: suggestion.name,
+      city: suggestion.city ?? "",
+      region: suggestion.region ?? "",
+      country: suggestion.country ?? "USA",
+    });
+  }
+  // An affiliation moved or was removed: from[i] is the old index of the one now at i. Each author's
+  // ordinals follow their affiliation, and one that was removed is dropped.
+  function renumberAffiliations(from: number[]) {
+    setAuthors((prev) =>
+      prev.map((a) => ({
+        ...a,
+        affiliationOrdinals: a.affiliationOrdinals
+          .map((o) => from.indexOf(o - 1) + 1)
+          .filter((o) => o > 0)
+          .sort((x, y) => x - y),
+      })),
+    );
   }
 
   if (!editable) {
     return (
-      <div className="form-page stack-6">
+      <div className="form-page cap-stack" data-gap="6">
         <h1 className="page-title">
-          {abstract.title ? (
-            <span dangerouslySetInnerHTML={{ __html: abstract.title }} />
-          ) : (
-            "Untitled abstract"
-          )}
+          <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
         </h1>
         <DecisionPanel decision={decision} />
-        <p role="status" className="card card-s card-sunken cap-muted">
+        <Banner tone="warn">
           The submission deadline has passed. This abstract can no longer be edited.
-        </p>
+        </Banner>
         <ReadOnlyAbstract
           bodyText={abstract.bodyText}
           authors={loaderData.authors}
@@ -270,40 +290,33 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="form-page stack-6">
-      <div className="stack-1">
+    <div className="form-page cap-stack" data-gap="6">
+      <div className="cap-stack" data-gap="2">
         <h1 className="page-title">Abstract</h1>
         <p className="small cap-muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
-            ? ` . Deadline: ${formatDateTime(edition.submissionDeadline)}`
+            ? ` . Deadline: ${formatDate(edition.submissionDeadline, DATE_TIME)}`
             : ""}
         </p>
       </div>
 
       <DecisionPanel decision={decision} />
 
-      <p
-        ref={statusRef}
-        tabIndex={-1}
-        role={error ? "alert" : "status"}
-        className={error || ok ? "cap-alert" : "cap-sr-only"}
-        data-tone={error ? "crit" : "ok"}
-      >
-        {error ?? ok ?? ""}
-      </p>
+      <ActionResult data={actionData} />
 
-      <Form method="post" className="stack-6">
-        <RichEditor name="title" label="Title" mode="title" initialHTML={abstract.title} />
+      <Form method="post" className="cap-stack" data-gap="6">
+        <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
-        <div className="stack-1">
-          <RichEditor
+        <div className="cap-stack" data-gap="2">
+          <RichTextField
             name="bodyText"
             label="Abstract body"
-            mode="body"
+            tags={BODY_TAGS}
+            lines="multi"
             initialHTML={abstract.bodyText}
-            describedById="body-count"
-            onValueChange={(value) => setBodyWords(countWords(value))}
+            describedBy="body-count"
+            onValueChange={(value) => setBodyWords(richTextWords(value))}
           />
           <p
             id="body-count"
@@ -317,8 +330,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </p>
         </div>
 
-        <div className="grid-2">
-          <div className="stack-1">
+        <div className="cap-grid" data-cols="2">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="level" className="cap-field-label">
               Level
             </label>
@@ -332,7 +345,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             </select>
           </div>
 
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="categoryId" className="cap-field-label">
               Topic
             </label>
@@ -352,7 +365,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        <div className="stack-1">
+        <div className="cap-stack" data-gap="2">
           <label htmlFor="presentationPreference" className="cap-field-label">
             Presentation preference
           </label>
@@ -370,14 +383,26 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <AffiliationsFieldset affiliations={affiliations} onChange={changeAffiliations} />
+        <AffiliationsFieldset
+          affiliations={affiliations}
+          onChange={setAffiliations}
+          updateAffiliation={updateAffiliation}
+          selectInstitution={selectInstitution}
+          renumber={renumberAffiliations}
+        />
 
-        <AuthorsFieldset authors={authors} affiliations={affiliations} onChange={setAuthors} />
+        <AuthorsFieldset
+          authors={authors}
+          affiliations={affiliations}
+          onChange={setAuthors}
+          updateAuthor={updateAuthor}
+          toggleAffiliationForAuthor={toggleAffiliationForAuthor}
+        />
 
         <input type="hidden" name="authors" value={JSON.stringify(authors)} />
         <input type="hidden" name="affiliations" value={JSON.stringify(affiliations)} />
 
-        <div className="cluster">
+        <div className="cap-cluster">
           <button
             type="submit"
             name="intent"

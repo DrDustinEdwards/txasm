@@ -1,4 +1,6 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Panel } from "capsomer/react/panel";
+import { Disclosure } from "capsomer/react/disclosure";
 import { prepareUpload, RefusedError } from "@dustinedwards/site-api";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.documents";
@@ -24,15 +26,16 @@ import {
   maxUploadBytesForKind,
   type DocumentCategory,
 } from "~/lib/vocab";
-import { privateMeta } from "~/lib/site-meta";
+import { pageTitle } from "~/lib/site-meta";
+import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
   type MultipartPart,
   multipartBoundary,
-  multipartParts,
   partText,
-} from "~/lib/multipart.server";
+  readMultipart,
+} from "@dustinedwards/site-runtime/body";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 // File picker hint: allow every accepted type so images are selectable for the
@@ -41,7 +44,7 @@ import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 const UPLOAD_ACCEPT = [PDF_MIME_TYPE, ...IMAGE_MIME_TYPES].join(",");
 
 export function meta({ matches }: Route.MetaArgs) {
-  return privateMeta(matches, "Documents");
+  return privateMeta(pageTitle(matches, "Documents"));
 }
 
 function toCategory(value: string | null): DocumentCategory | undefined {
@@ -175,19 +178,22 @@ type Admin = Awaited<ReturnType<typeof requireAdmin>>["actor"];
 
 // The upload form, read part by part rather than buffered: the browser sends its fields in page order, so the text
 // fields arrive first, then the file, which is checked on its first bytes and streamed to R2, then "publish".
-async function createDocument(
-  request: Request,
-  boundary: string,
-  env: Env,
-  da: DataAccess,
-  actor: Admin,
-) {
+async function createDocument(request: Request, env: Env, da: DataAccess, actor: Admin) {
   const fields = new Map<string, string>();
   let createdId: string | null = null;
-  for await (const part of multipartParts(request.body, boundary, MAX_UPLOAD_REQUEST)) {
-    if (part.filename === null) fields.set(part.name, await partText(part));
-    else if (part.name === "file" && !createdId)
-      createdId = await storeUpload(part, fields, env, da, actor);
+  try {
+    for await (const part of readMultipart(request, MAX_UPLOAD_REQUEST)) {
+      if (part.filename === null) fields.set(part.name, await partText(part));
+      else if (part.name === "file" && !createdId)
+        createdId = await storeUpload(part, fields, env, da, actor);
+    }
+  } catch (error) {
+    // The shared reader refuses a body that does not parse, or a field too long, with a 400; here it shows on the form
+    // as a ValidationError. The 413 over the ceiling still goes out as it is.
+    if (error instanceof Response && error.status === 400) {
+      throw new ValidationError((await error.text()) || "Could not read the upload. Try again.");
+    }
+    throw error;
   }
   if (!createdId) throw new ValidationError("Choose a file to upload.");
   if (fields.get("publish")) await da.documents.publish(actor, createdId);
@@ -287,8 +293,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const da = getDataAccess(env);
 
   try {
-    const boundary = multipartBoundary(request.headers.get("Content-Type"));
-    if (boundary) return await createDocument(request, boundary, env, da, actor);
+    if (multipartBoundary(request.headers.get("Content-Type")))
+      return await createDocument(request, env, da, actor);
 
     const form = await readForm(request, FORM_LIMIT);
     const intent = String(form.get("intent") ?? "");
@@ -338,8 +344,8 @@ type Edition = Route.ComponentProps["loaderData"]["editions"][number];
 function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
   const base = doc ? doc.id : "new";
   return (
-    <div className="grid-2">
-      <div className="stack-1">
+    <div className="cap-grid" data-cols="2">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`title-${base}`} className="cap-field-label">
           Title
         </label>
@@ -352,7 +358,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
@@ -369,7 +375,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
@@ -382,7 +388,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`season-${base}`} className="cap-field-label">
           Season
         </label>
@@ -400,7 +406,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`editor-${base}`} className="cap-field-label">
           Editor
         </label>
@@ -412,7 +418,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
       </div>
-      <div className="stack-1">
+      <div className="cap-stack" data-gap="2">
         <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
@@ -430,7 +436,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </div>
-      <div className="stack-1 span-2">
+      <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug
         </label>
@@ -456,8 +462,8 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="stack-8">
-      <header className="stack-2">
+    <div className="cap-stack" data-gap="7">
+      <header className="cap-stack" data-gap="3">
         <h1 className="page-title">Documents</h1>
         <p className="cap-muted">
           Upload and manage the branch's files: newsletters, archived abstract books and programs,
@@ -472,7 +478,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <nav aria-label="Filter by category" className="cluster">
+      <nav aria-label="Filter by category" className="cap-cluster">
         <Link
           to="/admin/documents"
           className="cap-btn"
@@ -499,91 +505,89 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       {documents.length === 0 ? (
         <p className="cap-muted">No documents yet. Upload the first below.</p>
       ) : (
-        <ul className="stack-3">
+        <ul className="cap-stack" data-gap="4">
           {documents.map((doc) => (
-            <li key={doc.id} className="card stack-3">
-              <div className="spread">
-                <div className="cluster cluster-start shrink">
-                  {doc.fileKind === "image" && doc.hasFile ? (
-                    <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
-                  ) : null}
-                  <div className="shrink">
-                    <p className="strong">{doc.title}</p>
-                    <p className="small cap-muted">
-                      {[
-                        DOCUMENT_CATEGORY_LABELS[doc.category],
-                        doc.status === "published" ? "Published" : "Draft",
-                        doc.source === "generated" ? "Generated" : "Uploaded",
-                        doc.hasFile ? "" : "No file",
-                      ]
-                        .filter((p) => p.length > 0)
-                        .join(" · ")}
-                    </p>
+            <li key={doc.id} className="cap-panel">
+              <div className="cap-panel-body cap-stack" data-gap="4">
+                <div className="cap-spread">
+                  <div className="cap-cluster shrink" data-align="start">
+                    {doc.fileKind === "image" && doc.hasFile ? (
+                      <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
+                    ) : null}
+                    <div className="shrink">
+                      <p className="strong">{doc.title}</p>
+                      <p className="small cap-muted">
+                        {[
+                          DOCUMENT_CATEGORY_LABELS[doc.category],
+                          doc.status === "published" ? "Published" : "Draft",
+                          doc.source === "generated" ? "Generated" : "Uploaded",
+                          doc.hasFile ? "" : "No file",
+                        ]
+                          .filter((p) => p.length > 0)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="cap-cluster">
+                    {doc.status === "published" ? (
+                      <a
+                        href={`/documents/${doc.slug}/inline`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="small strong"
+                      >
+                        View
+                        <span className="cap-sr-only"> (opens in a new tab)</span>
+                      </a>
+                    ) : null}
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="remove" />
+                      <input type="hidden" name="documentId" value={doc.id} />
+                      <button
+                        type="submit"
+                        onClick={(e) =>
+                          confirmSubmit(e, {
+                            title: `Remove ${doc.title}?`,
+                            action: "Remove document",
+                          })
+                        }
+                        className="small strong"
+                      >
+                        Remove
+                      </button>
+                    </Form>
                   </div>
                 </div>
-                <div className="cluster">
-                  {doc.status === "published" ? (
-                    <a
-                      href={`/documents/${doc.slug}/inline`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="small strong"
-                    >
-                      View
-                      <span className="cap-sr-only"> (opens in a new tab)</span>
-                    </a>
-                  ) : null}
-                  <Form method="post">
-                    <input type="hidden" name="intent" value="remove" />
+
+                <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
+                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                    <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="documentId" value={doc.id} />
-                    <button
-                      type="submit"
-                      onClick={(e) =>
-                        confirmSubmit(e, {
-                          title: `Remove ${doc.title}?`,
-                          action: "Remove document",
-                        })
-                      }
-                      className="small strong"
-                    >
-                      Remove
+                    <MetaFields doc={doc} editions={editions} />
+                    <label className="cap-check">
+                      <input
+                        type="checkbox"
+                        name="publish"
+                        defaultChecked={doc.status === "published"}
+                      />
+                      Published
+                    </label>
+                    <button type="submit" disabled={submitting} className="cap-btn">
+                      Save details
                     </button>
                   </Form>
-                </div>
+                </Disclosure>
               </div>
-
-              <details className="card card-s">
-                <summary className="summary">Edit details</summary>
-                <Form method="post" className="stack-3 mt-3" noValidate>
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="documentId" value={doc.id} />
-                  <MetaFields doc={doc} editions={editions} />
-                  <label className="cap-check">
-                    <input
-                      type="checkbox"
-                      name="publish"
-                      defaultChecked={doc.status === "published"}
-                    />
-                    Published
-                  </label>
-                  <button type="submit" disabled={submitting} className="cap-btn">
-                    Save details
-                  </button>
-                </Form>
-              </details>
             </li>
           ))}
         </ul>
       )}
 
-      <section aria-labelledby="upload-heading" className="card stack-4">
-        <h2 id="upload-heading" className="subsection-title">
-          Upload a document
-        </h2>
-        <Form method="post" encType="multipart/form-data" className="stack-4" noValidate>
+      <Panel title="Upload a document" headingId="upload-heading">
+        <Form method="post" encType="multipart/form-data" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
-          <div className="stack-1">
+          <div className="cap-stack" data-gap="2">
             <label htmlFor="file" className="cap-field-label">
               File
             </label>
@@ -608,7 +612,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
             {submitting ? "Uploading..." : "Upload document"}
           </button>
         </Form>
-      </section>
+      </Panel>
     </div>
   );
 }
