@@ -20,8 +20,12 @@ import {
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useMatches, useParams, useRouteLoaderData } from "react-router";
 import { AdminShell, type AdminEntry } from "capsomer/react/admin-shell";
-// Capsomer's Disclosure styles: its compact cards are on the admin pages only.
+// Capsomer styles only the admin pages use, kept out of every public page's root.css: the shell, Disclosure's
+// compact cards, and the settings page's schema form and repeater.
+import "capsomer/admin-shell.css";
 import "capsomer/disclosure.css";
+import "capsomer/schema-form.css";
+import "capsomer/repeater-field.css";
 import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
