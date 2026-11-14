@@ -1,12 +1,8 @@
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useRouteLoaderData } from "react-router";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
-import {
-  SiteHeader,
-  initialsOf,
-  type HeaderGroup,
-  type HeaderSection,
-} from "capsomer/react/site-header";
+import { initials } from "capsomer/behavior/avatar";
+import { SiteHeader, type HeaderGroup, type HeaderSection } from "capsomer/react/site-header";
 import type { Route } from "./+types/public.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
@@ -123,7 +119,7 @@ function PublicHeader({
         email
           ? {
               name: email,
-              initials: initialsOf(null, email),
+              initials: initials(null, email),
               groups: [{ links: rows }],
               signOutAction: "/signout",
             }
