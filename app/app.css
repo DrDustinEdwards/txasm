@@ -1,10 +1,10 @@
-/* Capsomer's layers, with txasm's own reset under them. txasm's page classes
-   below are unlayered, so they win over Capsomer's where they meet. */
-@layer reset, cap;
+/* Capsomer, with its element reset (capsomer/reset.css) at the bottom. txasm's
+   own rules below are unlayered, so they win over Capsomer's where they meet. */
 @import "capsomer/tokens.css";
 @import "capsomer/family-navy.css" layer(cap.tokens);
 @import "capsomer/site-txasm.css";
 @import "capsomer/fallback-fonts.css";
+@import "capsomer/reset.css";
 @import "capsomer/base.css";
 @import "capsomer/layout.css";
 @import "capsomer/icons.css";
@@ -13,21 +13,18 @@
 @import "capsomer/panel.css";
 @import "capsomer/popover.css";
 @import "capsomer/theme-switch.css";
-@import "capsomer/breadcrumb.css";
 @import "capsomer/button.css";
 @import "capsomer/field.css";
 @import "capsomer/select.css";
-@import "capsomer/tabs.css";
 @import "capsomer/banner.css";
 @import "capsomer/status.css";
 @import "capsomer/empty.css";
 @import "capsomer/error-page.css";
-@import "capsomer/filter-bar.css";
 @import "capsomer/form-status.css";
 @import "capsomer/picture.css";
 @import "capsomer/card.css";
-@import "capsomer/row-list.css";
 @import "capsomer/trusted-html.css";
+@import "capsomer/site-footer.css";
 
 /* Brand ink for the inline logos (BrandWordmark, BrandMark, BrandFooter): the
    navy is the family's accent text (#002868 in light); the red is txasm's own,
@@ -45,32 +42,21 @@
   --brand-red: #e8617a;
 }
 
-/* The public page frame: the site header, a centered column, the footer. Pages
-   read at 16px, controls included; the header keeps Capsomer's sizes. */
+/* The public page: the site header, Capsomer's page column (72rem and 16px text, txasm's
+   SITES entry), the footer. Pages read at 16px, controls included; the header keeps
+   Capsomer's sizes, its contents in the page's column. Its section links read in the band's
+   full text color (--header-fg-muted is one of the band tokens a site owns) rather than muted. */
 .txasm-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-.txasm-frame {
-  width: 100%;
-  max-width: 72rem;
-  margin-inline: auto;
-  padding-inline: var(--space-6);
-  @media (width < 768px) {
-    padding-inline: var(--space-5);
+  & > .cap-site-header {
+    --header-fg-muted: var(--text);
+    --header-max-inline-size: var(--page-max);
   }
-}
-/* The public header lines up with the page column. Capsomer's header has no
-   content-width setting (site-header.md: full width, 24px sides), so on a
-   desktop its own --header-side is set to the column's edge; on a phone it
-   keeps Capsomer's 16px. Its section links read in the band's full text color
-   (--header-fg-muted is one of the band tokens a site owns), as they did
-   before Capsomer, rather than muted. */
-.txasm-page .cap-site-header {
-  --header-fg-muted: var(--text);
-  @media (width >= 768px) {
-    --header-side: max(var(--space-6), calc((100% - 72rem) / 2 + var(--space-6)));
+  & > .cap-site-footer {
+    --site-footer-gap: var(--space-9);
+    --site-footer-fs: 0.875rem;
   }
 }
 .txasm-main {
@@ -81,8 +67,6 @@
   --fs-lead: 1.125rem;
   flex: 1;
   padding-block: 2.5rem;
-  font-size: var(--text-size);
-  line-height: var(--leading);
   &:focus {
     outline: none;
   }
@@ -98,140 +82,21 @@
 .txasm-meeting {
   font-weight: var(--weight-semibold);
 }
-.txasm-footer {
-  margin-top: var(--space-9);
-  padding-block: 2.5rem;
-  border-top: var(--line-w) solid var(--line);
-  background: var(--raised);
-  font-size: 0.875rem;
-  & nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-6);
-    margin-bottom: var(--space-6);
-  }
-  & a {
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  & p {
-    margin: var(--space-2) 0 0;
-  }
-}
-
-/* What the pages assume of an element before any class: no margins, plain
-   lists, inherited heading sizes. Below Capsomer, so its components win. */
-@layer reset {
-  :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote, pre) {
-    margin: 0;
-  }
-  :where(ul, ol) {
-    list-style: none;
-    padding: 0;
-  }
-  :where(h1, h2, h3, h4) {
-    font-size: inherit;
-    font-weight: inherit;
-  }
-  :where(img, video, canvas) {
-    display: block;
-    max-width: 100%;
-  }
-  :where(fieldset) {
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-  :where(legend) {
-    padding: 0;
-  }
-  :where(table) {
-    border-collapse: collapse;
-  }
-}
-
-/* Page type: one title per page, section and subsection headings, the lead
-   paragraph under a title, and smaller lines. */
-.page-title {
-  font-size: var(--title-2);
-  line-height: var(--leading-tight);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-tight);
-}
-.section-title {
-  font-size: var(--title-4);
-  line-height: var(--leading-compact);
-  font-weight: var(--weight-semibold);
-}
-.subsection-title {
-  font-size: var(--fs-h3);
-  line-height: var(--leading-normal);
-  font-weight: var(--weight-semibold);
-}
-.lead {
-  max-width: 42rem;
-  color: var(--muted);
-}
-.small {
-  font-size: 0.875rem;
-  line-height: 1.45;
-}
-.tiny {
-  font-size: var(--fs-small);
-  line-height: var(--leading-compact);
-}
-.strong {
-  font-weight: var(--weight-semibold);
-}
-
-.narrow {
-  max-width: 28rem;
-  margin-inline: auto;
-}
-.reading {
-  max-width: 48rem;
-  margin-inline: auto;
-}
-
-.home-tagline {
-  font-size: var(--fs-h3);
-  color: var(--text);
-}
-
 .officer-contact {
   margin-top: var(--space-4);
 }
 .tier-benefits {
   margin-top: var(--space-4);
 }
-.trail-years {
-  gap: var(--space-3);
-}
 
 .rule-below {
   padding-bottom: var(--space-3);
   border-bottom: var(--line-w) solid var(--line);
 }
-.abstract-title {
-  font-size: var(--title-3);
-}
+/* The ordinal is a superscript (capsomer/reset.css: line-height 0, raised 0.5em), so the row lines up on
+   the text's baseline; stretched, the ordinal sat above its institution. */
 .affiliation {
   display: flex;
-  gap: var(--space-3);
-}
-.abstract-body {
-  & sub {
-    vertical-align: sub;
-  }
-  & sup {
-    vertical-align: super;
-  }
-}
-
-.program-item {
   align-items: baseline;
   gap: var(--space-3);
 }
@@ -304,30 +169,7 @@
   }
 }
 
-/* More layout pieces for the admin and author screens. */
-.grow {
-  flex: 1;
-  min-width: 0;
-}
-.shrink {
-  min-width: 0;
-}
-.inline {
-  display: inline;
-}
-.block {
-  display: block;
-}
-.mt-2 {
-  margin-top: var(--space-3);
-}
-.mt-3 {
-  margin-top: var(--space-4);
-}
-/* A field that takes a whole row of a .cap-grid. */
-.span-2 {
-  grid-column: 1 / -1;
-}
+/* Field widths on the admin screens. */
 .short-field {
   max-width: 10rem;
 }
@@ -335,12 +177,7 @@
   width: 6rem;
 }
 .time-col {
-  flex: none;
   width: 3.5rem;
-}
-.form-page {
-  max-width: 42rem;
-  margin-inline: auto;
 }
 .row-pad {
   padding-block: var(--space-3);
@@ -348,18 +185,9 @@
 .divided > * + * {
   border-top: var(--line-w) solid var(--line);
 }
-.cell-end {
-  text-align: end;
-}
 .numbered {
   list-style: decimal;
   padding-left: 1.25rem;
-}
-.ok-text {
-  color: var(--ok);
-}
-.crit-text {
-  color: var(--crit);
 }
 .logo-thumb {
   flex: none;

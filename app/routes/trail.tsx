@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useRouteLoaderData } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/trail";
@@ -32,35 +34,39 @@ export default function Trail() {
   const foundingYear = rootData?.settings?.foundingYear ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">Host cities of the Texas Branch</h1>
-        <p className="lead">
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
+          Host cities of the Texas Branch
+        </Title>
+        <p className="cap-muted cap-measure">
           The branch has gathered across Texas twice a year since its
           {foundingYear ? ` founding in ${foundingYear}` : " founding"}. This trail records the
           meetings on file and the cities that hosted them.
         </p>
-      </header>
+      </Stack>
 
-      <section aria-labelledby="trail-heading" className="cap-stack">
-        <h2 id="trail-heading" className="section-title">
+      <Stack as="section" aria-labelledby="trail-heading">
+        <Title id="trail-heading" size={4}>
           Meetings on record
-        </h2>
+        </Title>
         <Banner tone="info">
           The host city for each year is being added. The years currently on record are listed
           below.
         </Banner>
-        <ul className="cap-grid trail-years" data-cols="4">
+        <ul className="cap-grid" data-cols="4" data-gap="3">
           {MEETING_YEARS.map((year) => (
             <li key={year}>
               <article className="cap-card">
                 <h3>{year}</h3>
-                <p className="small cap-muted">Host city to be added</p>
+                <Text size="small" tone="muted">
+                  Host city to be added
+                </Text>
               </article>
             </li>
           ))}
         </ul>
-      </section>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

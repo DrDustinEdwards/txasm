@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import { ButtonLink } from "capsomer/react/link";
 import {
@@ -9,6 +11,7 @@ import { signalCurrentUserDetails } from "@dustinedwards/site-runtime/sign-in-cl
 import { useEffect } from "react";
 import { data } from "react-router";
 import type { Route } from "./+types/account.email";
+import { MessagePage } from "~/components/message-page";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -82,49 +85,45 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
 
   if (done) {
     return (
-      <div className="narrow cap-stack" data-gap="6">
-        <div className="cap-stack" data-gap="3">
-          <h1 className="page-title">
-            {done === "approved" ? "Change approved" : "Your email address changed"}
-          </h1>
-          <p>
-            {done === "approved"
-              ? "Now open the email we sent to the new address and confirm it there. The change is made when you do."
-              : "Sign-in links now go to the new address, and your other devices were signed out. A notice went to both addresses."}
-          </p>
-        </div>
-        <div>
+      <MessagePage
+        title={done === "approved" ? "Change approved" : "Your email address changed"}
+        text={
+          done === "approved"
+            ? "Now open the email we sent to the new address and confirm it there. The change is made when you do."
+            : "Sign-in links now go to the new address, and your other devices were signed out. A notice went to both addresses."
+        }
+        action={
           <ButtonLink to="/account" variant="primary">
             Go to your account
           </ButtonLink>
-        </div>
-      </div>
+        }
+      />
     );
   }
 
   if (problem) {
     const words = PROBLEM_WORDS[problem];
     return (
-      <div className="narrow cap-stack" data-gap="6">
-        <div className="cap-stack" data-gap="3">
-          <h1 className="page-title">{words.title}</h1>
-          <p>{words.text}</p>
-        </div>
-        <div>
+      <MessagePage
+        title={words.title}
+        text={words.text}
+        action={
           <ButtonLink to="/account" variant="primary">
             Go to your account
           </ButtonLink>
-        </div>
-      </div>
+        }
+      />
     );
   }
 
   return (
-    <div className="narrow cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Confirm the email change</h1>
+    <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
+          Confirm the email change
+        </Title>
         <p>This changes the email address your TXASM account signs in with.</p>
-      </div>
+      </Stack>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
       <form method="post" className="cap-stack">
         {actionData?.limited ? (

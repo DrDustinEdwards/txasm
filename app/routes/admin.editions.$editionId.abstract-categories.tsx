@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
@@ -79,17 +81,19 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Abstract categories</h1>
+    <Stack gap={7}>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
+          Abstract categories
+        </Title>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
             Edit meeting
           </Link>
         </p>
         <p className="cap-muted">Authors choose one of these when they submit an abstract.</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -100,14 +104,14 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       {categories.length === 0 ? (
         <p>No categories yet. Add the first below.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4">
+        <Stack as="ul" gap={4}>
           {categories.map((category) => (
             <li key={category.id} className="cap-panel" data-size="sm">
-              <div className="cap-panel-body">
+              <div className="cap-panel-body cap-stack" data-gap="3">
                 <Form method="post" className="cap-cluster" data-align="end">
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="categoryId" value={category.id} />
-                  <div className="grow cap-stack" data-gap="2">
+                  <div className="cap-grow cap-stack" data-gap="2">
                     <label htmlFor={`name-${category.id}`} className="cap-field-label">
                       Name
                     </label>
@@ -120,7 +124,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                       className="cap-input"
                     />
                   </div>
-                  <div className="cap-stack tiny-field" data-gap="2">
+                  <Stack gap={2} className="tiny-field">
                     <label htmlFor={`sort-${category.id}`} className="cap-field-label">
                       Sort
                     </label>
@@ -132,12 +136,12 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                       defaultValue={category.sortOrder}
                       className="cap-input"
                     />
-                  </div>
+                  </Stack>
                   <button type="submit" className="cap-btn">
                     Save
                   </button>
                 </Form>
-                <Form method="post" className="mt-2">
+                <Form method="post">
                   <input type="hidden" name="intent" value="remove" />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
@@ -147,13 +151,13 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Add a category">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="name" className="cap-field-label">
               Name
             </label>
@@ -165,8 +169,8 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
               placeholder="Environmental Microbiology"
               className="cap-input"
             />
-          </div>
-          <div className="cap-stack" data-gap="2">
+          </Stack>
+          <Stack gap={2}>
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -178,12 +182,12 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
               defaultValue={0}
               className="cap-input"
             />
-          </div>
+          </Stack>
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }

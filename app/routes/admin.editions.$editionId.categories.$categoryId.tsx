@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { MoneyField } from "capsomer/react/field";
 import { Link } from "capsomer/react/link";
@@ -71,11 +73,13 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="2">
-        <h1 className="page-title">Edit category</h1>
+    <div className="cap-column cap-stack" data-gap="6">
+      <Stack gap={2}>
+        <Title as="h1" size={2}>
+          Edit category
+        </Title>
         <p>Type: {category.key}</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -84,7 +88,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <Form method="post" className="cap-stack" noValidate>
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="label" className="cap-field-label">
             Label
           </label>
@@ -96,7 +100,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             defaultValue={category.label}
             className="cap-input"
           />
-        </div>
+        </Stack>
         <MoneyField
           id="fee"
           name="fee"
@@ -104,7 +108,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
           required
           defaultCents={category.amountCents}
         />
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="currency" className="cap-field-label">
             Currency
           </label>
@@ -115,8 +119,8 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             defaultValue={category.currency.toUpperCase()}
             className="cap-input"
           />
-        </div>
-        <div className="cap-stack" data-gap="2">
+        </Stack>
+        <Stack gap={2}>
           <label htmlFor="sortOrder" className="cap-field-label">
             Sort order
           </label>
@@ -128,19 +132,24 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             defaultValue={category.sortOrder}
             className="cap-input"
           />
-        </div>
+        </Stack>
         <div className="cap-cluster">
           <input id="active" name="active" type="checkbox" defaultChecked={category.active} />
-          <label htmlFor="active" className="small strong">
+          <Text as="label" htmlFor="active" size="small" weight="strong">
             Active
-          </label>
+          </Text>
         </div>
 
         <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>
-          <Link to={`/admin/editions/${editionId}/categories`} className="small strong cap-muted">
+          <Link
+            to={`/admin/editions/${editionId}/categories`}
+            className="cap-text cap-muted"
+            data-size="small"
+            data-weight="strong"
+          >
             Cancel
           </Link>
         </div>

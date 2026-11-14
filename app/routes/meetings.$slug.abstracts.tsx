@@ -1,3 +1,7 @@
+import "capsomer/breadcrumb.css";
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
+import "capsomer/filter-bar.css";
 import { Form } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link, routerRenderLink } from "capsomer/react/link";
@@ -114,7 +118,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
   const filtered = filters.level || filters.format || filters.topic;
 
   return (
-    <div className="cap-stack" data-gap="7">
+    <Stack gap={7}>
       <Breadcrumb
         renderLink={routerRenderLink}
         items={[
@@ -124,14 +128,18 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         ]}
       />
 
-      <header className="cap-stack" data-gap="3">
-        <h1 className="page-title">{edition.name}</h1>
-        <p className="home-tagline cap-muted">Abstracts</p>
-        <p className="small cap-muted">
+      <Stack as="header" gap={3}>
+        <Title as="h1" size={2}>
+          {edition.name}
+        </Title>
+        <Text size="lead" tone="ink">
+          Abstracts
+        </Text>
+        <Text size="small" tone="muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} ·{" "}
           <Link to={`/meetings/${edition.slug}/program`}>Program</Link>
-        </p>
-      </header>
+        </Text>
+      </Stack>
 
       <Panel>
         <FilterBar
@@ -180,22 +188,24 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
       {groups.length === 0 ? (
         <Empty kind="no-match" title="No abstracts match these filters." />
       ) : (
-        <div className="cap-stack" data-gap="8">
+        <Stack gap={8}>
           {groups.map((group) => {
             const label = group.topic ?? untopicedLabel;
             return (
-              <section key={group.topic ?? NO_TOPIC} aria-label={label} className="cap-stack">
-                <h2 className="section-title rule-below">{label}</h2>
-                <ul className="cap-stack">
+              <Stack as="section" key={group.topic ?? NO_TOPIC} aria-label={label}>
+                <Title size={4} className="rule-below">
+                  {label}
+                </Title>
+                <Stack as="ul">
                   {group.abstracts.map((abstract) => {
                     const line = metaLine(abstract);
                     return (
                       <li key={abstract.number}>
                         <article className="cap-card">
                           <header>
-                            <p className="small strong cap-muted">
+                            <Text size="small" tone="muted" weight="strong">
                               {abstract.code ?? abstract.number}
-                            </p>
+                            </Text>
                             <h3>
                               <Link
                                 to={`/meetings/${edition.slug}/abstracts/${abstract.number}`}
@@ -205,24 +215,24 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
                               </Link>
                             </h3>
                           </header>
-                          <div className="cap-stack" data-gap="2">
+                          <Stack gap={2}>
                             {abstract.authors.length > 0 ? (
-                              <p className="small cap-muted">
+                              <Text size="small" tone="muted">
                                 {abstract.authors.map((a) => a.name).join(", ")}
-                              </p>
+                              </Text>
                             ) : null}
                             {line ? <p className="cap-label">{line}</p> : null}
-                          </div>
+                          </Stack>
                         </article>
                       </li>
                     );
                   })}
-                </ul>
-              </section>
+                </Stack>
+              </Stack>
             );
           })}
-        </div>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 }

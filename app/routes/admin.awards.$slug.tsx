@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -129,7 +131,7 @@ function RecipientFields({
   const base = recipient ? recipient.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack" data-gap="2">
+      <Stack gap={2}>
         <label htmlFor={`person-${base}`} className="cap-field-label">
           Recipient name
         </label>
@@ -141,8 +143,8 @@ function RecipientFields({
           defaultValue={recipient?.personName ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
@@ -155,8 +157,8 @@ function RecipientFields({
           defaultValue={recipient?.year ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`institution-${base}`} className="cap-field-label">
           Institution
         </label>
@@ -167,8 +169,8 @@ function RecipientFields({
           defaultValue={recipient?.institution ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`mentor-${base}`} className="cap-field-label">
           Mentor
         </label>
@@ -179,8 +181,8 @@ function RecipientFields({
           defaultValue={recipient?.mentor ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
@@ -192,8 +194,8 @@ function RecipientFields({
           defaultValue={recipient?.category ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`placement-${base}`} className="cap-field-label">
           Placement
         </label>
@@ -205,8 +207,8 @@ function RecipientFields({
           defaultValue={recipient?.placement ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
@@ -223,8 +225,8 @@ function RecipientFields({
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`sort-${base}`} className="cap-field-label">
           Sort order
         </label>
@@ -236,7 +238,7 @@ function RecipientFields({
           defaultValue={recipient ? undefined : 0}
           className="cap-input"
         />
-      </div>
+      </Stack>
     </div>
   );
 }
@@ -249,16 +251,18 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="3">
-        <p className="small">
+    <div className="cap-column cap-stack" data-gap="7">
+      <Stack as="header" gap={3}>
+        <Text size="small">
           <Link to="/admin/awards">All awards</Link>
-        </p>
-        <h1 className="page-title">{award.name}</h1>
+        </Text>
+        <Title as="h1" size={2}>
+          {award.name}
+        </Title>
         <p className="cap-muted">
           Public page: <Link to={`/awards/${award.slug}`}>/awards/{award.slug}</Link>
         </p>
-      </header>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-banner" data-tone="info">
@@ -270,7 +274,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="award-update" />
           <div className="cap-grid" data-cols="2">
-            <div className="cap-stack" data-gap="2">
+            <Stack gap={2}>
               <label htmlFor="name" className="cap-field-label">
                 Name
               </label>
@@ -282,8 +286,8 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 defaultValue={award.name}
                 className="cap-input"
               />
-            </div>
-            <div className="cap-stack" data-gap="2">
+            </Stack>
+            <Stack gap={2}>
               <label htmlFor="slug" className="cap-field-label">
                 Slug
               </label>
@@ -294,9 +298,9 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 defaultValue={award.slug}
                 className="cap-input"
               />
-            </div>
+            </Stack>
           </div>
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="namesakeBio" className="cap-field-label">
               Namesake bio
             </label>
@@ -307,8 +311,8 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               defaultValue={award.namesakeBio ?? ""}
               className="cap-input"
             />
-          </div>
-          <div className="cap-stack" data-gap="2">
+          </Stack>
+          <Stack gap={2}>
             <label htmlFor="description" className="cap-field-label">
               Description
             </label>
@@ -319,11 +323,11 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               defaultValue={award.description ?? ""}
               className="cap-input"
             />
-            <p className="tiny cap-muted">
+            <Text size="tiny" tone="muted">
               Bio and description support italics, superscript, and subscript.
-            </p>
-          </div>
-          <div className="cap-stack short-field" data-gap="2">
+            </Text>
+          </Stack>
+          <Stack gap={2} className="short-field">
             <label htmlFor="sortOrder" className="cap-field-label">
               Sort order
             </label>
@@ -335,30 +339,30 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
               defaultValue={award.sortOrder}
               className="cap-input"
             />
-          </div>
+          </Stack>
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             Save definition
           </button>
         </Form>
       </Panel>
 
-      <section aria-labelledby="recipients-heading" className="cap-stack">
-        <h2 id="recipients-heading" className="subsection-title">
+      <Stack as="section" aria-labelledby="recipients-heading">
+        <Title id="recipients-heading" size={5}>
           Recipients
-        </h2>
+        </Title>
         {recipients.length === 0 ? (
           <p className="cap-muted">No recipients yet. Add the first below.</p>
         ) : (
-          <ul className="cap-stack" data-gap="4">
+          <Stack as="ul" gap={4}>
             {recipients.map((recipient) => (
               <li key={recipient.id} className="cap-panel">
                 <div className="cap-panel-body cap-stack" data-gap="4">
                   <div className="cap-spread">
-                    <div className="shrink">
-                      <p className="strong">
+                    <div className="cap-shrink">
+                      <Text weight="strong">
                         {recipient.year} &middot; {recipient.personName}
-                      </p>
-                      <p className="small cap-muted">
+                      </Text>
+                      <Text size="small" tone="muted">
                         {[
                           recipient.category ?? "",
                           recipient.placement ?? "",
@@ -367,7 +371,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                         ]
                           .filter((p) => p.length > 0)
                           .join(" · ")}
-                      </p>
+                      </Text>
                     </div>
                     <Form method="post">
                       <input type="hidden" name="intent" value="recipient-remove" />
@@ -380,7 +384,8 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                             action: "Remove recipient",
                           })
                         }
-                        className="small strong"
+                        className="cap-btn"
+                        data-variant="link"
                       >
                         Remove
                       </button>
@@ -399,7 +404,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
                 </div>
               </li>
             ))}
-          </ul>
+          </Stack>
         )}
 
         <Panel title="Add a recipient" level={3} headingId="add-recipient-heading">
@@ -411,7 +416,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
             </button>
           </Form>
         </Panel>
-      </section>
+      </Stack>
     </div>
   );
 }

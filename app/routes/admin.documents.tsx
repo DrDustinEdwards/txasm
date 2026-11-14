@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -345,7 +347,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
   const base = doc ? doc.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack" data-gap="2">
+      <Stack gap={2}>
         <label htmlFor={`title-${base}`} className="cap-field-label">
           Title
         </label>
@@ -357,8 +359,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           defaultValue={doc?.title ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`category-${base}`} className="cap-field-label">
           Category
         </label>
@@ -374,8 +376,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`year-${base}`} className="cap-field-label">
           Year
         </label>
@@ -387,8 +389,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           defaultValue={doc?.year ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`season-${base}`} className="cap-field-label">
           Season
         </label>
@@ -405,8 +407,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`editor-${base}`} className="cap-field-label">
           Editor
         </label>
@@ -417,8 +419,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           defaultValue={doc?.editor ?? ""}
           className="cap-input"
         />
-      </div>
-      <div className="cap-stack" data-gap="2">
+      </Stack>
+      <Stack gap={2}>
         <label htmlFor={`edition-${base}`} className="cap-field-label">
           Meeting
         </label>
@@ -435,8 +437,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack span-2" data-gap="2">
+      </Stack>
+      <Stack gap={2} className="cap-full">
         <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug
         </label>
@@ -448,8 +450,10 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           placeholder="fall-1991-newsletter"
           className="cap-input"
         />
-        <p className="tiny cap-muted">Leave blank on a new document to derive it from the title.</p>
-      </div>
+        <Text size="tiny" tone="muted">
+          Leave blank on a new document to derive it from the title.
+        </Text>
+      </Stack>
     </div>
   );
 }
@@ -462,15 +466,17 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="3">
-        <h1 className="page-title">Documents</h1>
+    <Stack gap={7}>
+      <Stack as="header" gap={3}>
+        <Title as="h1" size={2}>
+          Documents
+        </Title>
         <p className="cap-muted">
           Upload and manage the branch's files: newsletters, archived abstract books and programs,
           and brand images. Published PDFs show on the public archive; brand images stay internal to
           the admin.
         </p>
-      </header>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-banner" data-tone="info">
@@ -503,18 +509,18 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       {documents.length === 0 ? (
         <p className="cap-muted">No documents yet. Upload the first below.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4">
+        <Stack as="ul" gap={4}>
           {documents.map((doc) => (
             <li key={doc.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
-                  <div className="cap-cluster shrink" data-align="start">
+                  <div className="cap-cluster cap-shrink" data-align="start">
                     {doc.fileKind === "image" && doc.hasFile ? (
                       <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
                     ) : null}
-                    <div className="shrink">
-                      <p className="strong">{doc.title}</p>
-                      <p className="small cap-muted">
+                    <div className="cap-shrink">
+                      <Text weight="strong">{doc.title}</Text>
+                      <Text size="small" tone="muted">
                         {[
                           DOCUMENT_CATEGORY_LABELS[doc.category],
                           doc.status === "published" ? "Published" : "Draft",
@@ -523,7 +529,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                         ]
                           .filter((p) => p.length > 0)
                           .join(" · ")}
-                      </p>
+                      </Text>
                     </div>
                   </div>
                   <div className="cap-cluster">
@@ -532,7 +538,9 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                         href={`/documents/${doc.slug}/inline`}
                         target="_blank"
                         rel="noreferrer"
-                        className="small strong"
+                        className="cap-text"
+                        data-size="small"
+                        data-weight="strong"
                       >
                         View
                         <span className="cap-sr-only"> (opens in a new tab)</span>
@@ -549,7 +557,8 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                             action: "Remove document",
                           })
                         }
-                        className="small strong"
+                        className="cap-btn"
+                        data-variant="link"
                       >
                         Remove
                       </button>
@@ -578,14 +587,14 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Upload a document" headingId="upload-heading">
         <Form method="post" encType="multipart/form-data" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="file" className="cap-field-label">
               File
             </label>
@@ -597,11 +606,11 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
               required
               className="cap-input"
             />
-            <p className="tiny cap-muted">
+            <Text size="tiny" tone="muted">
               PDF for newsletters, abstract books, and programs; PNG, JPEG, WebP, GIF, or SVG for
               brand images. Up to 50 MB for PDFs, 5 MB for images.
-            </p>
-          </div>
+            </Text>
+          </Stack>
           <label className="cap-check">
             <input type="checkbox" name="publish" defaultChecked />
             Publish immediately
@@ -611,6 +620,6 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }

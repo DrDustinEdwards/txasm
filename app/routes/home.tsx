@@ -1,3 +1,5 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { useRouteLoaderData } from "react-router";
 import { jsonLd } from "@drdustinedwards/site-helpers/schema";
 import { pageHead, siteLd } from "~/lib/site-meta";
@@ -39,10 +41,16 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const settings = rootData?.settings;
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <h1 className="page-title">{settings?.orgFullName ?? ""}</h1>
-      {settings?.tagline ? <p className="lead home-tagline">{settings.tagline}</p> : null}
+    <Stack gap={6}>
+      <Title as="h1" size={2}>
+        {settings?.orgFullName ?? ""}
+      </Title>
+      {settings?.tagline ? (
+        <Text size="lead" tone="ink" className="cap-measure">
+          {settings.tagline}
+        </Text>
+      ) : null}
       {loaderData ? <RichText className="page-prose" html={loaderData.html} /> : null}
-    </div>
+    </Stack>
   );
 }

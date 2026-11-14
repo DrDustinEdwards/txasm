@@ -1,3 +1,5 @@
+import { Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, useNavigation, useSubmit } from "react-router";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Panel } from "capsomer/react/panel";
@@ -10,7 +12,7 @@ import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
-import { RichText } from "capsomer/react/trusted-html";
+import { ProgramItemTitle } from "~/components/program-item-title";
 
 type Item = ProgramSessionResolved["items"][number];
 
@@ -59,7 +61,11 @@ export function SessionItems({
       getId={(item) => item.id}
       getLabel={itemLabel}
       busy={listBusy}
-      empty={<p className="small cap-muted">No items in this session yet.</p>}
+      empty={
+        <Text size="small" tone="muted">
+          No items in this session yet.
+        </Text>
+      }
       onReorder={(order) =>
         post([
           ["intent", "item-reorder"],
@@ -82,28 +88,11 @@ export function SessionItems({
 // What the item is: its kind, its title or speaker, and its note.
 function ItemBody({ item }: { item: Item }) {
   return (
-    <div className="small">
+    <Text as="div" size="small">
       <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-      {item.abstractId ? (
-        <p>
-          {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-          <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
-          {item.presentingAuthorName ? (
-            <span className="cap-muted"> . {item.presentingAuthorName}</span>
-          ) : null}
-        </p>
-      ) : item.speakerId ? (
-        <p>
-          <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-          {item.speakerTalkTitle ? (
-            <span className="cap-muted"> . {item.speakerTalkTitle}</span>
-          ) : null}
-        </p>
-      ) : (
-        <p className="strong">{item.customTitle}</p>
-      )}
+      <ProgramItemTitle item={item} />
       {item.note ? <p className="cap-muted">{item.note}</p> : null}
-    </div>
+    </Text>
   );
 }
 
@@ -123,7 +112,7 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
           defaultDate={item.startsAt}
         />
         {isCustom ? (
-          <div className="cap-stack span-2" data-gap="2">
+          <Stack gap={2} className="cap-full">
             <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
               Title
             </label>
@@ -135,9 +124,9 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
               defaultValue={item.customTitle ?? ""}
               className="cap-input"
             />
-          </div>
+          </Stack>
         ) : null}
-        <div className="cap-stack span-2" data-gap="2">
+        <Stack gap={2} className="cap-full">
           <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
             Note
           </label>
@@ -148,8 +137,8 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
             defaultValue={item.note ?? ""}
             className="cap-input"
           />
-        </div>
-        <div className="span-2">
+        </Stack>
+        <div className="cap-full">
           <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
             Save item
           </button>
@@ -171,7 +160,7 @@ export function AddItemForms({
   busy: boolean;
 }) {
   return (
-    <div className="cap-stack" data-gap="4">
+    <Stack gap={4}>
       <Panel size="sm">
         <Form method="post" className="cap-stack" data-gap="3">
           <input type="hidden" name="intent" value="item-add-abstract" />
@@ -180,7 +169,9 @@ export function AddItemForms({
             Add an accepted abstract
           </label>
           {unplaced.length === 0 ? (
-            <p className="small cap-muted">No unplaced accepted abstracts.</p>
+            <Text size="small" tone="muted">
+              No unplaced accepted abstracts.
+            </Text>
           ) : (
             <>
               <select
@@ -217,7 +208,9 @@ export function AddItemForms({
             Add an invited speaker
           </label>
           {speakers.length === 0 ? (
-            <p className="small cap-muted">No invited speakers yet.</p>
+            <Text size="small" tone="muted">
+              No invited speakers yet.
+            </Text>
           ) : (
             <>
               <select
@@ -273,6 +266,6 @@ export function AddItemForms({
           </button>
         </Form>
       </Panel>
-    </div>
+    </Stack>
   );
 }

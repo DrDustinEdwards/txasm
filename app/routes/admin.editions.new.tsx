@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.new";
@@ -73,11 +75,13 @@ export default function NewEdition() {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="form-page cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">New meeting</h1>
+    <div className="cap-column cap-stack" data-gap="6">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
+          New meeting
+        </Title>
         <p>Each meeting has a season and year, and the two together must be unique.</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -86,7 +90,7 @@ export default function NewEdition() {
       ) : null}
 
       <Form method="post" className="cap-stack" noValidate>
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="name" className="cap-field-label">
             Name
           </label>
@@ -98,9 +102,9 @@ export default function NewEdition() {
             placeholder="Spring 2027 Meeting"
             className="cap-input"
           />
-        </div>
+        </Stack>
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="season" className="cap-field-label">
             Season
           </label>
@@ -111,9 +115,9 @@ export default function NewEdition() {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="year" className="cap-field-label">
             Year
           </label>
@@ -128,9 +132,9 @@ export default function NewEdition() {
             placeholder="2027"
             className="cap-input"
           />
-        </div>
+        </Stack>
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -141,13 +145,13 @@ export default function NewEdition() {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
         <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Creating..." : "Create meeting"}
           </button>
-          <Link to="/admin" className="small strong cap-muted">
+          <Link to="/admin" className="cap-text cap-muted" data-size="small" data-weight="strong">
             Cancel
           </Link>
         </div>

@@ -1,3 +1,5 @@
+import { Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import {
   accessibilityStatement,
   ACCESSIBILITY_PATH,
@@ -30,11 +32,13 @@ export function meta({ matches }: Route.MetaArgs) {
 
 export default function Accessibility() {
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="4">
-        <h1 className="page-title">{STATEMENT.title}</h1>
-      </header>
+    <Stack gap={7}>
+      <Stack as="header" gap={4}>
+        <Title as="h1" size={2}>
+          {STATEMENT.title}
+        </Title>
+      </Stack>
       <RichText html={STATEMENT.html} className="cap-stack" measure />
-    </div>
+    </Stack>
   );
 }

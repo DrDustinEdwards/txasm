@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useRouteLoaderData } from "react-router";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
@@ -155,9 +156,9 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
   const hasAccessibility = footerLinks.some((link) => link.url === "/accessibility");
 
   return (
-    <footer className="txasm-footer">
-      <div className="txasm-frame">
-        <nav aria-label="Footer">
+    <footer className="cap-site-footer" data-tone="raised">
+      <div className="cap-page cap-stack" data-gap="6">
+        <nav className="cap-site-footer-links" aria-label="Footer">
           {footerLinks.map((link) => (
             <FooterLink key={`${link.label}-${link.url}`} label={link.label} url={link.url} />
           ))}
@@ -167,12 +168,14 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
             <FooterLink label="Facebook group" url={settings.facebookUrl} />
           ) : null}
         </nav>
-        {/* Decorative footer wordmark; the copyright line below names the org, so
-            the wrapper is aria-hidden to keep it out of assistive tech. */}
-        <span aria-hidden="true">
-          <BrandFooter />
-        </span>
-        {copyrightName ? <p className="cap-muted">&copy; {copyrightName}</p> : null}
+        <Stack gap={2}>
+          {/* Decorative footer wordmark; the copyright line below names the org, so
+              the wrapper is aria-hidden to keep it out of assistive tech. */}
+          <span aria-hidden="true">
+            <BrandFooter />
+          </span>
+          {copyrightName ? <p className="cap-site-footer-note">&copy; {copyrightName}</p> : null}
+        </Stack>
       </div>
     </footer>
   );
@@ -191,7 +194,7 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
         wordmark={settings?.shortName ?? ""}
         theme={rootData?.theme ?? null}
       />
-      <main id="main" tabIndex={-1} className="txasm-frame txasm-main">
+      <main id="main" tabIndex={-1} className="cap-page txasm-main">
         <Outlet />
       </main>
       <PublicFooter settings={settings} />

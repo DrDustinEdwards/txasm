@@ -1,3 +1,6 @@
+import { Title, Text } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
+import "capsomer/table.css";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
 import type { Route } from "./+types/my.abstracts";
@@ -15,7 +18,6 @@ import {
 } from "~/lib/vocab";
 import { RichText } from "capsomer/react/trusted-html";
 // Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
-import "capsomer/table.css";
 
 // A signed-in author's page, the way into submission and editing. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
@@ -46,8 +48,10 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
   const { abstracts } = loaderData;
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <h1 className="page-title">My abstracts</h1>
+    <Stack gap={6}>
+      <Title as="h1" size={2}>
+        My abstracts
+      </Title>
 
       {abstracts.length === 0 ? (
         <p>
@@ -61,9 +65,9 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
               <th scope="col">Meeting</th>
               <th scope="col">Status</th>
               <th scope="col">Decision</th>
-              <th scope="col" className="cell-end">
+              <Text as="th" scope="col" align="end">
                 <span className="cap-sr-only">Actions</span>
-              </th>
+              </Text>
             </tr>
           </thead>
           <tbody>
@@ -95,16 +99,20 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                     <span className="cap-muted">Pending</span>
                   )}
                 </td>
-                <td className="cell-end">
-                  <Link to={`/abstracts/${abstract.id}/edit`} className="strong">
+                <Text as="td" align="end">
+                  <Link
+                    to={`/abstracts/${abstract.id}/edit`}
+                    className="cap-text"
+                    data-weight="strong"
+                  >
                     {abstract.status === "draft" ? "Edit" : "View or edit"}
                   </Link>
-                </td>
+                </Text>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
-    </div>
+    </Stack>
   );
 }
