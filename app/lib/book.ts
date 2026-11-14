@@ -9,12 +9,12 @@
 // same HTML to produce the stored PDF (see book-pdf.server.ts).
 
 import type { BookAffiliation, BookAuthor, BookRenderData, BookRenderEntry } from "./data-access";
-import { coverArt, coverFontFaces, coverStyles } from "./cover";
+import { coverArt, printBaseStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
 import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
-import { escapeCssString, joinParts } from "./format";
+import { joinParts } from "./format";
 import { dateRange } from "capsomer/behavior/time";
 
 function authorLine(authors: BookAuthor[]): string {
@@ -158,25 +158,10 @@ function arrangedIndex(data: BookRenderData): string {
 }
 
 function arrangedPrintStyles(meetingName: string): string {
-  const header = escapeCssString(meetingName);
   return `
-    ${coverFontFaces()}
-    :root { color-scheme: light; }
-    * { box-sizing: border-box; }
+    ${printBaseStyles(meetingName)}
     html { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; color: #111; }
-    body { margin: 0; font-size: 10.5pt; line-height: 1.45; }
     h1, h2, h3, h4 { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; color: #111; }
-    sup { font-size: 0.7em; line-height: 0; }
-
-    ${coverStyles()}
-
-    @page {
-      size: A4;
-      margin: 20mm 18mm 18mm 18mm;
-      @top-center { content: "${header}"; font-family: Arial, sans-serif; font-size: 8.5pt; color: #666; }
-      @bottom-center { content: counter(page); font-family: Arial, sans-serif; font-size: 8.5pt; color: #666; }
-    }
-    @page :first { @top-center { content: none; } }
 
     .book-note { padding-top: 12pt; font-size: 11pt; color: #555; }
 

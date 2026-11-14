@@ -19,7 +19,7 @@ import {
   type EditionStatus,
   type Season,
 } from "~/lib/vocab";
-import { DateTimeField } from "capsomer/react/field";
+import { DateTimeField, TextField } from "capsomer/react/field";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT, parseDateTime } from "~/lib/form.server";
 
@@ -153,43 +153,28 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Ends"
               defaultDate={edition.meetingEndsAt}
             />
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="venueName" className="cap-field-label">
-                Venue
-              </label>
-              <input
-                id="venueName"
-                name="venueName"
-                type="text"
-                defaultValue={edition.venueName ?? ""}
-                placeholder="University Conference Center"
-                className="cap-input"
-              />
-            </div>
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="venueAddress" className="cap-field-label">
-                Address
-              </label>
-              <input
-                id="venueAddress"
-                name="venueAddress"
-                type="text"
-                defaultValue={edition.venueAddress ?? ""}
-                className="cap-input"
-              />
-            </div>
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="city" className="cap-field-label">
-                City
-              </label>
-              <input
-                id="city"
-                name="city"
-                type="text"
-                defaultValue={edition.city ?? ""}
-                className="cap-input"
-              />
-            </div>
+            <TextField
+              id="venueName"
+              label="Venue"
+              name="venueName"
+              type="text"
+              defaultValue={edition.venueName ?? ""}
+              placeholder="University Conference Center"
+            />
+            <TextField
+              id="venueAddress"
+              label="Address"
+              name="venueAddress"
+              type="text"
+              defaultValue={edition.venueAddress ?? ""}
+            />
+            <TextField
+              id="city"
+              label="City"
+              name="city"
+              type="text"
+              defaultValue={edition.city ?? ""}
+            />
           </div>
         </Panel>
 

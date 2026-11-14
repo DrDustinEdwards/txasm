@@ -1,8 +1,8 @@
 import { attachmentResponse } from "@dustinedwards/site-runtime/r2-object";
 import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
-import { forbidden, getSessionUser } from "./auth.server";
+import { forbidden, getSessionUser, requireChair } from "./auth.server";
 import { ForbiddenError, NotFoundError, getActor, getDataAccess } from "./data-access";
-import { extensionForMime, PDF_MIME_TYPE } from "./vocab";
+import { type DocumentCategory, extensionForMime, PDF_MIME_TYPE } from "./vocab";
 
 // Stream a document's stored file from R2 for the inline viewer or a download.
 // Gating lives in the data-access layer (published is public, draft/generated is
@@ -58,7 +58,7 @@ export async function serveDocument(
 
 // A stored R2 object as a file (a PDF download unless told otherwise), with site-runtime's Content-Disposition
 // (an ASCII filename, and filename* for the rest) that falls back to defaultFileName.
-export function fileResponse(
+function fileResponse(
   object: R2ObjectBody,
   fileName: string | null,
   defaultFileName: string,
@@ -73,4 +73,24 @@ export function fileResponse(
   if (typeof object.size === "number") response.headers.set("Content-Length", String(object.size));
   if (object.httpEtag) response.headers.set("ETag", object.httpEtag);
   return response;
+}
+
+// A meeting's generated PDF (the abstract book or the program) for its chair, from the BOOKS bucket. `what` names it
+// in the 404 text ("abstract book"); a missing or not-ready document is a 404.
+export async function generatedPdfResponse(
+  request: Request,
+  env: Env,
+  editionId: string,
+  category: DocumentCategory,
+  what: string,
+  defaultFileName: string,
+): Promise<Response> {
+  const { actor } = await requireChair(request, editionId);
+  const doc = await getDataAccess(env).documents.getGeneratedForEdition(actor, editionId, category);
+  if (!doc || doc.genStatus !== "ready" || !doc.r2Key) {
+    throw new Response(`No ${what} is ready for this meeting.`, { status: 404 });
+  }
+  const object = await env.BOOKS.get(doc.r2Key);
+  if (!object) throw new Response(`The ${what} file is missing.`, { status: 404 });
+  return fileResponse(object, doc.fileName, defaultFileName);
 }

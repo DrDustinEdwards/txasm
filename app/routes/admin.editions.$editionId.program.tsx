@@ -7,7 +7,7 @@ import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import {
   AlreadyExistsError,
   getDataAccess,
@@ -43,11 +43,8 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Program"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const schedule = await da.programSessions.getScheduleForEdition(actor, params.editionId);
   const unplaced = await da.programItems.listUnplacedAbstracts(actor, params.editionId);
   const speakerRows = await da.invitedSpeakers.listForEdition(actor, params.editionId);
@@ -59,7 +56,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   }));
   const document = await da.documents.getGeneratedForEdition(actor, params.editionId, "program");
   return {
-    edition: { id: edition.id, name: edition.name },
+    edition,
     schedule,
     unplaced,
     speakers,

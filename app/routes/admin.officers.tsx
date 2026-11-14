@@ -1,5 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { TextField } from "capsomer/react/field";
+import { Field, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
@@ -75,23 +75,15 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`${p}-section`} className="cap-field-label">
-          Section
-        </label>
-        <select
-          id={`${p}-section`}
-          name="section"
-          defaultValue={row?.section ?? section}
-          className="cap-select"
-        >
+      <Field label="Section" id={`${p}-section`}>
+        <select name="section" defaultValue={row?.section ?? section} className="cap-select">
           {OFFICER_SECTIONS.map((s) => (
             <option key={s} value={s}>
               {OFFICER_SECTION_LABELS[s]}
             </option>
           ))}
         </select>
-      </div>
+      </Field>
       <TextField
         id={`${p}-role`}
         name="role"

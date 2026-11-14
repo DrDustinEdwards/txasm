@@ -10,7 +10,7 @@ import type { Route } from "./+types/admin.editions.$editionId.book";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import {
   ValidationError,
   getDataAccess,
@@ -38,14 +38,11 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Abstract book builder"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const book = await da.books.get(actor, params.editionId);
   const pdf = await da.documents.getGeneratedForEdition(actor, params.editionId, "abstract_book");
-  return { edition: { id: edition.id, name: edition.name }, book, pdf };
+  return { edition, book, pdf };
 }
 
 // Generate, arrange, and publish are the builder. publish also produces the

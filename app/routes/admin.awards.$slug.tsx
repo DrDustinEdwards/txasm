@@ -1,3 +1,4 @@
+import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -129,93 +130,55 @@ function RecipientFields({
   const base = recipient ? recipient.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`person-${base}`} className="cap-field-label">
-          Recipient name
-        </label>
-        <input
-          id={`person-${base}`}
-          name="personName"
-          type="text"
-          required
-          defaultValue={recipient?.personName ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`year-${base}`} className="cap-field-label">
-          Year
-        </label>
-        <input
-          id={`year-${base}`}
-          name="year"
-          type="text"
-          required
-          placeholder="2025-26"
-          defaultValue={recipient?.year ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`institution-${base}`} className="cap-field-label">
-          Institution
-        </label>
-        <input
-          id={`institution-${base}`}
-          name="institution"
-          type="text"
-          defaultValue={recipient?.institution ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`mentor-${base}`} className="cap-field-label">
-          Mentor
-        </label>
-        <input
-          id={`mentor-${base}`}
-          name="mentor"
-          type="text"
-          defaultValue={recipient?.mentor ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`category-${base}`} className="cap-field-label">
-          Category
-        </label>
-        <input
-          id={`category-${base}`}
-          name="category"
-          type="text"
-          placeholder="Molecular and Environmental"
-          defaultValue={recipient?.category ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`placement-${base}`} className="cap-field-label">
-          Placement
-        </label>
-        <input
-          id={`placement-${base}`}
-          name="placement"
-          type="text"
-          placeholder="1st"
-          defaultValue={recipient?.placement ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`edition-${base}`} className="cap-field-label">
-          Meeting
-        </label>
-        <select
-          id={`edition-${base}`}
-          name="editionId"
-          defaultValue={recipient?.editionId ?? ""}
-          className="cap-select"
-        >
+      <TextField
+        id={`person-${base}`}
+        label="Recipient name"
+        name="personName"
+        type="text"
+        required
+        defaultValue={recipient?.personName ?? ""}
+      />
+      <TextField
+        id={`year-${base}`}
+        label="Year"
+        name="year"
+        type="text"
+        required
+        placeholder="2025-26"
+        defaultValue={recipient?.year ?? ""}
+      />
+      <TextField
+        id={`institution-${base}`}
+        label="Institution"
+        name="institution"
+        type="text"
+        defaultValue={recipient?.institution ?? ""}
+      />
+      <TextField
+        id={`mentor-${base}`}
+        label="Mentor"
+        name="mentor"
+        type="text"
+        defaultValue={recipient?.mentor ?? ""}
+      />
+      <TextField
+        id={`category-${base}`}
+        label="Category"
+        name="category"
+        type="text"
+        placeholder="Molecular and Environmental"
+        defaultValue={recipient?.category ?? ""}
+      />
+      <TextField
+        id={`placement-${base}`}
+        label="Placement"
+        name="placement"
+        type="text"
+        placeholder="1st"
+        defaultValue={recipient?.placement ?? ""}
+      />
+      <Field label="Meeting" id={`edition-${base}`}>
+        <select name="editionId" defaultValue={recipient?.editionId ?? ""} className="cap-select">
           <option value="">Not linked to a meeting</option>
           {editions.map((edition) => (
             <option key={edition.id} value={edition.id}>
@@ -223,20 +186,15 @@ function RecipientFields({
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`sort-${base}`} className="cap-field-label">
-          Sort order
-        </label>
-        <input
-          id={`sort-${base}`}
-          name="sortOrder"
-          type="number"
-          step="1"
-          defaultValue={recipient ? undefined : 0}
-          className="cap-input"
-        />
-      </div>
+      </Field>
+      <TextField
+        id={`sort-${base}`}
+        label="Sort order"
+        name="sortOrder"
+        type="number"
+        step="1"
+        defaultValue={recipient ? undefined : 0}
+      />
     </div>
   );
 }
@@ -270,31 +228,15 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="award-update" />
           <div className="cap-grid" data-cols="2">
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="name" className="cap-field-label">
-                Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                defaultValue={award.name}
-                className="cap-input"
-              />
-            </div>
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor="slug" className="cap-field-label">
-                Slug
-              </label>
-              <input
-                id="slug"
-                name="slug"
-                type="text"
-                defaultValue={award.slug}
-                className="cap-input"
-              />
-            </div>
+            <TextField
+              id="name"
+              label="Name"
+              name="name"
+              type="text"
+              required
+              defaultValue={award.name}
+            />
+            <TextField id="slug" label="Slug" name="slug" type="text" defaultValue={award.slug} />
           </div>
           <div className="cap-stack" data-gap="2">
             <label htmlFor="namesakeBio" className="cap-field-label">

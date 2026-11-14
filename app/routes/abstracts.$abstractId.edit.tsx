@@ -1,3 +1,4 @@
+import { Field } from "capsomer/react/field";
 import { useState } from "react";
 import { Banner } from "capsomer/react/banner";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
@@ -349,16 +350,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             </select>
           </div>
 
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="categoryId" className="cap-field-label">
-              Topic
-            </label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              defaultValue={abstract.categoryId}
-              className="cap-select"
-            >
+          <Field label="Topic" id="categoryId">
+            <select name="categoryId" defaultValue={abstract.categoryId} className="cap-select">
               <option value="">Choose a topic</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -366,15 +359,11 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                 </option>
               ))}
             </select>
-          </div>
+          </Field>
         </div>
 
-        <div className="cap-stack" data-gap="2">
-          <label htmlFor="presentationPreference" className="cap-field-label">
-            Presentation preference
-          </label>
+        <Field label="Presentation preference" id="presentationPreference">
           <select
-            id="presentationPreference"
             name="presentationPreference"
             defaultValue={abstract.presentationPreference}
             className="cap-select"
@@ -385,7 +374,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </div>
+        </Field>
 
         <AffiliationsFieldset
           affiliations={affiliations}
