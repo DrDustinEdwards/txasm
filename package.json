@@ -57,7 +57,7 @@
     "unist-util-visit": "5.2.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.64.0",
+    "@cloudflare/vite-plugin": "1.64.0",
     "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.51.0",
     "@react-router/dev": "8.5.1",
     "@types/node": "22.20.5",
