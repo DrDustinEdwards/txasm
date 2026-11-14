@@ -3,7 +3,7 @@ import { Panel } from "capsomer/react/panel";
 import { isoDay } from "@drdustinedwards/site-helpers/xml";
 import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { DateTimeField } from "capsomer/react/field";
+import { DateTimeField, TextField } from "capsomer/react/field";
 import { Disclosure } from "capsomer/react/disclosure";
 import { AddItemForms, SessionItems } from "./items";
 import { type SpeakerOption } from "./shared";
@@ -19,45 +19,32 @@ export function SessionFields({
   const idBase = session ? session.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack span-2" data-gap="2">
-        <label htmlFor={`title-${idBase}`} className="cap-field-label">
-          Title
-        </label>
-        <input
+      <div className="span-2">
+        <TextField
           id={`title-${idBase}`}
+          label="Title"
           name="title"
           type="text"
           required
           defaultValue={session?.title ?? ""}
           placeholder="Morning oral session"
-          className="cap-input"
         />
       </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`date-${idBase}`} className="cap-field-label">
-          Date
-        </label>
-        <input
-          id={`date-${idBase}`}
-          name="sessionDate"
-          type="date"
-          defaultValue={isoDay(session?.sessionDate) || defaultDate || ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`loc-${idBase}`} className="cap-field-label">
-          Room
-        </label>
-        <input
-          id={`loc-${idBase}`}
-          name="location"
-          type="text"
-          defaultValue={session?.location ?? ""}
-          placeholder="Room A"
-          className="cap-input"
-        />
-      </div>
+      <TextField
+        id={`date-${idBase}`}
+        label="Date"
+        name="sessionDate"
+        type="date"
+        defaultValue={isoDay(session?.sessionDate) || defaultDate || ""}
+      />
+      <TextField
+        id={`loc-${idBase}`}
+        label="Room"
+        name="location"
+        type="text"
+        defaultValue={session?.location ?? ""}
+        placeholder="Room A"
+      />
       <DateTimeField
         id={`start-${idBase}`}
         name="startsAt"
@@ -70,17 +57,14 @@ export function SessionFields({
         label="Ends"
         defaultDate={session?.endsAt ?? null}
       />
-      <div className="cap-stack span-2" data-gap="2">
-        <label htmlFor={`mod-${idBase}`} className="cap-field-label">
-          Moderator (optional)
-        </label>
-        <input
+      <div className="span-2">
+        <TextField
           id={`mod-${idBase}`}
+          label="Moderator (optional)"
           name="moderator"
           type="text"
           defaultValue={session?.moderator ?? ""}
           placeholder="Dr. Jane Rivera"
-          className="cap-input"
         />
       </div>
     </div>

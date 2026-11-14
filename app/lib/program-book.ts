@@ -16,11 +16,11 @@ import type {
   SponsorPublic,
 } from "./data-access";
 import { dayLabel, slotLabel, zoneLine } from "capsomer/behavior/schedule";
-import { coverArt, coverFontFaces, coverStyles } from "./cover";
+import { coverArt, printBaseStyles } from "./cover";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
 import { pagedContent } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_SCRIPTS } from "./paged";
-import { escapeCssString, joinParts } from "./format";
+import { joinParts } from "./format";
 import { dateRange, formatDate } from "capsomer/behavior/time";
 import { programKindLabel, speakerRoleLabel } from "./vocab";
 
@@ -157,25 +157,10 @@ function titlePage(data: ProgramBookData): string {
 }
 
 function printStyles(meetingName: string): string {
-  const header = escapeCssString(meetingName);
   return `
-    ${coverFontFaces()}
-    :root { color-scheme: light; }
-    * { box-sizing: border-box; }
+    ${printBaseStyles(meetingName)}
     html { font-family: Georgia, "Times New Roman", serif; color: #111; }
-    body { margin: 0; font-size: 10.5pt; line-height: 1.45; }
     h1, h2, h3, h4 { font-family: "Helvetica Neue", Arial, sans-serif; color: #111; }
-    sup { font-size: 0.7em; line-height: 0; }
-
-    ${coverStyles()}
-
-    @page {
-      size: A4;
-      margin: 20mm 18mm 18mm 18mm;
-      @top-center { content: "${header}"; font-family: Arial, sans-serif; font-size: 8.5pt; color: #666; }
-      @bottom-center { content: counter(page); font-family: Arial, sans-serif; font-size: 8.5pt; color: #666; }
-    }
-    @page :first { @top-center { content: none; } }
 
     .doc-note { padding-top: 12pt; font-size: 11pt; color: #555; }
 

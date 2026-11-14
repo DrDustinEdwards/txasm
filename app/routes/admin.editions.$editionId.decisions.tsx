@@ -1,3 +1,4 @@
+import { Field } from "capsomer/react/field";
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { FormStatus, useActionStatus } from "capsomer/react/form-status";
@@ -6,7 +7,7 @@ import type { Route } from "./+types/admin.editions.$editionId.decisions";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
 import {
   ABSTRACT_STATUS_LABELS,
@@ -33,13 +34,10 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Decisions"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const abstracts = await da.decisions.listForEdition(actor, params.editionId);
-  return { edition: { id: edition.id, name: edition.name }, abstracts };
+  return { edition, abstracts };
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -261,12 +259,8 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           </fieldset>
 
           {outcome === "accept" ? (
-            <div className="cap-stack" data-gap="2">
-              <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
-                Presentation type
-              </label>
+            <Field label="Presentation type" id={`presentation-${abstract.id}`}>
               <select
-                id={`presentation-${abstract.id}`}
                 name="presentationType"
                 required
                 defaultValue={decision?.presentationType ?? "oral"}
@@ -278,7 +272,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                   </option>
                 ))}
               </select>
-            </div>
+            </Field>
           ) : null}
 
           <RichTextField

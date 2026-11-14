@@ -1,3 +1,4 @@
+import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { capitalize } from "@drdustinedwards/site-helpers/text";
 import { Panel } from "capsomer/react/panel";
@@ -111,20 +112,15 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <Panel title="Add a chair or reviewer">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="email" className="cap-field-label">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="off"
-              placeholder="person@university.edu"
-              className="cap-input"
-            />
-          </div>
+          <TextField
+            id="email"
+            label="Email"
+            name="email"
+            type="email"
+            required
+            autoComplete="off"
+            placeholder="person@university.edu"
+          />
           <div className="cap-stack" data-gap="2">
             <label htmlFor="role" className="cap-field-label">
               Role

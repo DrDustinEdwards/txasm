@@ -1,3 +1,4 @@
+import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
@@ -120,17 +121,14 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                       className="cap-input"
                     />
                   </div>
-                  <div className="cap-stack tiny-field" data-gap="2">
-                    <label htmlFor={`sort-${category.id}`} className="cap-field-label">
-                      Sort
-                    </label>
-                    <input
+                  <div className="tiny-field">
+                    <TextField
                       id={`sort-${category.id}`}
+                      label="Sort"
                       name="sortOrder"
                       type="number"
                       step="1"
                       defaultValue={category.sortOrder}
-                      className="cap-input"
                     />
                   </div>
                   <button type="submit" className="cap-btn">
@@ -153,32 +151,22 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       <Panel title="Add a category">
         <Form method="post" className="cap-stack" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="name" className="cap-field-label">
-              Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              placeholder="Environmental Microbiology"
-              className="cap-input"
-            />
-          </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="sortOrder" className="cap-field-label">
-              Sort order
-            </label>
-            <input
-              id="sortOrder"
-              name="sortOrder"
-              type="number"
-              step="1"
-              defaultValue={0}
-              className="cap-input"
-            />
-          </div>
+          <TextField
+            id="name"
+            label="Name"
+            name="name"
+            type="text"
+            required
+            placeholder="Environmental Microbiology"
+          />
+          <TextField
+            id="sortOrder"
+            label="Sort order"
+            name="sortOrder"
+            type="number"
+            step="1"
+            defaultValue={0}
+          />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>

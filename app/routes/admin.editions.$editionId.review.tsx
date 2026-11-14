@@ -1,3 +1,4 @@
+import { Field } from "capsomer/react/field";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
@@ -202,16 +203,8 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                     <Form method="post" className="cap-cluster" data-align="end">
                       <input type="hidden" name="intent" value="assign" />
                       <input type="hidden" name="abstractId" value={abstract.id} />
-                      <div className="cap-stack" data-gap="2">
-                        <label htmlFor={`reviewer-${abstract.id}`} className="cap-field-label">
-                          Add a reviewer
-                        </label>
-                        <select
-                          id={`reviewer-${abstract.id}`}
-                          name="reviewerId"
-                          defaultValue=""
-                          className="cap-select"
-                        >
+                      <Field label="Add a reviewer" id={`reviewer-${abstract.id}`}>
+                        <select name="reviewerId" defaultValue="" className="cap-select">
                           <option value="" disabled>
                             Choose a reviewer
                           </option>
@@ -221,7 +214,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                             </option>
                           ))}
                         </select>
-                      </div>
+                      </Field>
                       <button
                         type="submit"
                         disabled={submitting}

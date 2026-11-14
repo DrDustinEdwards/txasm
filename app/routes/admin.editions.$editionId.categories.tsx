@@ -1,5 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { MoneyField } from "capsomer/react/field";
+import { MoneyField, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
@@ -175,45 +175,30 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               ))}
             </select>
           </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="label" className="cap-field-label">
-              Label
-            </label>
-            <input
-              id="label"
-              name="label"
-              type="text"
-              required
-              placeholder="ASM Member"
-              className="cap-input"
-            />
-          </div>
+          <TextField
+            id="label"
+            label="Label"
+            name="label"
+            type="text"
+            required
+            placeholder="ASM Member"
+          />
           <MoneyField id="fee" name="fee" label="Fee (dollars)" required placeholder="45.00" />
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="currency" className="cap-field-label">
-              Currency
-            </label>
-            <input
-              id="currency"
-              name="currency"
-              type="text"
-              defaultValue="USD"
-              className="cap-input"
-            />
-          </div>
-          <div className="cap-stack" data-gap="2">
-            <label htmlFor="sortOrder" className="cap-field-label">
-              Sort order
-            </label>
-            <input
-              id="sortOrder"
-              name="sortOrder"
-              type="number"
-              step="1"
-              defaultValue={0}
-              className="cap-input"
-            />
-          </div>
+          <TextField
+            id="currency"
+            label="Currency"
+            name="currency"
+            type="text"
+            defaultValue="USD"
+          />
+          <TextField
+            id="sortOrder"
+            label="Sort order"
+            name="sortOrder"
+            type="number"
+            step="1"
+            defaultValue={0}
+          />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>

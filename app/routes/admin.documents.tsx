@@ -1,3 +1,4 @@
+import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -29,6 +30,7 @@ import {
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
+import { concatBytes } from "@dustinedwards/site-runtime/encoding";
 import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
   type MultipartPart,
@@ -118,18 +120,10 @@ async function* prepend(head: Uint8Array, rest: AsyncGenerator<Uint8Array>) {
   for (let next = await rest.next(); !next.done; next = await rest.next()) yield next.value;
 }
 
-async function collect(
-  chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>,
-): Promise<Uint8Array> {
+async function collect(chunks: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
   const parts: Uint8Array[] = [];
   for await (const chunk of chunks) parts.push(chunk);
-  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
-  let at = 0;
-  for (const p of parts) {
-    out.set(p, at);
-    at += p.length;
-  }
-  return out;
+  return concatBytes(...parts);
 }
 
 // R2 needs a stream's length before a put, and a multipart part has none, so a file larger than one part goes up as
@@ -229,7 +223,7 @@ async function storeUpload(
   while (head.length < PDF_MAGIC.length) {
     const next = await chunks.next();
     if (next.done) break;
-    head = await collect([head, next.value]);
+    head = concatBytes(head, next.value);
   }
   if (head.length === 0) throw new ValidationError("Choose a file to upload.");
   const file = prepend(head, chunks);
@@ -345,59 +339,33 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
   const base = doc ? doc.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`title-${base}`} className="cap-field-label">
-          Title
-        </label>
-        <input
-          id={`title-${base}`}
-          name="title"
-          type="text"
-          required
-          defaultValue={doc?.title ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`category-${base}`} className="cap-field-label">
-          Category
-        </label>
-        <select
-          id={`category-${base}`}
-          name="category"
-          defaultValue={doc?.category ?? "newsletter"}
-          className="cap-select"
-        >
+      <TextField
+        id={`title-${base}`}
+        label="Title"
+        name="title"
+        type="text"
+        required
+        defaultValue={doc?.title ?? ""}
+      />
+      <Field label="Category" id={`category-${base}`}>
+        <select name="category" defaultValue={doc?.category ?? "newsletter"} className="cap-select">
           {DOCUMENT_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {DOCUMENT_CATEGORY_LABELS[c]}
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`year-${base}`} className="cap-field-label">
-          Year
-        </label>
-        <input
-          id={`year-${base}`}
-          name="year"
-          type="number"
-          step="1"
-          defaultValue={doc?.year ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`season-${base}`} className="cap-field-label">
-          Season
-        </label>
-        <select
-          id={`season-${base}`}
-          name="season"
-          defaultValue={doc?.season ?? ""}
-          className="cap-select"
-        >
+      </Field>
+      <TextField
+        id={`year-${base}`}
+        label="Year"
+        name="year"
+        type="number"
+        step="1"
+        defaultValue={doc?.year ?? ""}
+      />
+      <Field label="Season" id={`season-${base}`}>
+        <select name="season" defaultValue={doc?.season ?? ""} className="cap-select">
           <option value="">None</option>
           {SEASONS.map((s) => (
             <option key={s} value={s}>
@@ -405,29 +373,16 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`editor-${base}`} className="cap-field-label">
-          Editor
-        </label>
-        <input
-          id={`editor-${base}`}
-          name="editor"
-          type="text"
-          defaultValue={doc?.editor ?? ""}
-          className="cap-input"
-        />
-      </div>
-      <div className="cap-stack" data-gap="2">
-        <label htmlFor={`edition-${base}`} className="cap-field-label">
-          Meeting
-        </label>
-        <select
-          id={`edition-${base}`}
-          name="editionId"
-          defaultValue={doc?.editionId ?? ""}
-          className="cap-select"
-        >
+      </Field>
+      <TextField
+        id={`editor-${base}`}
+        label="Editor"
+        name="editor"
+        type="text"
+        defaultValue={doc?.editor ?? ""}
+      />
+      <Field label="Meeting" id={`edition-${base}`}>
+        <select name="editionId" defaultValue={doc?.editionId ?? ""} className="cap-select">
           <option value="">Not linked to a meeting</option>
           {editions.map((e) => (
             <option key={e.id} value={e.id}>
@@ -435,7 +390,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </div>
+      </Field>
       <div className="cap-stack span-2" data-gap="2">
         <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug

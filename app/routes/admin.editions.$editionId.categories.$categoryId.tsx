@@ -1,5 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { MoneyField } from "capsomer/react/field";
+import { MoneyField, TextField } from "capsomer/react/field";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.categories.$categoryId";
 import { pageTitle } from "~/lib/site-meta";
@@ -84,19 +84,14 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <Form method="post" className="cap-stack" noValidate>
-        <div className="cap-stack" data-gap="2">
-          <label htmlFor="label" className="cap-field-label">
-            Label
-          </label>
-          <input
-            id="label"
-            name="label"
-            type="text"
-            required
-            defaultValue={category.label}
-            className="cap-input"
-          />
-        </div>
+        <TextField
+          id="label"
+          label="Label"
+          name="label"
+          type="text"
+          required
+          defaultValue={category.label}
+        />
         <MoneyField
           id="fee"
           name="fee"
@@ -104,31 +99,21 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
           required
           defaultCents={category.amountCents}
         />
-        <div className="cap-stack" data-gap="2">
-          <label htmlFor="currency" className="cap-field-label">
-            Currency
-          </label>
-          <input
-            id="currency"
-            name="currency"
-            type="text"
-            defaultValue={category.currency.toUpperCase()}
-            className="cap-input"
-          />
-        </div>
-        <div className="cap-stack" data-gap="2">
-          <label htmlFor="sortOrder" className="cap-field-label">
-            Sort order
-          </label>
-          <input
-            id="sortOrder"
-            name="sortOrder"
-            type="number"
-            step="1"
-            defaultValue={category.sortOrder}
-            className="cap-input"
-          />
-        </div>
+        <TextField
+          id="currency"
+          label="Currency"
+          name="currency"
+          type="text"
+          defaultValue={category.currency.toUpperCase()}
+        />
+        <TextField
+          id="sortOrder"
+          label="Sort order"
+          name="sortOrder"
+          type="number"
+          step="1"
+          defaultValue={category.sortOrder}
+        />
         <div className="cap-cluster">
           <input id="active" name="active" type="checkbox" defaultChecked={category.active} />
           <label htmlFor="active" className="small strong">
