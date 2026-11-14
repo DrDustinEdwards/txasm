@@ -177,7 +177,7 @@
 }
 .small {
   font-size: 0.875rem;
-  line-height: 1.45;
+  line-height: var(--leading-compact);
 }
 .tiny {
   font-size: var(--fs-small);
