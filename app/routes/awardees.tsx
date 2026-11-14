@@ -1,3 +1,4 @@
+import "capsomer/row-list.css";
 import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import "capsomer/filter-bar.css";

@@ -1,3 +1,4 @@
+import "capsomer/breadcrumb.css";
 import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";

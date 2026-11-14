@@ -1,4 +1,4 @@
-import { adjacent } from "capsomer/behavior/document-archive";
+import { seriesPlace } from "capsomer/behavior/series-nav";
 import { SEASON_LABELS, type DocumentCategory, type Season } from "./vocab";
 
 // Public URL structure for the document archive, kept in one place so the index
@@ -44,8 +44,8 @@ export function neighbors(
   slug: string,
   basePath: string,
 ): { prev: { title: string; href: string } | null; next: { title: string; href: string } | null } {
-  const { prev, next } = adjacent(list, slug, (d) => d.slug);
-  const link = (d: { slug: string; title: string } | null) =>
+  const { previous, next } = seriesPlace(list, slug, (d) => d.slug);
+  const link = (d: { slug: string; title: string } | undefined) =>
     d ? { title: d.title, href: `${basePath}/${d.slug}` } : null;
-  return { prev: link(prev), next: link(next) };
+  return { prev: link(previous), next: link(next) };
 }

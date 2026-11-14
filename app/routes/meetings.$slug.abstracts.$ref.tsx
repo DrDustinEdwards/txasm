@@ -1,3 +1,4 @@
+import "capsomer/breadcrumb.css";
 import { Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { htmlToText } from "@drdustinedwards/site-helpers/text";

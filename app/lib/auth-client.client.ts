@@ -1,6 +1,7 @@
 // Better Auth in the browser: the passkey prompts and the passkey list, with the
 // family's sign-in plugins (site-runtime ./sign-in-client) so the client offers
-// what the server does.
+// what the server does. A .client module: every use is in an event handler, so the
+// Worker never bundles it (about 28 KiB raw it would carry for nothing).
 import { createAuthClient } from "better-auth/client";
 import { signInClientPlugins, signalPasskeys } from "@dustinedwards/site-runtime/sign-in-client";
 

@@ -1,10 +1,21 @@
+import { lazy, Suspense } from "react";
 import { Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
-import { ComboboxFreeText, type ComboboxOption } from "capsomer/react/combobox";
+import type { ComboboxOption } from "capsomer/react/combobox";
 import { Panel } from "capsomer/react/panel";
 import { SortableList, useRows } from "capsomer/react/sortable-list";
-// Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
+// Capsomer's sortable list, combobox and listbox styles, loaded with the routes that use them rather
+// than on every page.
 import "capsomer/sortable-list.css";
+import "capsomer/combobox.css";
+import "capsomer/listbox.css";
+
+// The institution box is Capsomer's combobox, built on Base UI (about 35 KB gzip), which nothing else on
+// the page needs before the page is in use: it loads in its own chunk, so the form's first load does
+// not wait for it. The server renders it whole; until the chunk arrives, hydration keeps that HTML.
+const ComboboxFreeText = lazy(() =>
+  import("capsomer/react/combobox").then((m) => ({ default: m.ComboboxFreeText })),
+);
 
 // A suggestion from the institution master list (/api/institutions).
 export interface InstitutionSuggestion {
@@ -124,17 +135,31 @@ export function AffiliationsFieldset({
           renderItem={({ value: affiliation, index }) => (
             <div className="cap-grid" data-cols="2">
               <div className="cap-full">
-                <ComboboxFreeText
-                  id={`institution-${index}`}
-                  label="Institution"
-                  value={affiliation.institution}
-                  onValueChange={(name) => updateAffiliation(index, { institution: name })}
-                  onPick={(option) =>
-                    selectInstitution(index, JSON.parse(option.value) as InstitutionSuggestion)
+                <Suspense
+                  fallback={
+                    <Stack as="label" gap={2}>
+                      <span className="cap-field-label">Institution</span>
+                      <input
+                        type="text"
+                        value={affiliation.institution}
+                        onChange={(e) => updateAffiliation(index, { institution: e.target.value })}
+                        className="cap-input"
+                      />
+                    </Stack>
                   }
-                  search={findInstitutions}
-                  minSearchLength={2}
-                />
+                >
+                  <ComboboxFreeText
+                    id={`institution-${index}`}
+                    label="Institution"
+                    value={affiliation.institution}
+                    onValueChange={(name) => updateAffiliation(index, { institution: name })}
+                    onPick={(option) =>
+                      selectInstitution(index, JSON.parse(option.value) as InstitutionSuggestion)
+                    }
+                    search={findInstitutions}
+                    minSearchLength={2}
+                  />
+                </Suspense>
               </div>
               <Stack as="label" gap={2}>
                 <span className="cap-field-label">Department</span>

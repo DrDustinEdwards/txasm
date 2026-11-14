@@ -10,6 +10,7 @@ import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
 import { getDataAccess } from "~/lib/data-access";
+// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Admin"));

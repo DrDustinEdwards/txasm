@@ -1,3 +1,5 @@
+import "capsomer/row-list.css";
+import "capsomer/tabs.css";
 import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "capsomer/react/tabs";
