@@ -79,7 +79,7 @@ const site = defineSite<Env>({
     })(request),
   // What the hover prefetch never fetches: every private path (robots.txt's Disallow list), registration and its
   // payment, and the files under /documents and /media, which open as files.
-  speculationExclude: [...ROBOTS_DISALLOW, "/register", "/documents", "/media"],
+  speculationExclude: [...ROBOTS_DISALLOW, "/documents", "/media"],
   // Capsid Admin's backups and run_job, behind the OPERATOR_TOKEN bearer.
   operator: (env) =>
     operatorJobTools({
