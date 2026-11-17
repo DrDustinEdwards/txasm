@@ -1,0 +1,31 @@
+# OSV-Scanner exceptions (devkit dependencies.yml). Each has a reason and a date it expires, so it is looked at again.
+
+[[IgnoredVulns]]
+id = "GHSA-5pm8-86m8-9m6r"
+ignoreUntil = 2026-12-17
+reason = "basic-ftp 5.3.1 comes from @cloudflare/puppeteer 1.4.0 -> @puppeteer/browsers -> proxy-agent -> get-uri 6, which pins ^5. The Worker never fetches an ftp: URL or downloads a browser. The fix is @cloudflare/puppeteer 2.x, which drops @puppeteer/browsers; a major bump to the book PDF path that needs Browser Rendering to verify."
+
+[[IgnoredVulns]]
+id = "GHSA-c475-qrg2-pj4r"
+ignoreUntil = 2026-12-17
+reason = "Same as GHSA-5pm8-86m8-9m6r."
+
+[[IgnoredVulns]]
+id = "GHSA-r4jh-29pc-gfqr"
+ignoreUntil = 2026-12-17
+reason = "Same as GHSA-5pm8-86m8-9m6r."
+
+[[IgnoredVulns]]
+id = "GHSA-7pqw-9j4j-h8q3"
+ignoreUntil = 2026-12-17
+reason = "extract-zip 2.0.1 has no patched version. It comes from @cloudflare/puppeteer 1.4.0 -> @puppeteer/browsers and unzips a browser download that the Worker never does. Goes away with @cloudflare/puppeteer 2.x."
+
+[[IgnoredVulns]]
+id = "GHSA-jmr9-qjv8-65gv"
+ignoreUntil = 2026-12-17
+reason = "Same as GHSA-7pqw-9j4j-h8q3."
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+ignoreUntil = 2026-12-17
+reason = "esbuild 0.18.20 is pinned (~0.18.20) by @esbuild-kit/core-utils, which drizzle-kit 0.31.x loads. Dev machine only (drizzle-kit generate), no dev server runs with it. Removed when drizzle-kit drops @esbuild-kit."
