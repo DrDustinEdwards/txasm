@@ -59,6 +59,7 @@ import { createCarrelMediaAdapter } from "./media-adapter.server";
 import { renderBody, versionedPath } from "./render.server";
 import { parseSource, type PageSource } from "./source";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
+import { documentAttrs } from "capsomer/behavior/document";
 
 const KIND = "page";
 
@@ -429,7 +430,7 @@ export function createCarrelAdapter(
           body: `<main>${title ? `<h1>${escapeHtml(title)}</h1>` : ""}<div class="page-prose">${html}</div></main>`,
           stylesheets: options.stylesheets ?? [],
           origin: origin(),
-          attributes: { "data-theme": "light", "data-family": "navy", "data-cap-site": "txasm" },
+          attributes: documentAttrs({ family: "navy", site: "txasm", theme: "light" }),
         });
       },
     },

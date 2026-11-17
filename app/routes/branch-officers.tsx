@@ -92,29 +92,32 @@ function PastOfficerRow({ entry }: { entry: PastOfficer }) {
 
 // The past-officer role histories, one tab per role (Capsomer's tabs: arrow,
 // Home and End keys, activation follows focus). The page does not hydrate, so
-// data-cap="tabs" hands the server's markup to Capsomer's tabs behavior (app/site.ts).
+// data-cap="tabs" hands the server's markup to Capsomer's tabs behavior, which the
+// tabs island (app/islands/tabs.ts) loads on this page only.
 function PastOfficersTabs({ tabs }: { tabs: PastOfficerTab[] }) {
   return (
-    <Tabs defaultValue={tabs[0]?.id ?? ""} data-cap="tabs">
-      <TabsList aria-label="Past branch officers by role">
+    <div data-island="tabs">
+      <Tabs defaultValue={tabs[0]?.id ?? ""} data-cap="tabs">
+        <TabsList aria-label="Past branch officers by role">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id}>
-            {tab.label}
-          </TabsTrigger>
+          <TabsContent key={tab.id} value={tab.id}>
+            <Panel flush>
+              <RowList label={tab.label}>
+                {tab.entries.map((entry, entryIndex) => (
+                  <PastOfficerRow key={`${tab.id}-${entryIndex}`} entry={entry} />
+                ))}
+              </RowList>
+            </Panel>
+          </TabsContent>
         ))}
-      </TabsList>
-      {tabs.map((tab) => (
-        <TabsContent key={tab.id} value={tab.id}>
-          <Panel flush>
-            <RowList label={tab.label}>
-              {tab.entries.map((entry, entryIndex) => (
-                <PastOfficerRow key={`${tab.id}-${entryIndex}`} entry={entry} />
-              ))}
-            </RowList>
-          </Panel>
-        </TabsContent>
-      ))}
-    </Tabs>
+      </Tabs>
+    </div>
   );
 }
 
