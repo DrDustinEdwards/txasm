@@ -122,9 +122,16 @@ sign-in is a passkey or an emailed link, and email is dormant. The repo has no s
 or test helper that signs a browser in, so do not invent one. Those flows are proved
 by the node tests in step 3 and by the live check below.
 
-Stop the dev server you started when done (its own background task, or kill its
-PID; other sessions may run servers in the same machine, so never `pkill` by name), and remove
-`.dev.vars` if you made it (`git status` should show nothing new).
+Stop the dev server you started when done. `npm run dev` leaves `react-router dev` running when its own process is killed,
+so stop the server by the port you chose, which only your server holds because of
+`--strictPort` (never `pkill` by name: other sessions may run servers on the same
+machine):
+
+```sh
+kill $(pgrep -f "react-router dev --port 5173 --strictPort")
+```
+
+Then remove `.dev.vars` if you made it (`git status` should show nothing new).
 
 ## 3. Run the tests that cover the area
 
