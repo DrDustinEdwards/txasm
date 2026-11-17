@@ -1,7 +1,6 @@
 import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
-import { useRouteLoaderData } from "react-router";
-import { Empty } from "capsomer/react/empty";
+import { Link, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/contact";
 import type { loader as rootLoader } from "~/root";
 import { pageHead } from "~/lib/site-meta";
@@ -34,7 +33,7 @@ export default function Contact() {
         </Title>
         <p className="cap-muted cap-measure">
           Questions about meetings, registration, abstracts, or the awards program are welcome.
-          Reach the branch by email or through the member group.
+          Write to the branch officers or join the member group.
         </p>
       </Stack>
 
@@ -51,6 +50,12 @@ export default function Contact() {
               </dd>
             </Stack>
           ) : null}
+          <Stack gap={2}>
+            <dt className="cap-label">Officers</dt>
+            <dd>
+              <Link to="/branch-officers">Email the branch officers</Link>
+            </dd>
+          </Stack>
           {facebookUrl ? (
             <Stack gap={2}>
               <dt className="cap-label">Facebook group</dt>
@@ -60,12 +65,6 @@ export default function Contact() {
             </Stack>
           ) : null}
         </Stack>
-        {!contactEmail && !facebookUrl ? (
-          <Empty
-            kind="nothing-yet"
-            title="Contact details are being set up and will appear here."
-          />
-        ) : null}
       </Stack>
     </Stack>
   );

@@ -33,7 +33,6 @@ const MEETINGS_GROUPS: HeaderGroup[] = [
   {
     label: "This meeting",
     links: [
-      link("Registration", "/register"),
       link("Programs", "/meetings"),
       link("Abstracts", "/my/abstracts"),
     ],
