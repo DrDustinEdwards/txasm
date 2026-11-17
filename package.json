@@ -57,7 +57,7 @@
     "unist-util-visit": "5.2.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.64.0",
+    "@cloudflare/vite-plugin": "^1.70.0",
     "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.51.2",
     "@react-router/dev": "8.5.1",
     "@types/node": "22.20.5",
@@ -71,6 +71,12 @@
     "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vite": "8.3.8",
-    "wrangler": "^4.152.0"
+    "wrangler": "^4.164.0"
+  },
+  "overrides": {
+    "miniflare": {
+      "undici": "7.30.1",
+      "sharp": "0.35.5"
+    }
   }
 }
