@@ -6,7 +6,7 @@
   "baseline": {
     "measured_at": "a5289c7",
     "knip": {
-      "files": 2,
+      "files": 0,
       "dependencies": 1,
       "exports": 3,
       "types": 1

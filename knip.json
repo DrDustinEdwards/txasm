@@ -1,6 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["workers/*.ts", "scripts/*.ts", "tests/*.test.ts"],
+  // app/site.ts and app/islands/*.ts are devkit siteScript's entries (/site.js and the islands it starts,
+  // vite.config.ts), loaded by convention, not imported by anything.
+  "entry": ["workers/*.ts", "scripts/*.ts", "tests/*.test.ts", "app/site.ts", "app/islands/*.ts"],
   "project": ["app/**/*.{ts,tsx,css}", "workers/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"],
   "ignoreDependencies": ["cloudflare", "pdfjs-dist"],
   "ignoreUnresolved": ["\\+types/"]
