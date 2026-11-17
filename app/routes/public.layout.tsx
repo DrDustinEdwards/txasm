@@ -32,10 +32,7 @@ const link = (label: string, href: string) => ({ id: `${href}-${label}`, label, 
 const MEETINGS_GROUPS: HeaderGroup[] = [
   {
     label: "This meeting",
-    links: [
-      link("Programs", "/meetings"),
-      link("Abstracts", "/my/abstracts"),
-    ],
+    links: [link("Programs", "/meetings"), link("Abstracts", "/my/abstracts")],
   },
   {
     label: "Branch",
