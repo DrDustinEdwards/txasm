@@ -1,3 +1,5 @@
+import { Stack } from "capsomer/react/stack";
+import { Title } from "capsomer/react/text";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
@@ -178,15 +180,15 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
   if (sent) {
     return (
-      <div className="narrow cap-stack">
-        <h1 ref={confirmRef} tabIndex={-1} className="page-title">
+      <div className="cap-column cap-stack" data-width="narrow">
+        <Title as="h1" ref={confirmRef} tabIndex={-1} size={2}>
           Check your inbox
-        </h1>
+        </Title>
         <p>
           A sign-in link and code are on their way. Open the link, or type the code here. Both
           expire in {SIGN_IN_EXPIRES_IN_WORDS}.
         </p>
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="code" />
           {next ? <input type="hidden" name="next" value={next} /> : null}
           <input type="hidden" name="email" value={actionData.email} />
@@ -216,7 +218,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Signing in..." : "Sign in with the code"}
           </button>
-        </Form>
+        </Stack>
         {import.meta.env.DEV ? (
           <Banner tone="neutral">
             Development note: mail is off until cutover (EMAIL_ENABLED and the send_email binding),
@@ -229,19 +231,21 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="narrow cap-stack" data-gap="6">
+    <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
       {deleted ? <p role="status">Your account was deleted.</p> : null}
-      <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">{next ? "Sign in again" : "Sign in"}</h1>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
+          {next ? "Sign in again" : "Sign in"}
+        </Title>
         <p>
           {next
             ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. "
             : null}
           Use your passkey, or get a sign-in link by email. No password needed.
         </p>
-      </div>
+      </Stack>
 
-      <div className="cap-stack" data-gap="3">
+      <Stack gap={3}>
         <button
           type="button"
           className="cap-btn"
@@ -255,11 +259,11 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
             {passkeyError}
           </p>
         ) : null}
-      </div>
+      </Stack>
 
       <p className="cap-muted">Or get a link by email</p>
 
-      <Form method="post" className="cap-stack" noValidate>
+      <Stack as={Form} method="post" noValidate>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <div className="cap-field">
           <label htmlFor="email" className="cap-field-label">
@@ -289,7 +293,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="secondary">
           {submitting ? "Sending..." : "Email me a sign-in link"}
         </button>
-      </Form>
+      </Stack>
     </div>
   );
 }

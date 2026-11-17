@@ -1,3 +1,5 @@
+import { Stack } from "capsomer/react/stack";
+import { Title } from "capsomer/react/text";
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import {
   SIGN_IN_LINK_WORDS,
@@ -7,6 +9,7 @@ import {
 import { ButtonLink } from "capsomer/react/link";
 import { data } from "react-router";
 import type { Route } from "./+types/signin.confirm";
+import { MessagePage } from "~/components/message-page";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -51,13 +54,11 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
   if (problem) {
     const words = SIGN_IN_LINK_WORDS[problem];
     return (
-      <div className="narrow cap-stack" data-gap="6">
-        <div className="cap-stack" data-gap="3">
-          <h1 className="page-title">{words.title}</h1>
-          <p>{words.text}</p>
-        </div>
-        <div>
-          {problem === "signed-in" ? (
+      <MessagePage
+        title={words.title}
+        text={words.text}
+        action={
+          problem === "signed-in" ? (
             <ButtonLink to="/" variant="primary">
               Continue
             </ButtonLink>
@@ -65,17 +66,19 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
             <ButtonLink to="/signin" variant="primary">
               Get a new link
             </ButtonLink>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
     );
   }
 
   return (
-    <div className="narrow cap-stack" data-gap="6">
-      <h1 className="page-title">Sign in to TXASM</h1>
+    <div className="cap-column cap-stack" data-width="narrow" data-gap="6">
+      <Title as="h1" size={2}>
+        Sign in to TXASM
+      </Title>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
-      <form method="post" className="cap-stack">
+      <Stack as="form" method="post">
         {actionData?.limited ? (
           <p role="alert" className="cap-field-error">
             Too many tries. Wait a minute, then try again.
@@ -86,7 +89,7 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
             Sign in
           </button>
         </div>
-      </form>
+      </Stack>
     </div>
   );
 }

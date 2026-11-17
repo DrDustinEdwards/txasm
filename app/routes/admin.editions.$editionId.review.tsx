@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Field } from "capsomer/react/field";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
@@ -101,8 +102,8 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={6}>
+      <Stack gap={3}>
         <h1 className="page-title">Assign reviewers</h1>
         <p>
           {edition.name}.{" "}
@@ -114,7 +115,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
             Edit meeting
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {reviewers.length === 0 ? (
         <Banner tone="info">
@@ -125,7 +126,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="cap-stack">
+        <Stack as="ul">
           {abstracts.map((abstract) => {
             const assigned = byAbstract.get(abstract.id) ?? [];
             const assignedIds = new Set(assigned.map((a) => a.reviewerId));
@@ -137,7 +138,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
               <li key={abstract.id} className="cap-panel">
                 <div className="cap-panel-body cap-stack" data-gap="4">
                   <div className="cap-spread">
-                    <div className="cap-stack" data-gap="2">
+                    <Stack gap={2}>
                       <h2 className="strong">
                         <RichText
                           as="span"
@@ -150,7 +151,7 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                           ? abstract.authorNames.join(", ")
                           : "No authors listed"}
                       </p>
-                    </div>
+                    </Stack>
                     <span className="cap-badge" data-variant="secondary">
                       {titleCase(abstract.status)}
                     </span>
@@ -162,12 +163,12 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                     </p>
                   ) : null}
 
-                  <div className="cap-stack" data-gap="3">
+                  <Stack gap={3}>
                     <h3 className="small strong">Reviewers</h3>
                     {assigned.length === 0 ? (
                       <p className="small cap-muted">None assigned yet.</p>
                     ) : (
-                      <ul className="cap-stack" data-gap="2">
+                      <Stack as="ul" gap={2}>
                         {assigned.map((a) => (
                           <li key={a.assignmentId} className="cap-spread small">
                             <span>
@@ -195,9 +196,9 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
                             </Form>
                           </li>
                         ))}
-                      </ul>
+                      </Stack>
                     )}
-                  </div>
+                  </Stack>
 
                   {available.length > 0 ? (
                     <Form method="post" className="cap-cluster" data-align="end">
@@ -242,8 +243,8 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
               </li>
             );
           })}
-        </ul>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 }

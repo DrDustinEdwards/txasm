@@ -22,7 +22,7 @@ export const MEDIA_ADDRESS: AddressOptions = {
 
 export const images = defineImages({
   uses: {
-    // A picture in a page Carrel edits: the 48rem (768px) reading column (.reading in app.css).
+    // A picture in a page Carrel edits: the 48rem (768px) reading column (Capsomer's .cap-column data-width="reading").
     content: { layout: "constrained", width: 768 },
   },
 });

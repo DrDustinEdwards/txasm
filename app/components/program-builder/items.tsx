@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Form, useNavigation, useSubmit } from "react-router";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Panel } from "capsomer/react/panel";
@@ -165,9 +166,9 @@ export function AddItemForms({
   busy: boolean;
 }) {
   return (
-    <div className="cap-stack" data-gap="4">
+    <Stack gap={4}>
       <Panel size="sm">
-        <Form method="post" className="cap-stack" data-gap="3">
+        <Stack as={Form} method="post" gap={3}>
           <input type="hidden" name="intent" value="item-add-abstract" />
           <input type="hidden" name="sessionId" value={session.id} />
           <label htmlFor={`add-abstract-${session.id}`} className="cap-field-label">
@@ -200,11 +201,11 @@ export function AddItemForms({
               </button>
             </>
           )}
-        </Form>
+        </Stack>
       </Panel>
 
       <Panel size="sm">
-        <Form method="post" className="cap-stack" data-gap="3">
+        <Stack as={Form} method="post" gap={3}>
           <input type="hidden" name="intent" value="item-add-speaker" />
           <input type="hidden" name="sessionId" value={session.id} />
           <label htmlFor={`add-speaker-${session.id}`} className="cap-field-label">
@@ -236,11 +237,11 @@ export function AddItemForms({
               </button>
             </>
           )}
-        </Form>
+        </Stack>
       </Panel>
 
       <Panel size="sm">
-        <Form method="post" className="cap-stack" data-gap="3">
+        <Stack as={Form} method="post" gap={3}>
           <input type="hidden" name="intent" value="item-add-custom" />
           <input type="hidden" name="sessionId" value={session.id} />
           <label htmlFor={`custom-title-${session.id}`} className="cap-field-label">
@@ -265,8 +266,8 @@ export function AddItemForms({
           <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
             Add item
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }

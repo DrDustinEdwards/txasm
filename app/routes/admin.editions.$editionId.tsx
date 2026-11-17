@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
@@ -77,7 +78,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="form-page cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
+      <Stack gap={3}>
         <h1 className="page-title">{edition.name}</h1>
         <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
@@ -117,7 +118,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             Sponsors
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -125,8 +126,8 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="cap-stack" noValidate>
-        <div className="cap-stack" data-gap="2">
+      <Stack as={Form} method="post" noValidate>
+        <Stack gap={2}>
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -137,10 +138,10 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
         <Panel title="Meeting dates and venue">
-          <div className="cap-stack">
+          <Stack>
             <DateTimeField
               id="meetingStartsAt"
               name="meetingStartsAt"
@@ -175,11 +176,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               type="text"
               defaultValue={edition.city ?? ""}
             />
-          </div>
+          </Stack>
         </Panel>
 
         <Panel title="Registration window">
-          <div className="cap-stack">
+          <Stack>
             <DateTimeField
               id="registrationOpensAt"
               name="registrationOpensAt"
@@ -192,11 +193,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Deadline"
               defaultDate={edition.registrationClosesAt}
             />
-          </div>
+          </Stack>
         </Panel>
 
         <Panel title="Submission window">
-          <div className="cap-stack">
+          <Stack>
             <DateTimeField
               id="submissionOpensAt"
               name="submissionOpensAt"
@@ -209,7 +210,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Deadline"
               defaultDate={edition.submissionDeadline}
             />
-          </div>
+          </Stack>
         </Panel>
 
         <div className="cap-cluster">
@@ -220,7 +221,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
             Cancel
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { MoneyField, TextField } from "capsomer/react/field";
 import { Link } from "capsomer/react/link";
@@ -72,10 +73,10 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="form-page cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="2">
+      <Stack gap={2}>
         <h1 className="page-title">Edit category</h1>
         <p>Type: {category.key}</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -83,7 +84,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="cap-stack" noValidate>
+      <Stack as={Form} method="post" noValidate>
         <TextField
           id="label"
           label="Label"
@@ -129,7 +130,7 @@ export default function EditCategory({ loaderData }: Route.ComponentProps) {
             Cancel
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }

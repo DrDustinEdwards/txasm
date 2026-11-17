@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Form } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { isoDay } from "@drdustinedwards/site-helpers/xml";
@@ -94,7 +95,7 @@ export function SessionCard({
   const Sub = `h${level + 1}` as "h4" | "h5" | "h6";
   return (
     <Panel>
-      <div className="cap-stack">
+      <Stack>
         <div className="cap-spread">
           <div>
             <H className="strong">{session.title}</H>
@@ -138,25 +139,25 @@ export function SessionCard({
           </div>
         </div>
 
-        <div className="cap-stack" data-gap="3">
+        <Stack gap={3}>
           <Sub className="small strong">Items</Sub>
           <SessionItems session={session} busy={busy} />
-        </div>
+        </Stack>
 
         <Disclosure summary="Add an item" variant="card" size="sm" marker="triangle">
           <AddItemForms session={session} unplaced={unplaced} speakers={speakers} busy={busy} />
         </Disclosure>
 
         <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
-          <div className="cap-stack" data-gap="4">
-            <Form method="post" className="cap-stack" data-gap="4" noValidate>
+          <Stack gap={4}>
+            <Stack as={Form} method="post" noValidate gap={4}>
               <input type="hidden" name="intent" value="session-update" />
               <input type="hidden" name="sessionId" value={session.id} />
               <SessionFields session={session} />
               <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
                 Save session
               </button>
-            </Form>
+            </Stack>
             <Form method="post">
               <input type="hidden" name="intent" value="session-delete" />
               <input type="hidden" name="sessionId" value={session.id} />
@@ -174,9 +175,9 @@ export function SessionCard({
                 Delete session
               </button>
             </Form>
-          </div>
+          </Stack>
         </Disclosure>
-      </div>
+      </Stack>
     </Panel>
   );
 }

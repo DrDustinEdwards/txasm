@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Field } from "capsomer/react/field";
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
@@ -117,8 +118,8 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   const status = useActionStatus(actionData);
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={6}>
+      <Stack gap={3}>
         <h1 className="page-title">Decisions</h1>
         <p>
           {edition.name}.{" "}
@@ -134,20 +135,20 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
           Read the reviews, then record a decision. Authors see their decision in the app as soon as
           you save it.
         </p>
-      </div>
+      </Stack>
 
       <FormStatus status={status} />
 
       {abstracts.length === 0 ? (
         <p>No submitted abstracts yet.</p>
       ) : (
-        <ul className="cap-stack" data-gap="6">
+        <Stack as="ul" gap={6}>
           {abstracts.map((abstract) => (
             <DecisionRow key={abstract.id} editionId={edition.id} abstract={abstract} />
           ))}
-        </ul>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 }
 
@@ -170,7 +171,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
     <li className="cap-panel">
       <div className="cap-panel-body cap-stack">
         <div className="cap-spread">
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <h2 className="strong">
               <RichText
                 as="span"
@@ -190,7 +191,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                 Read reviews
               </Link>
             </p>
-          </div>
+          </Stack>
           {decision ? (
             <span className="cap-badge" data-variant="secondary">
               {outcomeLabel(decision.outcome)}
@@ -211,7 +212,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
         ) : null}
 
         {decision ? (
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <div className="cap-cluster">
               <Form method="post">
                 <input type="hidden" name="intent" value="notify" />
@@ -232,14 +233,14 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
               Until email goes live at cutover, this marks the author as notified in-app. The author
               already sees the decision when signed in.
             </p>
-          </div>
+          </Stack>
         ) : null}
 
-        <Form method="post" className="cap-stack">
+        <Stack as={Form} method="post">
           <input type="hidden" name="intent" value="decide" />
           <input type="hidden" name="abstractId" value={abstract.id} />
 
-          <fieldset className="cap-stack" data-gap="3">
+          <Stack as="fieldset" gap={3}>
             <legend className="small strong">Outcome</legend>
             <div className="cap-cluster">
               {OUTCOME_OPTIONS.map((option) => (
@@ -256,7 +257,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                 </label>
               ))}
             </div>
-          </fieldset>
+          </Stack>
 
           {outcome === "accept" ? (
             <Field label="Presentation type" id={`presentation-${abstract.id}`}>
@@ -287,7 +288,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {decision ? "Update decision" : "Save decision"}
           </button>
-        </Form>
+        </Stack>
 
         {decision ? (
           <Form method="post">

@@ -1,3 +1,4 @@
+import "capsomer/breadcrumb.css";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { DocumentViewer, type PagerDoc } from "capsomer/react/document-archive";
 import { routerRenderLink } from "capsomer/react/link";

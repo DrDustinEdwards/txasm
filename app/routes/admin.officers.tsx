@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Field, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
@@ -170,14 +171,14 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
           </Form>
         </div>
         <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
-          <Form method="post" className="cap-stack" data-gap="4" noValidate>
+          <Stack as={Form} method="post" noValidate gap={4}>
             <input type="hidden" name="intent" value="update" />
             <input type="hidden" name="id" value={row.id} />
             <OfficerFields row={row} section={section} />
             <button type="submit" disabled={submitting} className="cap-btn">
               Save
             </button>
-          </Form>
+          </Stack>
         </Disclosure>
       </div>
     </li>
@@ -193,7 +194,7 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
     groups.set(office, [...(groups.get(office) ?? []), row]);
   }
   return (
-    <div className="cap-stack" data-gap="4">
+    <Stack gap={4}>
       {[...groups].map(([office, officeRows]) => (
         <Disclosure
           key={office}
@@ -202,14 +203,14 @@ function PastGroups({ rows, submitting }: { rows: Row[]; submitting: boolean }) 
           size="sm"
           marker="triangle"
         >
-          <ul className="cap-stack" data-gap="4">
+          <Stack as="ul" gap={4}>
             {officeRows.map((row) => (
               <OfficerRow key={row.id} row={row} submitting={submitting} />
             ))}
-          </ul>
+          </Stack>
         </Disclosure>
       ))}
-    </div>
+    </Stack>
   );
 }
 
@@ -222,13 +223,13 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="form-page cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="3">
+      <Stack as="header" gap={3}>
         <h1 className="page-title">Branch officers</h1>
         <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
           <Link to="/branch-officers">public page</Link> reads this list.
         </p>
-      </header>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-banner" data-tone="info">
@@ -239,7 +240,7 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
       {OFFICER_SECTIONS.map((section) => {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
-          <section key={section} aria-labelledby={`${section}-heading`} className="cap-stack">
+          <Stack as="section" key={section} aria-labelledby={`${section}-heading`}>
             <h2 id={`${section}-heading`} className="subsection-title">
               {OFFICER_SECTION_LABELS[section]}
             </h2>
@@ -248,24 +249,24 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
             ) : section === "past" ? (
               <PastGroups rows={sectionRows} submitting={submitting} />
             ) : (
-              <ul className="cap-stack" data-gap="4">
+              <Stack as="ul" gap={4}>
                 {sectionRows.map((row) => (
                   <OfficerRow key={row.id} row={row} submitting={submitting} />
                 ))}
-              </ul>
+              </Stack>
             )}
-          </section>
+          </Stack>
         );
       })}
 
       <Panel title="Add a person" headingId="add-officer-heading">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <OfficerFields section="officer" />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </div>
   );

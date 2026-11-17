@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -85,7 +86,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           placeholder="Acme Biosciences"
         />
       </div>
-      <div className="cap-stack" data-gap="2">
+      <Stack gap={2}>
         <label htmlFor={`tier-${idBase}`} className="cap-field-label">
           Tier
         </label>
@@ -103,7 +104,7 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
             <option key={tier} value={tier} />
           ))}
         </datalist>
-      </div>
+      </Stack>
       <TextField
         id={`sort-${idBase}`}
         label="Sort order"
@@ -134,8 +135,8 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={7}>
+      <Stack gap={3}>
         <h1 className="page-title">Sponsors</h1>
         <p>
           {edition.name}.{" "}
@@ -144,7 +145,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
           </Link>
         </p>
         <p className="cap-muted">Sponsors show on the public program. Logo upload comes later.</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -155,7 +156,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       {sponsors.length === 0 ? (
         <p>No sponsors yet. Add the first below.</p>
       ) : (
-        <ul className="cap-stack">
+        <Stack as="ul">
           {sponsors.map((sponsor) => (
             <li key={sponsor.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
@@ -187,30 +188,30 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <Disclosure summary="Edit sponsor" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                  <Stack as={Form} method="post" noValidate gap={4}>
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="sponsorId" value={sponsor.id} />
                     <SponsorFields sponsor={sponsor} />
                     <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
                       Save sponsor
                     </button>
-                  </Form>
+                  </Stack>
                 </Disclosure>
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Add a sponsor">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SponsorFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add sponsor"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }

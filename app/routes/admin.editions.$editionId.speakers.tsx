@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -154,8 +155,8 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={7}>
+      <Stack gap={3}>
         <h1 className="page-title">Invited speakers</h1>
         <p>
           {edition.name}.{" "}
@@ -170,7 +171,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
           </Link>
           . Headshot upload comes later.
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -181,7 +182,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       {speakers.length === 0 ? (
         <p>No invited speakers yet. Add the first below.</p>
       ) : (
-        <ul className="cap-stack">
+        <Stack as="ul">
           {speakers.map((speaker) => (
             <li key={speaker.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
@@ -217,30 +218,30 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <Disclosure summary="Edit speaker" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                  <Stack as={Form} method="post" noValidate gap={4}>
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="speakerId" value={speaker.id} />
                     <SpeakerFields speaker={speaker} />
                     <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
                       Save speaker
                     </button>
-                  </Form>
+                  </Stack>
                 </Disclosure>
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Add a speaker">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SpeakerFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add speaker"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }

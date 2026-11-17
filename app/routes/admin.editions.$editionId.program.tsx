@@ -1,3 +1,5 @@
+import { Text, Title } from "capsomer/react/text";
+import { Stack } from "capsomer/react/stack";
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
 import { fromDateTimeLocal } from "capsomer/behavior/field";
 import { Panel } from "capsomer/react/panel";
@@ -302,21 +304,23 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Schedule</h1>
+    <Stack gap={6}>
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
+          Schedule
+        </Title>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
+          <Text as={Link} to={`/admin/editions/${edition.id}`} weight="strong">
             Edit meeting
-          </Link>
+          </Text>
         </p>
         <p className="cap-muted">
           Build the meeting day by day. Sessions that overlap in time on the same day become
           parallel tracks automatically: side by side where they fit, one under another where they
           do not.
         </p>
-      </div>
+      </Stack>
 
       <FormStatus status={status} />
 
@@ -332,7 +336,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           </Link>
         )}
       >
-        <label className="cap-cluster small cap-muted">
+        <Text as="label" size="small" tone="muted" className="cap-cluster">
           <span>Add day</span>
           <input
             type="date"
@@ -344,7 +348,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             className="cap-input date-field"
             data-size="sm"
           />
-        </label>
+        </Text>
       </ScheduleDayNav>
 
       {selectedDay === null ? (
@@ -353,8 +357,8 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           below.
         </p>
       ) : (
-        <div className="cap-stack" data-gap="7">
-          <h2 className="subsection-title">{dayLabel(selectedDay, { noDate: "No date" })}</h2>
+        <Stack gap={7}>
+          <Title size={5}>{dayLabel(selectedDay, { noDate: "No date" })}</Title>
           <Schedule
             days={[day ?? { key: selectedDay, slots: [] }]}
             level={3}
@@ -378,7 +382,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           />
 
           <Panel title="Add a session to this day" level={3}>
-            <Form method="post" className="cap-stack" data-gap="4" noValidate>
+            <Stack as={Form} method="post" noValidate gap={4}>
               <input type="hidden" name="intent" value="session-create" />
               {/* Keyed by day so the date prefill remounts when the tab changes;
                 an unkeyed defaultValue would keep the previous day's date. */}
@@ -389,9 +393,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
               <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
                 Add session
               </button>
-            </Form>
+            </Stack>
           </Panel>
-        </div>
+        </Stack>
       )}
 
       <GeneratedFile
@@ -426,6 +430,6 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           )
         ) : null}
       </GeneratedFile>
-    </div>
+    </Stack>
   );
 }

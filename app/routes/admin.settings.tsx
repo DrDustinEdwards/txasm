@@ -1,3 +1,5 @@
+import { Stack } from "capsomer/react/stack";
+import { Title } from "capsomer/react/text";
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { SchemaFields } from "capsomer/react/schema-form";
@@ -108,18 +110,20 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
   const [footerLinks, setFooterLinks] = useState<FooterLink[]>(() => settings.footerLinks);
 
   return (
-    <div className="form-page cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
-        <h1 className="page-title">Platform settings</h1>
+    <div className="cap-column cap-stack" data-gap="7">
+      <Stack gap={3}>
+        <Title as="h1" size={2}>
+          Platform settings
+        </Title>
         <p className="cap-muted">
           Organization identity and tunable defaults. These drive the site header, footer, and home
           page.
         </p>
-      </div>
+      </Stack>
 
       <FormStatus status={status} />
 
-      <Form method="post" className="cap-stack" data-gap="7" noValidate>
+      <Stack as={Form} method="post" noValidate gap={7}>
         <Panel title="Identity">
           <SchemaFields specs={IDENTITY} values={settings} />
         </Panel>
@@ -162,7 +166,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Saving..." : "Save settings"}
         </button>
-      </Form>
+      </Stack>
     </div>
   );
 }

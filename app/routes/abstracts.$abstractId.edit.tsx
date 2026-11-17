@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Field } from "capsomer/react/field";
 import { useState } from "react";
 import { Banner } from "capsomer/react/banner";
@@ -296,7 +297,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="form-page cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="2">
+      <Stack gap={2}>
         <h1 className="page-title">Abstract</h1>
         <p className="small cap-muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
@@ -304,16 +305,16 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             ? ` . Deadline: ${formatDate(edition.submissionDeadline, DATE_TIME)}`
             : ""}
         </p>
-      </div>
+      </Stack>
 
       <DecisionPanel decision={decision} />
 
       <FormStatus status={status} />
 
-      <Form method="post" className="cap-stack" data-gap="6">
+      <Stack as={Form} method="post" gap={6}>
         <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <RichTextField
             name="bodyText"
             label="Abstract body"
@@ -333,10 +334,10 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
               ? ". Over the limit. Trim the body to submit; you can still save a draft."
               : ""}
           </p>
-        </div>
+        </Stack>
 
         <div className="cap-grid" data-cols="2">
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="level" className="cap-field-label">
               Level
             </label>
@@ -348,7 +349,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                 </option>
               ))}
             </select>
-          </div>
+          </Stack>
 
           <Field label="Topic" id="categoryId">
             <select name="categoryId" defaultValue={abstract.categoryId} className="cap-select">
@@ -431,7 +432,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             Back
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { MoneyField, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
@@ -91,8 +92,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={7}>
+      <Stack gap={3}>
         <h1 className="page-title">Registration categories</h1>
         <p>
           {edition.name}.{" "}
@@ -100,7 +101,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
             Edit meeting
           </Link>
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -161,9 +162,9 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
       )}
 
       <Panel title="Add a category">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="key" className="cap-field-label">
               Type
             </label>
@@ -174,7 +175,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                 </option>
               ))}
             </select>
-          </div>
+          </Stack>
           <TextField
             id="label"
             label="Label"
@@ -202,8 +203,8 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }

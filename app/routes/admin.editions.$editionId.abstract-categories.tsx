@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -80,8 +81,8 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={7}>
+      <Stack gap={3}>
         <h1 className="page-title">Abstract categories</h1>
         <p>
           {edition.name}.{" "}
@@ -90,7 +91,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
           </Link>
         </p>
         <p className="cap-muted">Authors choose one of these when they submit an abstract.</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -101,7 +102,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       {categories.length === 0 ? (
         <p>No categories yet. Add the first below.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4">
+        <Stack as="ul" gap={4}>
           {categories.map((category) => (
             <li key={category.id} className="cap-panel" data-size="sm">
               <div className="cap-panel-body">
@@ -145,11 +146,11 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Add a category">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <TextField
             id="name"
@@ -170,8 +171,8 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }

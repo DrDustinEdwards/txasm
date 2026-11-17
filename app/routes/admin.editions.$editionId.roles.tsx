@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { capitalize } from "@drdustinedwards/site-helpers/text";
@@ -85,8 +86,8 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   const reviewers = grants.filter((g) => g.role === "reviewer");
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <div className="cap-stack" data-gap="3">
+    <Stack gap={7}>
+      <Stack gap={3}>
         <h1 className="page-title">Chairs and reviewers</h1>
         <p>
           {edition.name}.{" "}
@@ -98,7 +99,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
           Grant a role by email. The person must have signed in at least once so their account
           exists. Roles apply to this meeting only.
         </p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -110,7 +111,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <RoleList title="Reviewers" empty="No reviewers yet." grants={reviewers} />
 
       <Panel title="Add a chair or reviewer">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="grant" />
           <TextField
             id="email"
@@ -121,7 +122,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
             autoComplete="off"
             placeholder="person@university.edu"
           />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="role" className="cap-field-label">
               Role
             </label>
@@ -129,13 +130,13 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
               <option value="reviewer">Reviewer</option>
               <option value="chair">Chair</option>
             </select>
-          </div>
+          </Stack>
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add role"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }
 
@@ -149,12 +150,12 @@ function RoleList({
   grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
 }) {
   return (
-    <section className="cap-stack" data-gap="4">
+    <Stack as="section" gap={4}>
       <h2 className="subsection-title">{title}</h2>
       {grants.length === 0 ? (
         <p>{empty}</p>
       ) : (
-        <ul className="cap-stack" data-gap="3">
+        <Stack as="ul" gap={3}>
           {grants.map((grant) => (
             <li key={`${grant.userId}-${grant.role}`} className="cap-panel" data-size="sm">
               <div className="cap-panel-body cap-spread">
@@ -176,8 +177,8 @@ function RoleList({
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
-    </section>
+    </Stack>
   );
 }

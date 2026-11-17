@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -391,7 +392,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           ))}
         </select>
       </Field>
-      <div className="cap-stack span-2" data-gap="2">
+      <Stack gap={2} className="span-2">
         <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug
         </label>
@@ -404,7 +405,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           className="cap-input"
         />
         <p className="tiny cap-muted">Leave blank on a new document to derive it from the title.</p>
-      </div>
+      </Stack>
     </div>
   );
 }
@@ -417,15 +418,15 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-stack" data-gap="7">
-      <header className="cap-stack" data-gap="3">
+    <Stack gap={7}>
+      <Stack as="header" gap={3}>
         <h1 className="page-title">Documents</h1>
         <p className="cap-muted">
           Upload and manage the branch's files: newsletters, archived abstract books and programs,
           and brand images. Published PDFs show on the public archive; brand images stay internal to
           the admin.
         </p>
-      </header>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-banner" data-tone="info">
@@ -458,7 +459,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       {documents.length === 0 ? (
         <p className="cap-muted">No documents yet. Upload the first below.</p>
       ) : (
-        <ul className="cap-stack" data-gap="4">
+        <Stack as="ul" gap={4}>
           {documents.map((doc) => (
             <li key={doc.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
@@ -513,7 +514,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                  <Stack as={Form} method="post" noValidate gap={4}>
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="documentId" value={doc.id} />
                     <MetaFields doc={doc} editions={editions} />
@@ -528,19 +529,19 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     <button type="submit" disabled={submitting} className="cap-btn">
                       Save details
                     </button>
-                  </Form>
+                  </Stack>
                 </Disclosure>
               </div>
             </li>
           ))}
-        </ul>
+        </Stack>
       )}
 
       <Panel title="Upload a document" headingId="upload-heading">
-        <Form method="post" encType="multipart/form-data" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" encType="multipart/form-data" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
-          <div className="cap-stack" data-gap="2">
+          <Stack gap={2}>
             <label htmlFor="file" className="cap-field-label">
               File
             </label>
@@ -556,7 +557,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
               PDF for newsletters, abstract books, and programs; PNG, JPEG, WebP, GIF, or SVG for
               brand images. Up to 50 MB for PDFs, 5 MB for images.
             </p>
-          </div>
+          </Stack>
           <label className="cap-check">
             <input type="checkbox" name="publish" defaultChecked />
             Publish immediately
@@ -564,8 +565,8 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Uploading..." : "Upload document"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
-    </div>
+    </Stack>
   );
 }

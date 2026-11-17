@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import type { DataAccess, ProgramItemKind } from "~/lib/data-access";
 import { PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
 
@@ -18,7 +19,7 @@ export function KindSelect({
   label?: string;
 }) {
   return (
-    <div className="cap-stack" data-gap="2">
+    <Stack gap={2}>
       <label htmlFor={id} className="cap-field-label">
         {label}
       </label>
@@ -29,6 +30,6 @@ export function KindSelect({
           </option>
         ))}
       </select>
-    </div>
+    </Stack>
   );
 }

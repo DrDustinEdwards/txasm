@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
@@ -75,10 +76,10 @@ export default function NewEdition() {
 
   return (
     <div className="form-page cap-stack" data-gap="6">
-      <div className="cap-stack" data-gap="3">
+      <Stack gap={3}>
         <h1 className="page-title">New meeting</h1>
         <p>Each meeting has a season and year, and the two together must be unique.</p>
-      </div>
+      </Stack>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -86,7 +87,7 @@ export default function NewEdition() {
         </p>
       ) : null}
 
-      <Form method="post" className="cap-stack" noValidate>
+      <Stack as={Form} method="post" noValidate>
         <TextField
           id="name"
           label="Name"
@@ -96,7 +97,7 @@ export default function NewEdition() {
           placeholder="Spring 2027 Meeting"
         />
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="season" className="cap-field-label">
             Season
           </label>
@@ -107,7 +108,7 @@ export default function NewEdition() {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
         <TextField
           id="year"
@@ -121,7 +122,7 @@ export default function NewEdition() {
           placeholder="2027"
         />
 
-        <div className="cap-stack" data-gap="2">
+        <Stack gap={2}>
           <label htmlFor="status" className="cap-field-label">
             Status
           </label>
@@ -132,7 +133,7 @@ export default function NewEdition() {
               </option>
             ))}
           </select>
-        </div>
+        </Stack>
 
         <div className="cap-cluster">
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
@@ -142,7 +143,7 @@ export default function NewEdition() {
             Cancel
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }
