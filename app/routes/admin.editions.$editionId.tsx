@@ -1,4 +1,3 @@
-import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -21,7 +20,7 @@ import {
   type EditionStatus,
   type Season,
 } from "~/lib/vocab";
-import { DateTimeField } from "capsomer/react/field";
+import { DateTimeField, TextField } from "capsomer/react/field";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT, parseDateTime } from "~/lib/form.server";
 
@@ -78,78 +77,44 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-column cap-stack" data-gap="6">
+    <div className="form-page cap-stack" data-gap="6">
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          {edition.name}
-        </Title>
+        <h1 className="page-title">{edition.name}</h1>
         <p>
           {SEASON_LABELS[edition.season as Season]} {edition.year}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/categories`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/categories`} className="strong">
             Registration categories
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/abstract-categories`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/abstract-categories`} className="strong">
             Abstract categories
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/roles`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/roles`} className="strong">
             Chairs and reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/review`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
             Assign reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/decisions`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/decisions`} className="strong">
             Decisions
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}/book`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}/book`} className="strong">
             Abstract book
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/program`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
             Program
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/speakers`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/speakers`} className="strong">
             Invited speakers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/sponsors`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/sponsors`} className="strong">
             Sponsors
           </Link>
         </p>
@@ -161,7 +126,7 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      <Form method="post" className="cap-stack" noValidate>
+      <Stack as={Form} method="post" noValidate>
         <Stack gap={2}>
           <label htmlFor="status" className="cap-field-label">
             Status
@@ -189,43 +154,28 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               label="Ends"
               defaultDate={edition.meetingEndsAt}
             />
-            <Stack gap={2}>
-              <label htmlFor="venueName" className="cap-field-label">
-                Venue
-              </label>
-              <input
-                id="venueName"
-                name="venueName"
-                type="text"
-                defaultValue={edition.venueName ?? ""}
-                placeholder="University Conference Center"
-                className="cap-input"
-              />
-            </Stack>
-            <Stack gap={2}>
-              <label htmlFor="venueAddress" className="cap-field-label">
-                Address
-              </label>
-              <input
-                id="venueAddress"
-                name="venueAddress"
-                type="text"
-                defaultValue={edition.venueAddress ?? ""}
-                className="cap-input"
-              />
-            </Stack>
-            <Stack gap={2}>
-              <label htmlFor="city" className="cap-field-label">
-                City
-              </label>
-              <input
-                id="city"
-                name="city"
-                type="text"
-                defaultValue={edition.city ?? ""}
-                className="cap-input"
-              />
-            </Stack>
+            <TextField
+              id="venueName"
+              label="Venue"
+              name="venueName"
+              type="text"
+              defaultValue={edition.venueName ?? ""}
+              placeholder="University Conference Center"
+            />
+            <TextField
+              id="venueAddress"
+              label="Address"
+              name="venueAddress"
+              type="text"
+              defaultValue={edition.venueAddress ?? ""}
+            />
+            <TextField
+              id="city"
+              label="City"
+              name="city"
+              type="text"
+              defaultValue={edition.city ?? ""}
+            />
           </Stack>
         </Panel>
 
@@ -267,11 +217,11 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Saving..." : "Save changes"}
           </button>
-          <Link to="/admin" className="cap-text cap-muted" data-size="small" data-weight="strong">
+          <Link to="/admin" className="small strong cap-muted">
             Cancel
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }

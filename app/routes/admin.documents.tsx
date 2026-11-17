@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -31,6 +31,7 @@ import {
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
+import { concatBytes } from "@dustinedwards/site-runtime/encoding";
 import { parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
   type MultipartPart,
@@ -120,18 +121,10 @@ async function* prepend(head: Uint8Array, rest: AsyncGenerator<Uint8Array>) {
   for (let next = await rest.next(); !next.done; next = await rest.next()) yield next.value;
 }
 
-async function collect(
-  chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>,
-): Promise<Uint8Array> {
+async function collect(chunks: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
   const parts: Uint8Array[] = [];
   for await (const chunk of chunks) parts.push(chunk);
-  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
-  let at = 0;
-  for (const p of parts) {
-    out.set(p, at);
-    at += p.length;
-  }
-  return out;
+  return concatBytes(...parts);
 }
 
 // R2 needs a stream's length before a put, and a multipart part has none, so a file larger than one part goes up as
@@ -231,7 +224,7 @@ async function storeUpload(
   while (head.length < PDF_MAGIC.length) {
     const next = await chunks.next();
     if (next.done) break;
-    head = await collect([head, next.value]);
+    head = concatBytes(head, next.value);
   }
   if (head.length === 0) throw new ValidationError("Choose a file to upload.");
   const file = prepend(head, chunks);
@@ -347,59 +340,33 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
   const base = doc ? doc.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <Stack gap={2}>
-        <label htmlFor={`title-${base}`} className="cap-field-label">
-          Title
-        </label>
-        <input
-          id={`title-${base}`}
-          name="title"
-          type="text"
-          required
-          defaultValue={doc?.title ?? ""}
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`category-${base}`} className="cap-field-label">
-          Category
-        </label>
-        <select
-          id={`category-${base}`}
-          name="category"
-          defaultValue={doc?.category ?? "newsletter"}
-          className="cap-select"
-        >
+      <TextField
+        id={`title-${base}`}
+        label="Title"
+        name="title"
+        type="text"
+        required
+        defaultValue={doc?.title ?? ""}
+      />
+      <Field label="Category" id={`category-${base}`}>
+        <select name="category" defaultValue={doc?.category ?? "newsletter"} className="cap-select">
           {DOCUMENT_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {DOCUMENT_CATEGORY_LABELS[c]}
             </option>
           ))}
         </select>
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`year-${base}`} className="cap-field-label">
-          Year
-        </label>
-        <input
-          id={`year-${base}`}
-          name="year"
-          type="number"
-          step="1"
-          defaultValue={doc?.year ?? ""}
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`season-${base}`} className="cap-field-label">
-          Season
-        </label>
-        <select
-          id={`season-${base}`}
-          name="season"
-          defaultValue={doc?.season ?? ""}
-          className="cap-select"
-        >
+      </Field>
+      <TextField
+        id={`year-${base}`}
+        label="Year"
+        name="year"
+        type="number"
+        step="1"
+        defaultValue={doc?.year ?? ""}
+      />
+      <Field label="Season" id={`season-${base}`}>
+        <select name="season" defaultValue={doc?.season ?? ""} className="cap-select">
           <option value="">None</option>
           {SEASONS.map((s) => (
             <option key={s} value={s}>
@@ -407,29 +374,16 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`editor-${base}`} className="cap-field-label">
-          Editor
-        </label>
-        <input
-          id={`editor-${base}`}
-          name="editor"
-          type="text"
-          defaultValue={doc?.editor ?? ""}
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`edition-${base}`} className="cap-field-label">
-          Meeting
-        </label>
-        <select
-          id={`edition-${base}`}
-          name="editionId"
-          defaultValue={doc?.editionId ?? ""}
-          className="cap-select"
-        >
+      </Field>
+      <TextField
+        id={`editor-${base}`}
+        label="Editor"
+        name="editor"
+        type="text"
+        defaultValue={doc?.editor ?? ""}
+      />
+      <Field label="Meeting" id={`edition-${base}`}>
+        <select name="editionId" defaultValue={doc?.editionId ?? ""} className="cap-select">
           <option value="">Not linked to a meeting</option>
           {editions.map((e) => (
             <option key={e.id} value={e.id}>
@@ -437,8 +391,8 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
             </option>
           ))}
         </select>
-      </Stack>
-      <Stack gap={2} className="cap-full">
+      </Field>
+      <Stack gap={2} className="span-2">
         <label htmlFor={`slug-${base}`} className="cap-field-label">
           Slug
         </label>
@@ -450,9 +404,7 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           placeholder="fall-1991-newsletter"
           className="cap-input"
         />
-        <Text size="tiny" tone="muted">
-          Leave blank on a new document to derive it from the title.
-        </Text>
+        <p className="tiny cap-muted">Leave blank on a new document to derive it from the title.</p>
       </Stack>
     </div>
   );
@@ -468,9 +420,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={7}>
       <Stack as="header" gap={3}>
-        <Title as="h1" size={2}>
-          Documents
-        </Title>
+        <h1 className="page-title">Documents</h1>
         <p className="cap-muted">
           Upload and manage the branch's files: newsletters, archived abstract books and programs,
           and brand images. Published PDFs show on the public archive; brand images stay internal to
@@ -514,13 +464,13 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
             <li key={doc.id} className="cap-panel">
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
-                  <div className="cap-cluster cap-shrink" data-align="start">
+                  <div className="cap-cluster shrink" data-align="start">
                     {doc.fileKind === "image" && doc.hasFile ? (
                       <img src={`/documents/${doc.slug}/inline`} alt="" className="logo-thumb" />
                     ) : null}
-                    <div className="cap-shrink">
-                      <Text weight="strong">{doc.title}</Text>
-                      <Text size="small" tone="muted">
+                    <div className="shrink">
+                      <p className="strong">{doc.title}</p>
+                      <p className="small cap-muted">
                         {[
                           DOCUMENT_CATEGORY_LABELS[doc.category],
                           doc.status === "published" ? "Published" : "Draft",
@@ -529,7 +479,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                         ]
                           .filter((p) => p.length > 0)
                           .join(" · ")}
-                      </Text>
+                      </p>
                     </div>
                   </div>
                   <div className="cap-cluster">
@@ -538,9 +488,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                         href={`/documents/${doc.slug}/inline`}
                         target="_blank"
                         rel="noreferrer"
-                        className="cap-text"
-                        data-size="small"
-                        data-weight="strong"
+                        className="small strong"
                       >
                         View
                         <span className="cap-sr-only"> (opens in a new tab)</span>
@@ -557,8 +505,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                             action: "Remove document",
                           })
                         }
-                        className="cap-btn"
-                        data-variant="link"
+                        className="small strong"
                       >
                         Remove
                       </button>
@@ -567,7 +514,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <Disclosure summary="Edit details" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                  <Stack as={Form} method="post" noValidate gap={4}>
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="documentId" value={doc.id} />
                     <MetaFields doc={doc} editions={editions} />
@@ -582,7 +529,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                     <button type="submit" disabled={submitting} className="cap-btn">
                       Save details
                     </button>
-                  </Form>
+                  </Stack>
                 </Disclosure>
               </div>
             </li>
@@ -591,7 +538,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       )}
 
       <Panel title="Upload a document" headingId="upload-heading">
-        <Form method="post" encType="multipart/form-data" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" encType="multipart/form-data" noValidate>
           <input type="hidden" name="intent" value="create" />
           <MetaFields editions={editions} />
           <Stack gap={2}>
@@ -606,10 +553,10 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
               required
               className="cap-input"
             />
-            <Text size="tiny" tone="muted">
+            <p className="tiny cap-muted">
               PDF for newsletters, abstract books, and programs; PNG, JPEG, WebP, GIF, or SVG for
               brand images. Up to 50 MB for PDFs, 5 MB for images.
-            </Text>
+            </p>
           </Stack>
           <label className="cap-check">
             <input type="checkbox" name="publish" defaultChecked />
@@ -618,7 +565,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Uploading..." : "Upload document"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );

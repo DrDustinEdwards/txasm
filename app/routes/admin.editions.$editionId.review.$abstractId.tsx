@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.$editionId.review.$abstractId";
@@ -55,13 +55,9 @@ export default function AbstractReviews({ loaderData }: Route.ComponentProps) {
           Reviews for <RichText as="span" html={abstract.title} fallback="an untitled abstract" />
         </Title>
         <p>
-          <Link
-            to={`/admin/editions/${editionId}/review`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Text as={Link} to={`/admin/editions/${editionId}/review`} weight="strong">
             Back to assignments
-          </Link>
+          </Text>
         </p>
       </Stack>
 

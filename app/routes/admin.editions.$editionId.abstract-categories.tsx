@@ -1,5 +1,5 @@
-import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
@@ -83,12 +83,10 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
   return (
     <Stack gap={7}>
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Abstract categories
-        </Title>
+        <h1 className="page-title">Abstract categories</h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
@@ -107,11 +105,11 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
         <Stack as="ul" gap={4}>
           {categories.map((category) => (
             <li key={category.id} className="cap-panel" data-size="sm">
-              <div className="cap-panel-body cap-stack" data-gap="3">
+              <div className="cap-panel-body">
                 <Form method="post" className="cap-cluster" data-align="end">
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="categoryId" value={category.id} />
-                  <div className="cap-grow cap-stack" data-gap="2">
+                  <div className="grow cap-stack" data-gap="2">
                     <label htmlFor={`name-${category.id}`} className="cap-field-label">
                       Name
                     </label>
@@ -124,24 +122,21 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                       className="cap-input"
                     />
                   </div>
-                  <Stack gap={2} className="tiny-field">
-                    <label htmlFor={`sort-${category.id}`} className="cap-field-label">
-                      Sort
-                    </label>
-                    <input
+                  <div className="tiny-field">
+                    <TextField
                       id={`sort-${category.id}`}
+                      label="Sort"
                       name="sortOrder"
                       type="number"
                       step="1"
                       defaultValue={category.sortOrder}
-                      className="cap-input"
                     />
-                  </Stack>
+                  </div>
                   <button type="submit" className="cap-btn">
                     Save
                   </button>
                 </Form>
-                <Form method="post">
+                <Form method="post" className="mt-2">
                   <input type="hidden" name="intent" value="remove" />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <button type="submit" className="cap-btn" data-variant="link" data-size="sm">
@@ -155,38 +150,28 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       )}
 
       <Panel title="Add a category">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
-          <Stack gap={2}>
-            <label htmlFor="name" className="cap-field-label">
-              Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              placeholder="Environmental Microbiology"
-              className="cap-input"
-            />
-          </Stack>
-          <Stack gap={2}>
-            <label htmlFor="sortOrder" className="cap-field-label">
-              Sort order
-            </label>
-            <input
-              id="sortOrder"
-              name="sortOrder"
-              type="number"
-              step="1"
-              defaultValue={0}
-              className="cap-input"
-            />
-          </Stack>
+          <TextField
+            id="name"
+            label="Name"
+            name="name"
+            type="text"
+            required
+            placeholder="Environmental Microbiology"
+          />
+          <TextField
+            id="sortOrder"
+            label="Sort order"
+            name="sortOrder"
+            type="number"
+            step="1"
+            defaultValue={0}
+          />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );

@@ -1,11 +1,10 @@
-import { Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { isoDay } from "@drdustinedwards/site-helpers/xml";
 import { slotLabel, type ScheduleSlot } from "capsomer/behavior/schedule";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { DateTimeField } from "capsomer/react/field";
+import { DateTimeField, TextField } from "capsomer/react/field";
 import { Disclosure } from "capsomer/react/disclosure";
 import { AddItemForms, SessionItems } from "./items";
 import { type SpeakerOption } from "./shared";
@@ -21,45 +20,32 @@ export function SessionFields({
   const idBase = session ? session.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <Stack gap={2} className="cap-full">
-        <label htmlFor={`title-${idBase}`} className="cap-field-label">
-          Title
-        </label>
-        <input
+      <div className="span-2">
+        <TextField
           id={`title-${idBase}`}
+          label="Title"
           name="title"
           type="text"
           required
           defaultValue={session?.title ?? ""}
           placeholder="Morning oral session"
-          className="cap-input"
         />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`date-${idBase}`} className="cap-field-label">
-          Date
-        </label>
-        <input
-          id={`date-${idBase}`}
-          name="sessionDate"
-          type="date"
-          defaultValue={isoDay(session?.sessionDate) || defaultDate || ""}
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`loc-${idBase}`} className="cap-field-label">
-          Room
-        </label>
-        <input
-          id={`loc-${idBase}`}
-          name="location"
-          type="text"
-          defaultValue={session?.location ?? ""}
-          placeholder="Room A"
-          className="cap-input"
-        />
-      </Stack>
+      </div>
+      <TextField
+        id={`date-${idBase}`}
+        label="Date"
+        name="sessionDate"
+        type="date"
+        defaultValue={isoDay(session?.sessionDate) || defaultDate || ""}
+      />
+      <TextField
+        id={`loc-${idBase}`}
+        label="Room"
+        name="location"
+        type="text"
+        defaultValue={session?.location ?? ""}
+        placeholder="Room A"
+      />
       <DateTimeField
         id={`start-${idBase}`}
         name="startsAt"
@@ -72,19 +58,16 @@ export function SessionFields({
         label="Ends"
         defaultDate={session?.endsAt ?? null}
       />
-      <Stack gap={2} className="cap-full">
-        <label htmlFor={`mod-${idBase}`} className="cap-field-label">
-          Moderator (optional)
-        </label>
-        <input
+      <div className="span-2">
+        <TextField
           id={`mod-${idBase}`}
+          label="Moderator (optional)"
           name="moderator"
           type="text"
           defaultValue={session?.moderator ?? ""}
           placeholder="Dr. Jane Rivera"
-          className="cap-input"
         />
-      </Stack>
+      </div>
     </div>
   );
 }
@@ -115,17 +98,13 @@ export function SessionCard({
       <Stack>
         <div className="cap-spread">
           <div>
-            <H className="cap-text" data-weight="strong">
-              {session.title}
-            </H>
-            <Text size="small" tone="muted">
+            <H className="strong">{session.title}</H>
+            <p className="small cap-muted">
               {session.location ? session.location : "No room set"} ·{" "}
               {slotLabel(session.startsAt?.getTime() ?? null, session.endsAt?.getTime() ?? null)}
-            </Text>
+            </p>
             {session.moderator ? (
-              <Text size="small" tone="muted">
-                Moderated by {session.moderator}
-              </Text>
+              <p className="small cap-muted">Moderated by {session.moderator}</p>
             ) : null}
           </div>
           <div className="cap-cluster">
@@ -161,9 +140,7 @@ export function SessionCard({
         </div>
 
         <Stack gap={3}>
-          <Sub className="cap-text" data-size="small" data-weight="strong">
-            Items
-          </Sub>
+          <Sub className="small strong">Items</Sub>
           <SessionItems session={session} busy={busy} />
         </Stack>
 
@@ -173,14 +150,14 @@ export function SessionCard({
 
         <Disclosure summary="Edit or delete session" variant="card" size="sm" marker="triangle">
           <Stack gap={4}>
-            <Form method="post" className="cap-stack" data-gap="4" noValidate>
+            <Stack as={Form} method="post" noValidate gap={4}>
               <input type="hidden" name="intent" value="session-update" />
               <input type="hidden" name="sessionId" value={session.id} />
               <SessionFields session={session} />
               <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
                 Save session
               </button>
-            </Form>
+            </Stack>
             <Form method="post">
               <input type="hidden" name="intent" value="session-delete" />
               <input type="hidden" name="sessionId" value={session.id} />
@@ -193,8 +170,7 @@ export function SessionCard({
                     action: "Delete session",
                   })
                 }
-                className="cap-btn"
-                data-variant="link"
+                className="small strong"
               >
                 Delete session
               </button>
@@ -222,7 +198,7 @@ export function ConcurrentSessionForm({
       <Form method="post" className="cap-cluster" data-align="end">
         <input type="hidden" name="intent" value="session-add-concurrent" />
         <input type="hidden" name="sessionId" value={source.id} />
-        <div className="cap-grow cap-stack" data-gap="2">
+        <div className="grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
             Add a concurrent session (parallel track)
           </label>
@@ -235,7 +211,7 @@ export function ConcurrentSessionForm({
             className="cap-input"
           />
         </div>
-        <div className="cap-grow cap-stack" data-gap="2">
+        <div className="grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-room-${source.id}`} className="cap-field-label">
             Room
           </label>

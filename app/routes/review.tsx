@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import "capsomer/table.css";
 import { Link } from "capsomer/react/link";
@@ -80,13 +80,9 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
                   )}
                 </td>
                 <Text as="td" align="end">
-                  <Link
-                    to={`/review/${assignment.assignmentId}`}
-                    className="cap-text"
-                    data-weight="strong"
-                  >
+                  <Text as={Link} to={`/review/${assignment.assignmentId}`} weight="strong">
                     {assignment.reviewSubmitted ? "View or edit" : "Review"}
-                  </Link>
+                  </Text>
                 </Text>
               </tr>
             ))}

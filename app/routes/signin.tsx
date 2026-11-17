@@ -1,5 +1,5 @@
-import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Title } from "capsomer/react/text";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
@@ -188,7 +188,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           A sign-in link and code are on their way. Open the link, or type the code here. Both
           expire in {SIGN_IN_EXPIRES_IN_WORDS}.
         </p>
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="code" />
           {next ? <input type="hidden" name="next" value={next} /> : null}
           <input type="hidden" name="email" value={actionData.email} />
@@ -218,7 +218,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Signing in..." : "Sign in with the code"}
           </button>
-        </Form>
+        </Stack>
         {import.meta.env.DEV ? (
           <Banner tone="neutral">
             Development note: mail is off until cutover (EMAIL_ENABLED and the send_email binding),
@@ -263,7 +263,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
 
       <p className="cap-muted">Or get a link by email</p>
 
-      <Form method="post" className="cap-stack" noValidate>
+      <Stack as={Form} method="post" noValidate>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <div className="cap-field">
           <label htmlFor="email" className="cap-field-label">
@@ -293,7 +293,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="secondary">
           {submitting ? "Sending..." : "Email me a sign-in link"}
         </button>
-      </Form>
+      </Stack>
     </div>
   );
 }

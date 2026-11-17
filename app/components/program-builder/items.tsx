@@ -1,4 +1,3 @@
-import { Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, useNavigation, useSubmit } from "react-router";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -7,12 +6,12 @@ import { SortableList } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
-import { DateTimeField } from "capsomer/react/field";
+import { DateTimeField, TextField } from "capsomer/react/field";
 import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { KindSelect, type SpeakerOption } from "./shared";
-import { ProgramItemTitle } from "~/components/program-item-title";
+import { RichText } from "capsomer/react/trusted-html";
 
 type Item = ProgramSessionResolved["items"][number];
 
@@ -61,11 +60,7 @@ export function SessionItems({
       getId={(item) => item.id}
       getLabel={itemLabel}
       busy={listBusy}
-      empty={
-        <Text size="small" tone="muted">
-          No items in this session yet.
-        </Text>
-      }
+      empty={<p className="small cap-muted">No items in this session yet.</p>}
       onReorder={(order) =>
         post([
           ["intent", "item-reorder"],
@@ -88,11 +83,28 @@ export function SessionItems({
 // What the item is: its kind, its title or speaker, and its note.
 function ItemBody({ item }: { item: Item }) {
   return (
-    <Text as="div" size="small">
+    <div className="small">
       <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-      <ProgramItemTitle item={item} />
+      {item.abstractId ? (
+        <p>
+          {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
+          <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
+          {item.presentingAuthorName ? (
+            <span className="cap-muted"> . {item.presentingAuthorName}</span>
+          ) : null}
+        </p>
+      ) : item.speakerId ? (
+        <p>
+          <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
+          {item.speakerTalkTitle ? (
+            <span className="cap-muted"> . {item.speakerTalkTitle}</span>
+          ) : null}
+        </p>
+      ) : (
+        <p className="strong">{item.customTitle}</p>
+      )}
       {item.note ? <p className="cap-muted">{item.note}</p> : null}
-    </Text>
+    </div>
   );
 }
 
@@ -112,33 +124,27 @@ function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
           defaultDate={item.startsAt}
         />
         {isCustom ? (
-          <Stack gap={2} className="cap-full">
-            <label htmlFor={`itemtitle-${item.id}`} className="cap-field-label">
-              Title
-            </label>
-            <input
+          <div className="span-2">
+            <TextField
               id={`itemtitle-${item.id}`}
+              label="Title"
               name="customTitle"
               type="text"
               required
               defaultValue={item.customTitle ?? ""}
-              className="cap-input"
             />
-          </Stack>
+          </div>
         ) : null}
-        <Stack gap={2} className="cap-full">
-          <label htmlFor={`itemnote-${item.id}`} className="cap-field-label">
-            Note
-          </label>
-          <input
+        <div className="span-2">
+          <TextField
             id={`itemnote-${item.id}`}
+            label="Note"
             name="note"
             type="text"
             defaultValue={item.note ?? ""}
-            className="cap-input"
           />
-        </Stack>
-        <div className="cap-full">
+        </div>
+        <div className="span-2">
           <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
             Save item
           </button>
@@ -162,16 +168,14 @@ export function AddItemForms({
   return (
     <Stack gap={4}>
       <Panel size="sm">
-        <Form method="post" className="cap-stack" data-gap="3">
+        <Stack as={Form} method="post" gap={3}>
           <input type="hidden" name="intent" value="item-add-abstract" />
           <input type="hidden" name="sessionId" value={session.id} />
           <label htmlFor={`add-abstract-${session.id}`} className="cap-field-label">
             Add an accepted abstract
           </label>
           {unplaced.length === 0 ? (
-            <Text size="small" tone="muted">
-              No unplaced accepted abstracts.
-            </Text>
+            <p className="small cap-muted">No unplaced accepted abstracts.</p>
           ) : (
             <>
               <select
@@ -197,20 +201,18 @@ export function AddItemForms({
               </button>
             </>
           )}
-        </Form>
+        </Stack>
       </Panel>
 
       <Panel size="sm">
-        <Form method="post" className="cap-stack" data-gap="3">
+        <Stack as={Form} method="post" gap={3}>
           <input type="hidden" name="intent" value="item-add-speaker" />
           <input type="hidden" name="sessionId" value={session.id} />
           <label htmlFor={`add-speaker-${session.id}`} className="cap-field-label">
             Add an invited speaker
           </label>
           {speakers.length === 0 ? (
-            <Text size="small" tone="muted">
-              No invited speakers yet.
-            </Text>
+            <p className="small cap-muted">No invited speakers yet.</p>
           ) : (
             <>
               <select
@@ -235,11 +237,11 @@ export function AddItemForms({
               </button>
             </>
           )}
-        </Form>
+        </Stack>
       </Panel>
 
       <Panel size="sm">
-        <Form method="post" className="cap-stack" data-gap="3">
+        <Stack as={Form} method="post" gap={3}>
           <input type="hidden" name="intent" value="item-add-custom" />
           <input type="hidden" name="sessionId" value={session.id} />
           <label htmlFor={`custom-title-${session.id}`} className="cap-field-label">
@@ -264,7 +266,7 @@ export function AddItemForms({
           <button type="submit" disabled={busy} className="cap-btn" data-size="sm">
             Add item
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );

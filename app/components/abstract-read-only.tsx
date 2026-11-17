@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import {
   DECISION_OUTCOME_LABELS,

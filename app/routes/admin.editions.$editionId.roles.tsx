@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { capitalize } from "@drdustinedwards/site-helpers/text";
 import { Panel } from "capsomer/react/panel";
@@ -88,12 +88,10 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={7}>
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Chairs and reviewers
-        </Title>
+        <h1 className="page-title">Chairs and reviewers</h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
@@ -113,22 +111,17 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
       <RoleList title="Reviewers" empty="No reviewers yet." grants={reviewers} />
 
       <Panel title="Add a chair or reviewer">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="grant" />
-          <Stack gap={2}>
-            <label htmlFor="email" className="cap-field-label">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="off"
-              placeholder="person@university.edu"
-              className="cap-input"
-            />
-          </Stack>
+          <TextField
+            id="email"
+            label="Email"
+            name="email"
+            type="email"
+            required
+            autoComplete="off"
+            placeholder="person@university.edu"
+          />
           <Stack gap={2}>
             <label htmlFor="role" className="cap-field-label">
               Role
@@ -141,7 +134,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add role"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );
@@ -158,7 +151,7 @@ function RoleList({
 }) {
   return (
     <Stack as="section" gap={4}>
-      <Title size={5}>{title}</Title>
+      <h2 className="subsection-title">{title}</h2>
       {grants.length === 0 ? (
         <p>{empty}</p>
       ) : (
@@ -166,12 +159,10 @@ function RoleList({
           {grants.map((grant) => (
             <li key={`${grant.userId}-${grant.role}`} className="cap-panel" data-size="sm">
               <div className="cap-panel-body cap-spread">
-                <Text as="span" size="small">
-                  <Text as="span" weight="strong">
-                    {grant.name || grant.email}
-                  </Text>
+                <span className="small">
+                  <span className="strong">{grant.name || grant.email}</span>
                   {grant.name ? <span className="cap-muted"> {grant.email}</span> : null}
-                </Text>
+                </span>
                 <Form method="post">
                   <input type="hidden" name="intent" value="revoke" />
                   <input type="hidden" name="userId" value={grant.userId} />

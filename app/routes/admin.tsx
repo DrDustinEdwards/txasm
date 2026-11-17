@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import "capsomer/table.css";
 import { ButtonLink, Link } from "capsomer/react/link";
@@ -62,25 +62,17 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
             {editions.map((edition) => (
               <tr key={edition.id}>
                 <td>
-                  <Link
-                    to={`/admin/editions/${edition.id}`}
-                    className="cap-text"
-                    data-weight="strong"
-                  >
+                  <Text as={Link} to={`/admin/editions/${edition.id}`} weight="strong">
                     {edition.name}
-                  </Link>
+                  </Text>
                 </td>
                 <td data-drop="1">{titleCase(edition.season)}</td>
                 <td data-drop="2">{edition.year}</td>
                 <td>{titleCase(edition.status)}</td>
                 <Text as="td" align="end">
-                  <Link
-                    to={`/admin/editions/${edition.id}/categories`}
-                    className="cap-text"
-                    data-weight="strong"
-                  >
+                  <Text as={Link} to={`/admin/editions/${edition.id}/categories`} weight="strong">
                     Categories
-                  </Link>
+                  </Text>
                 </Text>
               </tr>
             ))}

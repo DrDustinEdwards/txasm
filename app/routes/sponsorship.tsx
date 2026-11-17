@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { ButtonLink, Link } from "capsomer/react/link";
 import type { Route } from "./+types/sponsorship";

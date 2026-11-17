@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import "capsomer/table.css";
 import { Link } from "capsomer/react/link";
@@ -100,13 +100,9 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
                   )}
                 </td>
                 <Text as="td" align="end">
-                  <Link
-                    to={`/abstracts/${abstract.id}/edit`}
-                    className="cap-text"
-                    data-weight="strong"
-                  >
+                  <Text as={Link} to={`/abstracts/${abstract.id}/edit`} weight="strong">
                     {abstract.status === "draft" ? "Edit" : "View or edit"}
-                  </Link>
+                  </Text>
                 </Text>
               </tr>
             ))}

@@ -1,7 +1,6 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { TextField } from "capsomer/react/field";
+import { Field, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Link } from "capsomer/react/link";
@@ -77,23 +76,15 @@ function OfficerFields({ row, section }: { row?: Row; section: OfficerSection })
   const p = row ? `o-${row.id}` : `new-${section}`;
   return (
     <div className="cap-grid" data-cols="2">
-      <Stack gap={2}>
-        <label htmlFor={`${p}-section`} className="cap-field-label">
-          Section
-        </label>
-        <select
-          id={`${p}-section`}
-          name="section"
-          defaultValue={row?.section ?? section}
-          className="cap-select"
-        >
+      <Field label="Section" id={`${p}-section`}>
+        <select name="section" defaultValue={row?.section ?? section} className="cap-select">
           {OFFICER_SECTIONS.map((s) => (
             <option key={s} value={s}>
               {OFFICER_SECTION_LABELS[s]}
             </option>
           ))}
         </select>
-      </Stack>
+      </Field>
       <TextField
         id={`${p}-role`}
         name="role"
@@ -158,9 +149,9 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
     <li className="cap-panel">
       <div className="cap-panel-body cap-stack" data-gap="4">
         <div className="cap-spread">
-          <div className="cap-shrink">
+          <div className="shrink">
             {row.role ? <p className="cap-label">{row.role}</p> : null}
-            <Text size="small">{summary(row)}</Text>
+            <p className="small">{summary(row)}</p>
           </div>
           <Form method="post">
             <input type="hidden" name="intent" value="remove" />
@@ -173,22 +164,21 @@ function OfficerRow({ row, submitting }: { row: Row; submitting: boolean }) {
                   action: "Remove entry",
                 })
               }
-              className="cap-btn"
-              data-variant="link"
+              className="small strong"
             >
               Remove
             </button>
           </Form>
         </div>
         <Disclosure summary="Edit" variant="card" size="sm" marker="triangle">
-          <Form method="post" className="cap-stack" data-gap="4" noValidate>
+          <Stack as={Form} method="post" noValidate gap={4}>
             <input type="hidden" name="intent" value="update" />
             <input type="hidden" name="id" value={row.id} />
             <OfficerFields row={row} section={section} />
             <button type="submit" disabled={submitting} className="cap-btn">
               Save
             </button>
-          </Form>
+          </Stack>
         </Disclosure>
       </div>
     </li>
@@ -232,11 +222,9 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-column cap-stack" data-gap="7">
+    <div className="form-page cap-stack" data-gap="7">
       <Stack as="header" gap={3}>
-        <Title as="h1" size={2}>
-          Branch officers
-        </Title>
+        <h1 className="page-title">Branch officers</h1>
         <p className="cap-muted">
           The current officers, the advisory board and the past officers. The{" "}
           <Link to="/branch-officers">public page</Link> reads this list.
@@ -253,9 +241,9 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
         const sectionRows = rows.filter((r) => r.section === section);
         return (
           <Stack as="section" key={section} aria-labelledby={`${section}-heading`}>
-            <Title id={`${section}-heading`} size={5}>
+            <h2 id={`${section}-heading`} className="subsection-title">
               {OFFICER_SECTION_LABELS[section]}
-            </Title>
+            </h2>
             {sectionRows.length === 0 ? (
               <p className="cap-muted">None yet.</p>
             ) : section === "past" ? (
@@ -272,13 +260,13 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
       })}
 
       <Panel title="Add a person" headingId="add-officer-heading">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <OfficerFields section="officer" />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </div>
   );

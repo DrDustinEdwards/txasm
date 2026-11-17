@@ -1,5 +1,5 @@
-import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Title } from "capsomer/react/text";
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { SchemaFields } from "capsomer/react/schema-form";
@@ -123,7 +123,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
 
       <FormStatus status={status} />
 
-      <Form method="post" className="cap-stack" data-gap="7" noValidate>
+      <Stack as={Form} method="post" noValidate gap={7}>
         <Panel title="Identity">
           <SchemaFields specs={IDENTITY} values={settings} />
         </Panel>
@@ -166,7 +166,7 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
           {submitting ? "Saving..." : "Save settings"}
         </button>
-      </Form>
+      </Stack>
     </div>
   );
 }

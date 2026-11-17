@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -110,27 +110,18 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
             <li key={award.id} className="cap-panel">
               <div className="cap-panel-body cap-spread">
                 <div className="cap-shrink">
-                  <Link
-                    to={`/admin/awards/${award.slug}`}
-                    className="cap-text"
-                    data-weight="strong"
-                  >
+                  <Text as={Link} to={`/admin/awards/${award.slug}`} weight="strong">
                     {award.name}
-                  </Link>
+                  </Text>
                   <Text size="small" tone="muted">
                     {award.slug} &middot; {award.recipientCount}{" "}
                     {award.recipientCount === 1 ? "recipient" : "recipients"}
                   </Text>
                 </div>
                 <div className="cap-cluster">
-                  <Link
-                    to={`/admin/awards/${award.slug}`}
-                    className="cap-text"
-                    data-size="small"
-                    data-weight="strong"
-                  >
+                  <Text as={Link} to={`/admin/awards/${award.slug}`} size="small" weight="strong">
                     Manage
-                  </Link>
+                  </Text>
                   <Form method="post">
                     <input type="hidden" name="intent" value="remove" />
                     <input type="hidden" name="awardId" value={award.id} />
@@ -156,7 +147,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
       )}
 
       <Panel title="Add an award" headingId="add-award-heading">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <div className="cap-grid" data-cols="2">
             <Stack gap={2}>
@@ -212,7 +203,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add award"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );

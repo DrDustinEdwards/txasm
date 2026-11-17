@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Field } from "capsomer/react/field";
 import { useState } from "react";
 import { Banner } from "capsomer/react/banner";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
@@ -275,10 +275,10 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
 
   if (!editable) {
     return (
-      <div className="cap-column cap-stack" data-gap="6">
-        <Title as="h1" size={2}>
+      <div className="form-page cap-stack" data-gap="6">
+        <h1 className="page-title">
           <RichText as="span" html={abstract.title} fallback="Untitled abstract" />
-        </Title>
+        </h1>
         <DecisionPanel decision={decision} />
         <Banner tone="warn">
           The submission deadline has passed. This abstract can no longer be edited.
@@ -288,7 +288,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
           authors={loaderData.authors}
           affiliations={loaderData.affiliations}
         />
-        <Link to="/my/abstracts" className="cap-text" data-weight="strong">
+        <Link to="/my/abstracts" className="strong">
           Back to my abstracts
         </Link>
       </div>
@@ -296,24 +296,22 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="cap-column cap-stack" data-gap="6">
+    <div className="form-page cap-stack" data-gap="6">
       <Stack gap={2}>
-        <Title as="h1" size={2}>
-          Abstract
-        </Title>
-        <Text size="small" tone="muted">
+        <h1 className="page-title">Abstract</h1>
+        <p className="small cap-muted">
           {edition.name} . Status: {ABSTRACT_STATUS_LABELS[abstract.status]}
           {edition.submissionDeadline
             ? ` . Deadline: ${formatDate(edition.submissionDeadline, DATE_TIME)}`
             : ""}
-        </Text>
+        </p>
       </Stack>
 
       <DecisionPanel decision={decision} />
 
       <FormStatus status={status} />
 
-      <Form method="post" className="cap-stack" data-gap="6">
+      <Stack as={Form} method="post" gap={6}>
         <RichTextField name="title" label="Title" tags={TITLE_TAGS} initialHTML={abstract.title} />
 
         <Stack gap={2}>
@@ -326,18 +324,16 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             describedBy="body-count"
             onValueChange={(value) => setBodyWords(richTextWords(value))}
           />
-          <Text
+          <p
             id="body-count"
             aria-live="polite"
-            data-weight={overLimit ? "strong" : undefined}
-            data-tone={overLimit ? "crit" : "muted"}
-            size="small"
+            className={overLimit ? "small strong crit-text" : "small cap-muted"}
           >
             {bodyWords} / {edition.wordLimit} words
             {overLimit
               ? ". Over the limit. Trim the body to submit; you can still save a draft."
               : ""}
-          </Text>
+          </p>
         </Stack>
 
         <div className="cap-grid" data-cols="2">
@@ -355,16 +351,8 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             </select>
           </Stack>
 
-          <Stack gap={2}>
-            <label htmlFor="categoryId" className="cap-field-label">
-              Topic
-            </label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              defaultValue={abstract.categoryId}
-              className="cap-select"
-            >
+          <Field label="Topic" id="categoryId">
+            <select name="categoryId" defaultValue={abstract.categoryId} className="cap-select">
               <option value="">Choose a topic</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -372,15 +360,11 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
                 </option>
               ))}
             </select>
-          </Stack>
+          </Field>
         </div>
 
-        <Stack gap={2}>
-          <label htmlFor="presentationPreference" className="cap-field-label">
-            Presentation preference
-          </label>
+        <Field label="Presentation preference" id="presentationPreference">
           <select
-            id="presentationPreference"
             name="presentationPreference"
             defaultValue={abstract.presentationPreference}
             className="cap-select"
@@ -391,7 +375,7 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
               </option>
             ))}
           </select>
-        </Stack>
+        </Field>
 
         <AffiliationsFieldset
           affiliations={affiliations}
@@ -440,22 +424,15 @@ export default function EditAbstract({ loaderData }: Route.ComponentProps) {
             onClick={(e) =>
               confirmSubmit(e, { title: "Withdraw this abstract?", action: "Withdraw abstract" })
             }
-            className="cap-btn cap-text"
-            data-variant="link"
-            data-tone="crit"
+            className="small strong crit-text"
           >
             Withdraw
           </button>
-          <Link
-            to="/my/abstracts"
-            className="cap-text cap-muted"
-            data-size="small"
-            data-weight="strong"
-          >
+          <Link to="/my/abstracts" className="small strong cap-muted">
             Back
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }

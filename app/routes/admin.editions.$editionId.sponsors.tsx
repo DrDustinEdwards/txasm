@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -8,7 +8,7 @@ import type { Route } from "./+types/admin.editions.$editionId.sponsors";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
 import { SPONSOR_TIERS } from "~/lib/vocab";
 import { readForm } from "@dustinedwards/site-runtime/body";
@@ -19,13 +19,10 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Sponsors"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const sponsors = await da.sponsors.listForEdition(actor, params.editionId);
-  return { edition: { id: edition.id, name: edition.name }, sponsors };
+  return { edition, sponsors };
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -78,20 +75,17 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
   const idBase = sponsor ? sponsor.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <Stack gap={2} className="cap-full">
-        <label htmlFor={`name-${idBase}`} className="cap-field-label">
-          Name
-        </label>
-        <input
+      <div className="span-2">
+        <TextField
           id={`name-${idBase}`}
+          label="Name"
           name="name"
           type="text"
           required
           defaultValue={sponsor?.name ?? ""}
           placeholder="Acme Biosciences"
-          className="cap-input"
         />
-      </Stack>
+      </div>
       <Stack gap={2}>
         <label htmlFor={`tier-${idBase}`} className="cap-field-label">
           Tier
@@ -111,32 +105,24 @@ function SponsorFields({ sponsor }: { sponsor?: Sponsor }) {
           ))}
         </datalist>
       </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`sort-${idBase}`} className="cap-field-label">
-          Sort order
-        </label>
-        <input
-          id={`sort-${idBase}`}
-          name="sortOrder"
-          type="number"
-          step="1"
-          defaultValue={sponsor?.sortOrder ?? 0}
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2} className="cap-full">
-        <label htmlFor={`url-${idBase}`} className="cap-field-label">
-          Website
-        </label>
-        <input
+      <TextField
+        id={`sort-${idBase}`}
+        label="Sort order"
+        name="sortOrder"
+        type="number"
+        step="1"
+        defaultValue={sponsor?.sortOrder ?? 0}
+      />
+      <div className="span-2">
+        <TextField
           id={`url-${idBase}`}
+          label="Website"
           name="url"
           type="url"
           defaultValue={sponsor?.url ?? ""}
           placeholder="https://example.com"
-          className="cap-input"
         />
-      </Stack>
+      </div>
     </div>
   );
 }
@@ -151,12 +137,10 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={7}>
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Sponsors
-        </Title>
+        <h1 className="page-title">Sponsors</h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
@@ -178,12 +162,12 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
                   <div>
-                    <Text weight="strong">{sponsor.name}</Text>
-                    <Text size="small" tone="muted">
+                    <p className="strong">{sponsor.name}</p>
+                    <p className="small cap-muted">
                       {[sponsor.tier ?? "", sponsor.url ?? ""]
                         .filter((p) => p.length > 0)
                         .join(" . ")}
-                    </Text>
+                    </p>
                   </div>
                   <Form method="post">
                     <input type="hidden" name="intent" value="remove" />
@@ -196,8 +180,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                           action: "Remove sponsor",
                         })
                       }
-                      className="cap-btn"
-                      data-variant="link"
+                      className="small strong"
                     >
                       Remove
                     </button>
@@ -205,14 +188,14 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <Disclosure summary="Edit sponsor" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                  <Stack as={Form} method="post" noValidate gap={4}>
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="sponsorId" value={sponsor.id} />
                     <SponsorFields sponsor={sponsor} />
                     <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
                       Save sponsor
                     </button>
-                  </Form>
+                  </Stack>
                 </Disclosure>
               </div>
             </li>
@@ -221,13 +204,13 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       )}
 
       <Panel title="Add a sponsor">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SponsorFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add sponsor"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );

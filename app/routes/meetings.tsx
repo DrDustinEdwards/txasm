@@ -1,6 +1,6 @@
-import "capsomer/row-list.css";
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import "capsomer/row-list.css";
+import { Text, Title } from "capsomer/react/text";
 import { Form } from "react-router";
 import { routerRenderLink } from "capsomer/react/link";
 import { Row, RowList } from "capsomer/react/row-list";
@@ -82,7 +82,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       </Stack>
 
       <Panel>
-        <Form method="get" role="search" aria-label="Search abstracts" className="cap-stack">
+        <Stack as={Form} method="get" role="search" aria-label="Search abstracts">
           <Field label="Search abstracts">
             <input
               id="q"
@@ -128,7 +128,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
           <button type="submit" className="cap-btn" data-variant="primary">
             Search
           </button>
-        </Form>
+        </Stack>
       </Panel>
 
       {results ? (

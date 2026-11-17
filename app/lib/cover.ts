@@ -15,6 +15,7 @@
 
 import { TEXAS_STATE_PATH, txasmMarkPaths } from "./brand-svg";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
+import { escapeCssString } from "./format";
 
 type CoverInput = {
   meetingName: string;
@@ -58,7 +59,7 @@ export function coverArt({ meetingName, dates, title }: CoverInput): string {
 // woff2 under public/fonts, served same-origin, so the headless PDF has zero
 // network font dependency. font-display: block so text never paints in a
 // fallback face before the real font loads.
-export function coverFontFaces(): string {
+function coverFontFaces(): string {
   return `
     @font-face { font-family: "Source Serif 4"; font-style: normal; font-weight: 400; font-display: block; src: url("/fonts/source-serif-4-latin-400.woff2") format("woff2"); }
     @font-face { font-family: "Source Serif 4"; font-style: normal; font-weight: 600; font-display: block; src: url("/fonts/source-serif-4-latin-600.woff2") format("woff2"); }
@@ -70,7 +71,7 @@ export function coverFontFaces(): string {
 // Brand tokens (light, mirroring app.css) plus the full-bleed cover page. The
 // print document does not load app.css, so the tokens the cover SVG reads are
 // defined here. The cover is its own zero-margin page.
-export function coverStyles(): string {
+function coverStyles(): string {
   return `
     :root {
       --brand-blue: #002868;
@@ -82,4 +83,27 @@ export function coverStyles(): string {
     .cover { page: cover; break-after: page; }
     .cover svg.cover-art { display: block; width: 210mm; height: 297mm; }
   `;
+}
+
+// What the abstract book and the program share in their print CSS: the cover, the reset, the A4 page with its running
+// header (the meeting's name, none on the cover page) and page numbers. Each adds its own type and body rules.
+export function printBaseStyles(meetingName: string): string {
+  const header = escapeCssString(meetingName);
+  return `
+    ${coverFontFaces()}
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-size: 10.5pt; line-height: 1.45; }
+    sup { font-size: 0.7em; line-height: 0; }
+
+    ${coverStyles()}
+
+    @page {
+      size: A4;
+      margin: 20mm 18mm 18mm 18mm;
+      @top-center { content: "${header}"; font-family: Arial, sans-serif; font-size: 8.5pt; color: #666; }
+      @bottom-center { content: counter(page); font-family: Arial, sans-serif; font-size: 8.5pt; color: #666; }
+    }
+    @page :first { @top-center { content: none; } }
+`;
 }

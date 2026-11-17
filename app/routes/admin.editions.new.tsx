@@ -1,5 +1,5 @@
-import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.editions.new";
@@ -75,11 +75,9 @@ export default function NewEdition() {
   const error = actionData?.error ?? null;
 
   return (
-    <div className="cap-column cap-stack" data-gap="6">
+    <div className="form-page cap-stack" data-gap="6">
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          New meeting
-        </Title>
+        <h1 className="page-title">New meeting</h1>
         <p>Each meeting has a season and year, and the two together must be unique.</p>
       </Stack>
 
@@ -89,20 +87,15 @@ export default function NewEdition() {
         </p>
       ) : null}
 
-      <Form method="post" className="cap-stack" noValidate>
-        <Stack gap={2}>
-          <label htmlFor="name" className="cap-field-label">
-            Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            placeholder="Spring 2027 Meeting"
-            className="cap-input"
-          />
-        </Stack>
+      <Stack as={Form} method="post" noValidate>
+        <TextField
+          id="name"
+          label="Name"
+          name="name"
+          type="text"
+          required
+          placeholder="Spring 2027 Meeting"
+        />
 
         <Stack gap={2}>
           <label htmlFor="season" className="cap-field-label">
@@ -117,22 +110,17 @@ export default function NewEdition() {
           </select>
         </Stack>
 
-        <Stack gap={2}>
-          <label htmlFor="year" className="cap-field-label">
-            Year
-          </label>
-          <input
-            id="year"
-            name="year"
-            type="number"
-            inputMode="numeric"
-            min={2000}
-            max={2100}
-            required
-            placeholder="2027"
-            className="cap-input"
-          />
-        </Stack>
+        <TextField
+          id="year"
+          label="Year"
+          name="year"
+          type="number"
+          inputMode="numeric"
+          min={2000}
+          max={2100}
+          required
+          placeholder="2027"
+        />
 
         <Stack gap={2}>
           <label htmlFor="status" className="cap-field-label">
@@ -151,11 +139,11 @@ export default function NewEdition() {
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Creating..." : "Create meeting"}
           </button>
-          <Link to="/admin" className="cap-text cap-muted" data-size="small" data-weight="strong">
+          <Link to="/admin" className="small strong cap-muted">
             Cancel
           </Link>
         </div>
-      </Form>
+      </Stack>
     </div>
   );
 }

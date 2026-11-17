@@ -1,5 +1,5 @@
-import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Title } from "capsomer/react/text";
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import { ButtonLink } from "capsomer/react/link";
 import {
@@ -125,7 +125,7 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
         <p>This changes the email address your TXASM account signs in with.</p>
       </Stack>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
-      <form method="post" className="cap-stack">
+      <Stack as="form" method="post">
         {actionData?.limited ? (
           <p role="alert" className="cap-field-error">
             Too many tries. Wait a minute, then try again.
@@ -136,7 +136,7 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
             Confirm
           </button>
         </div>
-      </form>
+      </Stack>
     </div>
   );
 }

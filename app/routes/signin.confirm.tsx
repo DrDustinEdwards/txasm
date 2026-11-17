@@ -1,3 +1,4 @@
+import { Stack } from "capsomer/react/stack";
 import { Title } from "capsomer/react/text";
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
 import {
@@ -77,7 +78,7 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
         Sign in to TXASM
       </Title>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
-      <form method="post" className="cap-stack">
+      <Stack as="form" method="post">
         {actionData?.limited ? (
           <p role="alert" className="cap-field-error">
             Too many tries. Wait a minute, then try again.
@@ -88,7 +89,7 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
             Sign in
           </button>
         </div>
-      </form>
+      </Stack>
     </div>
   );
 }

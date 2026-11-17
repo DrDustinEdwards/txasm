@@ -262,6 +262,14 @@ export async function requireChair(request: Request, editionId: string): Promise
   return { user, actor };
 }
 
+// requireChair for an edition page's loader: also the data access and the edition's id and name.
+export async function requireChairEdition(request: Request, editionId: string) {
+  const { actor } = await requireChair(request, editionId);
+  const da = getDataAccess(env);
+  const { id, name } = await da.editions.getById(actor, editionId);
+  return { actor, da, edition: { id, name } };
+}
+
 // For chrome that adapts to auth state (the header). Never throws.
 export async function getUserContext(request: Request): Promise<UserContext> {
   const user = await getSessionUser(request);

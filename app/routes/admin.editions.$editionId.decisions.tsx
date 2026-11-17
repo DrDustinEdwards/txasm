@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Field } from "capsomer/react/field";
 import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { FormStatus, useActionStatus } from "capsomer/react/form-status";
@@ -8,7 +8,7 @@ import type { Route } from "./+types/admin.editions.$editionId.decisions";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
 import {
   ABSTRACT_STATUS_LABELS,
@@ -35,13 +35,10 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Decisions"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const abstracts = await da.decisions.listForEdition(actor, params.editionId);
-  return { edition: { id: edition.id, name: edition.name }, abstracts };
+  return { edition, abstracts };
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -123,20 +120,14 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={6}>
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Decisions
-        </Title>
+        <h1 className="page-title">Decisions</h1>
         <p>
           {edition.name}.{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/review`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
             Assign reviewers
           </Link>{" "}
           <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
@@ -181,29 +172,25 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
       <div className="cap-panel-body cap-stack">
         <div className="cap-spread">
           <Stack gap={2}>
-            <Text as="h2" weight="strong">
+            <h2 className="strong">
               <RichText
                 as="span"
                 html={abstract.title}
                 fallback={<span className="cap-muted">Untitled</span>}
               />
-            </Text>
-            <Text size="small" tone="muted">
+            </h2>
+            <p className="small cap-muted">
               {abstract.authorNames.length > 0
                 ? abstract.authorNames.join(", ")
                 : "No authors listed"}
-            </Text>
-            <Text size="small" tone="muted">
+            </p>
+            <p className="small cap-muted">
               Status: {ABSTRACT_STATUS_LABELS[abstract.status]} . Reviews: {abstract.reviewCount}{" "}
               (accept {summary.accept} / revise {summary.revise} / reject {summary.reject}) .{" "}
-              <Link
-                to={`/admin/editions/${editionId}/review/${abstract.id}`}
-                className="cap-text"
-                data-weight="strong"
-              >
+              <Link to={`/admin/editions/${editionId}/review/${abstract.id}`} className="strong">
                 Read reviews
               </Link>
-            </Text>
+            </p>
           </Stack>
           {decision ? (
             <span className="cap-badge" data-variant="secondary">
@@ -219,9 +206,9 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
         </div>
 
         {decision ? (
-          <Text size="small" tone="muted">
+          <p className="small cap-muted">
             Current decision recorded {formatDate(decision.decidedAt, DATE_TIME)}.
-          </Text>
+          </p>
         ) : null}
 
         {decision ? (
@@ -234,29 +221,27 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                   Notify author
                 </button>
               </Form>
-              <Text as="span" size="small" tone="muted">
+              <span className="small cap-muted">
                 {decision.notifyState === "emailed"
                   ? "Author emailed."
                   : decision.notifyState === "in_app"
                     ? "Author notified in-app."
                     : "Not notified yet."}
-              </Text>
+              </span>
             </div>
-            <Text size="tiny" tone="muted">
+            <p className="tiny cap-muted">
               Until email goes live at cutover, this marks the author as notified in-app. The author
               already sees the decision when signed in.
-            </Text>
+            </p>
           </Stack>
         ) : null}
 
-        <Form method="post" className="cap-stack">
+        <Stack as={Form} method="post">
           <input type="hidden" name="intent" value="decide" />
           <input type="hidden" name="abstractId" value={abstract.id} />
 
           <Stack as="fieldset" gap={3}>
-            <Text as="legend" size="small" weight="strong">
-              Outcome
-            </Text>
+            <legend className="small strong">Outcome</legend>
             <div className="cap-cluster">
               {OUTCOME_OPTIONS.map((option) => (
                 <label key={option.value} className="cap-check">
@@ -275,12 +260,8 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           </Stack>
 
           {outcome === "accept" ? (
-            <Stack gap={2}>
-              <label htmlFor={`presentation-${abstract.id}`} className="cap-field-label">
-                Presentation type
-              </label>
+            <Field label="Presentation type" id={`presentation-${abstract.id}`}>
               <select
-                id={`presentation-${abstract.id}`}
                 name="presentationType"
                 required
                 defaultValue={decision?.presentationType ?? "oral"}
@@ -292,7 +273,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                   </option>
                 ))}
               </select>
-            </Stack>
+            </Field>
           ) : null}
 
           <RichTextField
@@ -307,7 +288,7 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {decision ? "Update decision" : "Save decision"}
           </button>
-        </Form>
+        </Stack>
 
         {decision ? (
           <Form method="post">

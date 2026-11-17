@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
@@ -182,7 +182,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
       <FormStatus status={status} />
 
       {editable ? (
-        <Form method="post" className="cap-stack" data-gap="6">
+        <Stack as={Form} method="post" gap={6}>
           <input type="hidden" name="intent" value="submit" />
 
           <Stack as="fieldset" gap={3}>
@@ -227,11 +227,11 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
               {review?.status === "submitted" ? "Update review" : "Submit review"}
             </button>
-            <Link to="/review" className="cap-text" data-size="small" data-weight="strong">
+            <Text as={Link} to="/review" size="small" weight="strong">
               Back to review
-            </Link>
+            </Text>
           </div>
-        </Form>
+        </Stack>
       ) : (
         <Stack>
           <Banner tone="warn">
@@ -257,9 +257,9 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
               </Stack>
             </Panel>
           ) : null}
-          <Link to="/review" className="cap-text" data-weight="strong">
+          <Text as={Link} to="/review" weight="strong">
             Back to review
-          </Link>
+          </Text>
         </Stack>
       )}
 
@@ -269,16 +269,16 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             If you should not review this abstract, declare a conflict. This removes the assignment
             and the abstract will be reassigned by a chair.
           </Text>
-          <Form
+          <Stack
+            as={Form}
             method="post"
-            className="cap-stack"
-            data-gap="4"
             onSubmit={(e) =>
               confirmSubmit(e, {
                 title: "Declare a conflict and remove this assignment?",
                 action: "Declare conflict",
               })
             }
+            gap={4}
           >
             <input type="hidden" name="intent" value="conflict" />
             <input type="hidden" name="abstractId" value={abstract.id} />
@@ -302,7 +302,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             <button type="submit" disabled={submitting} className="cap-btn" data-variant="danger">
               I have a conflict
             </button>
-          </Form>
+          </Stack>
         </Stack>
       </Panel>
     </div>

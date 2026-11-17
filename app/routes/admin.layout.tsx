@@ -30,7 +30,7 @@ import type { Route } from "./+types/admin.layout";
 import type { loader as rootLoader } from "~/root";
 import { getUserContext } from "~/lib/auth.server";
 import { BrandMark } from "~/components/brand-mark";
-import { initialsOf } from "capsomer/react/site-header";
+import { initials } from "capsomer/behavior/avatar";
 import { THEME_COOKIE, THEME_PREF_KEY } from "~/lib/theme";
 
 // The admin and chair areas are apps: every route under this layout hydrates (root.tsx, the `hydrate` handle).
@@ -189,7 +189,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
         email
           ? {
               name: email,
-              initials: initialsOf(null, email),
+              initials: initials(null, email),
               signOutAction: "/signout",
             }
           : undefined

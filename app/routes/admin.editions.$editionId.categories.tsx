@@ -1,8 +1,6 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
-import "capsomer/table.css";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { MoneyField } from "capsomer/react/field";
+import { MoneyField, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
@@ -96,12 +94,10 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
   return (
     <Stack gap={7}>
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Registration categories
-        </Title>
+        <h1 className="page-title">Registration categories</h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
@@ -123,9 +119,9 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               <th scope="col">Type</th>
               <th scope="col">Fee</th>
               <th scope="col">Active</th>
-              <Text as="th" scope="col" align="end">
+              <th scope="col" className="cell-end">
                 <span className="cap-sr-only">Actions</span>
-              </Text>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -135,12 +131,11 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                 <td>{REGISTRATION_CATEGORY_KEY_LABELS[category.key]}</td>
                 <td>{formatMoney(category.amountCents, category.currency)}</td>
                 <td>{category.active ? "Yes" : "No"}</td>
-                <Text as="td" align="end">
+                <td className="cell-end">
                   <div className="cap-cluster" data-justify="end">
                     <Link
                       to={`/admin/editions/${edition.id}/categories/${category.id}`}
-                      className="cap-text"
-                      data-weight="strong"
+                      className="strong"
                     >
                       Edit
                     </Link>
@@ -159,7 +154,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
                       </Form>
                     ) : null}
                   </div>
-                </Text>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -167,7 +162,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
       )}
 
       <Panel title="Add a category">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <Stack gap={2}>
             <label htmlFor="key" className="cap-field-label">
@@ -181,49 +176,34 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
               ))}
             </select>
           </Stack>
-          <Stack gap={2}>
-            <label htmlFor="label" className="cap-field-label">
-              Label
-            </label>
-            <input
-              id="label"
-              name="label"
-              type="text"
-              required
-              placeholder="ASM Member"
-              className="cap-input"
-            />
-          </Stack>
+          <TextField
+            id="label"
+            label="Label"
+            name="label"
+            type="text"
+            required
+            placeholder="ASM Member"
+          />
           <MoneyField id="fee" name="fee" label="Fee (dollars)" required placeholder="45.00" />
-          <Stack gap={2}>
-            <label htmlFor="currency" className="cap-field-label">
-              Currency
-            </label>
-            <input
-              id="currency"
-              name="currency"
-              type="text"
-              defaultValue="USD"
-              className="cap-input"
-            />
-          </Stack>
-          <Stack gap={2}>
-            <label htmlFor="sortOrder" className="cap-field-label">
-              Sort order
-            </label>
-            <input
-              id="sortOrder"
-              name="sortOrder"
-              type="number"
-              step="1"
-              defaultValue={0}
-              className="cap-input"
-            />
-          </Stack>
+          <TextField
+            id="currency"
+            label="Currency"
+            name="currency"
+            type="text"
+            defaultValue="USD"
+          />
+          <TextField
+            id="sortOrder"
+            label="Sort order"
+            name="sortOrder"
+            type="number"
+            step="1"
+            defaultValue={0}
+          />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add category"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );

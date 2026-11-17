@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
@@ -157,13 +157,9 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
                     ({ABSTRACT_STATUS_LABELS[abstract.status]})
                   </Text>
                 </span>
-                <Link
-                  to={`/abstracts/${abstract.id}/edit`}
-                  className="cap-text"
-                  data-weight="strong"
-                >
+                <Text as={Link} to={`/abstracts/${abstract.id}/edit`} weight="strong">
                   Continue
-                </Link>
+                </Text>
               </li>
             ))}
           </ul>

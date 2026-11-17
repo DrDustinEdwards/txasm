@@ -1,4 +1,4 @@
-import { Title, Text } from "capsomer/react/text";
+import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import { Form, useActionData, useNavigation, useSearchParams } from "react-router";
 import { fromDateTimeLocal } from "capsomer/behavior/field";
@@ -9,7 +9,7 @@ import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import {
   AlreadyExistsError,
   getDataAccess,
@@ -45,11 +45,8 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Program"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const schedule = await da.programSessions.getScheduleForEdition(actor, params.editionId);
   const unplaced = await da.programItems.listUnplacedAbstracts(actor, params.editionId);
   const speakerRows = await da.invitedSpeakers.listForEdition(actor, params.editionId);
@@ -61,7 +58,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   }));
   const document = await da.documents.getGeneratedForEdition(actor, params.editionId, "program");
   return {
-    edition: { id: edition.id, name: edition.name },
+    edition,
     schedule,
     unplaced,
     speakers,
@@ -314,9 +311,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
         </Title>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Text as={Link} to={`/admin/editions/${edition.id}`} weight="strong">
             Edit meeting
-          </Link>
+          </Text>
         </p>
         <p className="cap-muted">
           Build the meeting day by day. Sessions that overlap in time on the same day become
@@ -385,7 +382,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
           />
 
           <Panel title="Add a session to this day" level={3}>
-            <Form method="post" className="cap-stack" data-gap="4" noValidate>
+            <Stack as={Form} method="post" noValidate gap={4}>
               <input type="hidden" name="intent" value="session-create" />
               {/* Keyed by day so the date prefill remounts when the tab changes;
                 an unkeyed defaultValue would keep the previous day's date. */}
@@ -396,7 +393,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
               <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
                 Add session
               </button>
-            </Form>
+            </Stack>
           </Panel>
         </Stack>
       )}

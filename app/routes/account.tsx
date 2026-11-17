@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Text, Title } from "capsomer/react/text";
 import { useEffect, useState } from "react";
 import { isAPIError } from "better-auth/api";
 import {
@@ -365,13 +365,13 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           <Link to="/signin?next=/account">Sign in again to change your email</Link>
         </p>
       ) : (
-        <form
-          className="cap-stack"
-          data-gap="4"
+        <Stack
+          as="form"
           onSubmit={(event) => {
             event.preventDefault();
             void changeEmail(event.currentTarget);
           }}
+          gap={4}
         >
           <div className="cap-field">
             <label htmlFor="newEmail" className="cap-field-label">
@@ -402,7 +402,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
               Change email
             </button>
           </div>
-        </form>
+        </Stack>
       )}
       <Stack gap={3}>
         <Title size={5}>Passkeys</Title>
@@ -585,7 +585,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           <Link to="/signin?next=/account">Sign in again to delete your account</Link>
         </p>
       ) : (
-        <Form method="post" className="cap-stack" data-gap="4">
+        <Stack as={Form} method="post" gap={4}>
           <input type="hidden" name="intent" value="delete" />
           <label className="cap-check">
             <input type="checkbox" name="confirm" required />I understand my account is deleted for
@@ -601,7 +601,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
               {deleting ? "Deleting..." : "Delete my account"}
             </button>
           </div>
-        </Form>
+        </Stack>
       )}
     </div>
   );

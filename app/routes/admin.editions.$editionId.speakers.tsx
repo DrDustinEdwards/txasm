@@ -1,5 +1,5 @@
-import { Title, Text } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
+import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
@@ -8,7 +8,7 @@ import type { Route } from "./+types/admin.editions.$editionId.speakers";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { requireChair } from "~/lib/auth.server";
+import { requireChair, requireChairEdition } from "~/lib/auth.server";
 import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichTextField } from "capsomer/react/rich-text-field";
@@ -24,13 +24,10 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Invited speakers"));
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
-  const { actor } = await requireChair(request, params.editionId);
-  const { env } = context.get(cloudflareContext);
-  const da = getDataAccess(env);
-  const edition = await da.editions.getById(actor, params.editionId);
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const { actor, da, edition } = await requireChairEdition(request, params.editionId);
   const speakers = await da.invitedSpeakers.listForEdition(actor, params.editionId);
-  return { edition: { id: edition.id, name: edition.name }, speakers };
+  return { edition, speakers };
 }
 
 function parseRole(value: FormDataEntryValue | null): SpeakerRole | null {
@@ -93,43 +90,25 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
   const idBase = speaker ? speaker.id : "new";
   return (
     <div className="cap-grid" data-cols="2">
-      <Stack gap={2}>
-        <label htmlFor={`name-${idBase}`} className="cap-field-label">
-          Name
-        </label>
-        <input
-          id={`name-${idBase}`}
-          name="name"
-          type="text"
-          required
-          defaultValue={speaker?.name ?? ""}
-          placeholder="Dr. Jane Rivera"
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`affiliation-${idBase}`} className="cap-field-label">
-          Affiliation
-        </label>
-        <input
-          id={`affiliation-${idBase}`}
-          name="affiliation"
-          type="text"
-          defaultValue={speaker?.affiliation ?? ""}
-          placeholder="University of Texas at Austin"
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`role-${idBase}`} className="cap-field-label">
-          Role
-        </label>
-        <select
-          id={`role-${idBase}`}
-          name="role"
-          defaultValue={speaker?.role ?? ""}
-          className="cap-select"
-        >
+      <TextField
+        id={`name-${idBase}`}
+        label="Name"
+        name="name"
+        type="text"
+        required
+        defaultValue={speaker?.name ?? ""}
+        placeholder="Dr. Jane Rivera"
+      />
+      <TextField
+        id={`affiliation-${idBase}`}
+        label="Affiliation"
+        name="affiliation"
+        type="text"
+        defaultValue={speaker?.affiliation ?? ""}
+        placeholder="University of Texas at Austin"
+      />
+      <Field label="Role" id={`role-${idBase}`}>
+        <select name="role" defaultValue={speaker?.role ?? ""} className="cap-select">
           <option value="">No role set</option>
           {SPEAKER_ROLES.map((role) => (
             <option key={role} value={role}>
@@ -137,33 +116,25 @@ function SpeakerFields({ speaker }: { speaker?: Speaker }) {
             </option>
           ))}
         </select>
-      </Stack>
-      <Stack gap={2}>
-        <label htmlFor={`sort-${idBase}`} className="cap-field-label">
-          Sort order
-        </label>
-        <input
-          id={`sort-${idBase}`}
-          name="sortOrder"
-          type="number"
-          step="1"
-          defaultValue={speaker?.sortOrder ?? 0}
-          className="cap-input"
-        />
-      </Stack>
-      <Stack gap={2} className="cap-full">
-        <label htmlFor={`talk-${idBase}`} className="cap-field-label">
-          Talk title
-        </label>
-        <input
+      </Field>
+      <TextField
+        id={`sort-${idBase}`}
+        label="Sort order"
+        name="sortOrder"
+        type="number"
+        step="1"
+        defaultValue={speaker?.sortOrder ?? 0}
+      />
+      <div className="span-2">
+        <TextField
           id={`talk-${idBase}`}
+          label="Talk title"
           name="talkTitle"
           type="text"
           defaultValue={speaker?.talkTitle ?? ""}
-          className="cap-input"
         />
-      </Stack>
-      <div className="cap-full">
+      </div>
+      <div className="span-2">
         <RichTextField
           name="bio"
           label="Bio"
@@ -186,22 +157,16 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={7}>
       <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Invited speakers
-        </Title>
+        <h1 className="page-title">Invited speakers</h1>
         <p>
           {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="cap-text" data-weight="strong">
+          <Link to={`/admin/editions/${edition.id}`} className="strong">
             Edit meeting
           </Link>
         </p>
         <p className="cap-muted">
           Keynotes and award lectures for the meeting. Attach a speaker to a session on the{" "}
-          <Link
-            to={`/admin/editions/${edition.id}/program`}
-            className="cap-text"
-            data-weight="strong"
-          >
+          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
             program
           </Link>
           . Headshot upload comes later.
@@ -223,16 +188,16 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
               <div className="cap-panel-body cap-stack" data-gap="4">
                 <div className="cap-spread">
                   <div>
-                    <Text weight="strong">{speaker.name}</Text>
-                    <Text size="small" tone="muted">
+                    <p className="strong">{speaker.name}</p>
+                    <p className="small cap-muted">
                       {[
                         speaker.role ? speakerRoleLabel(speaker.role) : "",
                         speaker.affiliation ?? "",
                       ]
                         .filter((p) => p.length > 0)
                         .join(" . ")}
-                    </Text>
-                    {speaker.talkTitle ? <Text size="small">{speaker.talkTitle}</Text> : null}
+                    </p>
+                    {speaker.talkTitle ? <p className="small">{speaker.talkTitle}</p> : null}
                   </div>
                   <Form method="post">
                     <input type="hidden" name="intent" value="remove" />
@@ -245,8 +210,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                           action: "Remove speaker",
                         })
                       }
-                      className="cap-btn"
-                      data-variant="link"
+                      className="small strong"
                     >
                       Remove
                     </button>
@@ -254,14 +218,14 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <Disclosure summary="Edit speaker" variant="card" size="sm" marker="triangle">
-                  <Form method="post" className="cap-stack" data-gap="4" noValidate>
+                  <Stack as={Form} method="post" noValidate gap={4}>
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="speakerId" value={speaker.id} />
                     <SpeakerFields speaker={speaker} />
                     <button type="submit" disabled={submitting} className="cap-btn" data-size="sm">
                       Save speaker
                     </button>
-                  </Form>
+                  </Stack>
                 </Disclosure>
               </div>
             </li>
@@ -270,13 +234,13 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       )}
 
       <Panel title="Add a speaker">
-        <Form method="post" className="cap-stack" noValidate>
+        <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="create" />
           <SpeakerFields />
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">
             {submitting ? "Adding..." : "Add speaker"}
           </button>
-        </Form>
+        </Stack>
       </Panel>
     </Stack>
   );
