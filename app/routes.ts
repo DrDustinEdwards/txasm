@@ -1,5 +1,5 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
-import { CONFIRM_PATH, SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-client";
+import { CONFIRM_PATH, SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-path";
 import { EMAIL_CONFIRM_PATH, FEED_PATH } from "./lib/site-meta";
 
 export default [
