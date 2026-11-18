@@ -3,7 +3,7 @@ import { Title } from "capsomer/react/text";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Form, data, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/signin";
 import { pageTitle } from "~/lib/site-meta";
@@ -68,6 +68,7 @@ const CODE_REFUSALS: Record<CodeRefusal, string> = {
   spent:
     "That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.",
   disposable: "That sign-in did not complete. Try again, or use the link in the email.",
+  "other-browser": SIGN_IN_WORDS.code["other-browser"],
   failed: "That sign-in did not complete. Try again, or use the link in the email.",
 };
 
@@ -89,7 +90,7 @@ async function codeSignIn(
   return { ok: true, email, codeError: CODE_REFUSALS[result.status] };
 }
 
-export async function action({ request, context }: Route.ActionArgs): Promise<ActionResult> {
+export async function action({ request, context }: Route.ActionArgs) {
   const formData = await readForm(request, FORM_LIMIT);
   const email = String(formData.get("email") ?? "").trim();
   if (!email) {
@@ -115,8 +116,10 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
     captchaToken: String(formData.get("cf-turnstile-response") ?? ""),
     callbackURL: landing,
   });
-  if (result === "sent") return { ok: true, email };
-  return { ok: false, error: LINK_REFUSALS[result] };
+  // The sent mail's cookie ties its code to this browser (site-runtime codeBrowser): without it the code is refused.
+  if (result.status === "sent")
+    return data<ActionResult>({ ok: true, email }, { headers: result.headers });
+  return { ok: false, error: LINK_REFUSALS[result.status] } satisfies ActionResult;
 }
 
 export default function SignIn({ loaderData }: Route.ComponentProps) {
