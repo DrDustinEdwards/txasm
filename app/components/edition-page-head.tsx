@@ -3,7 +3,7 @@ import { Stack } from "capsomer/react/stack";
 import { Link } from "capsomer/react/link";
 
 // The head of every admin page for one meeting: the page title, the meeting's name and the
-// links to its neighbours, ending with "Edit meeting".
+// links to its related pages, ending with "Edit meeting".
 export function EditionPageHead({
   title,
   edition,
