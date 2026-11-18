@@ -75,10 +75,6 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Meetings
         </Title>
-        <p className="cap-muted cap-measure">
-          The branch meets twice a year. Search the accepted abstracts across all meetings, or open
-          a meeting for its program and full abstract archive.
-        </p>
       </Stack>
 
       <Panel>
@@ -137,7 +133,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
             {results.length} {results.length === 1 ? "result" : "results"}
           </Title>
           {results.length === 0 ? (
-            <p className="cap-muted">No abstracts match that search. Try a broader term.</p>
+            <p className="cap-muted">No abstracts match.</p>
           ) : (
             <Panel flush>
               <RowList label="Search results">
@@ -163,12 +159,8 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <Stack as="section" aria-label="Meetings">
-        <Title size={5}>All meetings</Title>
         {meetings.length === 0 ? (
-          <Empty
-            kind="nothing-yet"
-            title="Meetings appear here once their programs are published."
-          />
+          <Empty kind="nothing-yet" title="No meetings yet." />
         ) : (
           <Stack as="ul">
             {meetings.map((m) => {

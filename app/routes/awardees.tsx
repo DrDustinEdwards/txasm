@@ -68,11 +68,6 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Awardees
         </Title>
-        <p className="cap-muted cap-measure">
-          The branch recognizes outstanding student, faculty, and service work with named awards
-          presented at its meetings. Search across every award, or choose an award to see its
-          recipients by year.
-        </p>
       </Stack>
 
       <Panel>
@@ -125,7 +120,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
             {results.length} {results.length === 1 ? "result" : "results"}
           </Title>
           {results.length === 0 ? (
-            <p className="cap-muted">No awardees match that search. Try a broader term.</p>
+            <p className="cap-muted">No awardees match.</p>
           ) : (
             <Panel flush>
               <RowList label="Search results">
@@ -160,12 +155,8 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       <Stack as="section" aria-label="Awards">
-        <Title size={5}>All awards</Title>
         {awards.length === 0 ? (
-          <Empty
-            kind="nothing-yet"
-            title="The awards archive is being compiled and will appear here."
-          />
+          <Empty kind="nothing-yet" title="No awards yet." />
         ) : (
           <ul className="cap-card-grid">
             {awards.map((a) => (

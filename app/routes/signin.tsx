@@ -187,10 +187,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         <Title as="h1" ref={confirmRef} tabIndex={-1} size={2}>
           Check your inbox
         </Title>
-        <p>
-          A sign-in link and code are on their way. Open the link, or type the code here. Both
-          expire in {SIGN_IN_EXPIRES_IN_WORDS}.
-        </p>
+        <p>Open the link, or enter the code. Expires in {SIGN_IN_EXPIRES_IN_WORDS}.</p>
         <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="code" />
           {next ? <input type="hidden" name="next" value={next} /> : null}
@@ -240,12 +237,6 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           {next ? "Sign in again" : "Sign in"}
         </Title>
-        <p>
-          {next
-            ? "To change your passkeys, email or signed-in devices, or to delete your account, sign in again. "
-            : null}
-          Use your passkey, or get a sign-in link by email. No password needed.
-        </p>
       </Stack>
 
       <Stack gap={3}>

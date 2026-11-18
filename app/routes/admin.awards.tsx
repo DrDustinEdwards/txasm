@@ -90,10 +90,6 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Awards
         </Title>
-        <p className="cap-muted">
-          The branch's named awards. Edit an award to manage its recipients, the every-meeting
-          maintenance path. Public pages read this data.
-        </p>
       </Stack>
 
       {error ? (
@@ -103,7 +99,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       {awards.length === 0 ? (
-        <p className="cap-muted">No awards yet. Add the first below.</p>
+        <p className="cap-muted">No awards yet.</p>
       ) : (
         <Stack as="ul" gap={4}>
           {awards.map((award) => (
@@ -168,7 +164,7 @@ export default function AdminAwards({ loaderData }: Route.ComponentProps) {
                 className="cap-input"
               />
               <Text size="tiny" tone="muted">
-                Leave blank to derive from the name.
+                Blank: from the name.
               </Text>
             </Stack>
           </div>

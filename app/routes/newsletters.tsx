@@ -48,15 +48,11 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Newsletters
         </Title>
-        <p className="cap-muted cap-measure">
-          The branch newsletter shares meeting recaps, award announcements, and news from member
-          institutions across Texas. Read past issues below.
-        </p>
       </Stack>
 
       {documents.length === 0 ? (
         <section aria-label="Newsletter archive">
-          <Empty kind="nothing-yet" title="Back issues are being added and will be listed here." />
+          <Empty kind="nothing-yet" title="No issues yet." />
         </section>
       ) : (
         <section aria-label="Newsletter archive">

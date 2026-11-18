@@ -90,7 +90,6 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
             Edit meeting
           </Link>
         </p>
-        <p className="cap-muted">Authors choose one of these when they submit an abstract.</p>
       </Stack>
 
       {error ? (
@@ -100,7 +99,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
       ) : null}
 
       {categories.length === 0 ? (
-        <p>No categories yet. Add the first below.</p>
+        <p>No categories yet.</p>
       ) : (
         <Stack as="ul" gap={4}>
           {categories.map((category) => (

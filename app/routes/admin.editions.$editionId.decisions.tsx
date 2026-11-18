@@ -131,10 +131,7 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
             Edit meeting
           </Link>
         </p>
-        <p className="cap-muted">
-          Read the reviews, then record a decision. Authors see their decision in the app as soon as
-          you save it.
-        </p>
+        <p className="cap-muted">Authors see a decision as soon as you save it.</p>
       </Stack>
 
       <FormStatus status={status} />
@@ -229,10 +226,6 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                     : "Not notified yet."}
               </span>
             </div>
-            <p className="tiny cap-muted">
-              Until email goes live at cutover, this marks the author as notified in-app. The author
-              already sees the decision when signed in.
-            </p>
           </Stack>
         ) : null}
 
@@ -282,7 +275,6 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
             tags={BODY_TAGS}
             lines="multi"
             initialHTML={decision?.decisionMessage ?? ""}
-            help="Shown to the author with the decision."
           />
 
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

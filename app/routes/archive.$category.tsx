@@ -58,15 +58,11 @@ export default function ArchiveCategory({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           {title}
         </Title>
-        <p className="cap-muted cap-measure">
-          The branch's archive of {title.toLowerCase()} from past meetings. Open one to read it in
-          the viewer or download the PDF.
-        </p>
       </Stack>
 
       <section aria-label={title}>
         {documents.length === 0 ? (
-          <Empty kind="nothing-yet" title="Documents are being added and will be listed here." />
+          <Empty kind="nothing-yet" title="No documents yet." />
         ) : (
           <DocumentList
             docs={documents.map((d) => ({

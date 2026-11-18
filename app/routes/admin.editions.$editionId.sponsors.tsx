@@ -144,7 +144,6 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
             Edit meeting
           </Link>
         </p>
-        <p className="cap-muted">Sponsors show on the public program. Logo upload comes later.</p>
       </Stack>
 
       {error ? (
@@ -154,7 +153,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       {sponsors.length === 0 ? (
-        <p>No sponsors yet. Add the first below.</p>
+        <p>No sponsors yet.</p>
       ) : (
         <Stack as="ul">
           {sponsors.map((sponsor) => (

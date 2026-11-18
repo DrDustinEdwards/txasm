@@ -190,10 +190,6 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
             Edit meeting
           </Text>
         </p>
-        <p className="cap-muted">
-          Generate a draft from the accepted abstracts, drag abstracts within and between sections
-          to arrange them, then publish. Codes reflow live and freeze on publish.
-        </p>
       </Stack>
 
       <FormStatus status={status} />
@@ -201,7 +197,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
       {!book ? (
         <Panel>
           <Stack gap={4}>
-            <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
+            <p>No book yet.</p>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="generate" />
               <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
@@ -286,7 +282,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           ) : null}
 
           {book.sections.length === 0 ? (
-            <p>No sections. There may be no accepted abstracts for this meeting yet.</p>
+            <p>No sections.</p>
           ) : (
             <SortableBoard
               aria-label="Abstract book sections"
@@ -357,12 +353,11 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           it, so the panel has no Generate button. Publish it to the public archive. */}
       <GeneratedFile
         title="Book PDF"
-        description="The PDF is produced from the arranged book when you publish, via Browser Rendering. Publish it to the archive to make it public."
+        description="Made when you publish. Publishing makes it public."
         record={pdf?.record}
         downloadHref={`/admin/editions/${edition.id}/book/download`}
         generate={false}
         messages={{
-          none: "Publish the book to produce it.",
           generating: "The PDF is rendering. Refresh in a minute.",
           failed:
             "The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML preview is available above.",

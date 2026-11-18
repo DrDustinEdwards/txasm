@@ -164,13 +164,6 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
             Edit meeting
           </Link>
         </p>
-        <p className="cap-muted">
-          Keynotes and award lectures for the meeting. Attach a speaker to a session on the{" "}
-          <Link to={`/admin/editions/${edition.id}/program`} className="strong">
-            program
-          </Link>
-          . Headshot upload comes later.
-        </p>
       </Stack>
 
       {error ? (
@@ -180,7 +173,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       {speakers.length === 0 ? (
-        <p>No invited speakers yet. Add the first below.</p>
+        <p>No invited speakers yet.</p>
       ) : (
         <Stack as="ul">
           {speakers.map((speaker) => (

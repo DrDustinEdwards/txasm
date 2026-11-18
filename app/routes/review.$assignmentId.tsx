@@ -211,7 +211,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
             tags={BODY_TAGS}
             lines="multi"
             initialHTML={review?.overallComment ?? ""}
-            help="Shared with the chairs. Optional."
+            help="Shared with the chairs."
           />
 
           <RichTextField
@@ -266,8 +266,7 @@ export default function ReviewAbstract({ loaderData }: Route.ComponentProps) {
       <Panel title="Have a conflict of interest?">
         <Stack gap={4}>
           <Text size="small" tone="muted">
-            If you should not review this abstract, declare a conflict. This removes the assignment
-            and the abstract will be reassigned by a chair.
+            Declaring a conflict removes this assignment.
           </Text>
           <Stack
             as={Form}

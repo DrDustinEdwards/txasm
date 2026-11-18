@@ -122,7 +122,6 @@ export default function EmailChangeConfirm({ loaderData, actionData }: Route.Com
         <Title as="h1" size={2}>
           Confirm the email change
         </Title>
-        <p>This changes the email address your TXASM account signs in with.</p>
       </Stack>
       {/* A plain form: it posts to this URL, token and all, and the browser follows the redirect. */}
       <Stack as="form" method="post">

@@ -110,7 +110,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
       ) : null}
 
       {categories.length === 0 ? (
-        <p>No categories yet. Add the first below.</p>
+        <p>No categories yet.</p>
       ) : (
         <Table caption="Registration categories" captionHidden>
           <thead>

@@ -315,11 +315,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
             Edit meeting
           </Text>
         </p>
-        <p className="cap-muted">
-          Build the meeting day by day. Sessions that overlap in time on the same day become
-          parallel tracks automatically: side by side where they fit, one under another where they
-          do not.
-        </p>
+        <p className="cap-muted">Sessions that overlap become parallel tracks.</p>
       </Stack>
 
       <FormStatus status={status} />
@@ -352,10 +348,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
       </ScheduleDayNav>
 
       {selectedDay === null ? (
-        <p>
-          No days yet. Set the meeting dates on the meeting page, or add a session with a date
-          below.
-        </p>
+        <p>No days yet.</p>
       ) : (
         <Stack gap={7}>
           <Title size={5}>{dayLabel(selectedDay, { noDate: "No date" })}</Title>
@@ -400,7 +393,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
 
       <GeneratedFile
         title="Program document"
-        description="Generate the printable program PDF from this schedule. It runs Browser Rendering and can take up to a minute."
+        description="Can take up to a minute."
         record={document?.record}
         downloadHref={`/admin/editions/${edition.id}/program-document/download`}
         generateLabel="Generate program PDF"

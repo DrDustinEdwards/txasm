@@ -31,10 +31,6 @@ export default function Contact() {
         <Title as="h1" size={2}>
           Contact
         </Title>
-        <p className="cap-muted cap-measure">
-          Questions about meetings, registration, abstracts, or the awards program are welcome.
-          Write to the branch officers or join the member group.
-        </p>
       </Stack>
 
       <Stack as="section" aria-labelledby="reach-heading">

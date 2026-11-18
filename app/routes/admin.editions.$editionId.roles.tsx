@@ -96,8 +96,7 @@ export default function EditionRoles({ loaderData }: Route.ComponentProps) {
           </Link>
         </p>
         <p className="cap-muted">
-          Grant a role by email. The person must have signed in at least once so their account
-          exists. Roles apply to this meeting only.
+          The person must have signed in once. Roles apply to this meeting only.
         </p>
       </Stack>
 

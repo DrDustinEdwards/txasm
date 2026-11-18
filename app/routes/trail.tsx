@@ -1,9 +1,6 @@
 import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
-import { useRouteLoaderData } from "react-router";
-import { Banner } from "capsomer/react/banner";
 import type { Route } from "./+types/trail";
-import type { loader as rootLoader } from "~/root";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -30,30 +27,15 @@ const MEETING_YEARS = [
 ];
 
 export default function Trail() {
-  const rootData = useRouteLoaderData<typeof rootLoader>("root");
-  const foundingYear = rootData?.settings?.foundingYear ?? null;
-
   return (
     <Stack gap={7}>
       <Stack as="header" gap={4}>
         <Title as="h1" size={2}>
           Host cities of the Texas Branch
         </Title>
-        <p className="cap-muted cap-measure">
-          The branch has gathered across Texas twice a year since its
-          {foundingYear ? ` founding in ${foundingYear}` : " founding"}. This trail records the
-          meetings on file and the cities that hosted them.
-        </p>
       </Stack>
 
-      <Stack as="section" aria-labelledby="trail-heading">
-        <Title id="trail-heading" size={4}>
-          Meetings on record
-        </Title>
-        <Banner tone="info">
-          The host city for each year is being added. The years currently on record are listed
-          below.
-        </Banner>
+      <Stack as="section" aria-label="Meetings on record">
         <ul className="cap-grid" data-cols="4" data-gap="3">
           {MEETING_YEARS.map((year) => (
             <li key={year}>
