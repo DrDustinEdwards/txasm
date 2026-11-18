@@ -7,7 +7,7 @@ import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { SortableBoard } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
-import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.book";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -180,17 +180,7 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Abstract book builder
-        </Title>
-        <p>
-          {edition.name}.{" "}
-          <Text as={Link} to={`/admin/editions/${edition.id}`} weight="strong">
-            Edit meeting
-          </Text>
-        </p>
-      </Stack>
+      <EditionPageHead title="Abstract book builder" edition={edition} />
 
       <FormStatus status={status} />
 

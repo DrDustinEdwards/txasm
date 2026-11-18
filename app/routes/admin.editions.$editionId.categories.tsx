@@ -4,6 +4,7 @@ import { MoneyField, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Link } from "capsomer/react/link";
 import { Table } from "capsomer/react/table";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.categories";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -93,15 +94,7 @@ export default function EditionCategories({ loaderData }: Route.ComponentProps) 
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1 className="page-title">Registration categories</h1>
-        <p>
-          {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
-            Edit meeting
-          </Link>
-        </p>
-      </Stack>
+      <EditionPageHead title="Registration categories" edition={edition} />
 
       {error ? (
         <p role="alert" className="cap-alert">

@@ -3,7 +3,7 @@ import { Field, TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
-import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.speakers";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -156,15 +156,7 @@ export default function InvitedSpeakers({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1 className="page-title">Invited speakers</h1>
-        <p>
-          {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
-            Edit meeting
-          </Link>
-        </p>
-      </Stack>
+      <EditionPageHead title="Invited speakers" edition={edition} />
 
       {error ? (
         <p role="alert" className="cap-alert">

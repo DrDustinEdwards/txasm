@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -119,20 +120,13 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1 className="page-title">Decisions</h1>
-        <p>
-          {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
-            Assign reviewers
-          </Link>{" "}
-          <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
-            Edit meeting
-          </Link>
-        </p>
+      <EditionPageHead
+        title="Decisions"
+        edition={edition}
+        links={[{ to: `/admin/editions/${edition.id}/review`, label: "Assign reviewers" }]}
+      >
         <p className="cap-muted">Authors see a decision as soon as you save it.</p>
-      </Stack>
+      </EditionPageHead>
 
       <FormStatus status={status} />
 

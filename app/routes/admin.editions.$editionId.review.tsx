@@ -3,6 +3,7 @@ import { Field } from "capsomer/react/field";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
 import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.review";
 import { pageTitle } from "~/lib/site-meta";
 import { titleCase } from "@drdustinedwards/site-helpers/text";
@@ -103,19 +104,11 @@ export default function AssignReviewers({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1 className="page-title">Assign reviewers</h1>
-        <p>
-          {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}/roles`} className="strong">
-            Chairs and reviewers
-          </Link>{" "}
-          <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
-            Edit meeting
-          </Link>
-        </p>
-      </Stack>
+      <EditionPageHead
+        title="Assign reviewers"
+        edition={edition}
+        links={[{ to: `/admin/editions/${edition.id}/roles`, label: "Chairs and reviewers" }]}
+      />
 
       {reviewers.length === 0 ? (
         <Banner tone="info">
