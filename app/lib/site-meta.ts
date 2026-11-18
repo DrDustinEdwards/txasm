@@ -38,9 +38,6 @@ export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
 /** The site's RSS feed: new newsletters, abstract books and programs (app/routes/rss.ts). */
 export const FEED_PATH = "/rss.xml";
 
-/** Where the emailed sign-in link opens (site-runtime ./sign-in's confirmPath): under /signin, so it is private. */
-export const SIGN_IN_CONFIRM_PATH = "/signin/confirm";
-
 /** Where an email change's two links open (app/lib/auth.server.ts): under /account, so it is private. */
 export const EMAIL_CONFIRM_PATH = "/account/email";
 
@@ -60,7 +57,8 @@ export const ROBOTS_DISALLOW = [
   "/review",
   "/submit/",
   "/abstracts/",
-  "/signin",
+  "/login",
+  "/sign-in",
   "/signout",
 ];
 
