@@ -1,3 +1,4 @@
+import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-path";
 import { Stack } from "capsomer/react/stack";
 import { Text, Title } from "capsomer/react/text";
 import { useEffect, useState } from "react";
@@ -24,7 +25,6 @@ import {
   shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
 import {
-  SIGN_IN_PATH,
   canOfferPasskey,
   signalPasskeys,
   signalUnknownCredential,

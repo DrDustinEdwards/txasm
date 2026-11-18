@@ -1,4 +1,4 @@
-import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-client";
+import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-path";
 import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";
 import { Outlet, useLocation, useMatches, useRouteLoaderData } from "react-router";
