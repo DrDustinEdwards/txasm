@@ -54,9 +54,7 @@ export default function MyAbstracts({ loaderData }: Route.ComponentProps) {
       </Title>
 
       {abstracts.length === 0 ? (
-        <p>
-          You have not started any abstracts yet. Open the submission page for a meeting to begin.
-        </p>
+        <p>No abstracts yet.</p>
       ) : (
         <Table caption="Your abstracts" captionHidden>
           <thead>

@@ -95,10 +95,7 @@ export default function AwardPage({ loaderData }: Route.ComponentProps) {
 
       {years.length === 0 ? (
         <section aria-label="Recipients">
-          <Empty
-            kind="nothing-yet"
-            title="Recipient records for this award are being compiled and will appear here."
-          />
+          <Empty kind="nothing-yet" title="No recipients yet." />
         </section>
       ) : (
         <Stack gap={7}>

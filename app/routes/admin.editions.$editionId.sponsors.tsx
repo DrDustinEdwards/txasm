@@ -3,7 +3,7 @@ import { TextField } from "capsomer/react/field";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
-import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.sponsors";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -136,16 +136,9 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1 className="page-title">Sponsors</h1>
-        <p>
-          {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
-            Edit meeting
-          </Link>
-        </p>
-        <p className="cap-muted">Sponsors show on the public program. Logo upload comes later.</p>
-      </Stack>
+      <EditionPageHead title="Sponsors" edition={edition}>
+        <p className="cap-muted">Sponsors show on the public program.</p>
+      </EditionPageHead>
 
       {error ? (
         <p role="alert" className="cap-alert">
@@ -154,7 +147,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
       ) : null}
 
       {sponsors.length === 0 ? (
-        <p>No sponsors yet. Add the first below.</p>
+        <p>No sponsors yet.</p>
       ) : (
         <Stack as="ul">
           {sponsors.map((sponsor) => (

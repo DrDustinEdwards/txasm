@@ -129,9 +129,9 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
           Branch officers
         </Title>
         <p className="cap-muted cap-measure">
-          The branch is run by elected officers and volunteers from member institutions across
-          Texas. They organize the twice-yearly meetings, steward the awards program, and represent
-          Texas microbiologists to the national society.
+          Elected officers and volunteers from member institutions across Texas organize the
+          twice-yearly meetings, steward the awards and represent Texas microbiologists to the
+          national society.
         </p>
       </Stack>
 
@@ -171,10 +171,6 @@ export default function BranchOfficers({ loaderData }: Route.ComponentProps) {
           <Title id="past-officers-heading" size={4}>
             Past branch officers
           </Title>
-          <p className="cap-muted cap-measure">
-            A history of those who have led the branch, by role. Choose a role to see its record of
-            term, name, and institution.
-          </p>
         </Stack>
         <PastOfficersTabs tabs={pastTabs} />
       </Stack>

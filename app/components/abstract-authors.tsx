@@ -98,8 +98,7 @@ export function AffiliationsFieldset({
     <Panel title="Affiliations">
       <Stack>
         <Text size="small" tone="muted">
-          Number each affiliation once, then attach it to authors below. Start typing to pick a
-          known institution or add a new one.
+          Start typing to pick a known institution.
         </Text>
         <SortableList
           aria-label="Affiliations"

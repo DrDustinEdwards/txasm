@@ -38,7 +38,7 @@ export default function AdminIndex({ loaderData }: Route.ComponentProps) {
       </div>
 
       {editions.length === 0 ? (
-        <p>No meetings yet. Create the first one to get started.</p>
+        <p>No meetings yet.</p>
       ) : (
         // Season and year drop as the region narrows (Capsomer's data-drop), so on a phone the name,
         // status and Categories fit without scrolling; both are on each meeting's own page.

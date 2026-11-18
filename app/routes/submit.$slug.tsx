@@ -127,19 +127,13 @@ export default function SubmitStart({ loaderData }: Route.ComponentProps) {
 
       {notYet ? (
         <Banner tone="info">
-          Submission is not open yet for this meeting
           {edition.submissionOpensAt
-            ? `. It opens ${formatDate(edition.submissionOpensAt, DATE_TIME)}.`
-            : "."}
+            ? `Submission opens ${formatDate(edition.submissionOpensAt, DATE_TIME)}.`
+            : "Submission is not open yet."}
         </Banner>
       ) : null}
 
-      {closed ? (
-        <Banner tone="warn">
-          The submission deadline has passed. New abstracts can no longer be started for this
-          meeting.
-        </Banner>
-      ) : null}
+      {closed ? <Banner tone="warn">The submission deadline has passed.</Banner> : null}
 
       {mine.length > 0 ? (
         <Stack as="section" gap={4}>

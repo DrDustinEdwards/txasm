@@ -140,10 +140,9 @@ export default function Sponsorship() {
         <Title id="contact-heading" size={4}>
           Become a sponsor
         </Title>
-        <p className="cap-muted cap-measure">
-          Complete the <a href={SPONSOR_REGISTRATION_URL}>sponsor registration form</a> to reserve a
-          level, or reach the branch through the <Link to="/contact">contact page</Link> to discuss
-          sponsoring an upcoming meeting.
+        <p className="cap-measure">
+          <a href={SPONSOR_REGISTRATION_URL}>Sponsor registration form</a> ·{" "}
+          <Link to="/contact">Contact</Link>
         </p>
       </Stack>
     </Stack>

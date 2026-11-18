@@ -421,11 +421,6 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
     <Stack gap={7}>
       <Stack as="header" gap={3}>
         <h1 className="page-title">Documents</h1>
-        <p className="cap-muted">
-          Upload and manage the branch's files: newsletters, archived abstract books and programs,
-          and brand images. Published PDFs show on the public archive; brand images stay internal to
-          the admin.
-        </p>
       </Stack>
 
       {error ? (
@@ -457,7 +452,7 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
       </nav>
 
       {documents.length === 0 ? (
-        <p className="cap-muted">No documents yet. Upload the first below.</p>
+        <p className="cap-muted">No documents yet.</p>
       ) : (
         <Stack as="ul" gap={4}>
           {documents.map((doc) => (
@@ -473,7 +468,11 @@ export default function AdminDocuments({ loaderData }: Route.ComponentProps) {
                       <p className="small cap-muted">
                         {[
                           DOCUMENT_CATEGORY_LABELS[doc.category],
-                          doc.status === "published" ? "Published" : "Draft",
+                          doc.category === "brand_image"
+                            ? "Internal only"
+                            : doc.status === "published"
+                              ? "Published"
+                              : "Draft",
                           doc.source === "generated" ? "Generated" : "Uploaded",
                           doc.hasFile ? "" : "No file",
                         ]

@@ -290,7 +290,7 @@ export default function AdminAwardDetail({ loaderData }: Route.ComponentProps) {
           Recipients
         </h2>
         {recipients.length === 0 ? (
-          <p className="cap-muted">No recipients yet. Add the first below.</p>
+          <p className="cap-muted">No recipients yet.</p>
         ) : (
           <Stack as="ul" gap={4}>
             {recipients.map((recipient) => (
