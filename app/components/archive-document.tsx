@@ -3,7 +3,7 @@ import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { DocumentViewer, type PagerDoc } from "capsomer/react/document-archive";
 import { routerRenderLink } from "capsomer/react/link";
 import { PdfViewer } from "capsomer/react/pdf-viewer";
-import { documentSubtitle, type ArchiveDoc } from "~/lib/document-nav";
+import type { ArchiveDoc } from "~/lib/document-nav";
 
 // One archive document's page, on Capsomer's DocumentViewer: the breadcrumb
 // back to its category, the download, Capsomer's PDF viewer, and Previous and
@@ -25,7 +25,6 @@ export function ArchiveDocument({
   return (
     <DocumentViewer
       title={doc.title}
-      subtitle={documentSubtitle(doc) || undefined}
       before={
         <Breadcrumb
           renderLink={routerRenderLink}

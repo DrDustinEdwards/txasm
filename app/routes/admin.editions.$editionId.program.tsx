@@ -400,7 +400,6 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
 
       <GeneratedFile
         title="Program document"
-        description="Generate the printable program PDF from this schedule. It runs Browser Rendering and can take up to a minute."
         record={document?.record}
         downloadHref={`/admin/editions/${edition.id}/program-document/download`}
         generateLabel="Generate program PDF"

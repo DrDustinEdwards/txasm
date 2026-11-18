@@ -357,7 +357,6 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
           it, so the panel has no Generate button. Publish it to the public archive. */}
       <GeneratedFile
         title="Book PDF"
-        description="The PDF is produced from the arranged book when you publish, via Browser Rendering. Publish it to the archive to make it public."
         record={pdf?.record}
         downloadHref={`/admin/editions/${edition.id}/book/download`}
         generate={false}
