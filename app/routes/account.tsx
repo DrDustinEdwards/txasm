@@ -24,6 +24,7 @@ import {
   shouldOfferPasskey,
 } from "@dustinedwards/site-runtime/sign-in";
 import {
+  SIGN_IN_PATH,
   canOfferPasskey,
   signalPasskeys,
   signalUnknownCredential,
@@ -76,7 +77,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   // site-runtime sessionLookup: with the request, so this session's last use and place move with it, and
   // asResponse: false, or Better Auth answers with a Response and the page reads everyone as signed out.
   const current = await auth.api.getSession(sessionLookup(request));
-  if (!current) throw redirect("/signin");
+  if (!current) throw redirect(SIGN_IN_PATH);
   const passkeys = await auth.api.listPasskeys({ headers });
   const welcome = new URL(request.url).searchParams.has("welcome");
   if (welcome && !(await shouldOfferPasskey(env.DB, current.user.id, passkeys)))
@@ -153,7 +154,7 @@ async function deleteAccount(auth: Awaited<ReturnType<typeof getAuth>>, request:
   if (response.ok) {
     const cleared = new Headers();
     for (const cookie of response.headers.getSetCookie()) cleared.append("Set-Cookie", cookie);
-    throw redirect("/signin?deleted=1", { headers: cleared });
+    throw redirect(`${SIGN_IN_PATH}?deleted=1`, { headers: cleared });
   }
   const { code } = (await response.json().catch(() => ({}))) as { code?: string };
   if (code === "SESSION_EXPIRED")
@@ -224,7 +225,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     const result = await authClient.changeEmail({ newEmail });
     // The sign-in got older than FRESH_SECONDS while the page was open: sign in again, then come back.
     if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
-      window.location.assign("/signin?next=/account");
+      window.location.assign(`${SIGN_IN_PATH}?next=/account`);
       return;
     }
     if (result?.error) {
@@ -248,7 +249,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     // A sign-in older than 10 minutes cannot add a passkey (site-runtime ./sign-in, FRESH_SECONDS):
     // sign in again, then come back here.
     if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
-      window.location.assign("/signin?next=/account");
+      window.location.assign(`${SIGN_IN_PATH}?next=/account`);
       return;
     }
     setBusy(false);
@@ -264,7 +265,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     const result = await authClient.passkey.deletePasskey({ id });
     // Removing a passkey needs a sign-in in the last FRESH_SECONDS, as adding one does.
     if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
-      window.location.assign("/signin?next=/account");
+      window.location.assign(`${SIGN_IN_PATH}?next=/account`);
       return;
     }
     if (result?.error) {
@@ -356,7 +357,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       </Stack>
       {!fresh ? (
         <p>
-          <Link to="/signin?next=/account">Sign in again to change your email</Link>
+          <Link to={`${SIGN_IN_PATH}?next=/account`}>Sign in again to change your email</Link>
         </p>
       ) : (
         <Stack
@@ -484,7 +485,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       </Stack>
       {sessions === null ? (
         <p>
-          <Link to="/signin?next=/account">Sign in again to see your devices</Link>
+          <Link to={`${SIGN_IN_PATH}?next=/account`}>Sign in again to see your devices</Link>
         </p>
       ) : (
         <>
@@ -566,7 +567,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       </Stack>
       {deletionBlockers.length > 0 ? null : !fresh ? (
         <p>
-          <Link to="/signin?next=/account">Sign in again to delete your account</Link>
+          <Link to={`${SIGN_IN_PATH}?next=/account`}>Sign in again to delete your account</Link>
         </p>
       ) : (
         <Stack as={Form} method="post" gap={4}>

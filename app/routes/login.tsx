@@ -5,7 +5,7 @@ import { safeAdminNext } from "@dustinedwards/site-runtime/access";
 import { mountTurnstile } from "@dustinedwards/site-runtime/turnstile";
 import { Form, data, redirect, useActionData, useNavigation } from "react-router";
 import { Banner } from "capsomer/react/banner";
-import type { Route } from "./+types/signin";
+import type { Route } from "./+types/login";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
@@ -18,7 +18,10 @@ import {
 } from "@dustinedwards/site-runtime/sign-in-form";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient, signalAfterPasskeySignIn } from "~/lib/auth-client.client";
-import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
+import {
+  SIGN_IN_PATH,
+  signInWithPasskey as passkeySignIn,
+} from "@dustinedwards/site-runtime/sign-in-client";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
@@ -33,7 +36,7 @@ export function meta({ matches }: Route.MetaArgs) {
 // the last 10 minutes (site-runtime ./sign-in, FRESH_SECONDS). Only /account pages qualify.
 function nextPath(next: unknown): string | null {
   return typeof next === "string" && next
-    ? safeAdminNext(next, { prefix: "/account", path: "/signin" })
+    ? safeAdminNext(next, { prefix: "/account", path: SIGN_IN_PATH })
     : null;
 }
 

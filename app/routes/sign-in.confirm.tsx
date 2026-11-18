@@ -1,3 +1,4 @@
+import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-client";
 import { Stack } from "capsomer/react/stack";
 import { Title } from "capsomer/react/text";
 import { PRIVATE_PAGE_HEADERS } from "@dustinedwards/site-runtime/edge-cache";
@@ -8,7 +9,7 @@ import {
 } from "@dustinedwards/site-runtime/sign-in";
 import { ButtonLink } from "capsomer/react/link";
 import { data } from "react-router";
-import type { Route } from "./+types/signin.confirm";
+import type { Route } from "./+types/sign-in.confirm";
 import { MessagePage } from "~/components/message-page";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -63,7 +64,7 @@ export default function SignInConfirm({ loaderData, actionData }: Route.Componen
               Continue
             </ButtonLink>
           ) : (
-            <ButtonLink to="/signin" variant="primary">
+            <ButtonLink to={SIGN_IN_PATH} variant="primary">
               Get a new link
             </ButtonLink>
           )

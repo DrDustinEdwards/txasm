@@ -1,3 +1,4 @@
+import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-client";
 import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
@@ -17,7 +18,7 @@ import {
   type Actor,
 } from "./data-access";
 import { emailChangeEmail, magicLinkEmail, securityNoticeEmail, sendEmail } from "./email.server";
-import { EMAIL_CONFIRM_PATH, SIGN_IN_CONFIRM_PATH } from "./site-meta";
+import { EMAIL_CONFIRM_PATH } from "./site-meta";
 import { adminAccessOk } from "./access.server";
 
 // Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
@@ -45,8 +46,6 @@ async function buildAuth(env: Env) {
         { secrets: [url, token, code] },
       );
     },
-    // The link opens /signin/confirm, under /signin, so it is private and never stored (site-meta.ts).
-    confirmPath: SIGN_IN_CONFIRM_PATH,
     // Five sign-in mails an hour and ten typed codes a day per address.
     emailLimiter: env.RATE_LIMITER,
     // Each auth event is also a row in auth_events (migration 0030): the person's history on /account,
@@ -225,7 +224,7 @@ export function forbidden(request: Request, need: string): Response {
 // Redirect to sign-in when there is no session.
 export async function requireUser(request: Request): Promise<SessionUser> {
   const user = await getSessionUser(request);
-  if (!user) throw redirect("/signin");
+  if (!user) throw redirect(SIGN_IN_PATH);
   return user;
 }
 

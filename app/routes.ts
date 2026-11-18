@@ -1,5 +1,6 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
-import { EMAIL_CONFIRM_PATH, FEED_PATH, SIGN_IN_CONFIRM_PATH } from "./lib/site-meta";
+import { CONFIRM_PATH, SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-client";
+import { EMAIL_CONFIRM_PATH, FEED_PATH } from "./lib/site-meta";
 
 export default [
   route("sitemap.xml", "routes/sitemap.ts"),
@@ -22,8 +23,8 @@ export default [
     route("accessibility", "routes/accessibility.tsx"),
     // The private pages (sign-in, account, submission, review): no Web Analytics (site-runtime PRIVATE_PAGE_HEADERS).
     layout("routes/private.layout.tsx", [
-      route("signin", "routes/signin.tsx"),
-      route(SIGN_IN_CONFIRM_PATH.slice(1), "routes/signin.confirm.tsx"),
+      route(SIGN_IN_PATH.slice(1), "routes/login.tsx"),
+      route(CONFIRM_PATH.slice(1), "routes/sign-in.confirm.tsx"),
       route("signout", "routes/signout.tsx"),
       route("account", "routes/account.tsx"),
       route(EMAIL_CONFIRM_PATH.slice(1), "routes/account.email.tsx"),
