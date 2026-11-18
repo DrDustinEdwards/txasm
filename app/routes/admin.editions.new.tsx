@@ -78,7 +78,7 @@ export default function NewEdition() {
     <div className="form-page cap-stack" data-gap="6">
       <Stack gap={3}>
         <h1 className="page-title">New meeting</h1>
-        <p>Each meeting has a season and year, and the two together must be unique.</p>
+        <p>Season and year must be unique.</p>
       </Stack>
 
       {error ? (

@@ -7,7 +7,7 @@ import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { SortableBoard } from "capsomer/react/sortable-list";
 // Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
-import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.book";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -180,28 +180,14 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Abstract book builder
-        </Title>
-        <p>
-          {edition.name}.{" "}
-          <Text as={Link} to={`/admin/editions/${edition.id}`} weight="strong">
-            Edit meeting
-          </Text>
-        </p>
-        <p className="cap-muted">
-          Generate a draft from the accepted abstracts, drag abstracts within and between sections
-          to arrange them, then publish. Codes reflow live and freeze on publish.
-        </p>
-      </Stack>
+      <EditionPageHead title="Abstract book builder" edition={edition} />
 
       <FormStatus status={status} />
 
       {!book ? (
         <Panel>
           <Stack gap={4}>
-            <p>No book yet. Generate one from the accepted abstracts to start arranging.</p>
+            <p>No book yet.</p>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="generate" />
               <button type="submit" disabled={busy} className="cap-btn" data-variant="primary">
@@ -279,14 +265,14 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
             </div>
           </Panel>
 
-          {published ? (
-            <Text size="small" tone="muted">
-              This book is published and its codes are frozen. Reopen it to edit the arrangement.
-            </Text>
-          ) : null}
+          <Text size="small" tone="muted">
+            {published
+              ? "This book is published and its codes are frozen. Reopen it to edit the arrangement."
+              : "Publishing freezes the codes."}
+          </Text>
 
           {book.sections.length === 0 ? (
-            <p>No sections. There may be no accepted abstracts for this meeting yet.</p>
+            <p>No sections.</p>
           ) : (
             <SortableBoard
               aria-label="Abstract book sections"
@@ -361,7 +347,6 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
         downloadHref={`/admin/editions/${edition.id}/book/download`}
         generate={false}
         messages={{
-          none: "Publish the book to produce it.",
           generating: "The PDF is rendering. Refresh in a minute.",
           failed:
             "The PDF is pending Browser Rendering (Workers plan). The book is published and its HTML preview is available above.",

@@ -318,12 +318,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           <Title as="h1" size={2}>
             You are signed in
           </Title>
-          {offerable ? (
-            <p>
-              Next time, skip the email. A passkey signs you in with your face, fingerprint or
-              device PIN, and only works on this site, so it cannot be phished.
-            </p>
-          ) : null}
+          {offerable ? <p>Add a passkey to skip the email next time.</p> : null}
         </Stack>
         {error ? (
           <p role="alert" className="cap-field-error">
@@ -356,8 +351,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       <Stack gap={3}>
         <Title size={5}>Email address</Title>
         <p>
-          Sign-in links go to <strong>{email}</strong>. To change it, approve the change from this
-          address, then confirm it from the new one. Your other devices are then signed out.
+          <strong>{email}</strong>. Changing it signs out your other devices.
         </p>
       </Stack>
       {!fresh ? (
@@ -406,10 +400,6 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       )}
       <Stack gap={3}>
         <Title size={5}>Passkeys</Title>
-        <p>
-          A passkey signs you in with your face, fingerprint or device PIN. Without one, sign in
-          with an email link.
-        </p>
       </Stack>
       {passkeys.length === 0 ? (
         <p className="cap-muted">No passkeys yet.</p>
@@ -491,9 +481,6 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       <div>{addButton}</div>
       <Stack gap={3}>
         <Title size={5}>Signed-in devices</Title>
-        <p>
-          Where you are signed in. Sign out of a device you do not know, or one you no longer use.
-        </p>
       </Stack>
       {sessions === null ? (
         <p>
@@ -542,10 +529,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       ) : null}
       <Stack gap={3}>
         <Title size={5}>Recent security activity</Title>
-        <p>
-          Your last sign-ins and changes to how you sign in. If you do not recognize one, sign out
-          of that device.
-        </p>
+        <p>If you do not recognize one, sign out of that device.</p>
       </Stack>
       {history.length === 0 ? (
         <p className="cap-muted">Nothing yet.</p>

@@ -115,10 +115,6 @@ export default function PlatformSettingsScreen({ loaderData }: Route.ComponentPr
         <Title as="h1" size={2}>
           Platform settings
         </Title>
-        <p className="cap-muted">
-          Organization identity and tunable defaults. These drive the site header, footer, and home
-          page.
-        </p>
       </Stack>
 
       <FormStatus status={status} />

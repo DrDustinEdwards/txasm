@@ -200,7 +200,7 @@ export function ConcurrentSessionForm({
         <input type="hidden" name="sessionId" value={source.id} />
         <div className="grow cap-stack" data-gap="2">
           <label htmlFor={`concurrent-title-${source.id}`} className="cap-field-label">
-            Add a concurrent session (parallel track)
+            Add a concurrent session
           </label>
           <input
             id={`concurrent-title-${source.id}`}

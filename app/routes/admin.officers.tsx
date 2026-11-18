@@ -3,7 +3,6 @@ import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Field, TextField } from "capsomer/react/field";
 import { Panel } from "capsomer/react/panel";
 import { Disclosure } from "capsomer/react/disclosure";
-import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.officers";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
@@ -225,10 +224,6 @@ export default function AdminOfficers({ loaderData }: Route.ComponentProps) {
     <div className="form-page cap-stack" data-gap="7">
       <Stack as="header" gap={3}>
         <h1 className="page-title">Branch officers</h1>
-        <p className="cap-muted">
-          The current officers, the advisory board and the past officers. The{" "}
-          <Link to="/branch-officers">public page</Link> reads this list.
-        </p>
       </Stack>
 
       {error ? (

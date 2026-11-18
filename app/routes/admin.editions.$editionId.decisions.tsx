@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.decisions";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -119,23 +120,13 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1 className="page-title">Decisions</h1>
-        <p>
-          {edition.name}.{" "}
-          <Link to={`/admin/editions/${edition.id}/review`} className="strong">
-            Assign reviewers
-          </Link>{" "}
-          <span aria-hidden="true">|</span>{" "}
-          <Link to={`/admin/editions/${edition.id}`} className="strong">
-            Edit meeting
-          </Link>
-        </p>
-        <p className="cap-muted">
-          Read the reviews, then record a decision. Authors see their decision in the app as soon as
-          you save it.
-        </p>
-      </Stack>
+      <EditionPageHead
+        title="Decisions"
+        edition={edition}
+        links={[{ to: `/admin/editions/${edition.id}/review`, label: "Assign reviewers" }]}
+      >
+        <p className="cap-muted">Authors see a decision as soon as you save it.</p>
+      </EditionPageHead>
 
       <FormStatus status={status} />
 
@@ -229,10 +220,6 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
                     : "Not notified yet."}
               </span>
             </div>
-            <p className="tiny cap-muted">
-              Until email goes live at cutover, this marks the author as notified in-app. The author
-              already sees the decision when signed in.
-            </p>
           </Stack>
         ) : null}
 
@@ -282,7 +269,6 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
             tags={BODY_TAGS}
             lines="multi"
             initialHTML={decision?.decisionMessage ?? ""}
-            help="Shown to the author with the decision."
           />
 
           <button type="submit" disabled={submitting} className="cap-btn" data-variant="primary">

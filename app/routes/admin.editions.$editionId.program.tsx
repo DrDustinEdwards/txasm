@@ -5,6 +5,7 @@ import { fromDateTimeLocal } from "capsomer/behavior/field";
 import { Panel } from "capsomer/react/panel";
 import { FormStatus, useActionStatus } from "capsomer/react/form-status";
 import { Link } from "capsomer/react/link";
+import { EditionPageHead } from "~/components/edition-page-head";
 import type { Route } from "./+types/admin.editions.$editionId.program";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
@@ -305,22 +306,9 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <Title as="h1" size={2}>
-          Schedule
-        </Title>
-        <p>
-          {edition.name}.{" "}
-          <Text as={Link} to={`/admin/editions/${edition.id}`} weight="strong">
-            Edit meeting
-          </Text>
-        </p>
-        <p className="cap-muted">
-          Build the meeting day by day. Sessions that overlap in time on the same day become
-          parallel tracks automatically: side by side where they fit, one under another where they
-          do not.
-        </p>
-      </Stack>
+      <EditionPageHead title="Schedule" edition={edition}>
+        <p className="cap-muted">Sessions that overlap become parallel tracks.</p>
+      </EditionPageHead>
 
       <FormStatus status={status} />
 
@@ -352,10 +340,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
       </ScheduleDayNav>
 
       {selectedDay === null ? (
-        <p>
-          No days yet. Set the meeting dates on the meeting page, or add a session with a date
-          below.
-        </p>
+        <p>No days yet.</p>
       ) : (
         <Stack gap={7}>
           <Title size={5}>{dayLabel(selectedDay, { noDate: "No date" })}</Title>

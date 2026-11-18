@@ -199,12 +199,9 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
       </Stack>
 
       {program === null ? (
-        <Empty
-          kind="nothing-yet"
-          title="The program is not published yet. Check back closer to the meeting."
-        />
+        <Empty kind="nothing-yet" title="The program is not published yet." />
       ) : program.days.length === 0 ? (
-        <p>The program has no sessions listed yet.</p>
+        <p>No sessions yet.</p>
       ) : (
         <Stack gap={6}>
           {program.days.length > 1 ? (

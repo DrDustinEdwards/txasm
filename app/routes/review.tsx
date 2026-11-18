@@ -39,10 +39,7 @@ export default function ReviewDashboard({ loaderData }: Route.ComponentProps) {
       </Title>
 
       {assignments.length === 0 ? (
-        <p>
-          You have no abstracts to review right now. A chair assigns abstracts to you, and they show
-          up here.
-        </p>
+        <p>No abstracts are assigned to you.</p>
       ) : (
         <Table caption="Your review assignments" captionHidden>
           <thead>
