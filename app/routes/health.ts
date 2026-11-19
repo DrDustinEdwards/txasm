@@ -17,9 +17,11 @@ import {
   browserCheck,
   durableObjectCheck,
   healthResponse,
+  aiOutcomeCheck,
   imagesCheck,
   r2Check,
 } from "@dustinedwards/site-runtime/health";
+import { d1FireStore } from "@dustinedwards/site-runtime/routine";
 import { cronCheck } from "@dustinedwards/site-runtime/cron";
 import type { Route } from "./+types/health";
 import { backupStatus } from "~/lib/backup.server";
@@ -45,6 +47,7 @@ export function loader({ context }: Route.LoaderArgs) {
       }),
       // A run of failed sign-ins or sign-in mails in the last hour (auth_events), warn only.
       authSpikeCheck(env.DB),
+      aiOutcomeCheck("alt-text", d1FireStore(env.DB, "ai_outcomes")),
     ],
   });
 }

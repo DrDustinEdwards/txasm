@@ -4,10 +4,13 @@
 // visitor's data, and only when an editor asks.
 
 import { mediaSuggester } from "@dustinedwards/site-api";
+import { d1FireStore } from "@dustinedwards/site-runtime/routine";
 
 /** What the model suggests for one stored picture. Throws when the site has no ANTHROPIC_API_KEY. */
-export const suggestFor = mediaSuggester({
+export const suggestFor = mediaSuggester<Env>({
   app: "txasm",
   describe:
     "on the website of a scientific society, the Texas Branch of the American Society for Microbiology",
+  // The last failed call, shown as /health's ai-alt-text warning (table ai_outcomes).
+  outcomeKv: (env) => d1FireStore(env.DB, "ai_outcomes"),
 });
