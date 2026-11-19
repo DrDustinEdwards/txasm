@@ -1112,6 +1112,13 @@ export const mediaChange = sqliteTable("media_change", {
   mediaKey: text("media_key").notNull(),
 });
 
+// The outcome of each AI feature's last failed model call, kept by site-runtime's recordAiOutcome through d1FireStore
+// (./routine) and read by /health's aiOutcomeCheck.
+export const aiOutcomes = sqliteTable("ai_outcomes", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 // site-runtime's own tables, so drizzle-kit knows them: the 404 count (./not-found, written by countNotFound in
 // workers/app.ts), the auth event log (./sign-in eventsDb: /account's security history, /health's spike check, the
 // daily prune) and each scheduled job's last runs (./cron, written by runJobs, read by /health's cron check).
