@@ -56,15 +56,15 @@
   }
   & > .cap-site-footer {
     --site-footer-gap: var(--space-9);
-    --site-footer-fs: 0.875rem;
+    --site-footer-fs: var(--fs-body);
   }
 }
 .txasm-main {
   --text-size: var(--title-6);
   --leading: var(--leading-normal);
-  --fs-body: 1rem;
+  --fs-body: var(--fs-page);
   --fs-detail: 0.875rem;
-  --fs-lead: 1.125rem;
+  --fs-lead: var(--title-5);
   flex: 1;
   padding-block: var(--space-7-5);
   &:focus {
@@ -271,10 +271,10 @@
   --sortable-item-pad: var(--space-3);
   --sortable-item-gap: var(--space-3);
   --sortable-item-radius: var(--radius-s);
-  --sortable-item-border: 1px solid var(--line);
+  --sortable-item-border: var(--line-w) solid var(--line);
   --sortable-item-bg: var(--surface);
   --sortable-lane-pad: var(--space-4);
-  --sortable-lane-border: 1px solid var(--line);
+  --sortable-lane-border: var(--line-w) solid var(--line);
   --sortable-lane-radius: var(--radius-m);
   --sortable-lane-bg: var(--surface);
 }
@@ -289,7 +289,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
 }
 
 .date-field {
