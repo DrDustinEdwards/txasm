@@ -1,6 +1,0 @@
-# OSV-Scanner exceptions (devkit dependencies.yml). Each has a reason and a date it expires, so it is looked at again.
-
-[[IgnoredVulns]]
-id = "GHSA-67mh-4wv8-2f99"
-ignoreUntil = 2026-12-17
-reason = "esbuild 0.18.20 is pinned (~0.18.20) by @esbuild-kit/core-utils, which drizzle-kit 0.31.x loads. Dev machine only (drizzle-kit generate), no dev server runs with it. Removed when drizzle-kit drops @esbuild-kit."
