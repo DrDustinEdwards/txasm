@@ -38,6 +38,8 @@ export default [
     route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
     route("meetings/:slug/abstracts", "routes/meetings.$slug.abstracts.tsx"),
     route("meetings/:slug/abstracts/:ref", "routes/meetings.$slug.abstracts.$ref.tsx"),
+    // Every path no route matches, inside the public layout so the 404 keeps the site header and footer.
+    route("*", "routes/not-found.tsx"),
   ]),
   layout("routes/admin.layout.tsx", [
     route("admin", "routes/admin.tsx"),
@@ -99,6 +101,4 @@ export default [
   route("api/abstracts-search", "routes/api.abstracts-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
   route("health", "routes/health.ts"),
-  // Every other path: 410 for a page removed on purpose, else 404, drawn by the root ErrorBoundary.
-  route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;

@@ -40,7 +40,7 @@ export default function Trail() {
           {MEETING_YEARS.map((year) => (
             <li key={year}>
               <article className="cap-card">
-                <h3>{year}</h3>
+                <h2>{year}</h2>
                 <Text size="small" tone="muted">
                   Host city to be added
                 </Text>

@@ -1,4 +1,5 @@
 import { standardFiles } from "@drdustinedwards/site-helpers/files";
+import { markdownCopies } from "@drdustinedwards/site-helpers/markdown-copy";
 import { operatorJobTools } from "@dustinedwards/site-runtime/cron";
 import { isSiteApiRequest } from "@dustinedwards/site-api";
 import { WorkerEntrypoint } from "cloudflare:workers";
@@ -101,6 +102,20 @@ const site = defineSite<Env>({
   },
   // Early Hints: the text's font beside the root stylesheet.
   preloads: FONT_PRELOADS,
+  // Prelum's markdownCopies: each public page has a Markdown copy at its path plus .md, answers Accept: text/markdown, and
+  // /llms-full.txt is built from the sitemap. The private paths, the files and a meeting's abstract records (an agent
+  // fetches those one at a time, from the abstracts list) are left out.
+  wrap: (handler) =>
+    markdownCopies(handler, {
+      origin: SITE_ORIGIN,
+      siteMarkdown: false,
+      skip: (path) =>
+        isPrivatePath(path) ||
+        ["/media", "/documents", "/preview", "/health"].some(
+          (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+        ),
+      llmsFullSkip: (path) => /^\/meetings\/[^/]+\/abstracts\/[^/]+$/.test(path),
+    }),
   // An admin idle for an hour is signed out of Access (site-runtime ./access).
   adminIdle: [{ secret: (env) => env.ADMIN_IDLE_SECRET }],
   cron: cronJobs,

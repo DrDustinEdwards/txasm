@@ -168,7 +168,7 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
               return (
                 <li key={m.slug}>
                   <article className="cap-card">
-                    <h3>{m.name}</h3>
+                    <h2>{m.name}</h2>
                     <Text size="small" tone="muted">
                       {[`${SEASON_LABELS[m.season]} ${m.year}`, venue]
                         .filter((p) => p.length > 0)

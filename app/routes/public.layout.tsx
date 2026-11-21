@@ -1,6 +1,7 @@
 import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-path";
 import { Stack } from "capsomer/react/stack";
 import { routerRenderLink } from "capsomer/react/link";
+import { ErrorPage } from "capsomer/react/error-page";
 import { Outlet, useLocation, useMatches, useRouteLoaderData } from "react-router";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 import { initials } from "capsomer/behavior/avatar";
@@ -191,6 +192,33 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
         <Outlet />
       </main>
       <PublicFooter settings={settings} />
+    </div>
+  );
+}
+
+// The 404, 410 and 500 pages keep the site's header and footer. The layout's own loader data is not available on the
+// error path, so the header is the signed-out one; the root's settings and theme are.
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const rootData = useRouteLoaderData<typeof rootLoader>("root");
+  const settings: PlatformSettings | undefined = rootData?.settings;
+  return (
+    <div className="txasm-page">
+      <ErrorPage
+        error={error}
+        home="/"
+        siteHeader={
+          <PublicHeader
+            email={null}
+            isAdmin={false}
+            isReviewer={false}
+            wordmark={settings?.shortName ?? ""}
+            theme={rootData?.theme ?? null}
+          />
+        }
+        siteFooter={<PublicFooter settings={settings} />}
+        className="txasm-main"
+        dev={import.meta.env.DEV}
+      />
     </div>
   );
 }
