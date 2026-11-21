@@ -15,12 +15,10 @@ import {
   ValidationError,
 } from "./core";
 
-// ---------------------------------------------------------------------------
 // Awards. Definition and recipient inputs. namesakeBio/description are sanitized
 // to the abstract body allowlist (em/sup/sub) on write. A recipient always has a
 // personName and a year; everything else is optional. editionId ties a recipient
 // to the meeting where the award was given when that meeting is in the system.
-// ---------------------------------------------------------------------------
 
 export interface AwardInput {
   slug: string;

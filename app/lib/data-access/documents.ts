@@ -22,11 +22,9 @@ import {
   ValidationError,
 } from "./core";
 
-// ---------------------------------------------------------------------------
 // Documents. Helpers and shapes for the one-model-for-every-PDF layer, shared by
 // the generate-record flow (source "generated") and the uploaded archive
 // (source "uploaded").
-// ---------------------------------------------------------------------------
 
 function assertDocumentCategory(value: string): DocumentCategory {
   if (!DOCUMENT_CATEGORIES.includes(value as DocumentCategory)) {

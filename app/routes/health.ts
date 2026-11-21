@@ -1,6 +1,6 @@
 // /health: site-runtime's healthResponse, 503 only when D1 does not answer: every page, sign-in, submission and review
 // reads D1, so without it the site is down, and that is the one fail-level check (`ping`). Everything else is "warn"
-// and 200, because the site still serves (Grok audit 2026-10-21, TX-6): a stale or missing dump or uploads copy, a
+// and 200, because the site still serves: a stale or missing dump or uploads copy, a
 // job that failed, stopped or never ran (`cron_runs`, read against the Worker's own job lists), a run of failed
 // sign-ins or sign-in mails in the last hour (`auth_events`), and each binding below.
 // The two buckets were fail level until 31 Oct 2026; they are warn by choice: with UPLOADS down, only figures,

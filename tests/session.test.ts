@@ -5,7 +5,7 @@ import { Miniflare } from "miniflare";
 import { applyMigrations } from "./d1";
 
 // getSessionUser against real Better Auth and real D1. A signed-in GET once read as signed out on every page
-// (round 3 of the sign-in check, 2026-11-01): given the request, Better Auth answers with a Response unless the call
+//: given the request, Better Auth answers with a Response unless the call
 // says asResponse: false, and a Response has no user. site-runtime sessionLookup always says it.
 //
 // auth.server.ts reads env from cloudflare:workers, which Node cannot load, so the test serves that module itself.

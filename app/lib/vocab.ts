@@ -6,16 +6,10 @@
 // both sides of the boundary. The Drizzle enum columns in app/db/schema.ts must
 // stay in sync with the arrays here.
 
-// ---------------------------------------------------------------------------
 // Tunable defaults. Named config, never bare numbers in the code.
-// ---------------------------------------------------------------------------
 
 export const DEFAULT_WORD_LIMIT = 250;
 export const DEFAULT_CURRENCY = "usd";
-
-// ---------------------------------------------------------------------------
-// Editions.
-// ---------------------------------------------------------------------------
 
 export const SEASONS = ["spring", "fall"] as const;
 export type Season = (typeof SEASONS)[number];
@@ -46,9 +40,7 @@ export const EDITION_STATUS_LABELS: Record<EditionStatus, string> = {
   archived: "Archived",
 };
 
-// ---------------------------------------------------------------------------
 // Abstracts: status, level (presenter standing), format, presentation preference.
-// ---------------------------------------------------------------------------
 
 const ABSTRACT_STATUSES = [
   "draft",
@@ -139,10 +131,6 @@ export const PRESENTATION_TYPE_LABELS: Record<PresentationType, string> = {
   poster: "Poster",
 };
 
-// ---------------------------------------------------------------------------
-// Registration.
-// ---------------------------------------------------------------------------
-
 export const REGISTRATION_CATEGORY_KEYS = ["member", "student", "nonmember"] as const;
 export type RegistrationCategoryKey = (typeof REGISTRATION_CATEGORY_KEYS)[number];
 export const REGISTRATION_CATEGORY_KEY_LABELS: Record<RegistrationCategoryKey, string> = {
@@ -150,10 +138,6 @@ export const REGISTRATION_CATEGORY_KEY_LABELS: Record<RegistrationCategoryKey, s
   student: "Student",
   nonmember: "Nonmember",
 };
-
-// ---------------------------------------------------------------------------
-// Review and decisions.
-// ---------------------------------------------------------------------------
 
 export const REVIEW_RECOMMENDATIONS = ["accept", "reject", "revise"] as const;
 export const CONFLICT_REASONS = ["author", "coauthor", "colleague", "other"] as const;
@@ -165,10 +149,6 @@ export const DECISION_OUTCOME_LABELS: Record<DecisionOutcome, string> = {
   reject: "Rejected",
   revise: "Revise and resubmit",
 };
-
-// ---------------------------------------------------------------------------
-// Program items and invited speakers.
-// ---------------------------------------------------------------------------
 
 export const PROGRAM_ITEM_KINDS = [
   "talk",
@@ -222,13 +202,11 @@ export function speakerRoleLabel(role: SpeakerRole | null): string {
   return role ? (SPEAKER_ROLE_LABELS[role] ?? "Other") : "";
 }
 
-// ---------------------------------------------------------------------------
 // Documents. One model for every branch PDF, generated or uploaded: newsletters,
 // abstract books, programs, and anything else, optionally tied to a meeting.
 // Category and status back the Drizzle enum columns on the document table; keep
 // them in sync. genStatus (the generation lifecycle for generated docs) lives
 // with the abstract statuses in spirit but is its own small set below.
-// ---------------------------------------------------------------------------
 
 export const DOCUMENT_CATEGORIES = [
   "newsletter",
@@ -309,11 +287,9 @@ export function maxUploadBytesForKind(kind: DocumentFileKind): number {
 
 export const DOCUMENT_STATUSES = ["draft", "published"] as const;
 export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
-// ---------------------------------------------------------------------------
 // Sponsors. Tier is stored as free text so a meeting can name its own; these are
 // the suggested tiers offered in the admin form, centralized rather than typed
 // inline. Not a DB enum.
-// ---------------------------------------------------------------------------
 
 export const SPONSOR_TIERS = ["Platinum", "Gold", "Silver", "Bronze", "Partner"] as const;
 

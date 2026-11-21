@@ -108,10 +108,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Client editor
-// ---------------------------------------------------------------------------
-
 function arrangementFrom(sections: BookSectionView[]): BookArrangementInput {
   return {
     sections: sections.map((s) => ({

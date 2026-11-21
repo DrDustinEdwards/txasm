@@ -109,7 +109,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     return codeSignIn(env, request, email, code, landing);
   }
   // Through Better Auth's HTTP handler, not auth.api: only the handler runs the rate limiter, so a direct api call let
-  // the form skip it (Grok audit 2026-10-21, TX-4). The Turnstile widget's token goes to the captcha plugin
+  // the form skip it. The Turnstile widget's token goes to the captcha plugin
   // (app/lib/auth.server.ts). A spent or expired link comes back to the confirm page, which says which from the time
   // the mailed link carries (site-runtime confirmLinkURL and signInLinkProblem).
   const result = await requestSignInLink(await getAuth(env), request, {

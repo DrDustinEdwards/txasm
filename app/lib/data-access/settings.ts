@@ -13,11 +13,9 @@ import { normalizeCurrency } from "./editions";
 import { isEmail } from "@dustinedwards/site-runtime/email";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
-// ---------------------------------------------------------------------------
 // Platform settings. A single row of org identity and tunable defaults, read by
 // the shell and edited on the admin settings screen. footerLinks is stored as a
 // JSON array and returned parsed. The single row is enforced by a fixed id.
-// ---------------------------------------------------------------------------
 
 export const PLATFORM_SETTINGS_ID = "default";
 
