@@ -68,10 +68,10 @@ function PublicHeader({
   wordmark,
   theme,
 }: {
-  email: string | null;
-  isAdmin: boolean;
-  isReviewer: boolean;
-  wordmark: string;
+  email?: string | null;
+  isAdmin?: boolean;
+  isReviewer?: boolean;
+  wordmark?: string;
   theme: Theme | null;
 }) {
   const { pathname } = useLocation();
@@ -175,7 +175,8 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
   );
 }
 
-// The frame of every public page, and of the error page a public route throws, so the header and footer stay.
+// The frame of every public page, and of the error page a public route throws, so the header and footer stay. The
+// error page's header is the signed-out one.
 function Frame({
   user,
   children,
@@ -184,15 +185,13 @@ function Frame({
   children: React.ReactNode;
 }) {
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
-  const settings: PlatformSettings | undefined = rootData?.settings;
+  const settings = rootData?.settings;
 
   return (
     <div className="txasm-page">
       <PublicHeader
-        email={user?.email ?? null}
-        isAdmin={user?.isAdmin ?? false}
-        isReviewer={user?.isReviewer ?? false}
-        wordmark={settings?.shortName ?? ""}
+        {...user}
+        wordmark={settings?.shortName}
         theme={rootData?.theme ?? null}
       />
       <main id="main" tabIndex={-1} className="cap-page txasm-main">
@@ -211,13 +210,13 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
   );
 }
 
-// Capsomer's error page inside the frame, signed-in state kept when the layout's loader ran. The frame's main wraps
-// it, so the page is a div: one main. React puts the title in head (WCAG 2.4.2).
+// Capsomer's error page inside the frame. The frame's main wraps it, so the page is a div: one main. React puts the
+// title in head (WCAG 2.4.2).
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
-    <Frame user={useRouteLoaderData<typeof loader>("routes/public.layout")}>
+    <Frame>
       <title>{errorTitle(error, SITE_NAME)}</title>
-      <ErrorPage error={error} home="/" as="div" dev={import.meta.env.DEV} />
+      <ErrorPage error={error} home="/" as="div" />
     </Frame>
   );
 }
