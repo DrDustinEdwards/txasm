@@ -11,6 +11,7 @@ import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
 import { SITE_NAME } from "~/lib/site-meta";
+import { SITE_SCRIPT } from "virtual:islands";
 // Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
 // from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file carries
 // Inter's optical sizes, as the Google request asked for.
@@ -58,7 +59,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       site="txasm"
       theme={data?.theme}
       hydrate={routeHydrates(useMatches())}
-      script="/site.js"
+      script={SITE_SCRIPT ?? undefined}
       head={<meta name="text-scale" content="scale" />}
     >
       <LinkPrefetch exclude={NO_PREFETCH}>{children}</LinkPrefetch>
