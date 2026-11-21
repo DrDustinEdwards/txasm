@@ -3,7 +3,6 @@ import { Outlet, useMatches, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/root";
 import { iconLinks } from "@drdustinedwards/site-helpers/icons";
 import { LinkPrefetch } from "capsomer/react/link";
-import { ErrorPage, errorTitle } from "capsomer/react/error-page";
 import { Document } from "capsomer/react/document";
 import { SITE_SCRIPT } from "virtual:islands";
 import { routeHydrates } from "@dustinedwards/site-runtime/deferred-scripts";
@@ -11,7 +10,6 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
 import { readThemeCookie } from "capsomer/theme-server";
 import { THEME_COOKIE } from "~/lib/theme";
-import { SITE_NAME } from "~/lib/site-meta";
 // Inter from txasm's own origin (Fontsource, the file Google Fonts serves, bundled under /assets/): no stylesheet
 // from fonts.googleapis.com blocking the first paint, and no second origin to connect to. The variable file carries
 // Inter's optical sizes, as the Google request asked for.
@@ -23,11 +21,6 @@ export const links: Route.LinksFunction = () => [
   // The starburst mark, squared: legible at tab size where the full wordmark would not.
   ...iconLinks(),
 ];
-
-// The error path's title for an error the root itself shows (WCAG 2.4.2); a missing page's is in routes/not-found.tsx.
-export function meta({ error, loaderData }: Route.MetaArgs) {
-  return error ? [{ title: errorTitle(error, loaderData?.settings?.shortName || SITE_NAME) }] : [];
-}
 
 // Root provides the document, the theme, and the platform settings the shells
 // render (org identity, footer links). The public and admin shells (their own
@@ -72,8 +65,6 @@ export default function App() {
   return <Outlet />;
 }
 
-// Capsomer's error page (404, 410, 500 in plain words, noindex, the stack only in development). The public header and
-// footer read loader data the error path does not have, so they are left out, as before.
-export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  return <ErrorPage error={error} home="/" dev={import.meta.env.DEV} />;
-}
+// Capsomer's error page in the public frame (routes/public.layout.tsx), for an error no layout's own boundary caught:
+// the root itself, the private pages and the admin, which show the signed-out header.
+export { ErrorBoundary } from "~/routes/public.layout";

@@ -180,7 +180,7 @@ function Frame({
   user,
   children,
 }: {
-  user: { email: string | null; isAdmin: boolean; isReviewer: boolean };
+  user?: { email: string | null; isAdmin: boolean; isReviewer: boolean };
   children: React.ReactNode;
 }) {
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
@@ -189,9 +189,9 @@ function Frame({
   return (
     <div className="txasm-page">
       <PublicHeader
-        email={user.email}
-        isAdmin={user.isAdmin}
-        isReviewer={user.isReviewer}
+        email={user?.email ?? null}
+        isAdmin={user?.isAdmin ?? false}
+        isReviewer={user?.isReviewer ?? false}
         wordmark={settings?.shortName ?? ""}
         theme={rootData?.theme ?? null}
       />
@@ -211,17 +211,12 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
   );
 }
 
-// The error path's title (WCAG 2.4.2).
-export function meta({ error }: Route.MetaArgs) {
-  return error ? [{ title: errorTitle(error, SITE_NAME) }] : [];
-}
-
 // Capsomer's error page inside the frame, signed-in state kept when the layout's loader ran. The frame's main wraps
-// it, so the page is a div: one main.
+// it, so the page is a div: one main. React puts the title in head (WCAG 2.4.2).
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  const user = useRouteLoaderData<typeof loader>("routes/public.layout");
   return (
-    <Frame user={user ?? { email: null, isAdmin: false, isReviewer: false }}>
+    <Frame user={useRouteLoaderData<typeof loader>("routes/public.layout")}>
+      <title>{errorTitle(error, SITE_NAME)}</title>
       <ErrorPage error={error} home="/" as="div" dev={import.meta.env.DEV} />
     </Frame>
   );

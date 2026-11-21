@@ -8,6 +8,5 @@ export function loader({ request }: Route.LoaderArgs): never {
   throw goneResponse(request, GONE) ?? new Response("Not found", { status: 404 });
 }
 
-export default function NotFound() {
-  return null;
-}
+// The loader always throws, so this component never renders; reusing one the Worker already holds keeps its size.
+export { default } from "./home";
