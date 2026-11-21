@@ -274,6 +274,13 @@
       "when": 1795287821456,
       "tag": "0038_page_revision_actor",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1795301524392,
+      "tag": "0039_page_dates",
+      "breakpoints": true
     }
   ]
 }

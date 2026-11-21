@@ -1095,6 +1095,13 @@ export const aiOutcomes = sqliteTable("ai_outcomes", {
   value: text("value").notNull(),
 });
 
+// The day each code-written page last changed, for /sitemap.xml's lastmod: one row, Prelum's trackPageDates record, kept by
+// the daily page-dates job (app/lib/page-dates.server.ts) through d1FireStore's get and put.
+export const pageDates = sqliteTable("page_dates", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 // site-runtime's own tables, so drizzle-kit knows them: the 404 count (./not-found, written by countNotFound in
 // workers/app.ts), the auth event log (./sign-in eventsDb: /account's security history, /health's spike check, the
 // daily prune) and each scheduled job's last runs (./cron, written by runJobs, read by /health's cron check).

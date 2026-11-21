@@ -9,11 +9,17 @@
 // invocation's 15. The dump must land before capsid-backups' 11:23 UTC Amazon copy: at 13:00 the copy took the
 // day before's dump and aged past 30 hours (offaccount-late-txasm). The deadline jobs and reminders (submission and
 // review deadline reminders, status transitions) join the daily list when they are wired per edition.
-import { backupJob, carrelSchedulesJob, type CronJob } from "@dustinedwards/site-runtime/cron";
+import {
+  backupJob,
+  carrelSchedulesJob,
+  DAILY_MINUTES,
+  type CronJob,
+} from "@dustinedwards/site-runtime/cron";
 import { pruneNotFoundJob } from "@dustinedwards/site-runtime/not-found";
 import { pruneAuthEventsJob } from "@dustinedwards/site-runtime/sign-in";
 import { backupUploads, runNightlyBackup } from "~/lib/backup.server";
 import { runCarrelSchedules } from "~/lib/carrel/handler.server";
+import { runPageDates } from "~/lib/page-dates.server";
 
 const SCHEDULES_CRON = "* * * * *";
 const DAILY_CRON = "0 3 * * *";
@@ -29,6 +35,13 @@ export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[
         name: "backup-uploads",
         timeoutMs: FOUR_MINUTES,
       }),
+      // The day each code-written page last changed, for /sitemap.xml's lastmod (app/lib/page-dates.server.ts).
+      {
+        name: "page-dates",
+        everyMinutes: DAILY_MINUTES,
+        timeoutMs: 2 * 60_000,
+        run: () => runPageDates(env),
+      },
       pruneNotFoundJob(env.DB),
       pruneAuthEventsJob(env.DB),
     ],

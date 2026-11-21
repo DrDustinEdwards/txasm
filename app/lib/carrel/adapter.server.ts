@@ -41,6 +41,7 @@ import {
   type WriteResult,
 } from "@dustinedwards/site-api";
 import { readKey, splitSource } from "@drdustinedwards/site-helpers/frontmatter";
+import { wrapRendered } from "@drdustinedwards/site-helpers/stored-render";
 import { SEARCH_FIELDS } from "@dustinedwards/site-api/frontmatter";
 import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
@@ -443,7 +444,7 @@ export function createCarrelAdapter(
     preview: {
       async render({ id, source }) {
         const { front, body } = splitSource(source);
-        const { html } = await renderBody(env, body);
+        const { html, renderVersion } = await renderBody(env, body);
         const title = readKey(front, "title").trim();
         if (id && options.renderPage && (await pages.get(id))) {
           const description = readKey(front, "description").trim() || null;
@@ -451,7 +452,7 @@ export function createCarrelAdapter(
             title: title || "Untitled",
             description,
             searchFields: { noindex: true },
-            html,
+            html: wrapRendered(html, renderVersion),
           };
           const response = await options.renderPage(pathOf(id), {
             slug: id,
