@@ -167,7 +167,7 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
               <li key={a.slug}>
                 <Link to={`/awards/${a.slug}`}>
                   <article className="cap-card">
-                    <h3>{a.name}</h3>
+                    <h2>{a.name}</h2>
                     <RichText
                       as="p"
                       className="cap-text cap-muted"
