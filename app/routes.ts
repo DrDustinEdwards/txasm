@@ -21,6 +21,8 @@ export default [
     route("sponsorship", "routes/sponsorship.tsx"),
     route("contact", "routes/contact.tsx"),
     route("accessibility", "routes/accessibility.tsx"),
+    // Every other path: 410 for a page removed on purpose, else 404, drawn inside this layout so the header and footer stay.
+    route("*", "routes/not-found.tsx"),
     // The private pages (sign-in, account, submission, review): no Web Analytics (site-runtime PRIVATE_PAGE_HEADERS).
     layout("routes/private.layout.tsx", [
       route(SIGN_IN_PATH.slice(1), "routes/login.tsx"),
@@ -38,8 +40,6 @@ export default [
     route("meetings/:slug/program", "routes/meetings.$slug.program.tsx"),
     route("meetings/:slug/abstracts", "routes/meetings.$slug.abstracts.tsx"),
     route("meetings/:slug/abstracts/:ref", "routes/meetings.$slug.abstracts.$ref.tsx"),
-    // Every path no route matches, inside the public layout so the 404 keeps the site header and footer.
-    route("*", "routes/not-found.tsx"),
   ]),
   layout("routes/admin.layout.tsx", [
     route("admin", "routes/admin.tsx"),
