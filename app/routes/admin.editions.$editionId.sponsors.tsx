@@ -136,9 +136,7 @@ export default function Sponsors({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={7}>
-      <EditionPageHead title="Sponsors" edition={edition}>
-        <p className="cap-muted">Sponsors show on the public program.</p>
-      </EditionPageHead>
+      <EditionPageHead title="Sponsors" edition={edition} />
 
       {error ? (
         <p role="alert" className="cap-alert">

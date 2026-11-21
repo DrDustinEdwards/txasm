@@ -306,9 +306,7 @@ export default function ProgramBuilder({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap={6}>
-      <EditionPageHead title="Schedule" edition={edition}>
-        <p className="cap-muted">Sessions that overlap become parallel tracks.</p>
-      </EditionPageHead>
+      <EditionPageHead title="Schedule" edition={edition} />
 
       <FormStatus status={status} />
 

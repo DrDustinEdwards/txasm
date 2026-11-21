@@ -75,7 +75,6 @@ export default function Meetings({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Meetings
         </Title>
-        <p className="cap-muted cap-measure">The branch meets twice a year.</p>
       </Stack>
 
       <Panel>
