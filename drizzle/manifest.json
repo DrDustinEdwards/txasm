@@ -38,6 +38,7 @@
     "0033_site_api_store_v0_22.sql": "f424282b5ef683b146043c17bebc90eae8080e57c8527e5b946eab905434556c",
     "0034_award_slug_redirect.sql": "c7c119db1545167acd9e6d3fc3392f882c5a6a05b85c714adfdca6ab1df01bd4",
     "0035_nasty_black_crow.sql": "8ea97bf943416722fb79eb6d85fce1b6d633f368440861a11487b354769eb97c",
-    "0036_ai_outcomes.sql": "773a3c83112ed08cf7a559ed01786e65320fabeea5df6c793f8561c4a48015c7"
+    "0036_ai_outcomes.sql": "773a3c83112ed08cf7a559ed01786e65320fabeea5df6c793f8561c4a48015c7",
+    "0037_footer_awards_link.sql": "15c4d29c5ffe106df10d8d3b3af4e6028b0cdfbd0036acc2a4034d48ebe3cca7"
   }
 }
