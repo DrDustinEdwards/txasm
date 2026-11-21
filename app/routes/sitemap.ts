@@ -1,6 +1,6 @@
 // /sitemap.xml: the public pages, every public meeting's program and abstract listing, each award,
-// and each newsletter and archive document, each with the date it last changed where the data holds one
-// (da.sitemap.lastModified); an index page takes the newest of what it lists. Abstract pages are reached from their listings.
+// every accepted abstract, each award, and each newsletter and archive document, each with the date it last changed
+// where the data holds one (da.sitemap.lastModified); an index page takes the newest of what it lists.
 import { sitemapDocument } from "@drdustinedwards/site-helpers/sitemap";
 import { getDataAccess } from "~/lib/data-access";
 import { CATEGORY_PATHS } from "~/lib/document-nav";
@@ -42,6 +42,17 @@ export async function loader({ context }: Route.LoaderArgs) {
       return { basePath, docs };
     }),
   ]);
+  const abstractPages = await Promise.all(
+    meetings
+      .filter((m) => m.abstractCount > 0)
+      .map(async (m) => {
+        const listing = await da.publicAbstracts.listForEdition(m.slug);
+        return (listing?.abstracts ?? []).map((a) => ({
+          path: `/meetings/${m.slug}/abstracts/${a.number}`,
+          lastmod: changed.edition.get(m.slug),
+        }));
+      }),
+  );
   const listed: Record<string, Date | undefined> = {
     "/meetings": newest([...changed.edition.values()]),
     "/awardees": newest([...changed.award.values()]),
@@ -60,6 +71,7 @@ export async function loader({ context }: Route.LoaderArgs) {
         ...(m.abstractCount > 0 ? [{ path: `/meetings/${m.slug}/abstracts`, lastmod }] : []),
       ];
     }),
+    ...abstractPages.flat(),
     ...awards.map((a) => ({ path: `/awards/${a.slug}`, lastmod: changed.award.get(a.id) })),
     ...documents.flatMap((c) => c.docs),
   ];
