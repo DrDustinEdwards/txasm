@@ -41,7 +41,6 @@ import {
   type WriteResult,
 } from "@dustinedwards/site-api";
 import { readKey, splitSource } from "@drdustinedwards/site-helpers/frontmatter";
-import { wrapRendered } from "@drdustinedwards/site-helpers/stored-render";
 import { SEARCH_FIELDS } from "@dustinedwards/site-api/frontmatter";
 import { utc } from "@dustinedwards/site-api/schedules";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";
@@ -452,7 +451,8 @@ export function createCarrelAdapter(
             title: title || "Untitled",
             description,
             searchFields: { noindex: true },
-            html: wrapRendered(html, renderVersion),
+            html,
+            renderVersion,
           };
           const response = await options.renderPage(pathOf(id), {
             slug: id,

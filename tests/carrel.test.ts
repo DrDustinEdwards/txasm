@@ -5,9 +5,6 @@ import { createSiteApi, stripMetadata, type PublishEvent } from "@dustinedwards/
 import { runConformance } from "@dustinedwards/site-api/conformance";
 import { d1SiteApiStore } from "@dustinedwards/site-api/store";
 import { createCarrelAdapter } from "../app/lib/carrel/adapter.server";
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "../app/db/schema";
-import { createPages } from "../app/lib/data-access/pages";
 import { applyMigrations } from "./d1";
 
 // Carrel's site API against real D1 and R2 with the real migrations, so the pages it
@@ -267,11 +264,6 @@ test("a draft stays off the live page, a publish puts it there, and each write i
   assert.equal(published.status, 200);
   const publishedVersion = (await json(published)).version;
   assert.match((await live())!.html, /Deadline: July 15/);
-  // A public read wraps the stored html in the version that rendered it, which Prelum's content audit looks for.
-  assert.match(
-    (await createPages(drizzle(db, { schema })).published("award-nominations"))!.html,
-    /^<div data-render-version="[^"]+">/,
-  );
 
   const audit = await db
     .prepare("SELECT event, change_id FROM page_revision ORDER BY created_at, rowid")

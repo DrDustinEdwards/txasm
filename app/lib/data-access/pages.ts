@@ -1,7 +1,6 @@
 import { and, desc, eq, getTableColumns } from "drizzle-orm";
 import { d1ScheduledUpdates } from "@dustinedwards/site-api/schedules";
 import type { ScheduledUpdate } from "@dustinedwards/site-api";
-import { wrapRendered } from "@drdustinedwards/site-helpers/stored-render";
 import * as schema from "../../db/schema";
 import type { DB } from "./core";
 
@@ -24,6 +23,7 @@ export interface PublishedPage {
   description: string | null;
   searchFields: PageSearch | null;
   html: string;
+  renderVersion: string;
 }
 
 export function createPages(db: DB) {
@@ -40,10 +40,7 @@ export function createPages(db: DB) {
           publishedAt: true,
         },
       });
-      if (!row?.publishedAt) return null;
-      const { renderVersion, publishedAt: _publishedAt, ...page } = row;
-      // In its version wrapper (Prelum's wrapRendered), so the live page shows which pipeline release rendered it.
-      return { ...page, html: wrapRendered(page.html, renderVersion) };
+      return row?.publishedAt ? row : null;
     },
 
     /** The paths of the published pages marked noindex (home is "/"), which the sitemap and llms.txt leave out. */
