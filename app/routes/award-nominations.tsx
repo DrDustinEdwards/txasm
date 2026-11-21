@@ -6,6 +6,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { pagePreviewContext } from "~/lib/preview-context";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { RichText } from "capsomer/react/trusted-html";
+import { wrapRendered } from "@drdustinedwards/site-helpers/stored-render";
 
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
@@ -37,7 +38,10 @@ export default function AwardNominations({ loaderData }: Route.ComponentProps) {
       <Title as="h1" size={2}>
         {loaderData.title}
       </Title>
-      <RichText className="page-prose" html={loaderData.html} />
+      <RichText
+        className="page-prose"
+        html={wrapRendered(loaderData.html, loaderData.renderVersion)}
+      />
     </div>
   );
 }
