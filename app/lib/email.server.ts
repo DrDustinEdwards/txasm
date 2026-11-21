@@ -38,11 +38,9 @@ export function sendEmail(
   return send(on ? e.SEND_EMAIL : undefined, { ...message, from }, options);
 }
 
-// ---------------------------------------------------------------------------
 // Template builders. Pure functions returning EmailContent. Plain professional
 // copy, no secrets. Plain-text fields that may carry stored HTML are stripped
 // with richTextPlain.
-// ---------------------------------------------------------------------------
 
 function htmlParagraphs(lines: string[]): string {
   return lines

@@ -21,12 +21,10 @@ import {
   ValidationError,
 } from "./core";
 
-// ---------------------------------------------------------------------------
 // Module contracts. Every function takes the acting Actor first. The
 // security-critical functions are implemented in full below; the rest are
 // declared as signatures so the contract can be reviewed before the bodies
 // are written.
-// ---------------------------------------------------------------------------
 
 // The three organizing axes: topic (categoryId), level, and format. bodyText is
 // the single freeform body. The four section fields are still accepted for now

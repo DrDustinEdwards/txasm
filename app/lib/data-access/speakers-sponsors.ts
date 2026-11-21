@@ -13,12 +13,10 @@ import {
 } from "./core";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
-// ---------------------------------------------------------------------------
 // Invited speakers and sponsors. Both are per-edition and chair/admin managed.
 // Speaker bios are sanitized to the abstract body allowlist (em/sup/sub); the
 // remaining text fields are plain and escaped at render time. Image r2 keys stay
 // out of the write path for now (upload UI is deferred).
-// ---------------------------------------------------------------------------
 
 // The SpeakerRole vocabulary lives in ./vocab and is imported above.
 export interface InvitedSpeakerInput {
@@ -167,8 +165,8 @@ export function createInvitedSpeakers(db: DB) {
 }
 
 // A sponsor link is rendered as an href on the public program, where escaping
-// does not stop a javascript: URL, so only http and https are stored (Grok audit
-// 2026-10-21, TX-2; the same rule settings applies to the Facebook URL).
+// does not stop a javascript: URL, so only http and https are stored (the same rule settings
+// applies to the Facebook URL).
 function sponsorUrl(raw: string | null | undefined): string | null {
   const url = raw?.trim() ?? "";
   if (!url) return null;

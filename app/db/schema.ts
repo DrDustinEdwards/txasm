@@ -29,12 +29,10 @@ function tsMs(name: string) {
   return integer(name, { mode: "timestamp_ms" });
 }
 
-// ---------------------------------------------------------------------------
 // Auth (Better Auth owns these). Sessions and the sign-in rate limit live here in
 // D1, which is consistent everywhere at once, so a sign-out holds at once and the
 // limiter counts in one atomic step (KV is neither). Keep these column shapes in
 // sync with what the Better Auth Drizzle adapter expects, and pass this schema to it.
-// ---------------------------------------------------------------------------
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -131,9 +129,7 @@ export const passkey = sqliteTable(
   (t) => [index("ix_passkey_user").on(t.userId), index("ix_passkey_credential").on(t.credentialID)],
 );
 
-// ---------------------------------------------------------------------------
 // Editions: the spine. Every domain row below carries edition_id.
-// ---------------------------------------------------------------------------
 
 export const edition = sqliteTable(
   "edition",
@@ -174,12 +170,10 @@ export const edition = sqliteTable(
   (t) => [unique("uq_edition_season_year").on(t.season, t.year)],
 );
 
-// ---------------------------------------------------------------------------
 // Roles. admin/chair/reviewer are explicit grants. editionId null means the
 // grant is platform-wide (used for admin). author and attendee are NOT stored
 // here; they are derived from owning an abstract or holding a paid registration
 // in a given edition.
-// ---------------------------------------------------------------------------
 
 export const roleGrant = sqliteTable(
   "role_grant",
@@ -230,9 +224,7 @@ export const invitation = sqliteTable(
   (t) => [index("ix_invitation_edition").on(t.editionId), index("ix_invitation_email").on(t.email)],
 );
 
-// ---------------------------------------------------------------------------
 // Registration. Categories and fees are per edition.
-// ---------------------------------------------------------------------------
 
 export const registrationCategory = sqliteTable(
   "registration_category",
@@ -284,11 +276,9 @@ export const registration = sqliteTable(
   ],
 );
 
-// ---------------------------------------------------------------------------
 // Abstracts and authorship. Authorship is modeled for the book: author rows
 // (which may or may not link to a user account), numbered affiliation rows, and
 // a join so superscript affiliation numbers render correctly.
-// ---------------------------------------------------------------------------
 
 export const abstractCategory = sqliteTable(
   "abstract_category",
@@ -436,13 +426,11 @@ export const abstractFile = sqliteTable(
   (t) => [index("ix_abstract_file_abstract").on(t.abstractId)],
 );
 
-// ---------------------------------------------------------------------------
 // Review. Open review, so author identities are visible. The rubric is data,
 // not columns: rubric_criterion rows per edition define the scale and weights,
 // and review_score holds one score per criterion. Conflict of interest is
 // enforced in the access layer at assignment time; review_conflict records
 // declared conflicts beyond plain authorship.
-// ---------------------------------------------------------------------------
 
 export const rubricCriterion = sqliteTable(
   "rubric_criterion",
@@ -568,13 +556,11 @@ export const reviewScore = sqliteTable(
   (t) => [unique("uq_review_score").on(t.reviewId, t.criterionId)],
 );
 
-// ---------------------------------------------------------------------------
 // Decisions. One per abstract: the chair records accept/reject/revise after
 // reading the reviews. presentation_type is set only on accept. decision_message
 // is an optional note to the author, stored sanitized. notify_state tracks how
 // the author was told; email is deferred, so in-app display is the notification
 // for now and the state stays "none" until a later additive step sends mail.
-// ---------------------------------------------------------------------------
 
 export const decision = sqliteTable(
   "decision",
@@ -614,7 +600,6 @@ export const decision = sqliteTable(
   ],
 );
 
-// ---------------------------------------------------------------------------
 // Documents. One model for every branch PDF, generated or uploaded: newsletters,
 // abstract books, programs, and anything else, optionally tied to a meeting. A
 // generated doc (source "generated") is produced by our PDF pipeline and tracks
@@ -624,7 +609,6 @@ export const decision = sqliteTable(
 // gates public visibility for either source. category and status mirror the
 // vocab arrays in app/lib/vocab.ts; keep them in sync. Files live in R2 under
 // r2Key; viewing writes nothing.
-// ---------------------------------------------------------------------------
 
 export const document = sqliteTable(
   "document",
@@ -674,7 +658,6 @@ export const document = sqliteTable(
   ],
 );
 
-// ---------------------------------------------------------------------------
 // Abstract book layer. The chair-driven book builder for NEW meetings: one
 // abstract_book per edition holds the arrangement; book_section groups accepted
 // abstracts into the derived sections; book_entry is one abstract's placement,
@@ -682,7 +665,6 @@ export const document = sqliteTable(
 // position. Codes live here, never on abstract.code, which stays the archive's
 // printed record. publishedHtml is the frozen render stored on publish. Archive
 // abstracts never get a book row. See app/lib/book-numbering.ts for the reflow.
-// ---------------------------------------------------------------------------
 
 export const abstractBook = sqliteTable("abstract_book", {
   id: pk(),
@@ -742,13 +724,11 @@ export const bookEntry = sqliteTable(
   ],
 );
 
-// ---------------------------------------------------------------------------
 // Invited speakers and sponsors, per edition. Invited speakers are keynotes and
 // award lectures a program item can point to; sponsors show on the public
 // program. Both carry an r2Key for an image (headshot, logo) that stays nullable
 // now: the upload UI comes with the later assets work, and seeding needs only the
 // text. Bios are stored sanitized to the abstract body allowlist (em/sup/sub).
-// ---------------------------------------------------------------------------
 
 export const invitedSpeaker = sqliteTable(
   "invited_speaker",
@@ -790,13 +770,11 @@ export const sponsor = sqliteTable(
   (t) => [index("ix_sponsor_edition").on(t.editionId)],
 );
 
-// ---------------------------------------------------------------------------
 // Program. The meeting schedule: ordered sessions, each holding ordered items.
 // An item is exactly one of: an accepted abstract (abstractId set), an invited
 // speaker (speakerId set), or a plain custom entry like a break (customTitle
 // set). That one-of rule is enforced in the data-access layer, not by a DB
 // constraint. kind drives the label and public rendering (keynote, break, meal).
-// ---------------------------------------------------------------------------
 
 export const programSession = sqliteTable(
   "program_session",
@@ -864,12 +842,10 @@ export const programItem = sqliteTable(
   ],
 );
 
-// ---------------------------------------------------------------------------
 // Institutions. A shared master list that powers the affiliation autocomplete on
 // the submission form. It self-grows: when an author types a new institution it
 // is appended here (deduped by normalized_name). Affiliation rows still store
 // their own institution/city/country text; this table is the type-ahead source.
-// ---------------------------------------------------------------------------
 
 export const institution = sqliteTable(
   "institution",
@@ -886,7 +862,6 @@ export const institution = sqliteTable(
   (t) => [unique("uq_institution_normalized").on(t.normalizedName)],
 );
 
-// ---------------------------------------------------------------------------
 // Platform settings. A single row (id fixed to 'default', single-row enforced in
 // the data-access layer) holding org identity and tunable defaults so nothing is
 // hardcoded in the shell: wordmark, names, tagline, founding year, contact,
@@ -894,7 +869,6 @@ export const institution = sqliteTable(
 // abstract word limit. Read in the root loader and edited on the admin settings
 // screen. Currency and word-limit defaults carry DB defaults that mirror the
 // named constants in app/lib/vocab.ts.
-// ---------------------------------------------------------------------------
 
 export const platformSettings = sqliteTable("platform_settings", {
   id: text("id").primaryKey(), // always 'default'; one row enforced in the data layer
@@ -912,7 +886,6 @@ export const platformSettings = sqliteTable("platform_settings", {
   updatedAt: updatedAt(),
 });
 
-// ---------------------------------------------------------------------------
 // Awards. The branch's named awards and their recipients: a data-driven archive
 // maintained by admins each meeting and rendered on the public awardees pages
 // (never hardcoded into components). award holds the definition; namesakeBio and
@@ -923,7 +896,6 @@ export const platformSettings = sqliteTable("platform_settings", {
 // year is text because historical formats vary ("2025-26", "1971"); category and
 // placement subdivide a year. Person, institution, mentor, and year are indexed
 // for the public search. personName/mentor become person-record links later.
-// ---------------------------------------------------------------------------
 
 export const award = sqliteTable("award", {
   id: pk(),
@@ -1139,7 +1111,5 @@ export {
   webmentionTargets,
 } from "@dustinedwards/site-api/drizzle";
 
-// ---------------------------------------------------------------------------
 // Deferred to later phases, named here so the shape is visible but kept out of
 // this review: officer, newsletter. Add once the core above is agreed.
-// ---------------------------------------------------------------------------

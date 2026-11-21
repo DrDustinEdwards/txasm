@@ -14,12 +14,10 @@ import { assembleBookAbstracts, inBookOrder } from "./book-model";
 import type { DB } from "./core";
 import { PROGRAM_PUBLIC_STATUSES } from "./program-model";
 
-// ---------------------------------------------------------------------------
 // Public abstract archive. Read-only views over accepted abstracts of editions
 // at a public stage (same rule as the public program). title and bodyText are
 // stored sanitized HTML rendered verbatim; author names, institutions, and topic
 // are plain text escaped at render time. number is the abstract-book numbering.
-// ---------------------------------------------------------------------------
 
 interface PublicAbstractAuthor {
   name: string; // "First Last", plain text

@@ -22,7 +22,6 @@ import {
   ValidationError,
 } from "./core";
 
-// ---------------------------------------------------------------------------
 // Meeting import. A server-only, clearly-named path used by the offline
 // archive-import script (scripts/import-meeting.ts) to seed a past meeting so
 // its abstracts are indistinguishable from live submissions: the same title and
@@ -33,7 +32,6 @@ import {
 // archived meeting. Authors and affiliations still go through the normal
 // abstracts.setContributors (an admin actor is a chair of every
 // meeting, so those work past the deadline without loosening anything).
-// ---------------------------------------------------------------------------
 
 // A fixed system account that owns imported abstracts (abstract.submitterId is
 // notnull). It is not a real sign-in account; the id is stable so re-imports do

@@ -77,11 +77,9 @@ function bodyBlock(abstract: BookBodyFields): string {
   return "";
 }
 
-// ---------------------------------------------------------------------------
 // The renderer builds: cover, sections-only TOC (page numbers via Paged.js
 // target-counter), abstracts with their codes, and an all-authors index keyed by
 // code. bodyBlock, authorLine, and affiliationsBlock above are shared helpers.
-// ---------------------------------------------------------------------------
 
 function arrangedCover(data: BookRenderData): string {
   return coverArt({

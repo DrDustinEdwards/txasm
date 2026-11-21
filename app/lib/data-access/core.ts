@@ -9,10 +9,6 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 export type DB = DrizzleD1Database<typeof schema>;
 
-// ---------------------------------------------------------------------------
-// Errors
-// ---------------------------------------------------------------------------
-
 export class ForbiddenError extends Error {
   constructor(message = "forbidden") {
     super(message);
@@ -63,11 +59,9 @@ export class AlreadyExistsError extends Error {
   }
 }
 
-// ---------------------------------------------------------------------------
 // Actor and authorization helpers. Grants are loaded once per request.
 // author and attendee are not roles; they are derived from ownership and a paid
 // registration, checked inline where they matter.
-// ---------------------------------------------------------------------------
 
 type Role = "admin" | "chair" | "reviewer";
 

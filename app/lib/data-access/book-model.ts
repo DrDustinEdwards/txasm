@@ -32,13 +32,11 @@ export interface BookAffiliation {
   country: string | null;
 }
 
-// ---------------------------------------------------------------------------
 // Book builder (new-meeting arrangement). The chair generates a draft from the
 // accepted abstracts, drag-drops them within and between sections, and publishes.
 // Codes live on book_entry (computed by ./book-numbering), never on abstract.code.
 // BookView is the editor's read model; BookRenderData is what the pure arranged
 // renderer in ./book consumes on preview and publish.
-// ---------------------------------------------------------------------------
 
 interface BookEntryView {
   entryId: string;

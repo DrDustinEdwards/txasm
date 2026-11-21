@@ -8,12 +8,10 @@ import { inBookOrder, presentingAuthorNames } from "./book-model";
 import { type DB, ValidationError } from "./core";
 import type { SpeakerPublic, SponsorPublic } from "./speakers-sponsors";
 
-// ---------------------------------------------------------------------------
 // Program (schedule) types. Sessions hold items; an item is either an accepted
 // abstract or a custom entry. Resolved shapes carry what both the admin builder
 // and the public view need; titles are stored sanitized HTML, plain text fields
 // are escaped at render time.
-// ---------------------------------------------------------------------------
 
 export interface ProgramSessionInput {
   editionId: string;

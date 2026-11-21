@@ -164,11 +164,9 @@ export function getAuth(env: Env): Promise<AuthInstance> {
   return auth;
 }
 
-// ---------------------------------------------------------------------------
 // Request helpers. These read env from the Cloudflare-native module so callers
 // pass only the request. They stay inside the data/auth boundary: admin status
 // is resolved through getActor in the data-access layer, never raw queries.
-// ---------------------------------------------------------------------------
 
 export interface SessionUser {
   id: string;

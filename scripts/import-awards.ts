@@ -62,10 +62,6 @@ interface Dataset {
   awards: DatasetAward[];
 }
 
-// ---------------------------------------------------------------------------
-// Parse: turn a live WordPress award page into recipient records.
-// ---------------------------------------------------------------------------
-
 // Strip HTML tags and decode the handful of entities the pages use, returning
 // trimmed plain text.
 function toText(html: string): string {
@@ -218,9 +214,7 @@ async function runParse(dataPath: string): Promise<void> {
   );
 }
 
-// ---------------------------------------------------------------------------
 // Seed: insert the reviewed dataset through the data-access layer (local D1).
-// ---------------------------------------------------------------------------
 
 async function runSeed(dataPath: string): Promise<void> {
   const raw = readFileSync(dataPath, "utf8");
