@@ -24,7 +24,7 @@ export const links: Route.LinksFunction = () => [
   ...iconLinks(),
 ];
 
-// An unmatched address matches only the root, so the error path's title comes from here (WCAG 2.4.2).
+// The error path's title for an error the root itself shows (WCAG 2.4.2); a missing page's is in routes/not-found.tsx.
 export function meta({ error, loaderData }: Route.MetaArgs) {
   return error ? [{ title: errorTitle(error, loaderData?.settings?.shortName || SITE_NAME) }] : [];
 }
