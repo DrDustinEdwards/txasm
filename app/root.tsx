@@ -5,6 +5,7 @@ import { iconLinks } from "@drdustinedwards/site-helpers/icons";
 import { LinkPrefetch } from "capsomer/react/link";
 import { ErrorPage, errorTitle } from "capsomer/react/error-page";
 import { Document } from "capsomer/react/document";
+import { SITE_SCRIPT } from "virtual:islands";
 import { routeHydrates } from "@dustinedwards/site-runtime/deferred-scripts";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
@@ -58,7 +59,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       site="txasm"
       theme={data?.theme}
       hydrate={routeHydrates(useMatches())}
-      script="/site.js"
+      script={SITE_SCRIPT}
       head={<meta name="text-scale" content="scale" />}
     >
       <LinkPrefetch exclude={NO_PREFETCH}>{children}</LinkPrefetch>
