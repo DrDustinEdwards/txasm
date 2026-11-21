@@ -157,7 +157,10 @@ export async function rerenderStale(env: Env): Promise<number> {
   for (const page of await pages.list()) {
     if (!page.publishedAt || page.renderVersion === RENDER_VERSION) continue;
     try {
-      const published = await pages.publishedSource(page.slug);
+      // A page Carrel never touched (no revision at all) is live as its row's source; one it did touch, as its last publish.
+      const published =
+        (await pages.publishedSource(page.slug)) ??
+        ((await pages.revisions(page.slug)).length === 0 ? page.source : null);
       if (published === null) throw new Error("no publish revision holds its live source");
       const { html, renderVersion } = await renderBody(env, parseSource(published).body);
       await pages.rerendered(page.slug, { html, renderVersion, searchFields: page.searchFields });
