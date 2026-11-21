@@ -62,6 +62,8 @@ export function createPages(db: DB) {
 export interface PageWrite {
   event: PageRevision["event"];
   changeId: string;
+  /** The person behind the change, as Carrel names them; kept as the revision's author. */
+  actor?: string;
   version: string;
   /** The page's working source after the write, which its revision keeps. */
   source: string;
@@ -170,6 +172,7 @@ export function createCarrelPages(db: DB, d1: D1Database) {
             changeId: w.changeId,
             version: w.version,
             source: w.source,
+            actor: w.actor ?? null,
           }),
         ),
       ]);

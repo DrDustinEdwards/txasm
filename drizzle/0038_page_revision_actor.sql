@@ -1,0 +1,1 @@
+ALTER TABLE `page_revision` ADD `actor` text;

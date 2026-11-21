@@ -267,6 +267,13 @@
       "when": 1795287181909,
       "tag": "0037_footer_awards_link",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1795287821456,
+      "tag": "0038_page_revision_actor",
+      "breakpoints": true
     }
   ]
 }
