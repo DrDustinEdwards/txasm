@@ -172,7 +172,7 @@ export function createCarrelPages(db: DB, d1: D1Database) {
             changeId: w.changeId,
             version: w.version,
             source: w.source,
-            actor: w.actor ?? null,
+            actor: w.actor,
           }),
         ),
       ]);
