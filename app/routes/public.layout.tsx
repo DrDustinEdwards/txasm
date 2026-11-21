@@ -189,11 +189,7 @@ function Frame({
 
   return (
     <div className="txasm-page">
-      <PublicHeader
-        {...user}
-        wordmark={settings?.shortName}
-        theme={rootData?.theme ?? null}
-      />
+      <PublicHeader {...user} wordmark={settings?.shortName} theme={rootData?.theme ?? null} />
       <main id="main" tabIndex={-1} className="cap-page txasm-main">
         {children}
       </main>
