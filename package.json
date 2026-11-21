@@ -36,7 +36,7 @@
     "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#v0.170.0",
     "@fontsource-variable/inter": "5.3.0",
     "better-auth": "1.7.27",
-    "capsomer": "github:DrDustinEdwards/capsomer#v0.161.0",
+    "capsomer": "github:DrDustinEdwards/capsomer#v0.163.0",
     "drizzle-orm": "0.45.4",
     "hast-util-to-string": "3.0.1",
     "isbot": "5.2.3",
