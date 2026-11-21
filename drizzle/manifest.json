@@ -40,6 +40,7 @@
     "0035_nasty_black_crow.sql": "8ea97bf943416722fb79eb6d85fce1b6d633f368440861a11487b354769eb97c",
     "0036_ai_outcomes.sql": "773a3c83112ed08cf7a559ed01786e65320fabeea5df6c793f8561c4a48015c7",
     "0037_footer_awards_link.sql": "4e2620048d56000bb555d03418252076cb93b44f46b8bc5e0203de67c1553b66",
-    "0038_page_revision_actor.sql": "2330d9caf57826a9ada091afa8a71bfadb5e40663df4fb687a7e14e41b33e6bc"
+    "0038_page_revision_actor.sql": "2330d9caf57826a9ada091afa8a71bfadb5e40663df4fb687a7e14e41b33e6bc",
+    "0039_page_dates.sql": "67a87c559499d9296706f357991a532db2d2c34e52081f856a85c90312e3f329"
   }
 }

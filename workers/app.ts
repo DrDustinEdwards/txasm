@@ -14,6 +14,7 @@ import { withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
 import { pagePreviewContext } from "../app/lib/preview-context";
 import { allCronJobs, cronJobs } from "../app/lib/cron.server";
+import { setPageRenderer } from "../app/lib/page-dates.server";
 import { backupStatus } from "../app/lib/backup.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { getDataAccess } from "../app/lib/data-access";
@@ -119,6 +120,18 @@ const site = defineSite<Env>({
   // An admin idle for an hour is signed out of Access (site-runtime ./access).
   adminIdle: [{ secret: (env) => env.ADMIN_IDLE_SECRET }],
   cron: cronJobs,
+});
+
+// The daily page-dates job reads each tracked page as the Renderer would render it (app/lib/page-dates.server.ts).
+setPageRenderer(async (path, env) => {
+  const noContext = {
+    waitUntil() {},
+    passThroughOnException() {},
+    props: {},
+  } as unknown as ExecutionContext;
+  const response = await site.render(new Request(`${SITE_ORIGIN}${path}`), env, noContext);
+  const html = (response.headers.get("Content-Type") ?? "").includes("text/html");
+  return response.ok && html ? response.text() : null;
 });
 
 export class Renderer extends siteRenderer(WorkerEntrypoint<Env>, site) {}
