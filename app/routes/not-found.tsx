@@ -7,3 +7,7 @@ import type { Route } from "./+types/not-found";
 export function loader({ request }: Route.LoaderArgs): never {
   throw goneResponse(request, GONE) ?? new Response("Not found", { status: 404 });
 }
+
+export default function NotFound() {
+  return null;
+}
