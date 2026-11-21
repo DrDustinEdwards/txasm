@@ -102,13 +102,19 @@ const fakeImages = {
     const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
     const view = new DataView(bytes.buffer);
     let size = { width: view.getUint32(16), height: view.getUint32(20) };
-    const steps = stepsOf(bytes).steps as Array<{ rotate?: number; width?: number }>;
+    const steps = stepsOf(bytes).steps as Array<{
+      rotate?: number;
+      width?: number;
+    }>;
     for (const step of steps) {
       if (step.rotate === 90 || step.rotate === 270)
         size = { width: size.height, height: size.width };
       if (step.width) {
         const scale = Math.min(1, step.width / Math.max(size.width, size.height));
-        size = { width: Math.round(size.width * scale), height: Math.round(size.height * scale) };
+        size = {
+          width: Math.round(size.width * scale),
+          height: Math.round(size.height * scale),
+        };
       }
     }
     return { ...size, format: "image/png", fileSize: bytes.length };
@@ -226,6 +232,10 @@ test("a draft stays off the live page, a publish puts it there, and each write i
     db
       .prepare("SELECT title, html FROM page WHERE slug = 'award-nominations'")
       .first<{ title: string; html: string }>();
+  const live2 = () =>
+    db
+      .prepare("SELECT published_at FROM page WHERE slug = 'award-nominations'")
+      .first<{ published_at: number | null }>();
   const before = await live();
   const doc = await json(await call("/api/carrel/v1/content/award-nominations"));
   const source = (doc.source as string).replace("Deadline: August 1", "Deadline: July 15");
@@ -233,16 +243,26 @@ test("a draft stays off the live page, a publish puts it there, and each write i
   const saved = await json(
     await call("/api/carrel/v1/content/award-nominations/draft", {
       method: "PUT",
-      body: JSON.stringify({ source, expectedVersion: doc.version, changeId: "chg_save" }),
+      body: JSON.stringify({
+        source,
+        expectedVersion: doc.version,
+        changeId: "chg_save",
+        actor: { name: "Dustin Edwards" },
+      }),
     }),
   );
   assert.deepEqual(await live(), before);
 
   const published = await call("/api/carrel/v1/content/award-nominations/publish", {
     method: "POST",
-    body: JSON.stringify({ expectedVersion: saved.version, changeId: "chg_publish" }),
+    body: JSON.stringify({
+      expectedVersion: saved.version,
+      changeId: "chg_publish",
+      actor: { name: "Julie Edwards" },
+    }),
   });
   assert.equal(published.status, 200);
+  const publishedVersion = (await json(published)).version;
   assert.match((await live())!.html, /Deadline: July 15/);
 
   const audit = await db
@@ -252,10 +272,13 @@ test("a draft stays off the live page, a publish puts it there, and each write i
     { event: "save", change_id: "chg_save" },
     { event: "publish", change_id: "chg_publish" },
   ]);
-  // Each revision names the person, and the oldest one still opens.
+  // Each revision names the person Carrel signed in, and the oldest one still opens.
   const revisions = (await json(await call("/api/carrel/v1/content/award-nominations/revisions")))
     .items as Array<{ version: string; author: string }>;
-  assert.deepEqual([...new Set(revisions.map((r) => r.author))], ["Dustin Edwards"]);
+  assert.deepEqual([...new Set(revisions.map((r) => r.author))].sort(), [
+    "Dustin Edwards",
+    "Julie Edwards",
+  ]);
   const oldest = await json(
     await call(
       `/api/carrel/v1/content/award-nominations/revisions/${encodeURIComponent(revisions.at(-1)!.version)}`,
@@ -266,11 +289,23 @@ test("a draft stays off the live page, a publish puts it there, and each write i
   const unpublish = await call("/api/carrel/v1/content/award-nominations/unpublish", {
     method: "POST",
     body: JSON.stringify({
-      expectedVersion: (await json(published)).version,
+      expectedVersion: publishedVersion,
       changeId: "chg_down",
     }),
   });
-  assert.equal(unpublish.status, 422);
+  assert.equal(unpublish.status, 200);
+  const down = await json(unpublish);
+  assert.equal(down.status, "draft");
+  assert.notEqual(down.version, publishedVersion);
+  assert.equal((await live2())!.published_at, null);
+
+  // The source stays, and a publish puts the page back.
+  const back = await call("/api/carrel/v1/content/award-nominations/publish", {
+    method: "POST",
+    body: JSON.stringify({ expectedVersion: down.version, changeId: "chg_up" }),
+  });
+  assert.equal(back.status, 200);
+  assert.notEqual((await live2())!.published_at, null);
 });
 
 test("an update scheduled on a live page goes live from the cron at its time and no sooner, and the hooks hear it", async () => {
@@ -399,7 +434,11 @@ test("a library picture: a page publishes it with its sizes, and while a page us
   const alt = (changeId: string) =>
     call(`${PREFIX}/media/${enc(file.id)}/alt`, {
       method: "PUT",
-      body: JSON.stringify({ alt: changeId, expectedVersion: file.version, changeId }),
+      body: JSON.stringify({
+        alt: changeId,
+        expectedVersion: file.version,
+        changeId,
+      }),
     });
   assert.equal((await alt("chg_alt_1")).status, 200);
   assert.equal((await alt("chg_alt_2")).status, 409);
@@ -440,7 +479,11 @@ test("a turn keeps the old bytes in the history, a revert puts them back, and a 
   const flipped = await json(
     await call(`${PREFIX}/media/${enc(square.id)}/transform`, {
       method: "POST",
-      body: JSON.stringify({ op: "flip-h", expectedVersion: square.version, changeId: "chg_flip" }),
+      body: JSON.stringify({
+        op: "flip-h",
+        expectedVersion: square.version,
+        changeId: "chg_flip",
+      }),
     }),
   );
   assert.equal(flipped.asNewFile, false, JSON.stringify(flipped));
@@ -512,7 +555,9 @@ test("a large picture is shrunk at upload unless asked not to, and its original 
 
   // Another picture: one that differs only in its tEXt would be the same file.
   const asIs = await json(
-    await upload(png({ width: 4800, height: 2400 }), "large-kept.png", { resize: "no" }),
+    await upload(png({ width: 4800, height: 2400 }), "large-kept.png", {
+      resize: "no",
+    }),
   );
   assert.deepEqual([asIs.width, asIs.height], [4800, 2400]);
 });
@@ -526,7 +571,11 @@ test("the change log names each file changed since a cursor, and each one delete
   assert.ok(changed.items.some((i: { id: string }) => i.id === file.id));
 
   assert.equal(
-    (await call(`${PREFIX}/media/${enc(file.id)}?changeId=chg_gone`, { method: "DELETE" })).status,
+    (
+      await call(`${PREFIX}/media/${enc(file.id)}?changeId=chg_gone`, {
+        method: "DELETE",
+      })
+    ).status,
     200,
   );
   const after = await json(await call(`${PREFIX}/media?changedSince=${changed.changeCursor}`));

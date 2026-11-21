@@ -1009,10 +1009,14 @@ export const pageRevision = sqliteTable(
     pageSlug: text("page_slug")
       .notNull()
       .references(() => page.slug, { onDelete: "cascade" }),
-    event: text("event", { enum: ["save", "publish", "schedule", "unschedule"] }).notNull(),
+    event: text("event", {
+      enum: ["save", "publish", "schedule", "unschedule", "unpublish"],
+    }).notNull(),
     changeId: text("change_id").notNull(),
     version: text("version").notNull(),
     source: text("source").notNull(),
+    // The person behind the change, as Carrel signs them in; null on a revision from before site-api named the actor.
+    actor: text("actor"),
     createdAt: createdAt(),
   },
   (t) => [index("ix_page_revision_page").on(t.pageSlug, t.createdAt)],

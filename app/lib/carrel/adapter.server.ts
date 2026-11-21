@@ -3,9 +3,11 @@
 // (getCarrelPages), which writes each change with its audit row.
 //
 // SCOPE. The pages the site has a route for, seeded by migration 0019. Carrel saves drafts,
-// publishes and schedules; it cannot create a page (no route would show it) or take one down
-// (each is a live route), and the adapter has no rename, trash or delete, so the package answers
-// those routes 501 and meta.capabilities leaves them out.
+// publishes, schedules and unpublishes; it cannot create a page (no route would show it), and the
+// adapter has no rename, trash or delete (a deleted page could never come back), so the package
+// answers those routes 501 and meta.capabilities leaves them out. An unpublished page keeps its
+// working source and goes back live with a publish: its route answers 404, or on home the
+// site's own welcome.
 //
 // SCHEDULES. Every page is live, so a schedule is site-api's scheduled update (v0.10.0): its own
 // source in scheduled_updates (migration 0026), with the page still "published" and the update in
@@ -62,6 +64,8 @@ import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 import { documentAttrs } from "capsomer/behavior/document";
 
 const KIND = "page";
+/** The author of a revision that names nobody. */
+const FALLBACK_AUTHOR = "Carrel";
 
 /**
  * The site's own render of one page route (workers/app.ts), with `preview` in place of the published row: the page as
@@ -80,10 +84,18 @@ const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 const waitingOf = (u: ScheduledUpdate | null): Waiting =>
   u ? { publishAt: u.publishAt, changeId: u.changeId } : null;
 
-const versionOf = (p: Pick<Page, "source" | "html">, update: Waiting = null): Promise<string> =>
-  contentVersion(
-    update ? [p.source, p.html, update.publishAt, update.changeId] : [p.source, p.html],
-  );
+// An unpublished page keeps its source and html, so the version also carries that it is down; a live page's
+// version is what it always was.
+const versionOf = (
+  p: Pick<Page, "source" | "html" | "publishedAt">,
+  update: Waiting = null,
+): Promise<string> =>
+  contentVersion([
+    p.source,
+    p.html,
+    ...(p.publishedAt ? [] : ["down"]),
+    ...(update ? [update.publishAt, update.changeId] : []),
+  ]);
 
 // A page's path is its slug, and the home page is the site root.
 const pathOf = (slug: string) => (slug === "home" ? "/" : `/${slug}`);
@@ -113,7 +125,8 @@ const REVISION_MESSAGES: Record<PageWrite["event"], string> = {
   save: "Saved",
   publish: "Published",
   schedule: "Scheduled an update",
-  unschedule: "Canceled the scheduled update",
+  unschedule: "Unscheduled",
+  unpublish: "Unpublished",
 };
 
 function parse(source: string): PageSource {
@@ -153,19 +166,23 @@ async function searchFieldsFor(env: Env, search: PageSource["search"]): Promise<
 
 export function createCarrelAdapter(
   env: Env,
-  options: { renderVersion?: string; stylesheets?: string[]; renderPage?: RenderPage } = {},
+  options: {
+    renderVersion?: string;
+    stylesheets?: string[];
+    renderPage?: RenderPage;
+  } = {},
 ): SiteAdapter {
   const pages = getCarrelPages(env);
   const origin = () => publicOrigin(env, SITE_ORIGIN);
 
   type Change = Pick<PageWrite, "fields" | "schedule">;
+  type Meta = { changeId: string; expectedVersion: string | null; actor?: { name: string } };
 
   /** Checks the version, then writes the change, its schedule change and its audit row together. */
   async function write(
     slug: string,
     event: PageWrite["event"],
-    changeId: string,
-    expectedVersion: string | null,
+    { changeId, expectedVersion, actor }: Meta,
     build: (current: Page, update: Waiting) => Promise<Change>,
   ): Promise<WriteResult> {
     const current = await pages.get(slug);
@@ -179,12 +196,22 @@ export function createCarrelAdapter(
     const schedule = change.schedule;
     const nextUpdate: Waiting =
       schedule && "put" in schedule
-        ? { publishAt: utc(schedule.put.publishAt), changeId: schedule.put.changeId }
+        ? {
+            publishAt: utc(schedule.put.publishAt),
+            changeId: schedule.put.changeId,
+          }
         : schedule && "drop" in schedule
           ? null
           : update;
     const version = await versionOf(next, nextUpdate);
-    await pages.write(slug, { event, changeId, version, source: next.source, ...change });
+    await pages.write(slug, {
+      event,
+      changeId,
+      actor: actor?.name,
+      version,
+      source: next.source,
+      ...change,
+    });
     return {
       id: slug,
       version,
@@ -213,13 +240,25 @@ export function createCarrelAdapter(
   // rather than failing at its time. Scheduling again replaces the update that was waiting.
   const scheduleUpdate = (
     id: string,
-    input: { source?: string; publishAt: string; expectedVersion: string; changeId: string },
+    input: {
+      source?: string;
+      publishAt: string;
+      expectedVersion: string;
+      changeId: string;
+      actor?: { name: string };
+    },
   ) =>
-    write(id, "schedule", input.changeId, input.expectedVersion, async (current) => {
+    write(id, "schedule", input, async (current) => {
       const source = input.source ?? current.source;
       await publishFields(source, new Date());
       return {
-        schedule: { put: { source, publishAt: input.publishAt, changeId: input.changeId } },
+        schedule: {
+          put: {
+            source,
+            publishAt: input.publishAt,
+            changeId: input.changeId,
+          },
+        },
       };
     });
 
@@ -259,7 +298,10 @@ export function createCarrelAdapter(
       const items = await Promise.all(
         page.map(async (p) => {
           const update = waitingOf(await pages.scheduled(p.slug));
-          return { ...summaryOf(p, update), version: await versionOf(p, update) };
+          return {
+            ...summaryOf(p, update),
+            version: await versionOf(p, update),
+          };
         }),
       );
       const nextCursor = start + query.limit < rows.length ? String(start + query.limit) : null;
@@ -281,14 +323,14 @@ export function createCarrelAdapter(
     // A draft changes only the working source; the route keeps showing the published page, and an update
     // scheduled on it keeps waiting.
     saveDraft: (id, input) =>
-      write(id, "save", input.changeId, input.expectedVersion, async () => {
+      write(id, "save", input, async () => {
         parse(input.source);
         return { fields: { source: input.source } };
       }),
 
     // What goes live is this publish, so an update waiting on the page is dropped and the cron never brings it back.
     publish: (id, input) =>
-      write(id, "publish", input.changeId, input.expectedVersion, async (current) => ({
+      write(id, "publish", input, async (current) => ({
         fields: await publishFields(
           input.source ?? current.source,
           input.publishedAt ? new Date(input.publishedAt) : new Date(),
@@ -300,14 +342,13 @@ export function createCarrelAdapter(
     // only an id the site does not hold, which the version check refuses.
     schedule: scheduleUpdate,
 
+    // The page goes back to a draft: its source stays, the route stops showing it, and an update waiting on it is
+    // dropped, since a page that is down has nothing to replace.
     unpublish: (id, input) =>
-      write(id, "publish", input.changeId, input.expectedVersion, () =>
-        Promise.reject(
-          new RefusedError(
-            "Every txasm page is a live route, so it stays published. Publish a new version instead.",
-          ),
-        ),
-      ),
+      write(id, "unpublish", input, async () => ({
+        fields: { publishedAt: null },
+        schedule: { drop: true },
+      })),
 
     async revisions(id) {
       const page = await pages.get(id);
@@ -315,8 +356,8 @@ export function createCarrelAdapter(
       const kept = (await pages.revisions(id)).map((r) => ({
         version: r.version,
         at: r.createdAt.toISOString(),
-        // The person behind Carrel's writes, until site-api names the actor of each change.
-        author: "Dustin Edwards",
+        // The person Carrel named for the change; a revision from before that, or a scheduled update going live, has none.
+        author: r.actor ?? FALLBACK_AUTHOR,
         message: `${REVISION_MESSAGES[r.event]} (${r.changeId})`,
       }));
       // The page as it stands is always the newest revision. A page nobody has saved through Carrel yet has no
@@ -327,8 +368,8 @@ export function createCarrelAdapter(
         {
           version: current,
           at: page.updatedAt.toISOString(),
-          author: "Dustin Edwards",
-          message: "The page as it stands now",
+          author: FALLBACK_AUTHOR,
+          message: "Current",
         },
         ...kept,
       ];
@@ -349,16 +390,10 @@ export function createCarrelAdapter(
 
     async cancel(id, input) {
       if (!(await pages.get(id))) throw new NotFoundError();
-      return write(
-        id,
-        "unschedule",
-        input.changeId,
-        input.expectedVersion,
-        async (_current, update) => {
-          if (!update) throw new RefusedError("Nothing is scheduled for this page.");
-          return { schedule: { drop: true } };
-        },
-      );
+      return write(id, "unschedule", input, async (_current, update) => {
+        if (!update) throw new RefusedError("Nothing is scheduled for this page.");
+        return { schedule: { drop: true } };
+      });
     },
 
     due: ({ now, limit }) => pages.due(now, limit),
@@ -374,11 +409,12 @@ export function createCarrelAdapter(
       return write(
         id,
         "publish",
-        due.changeId,
-        await versionOf(current, waitingOf(update)),
+        { changeId: due.changeId, expectedVersion: await versionOf(current, waitingOf(update)) },
         async () => ({
           fields: await publishFields(update.source, new Date(due.publishAt)),
-          schedule: { drop: { publishAt: due.publishAt, changeId: due.changeId } },
+          schedule: {
+            drop: { publishAt: due.publishAt, changeId: due.changeId },
+          },
         }),
       );
     },
@@ -417,7 +453,10 @@ export function createCarrelAdapter(
             searchFields: { noindex: true },
             html,
           };
-          const response = await options.renderPage(pathOf(id), { slug: id, page });
+          const response = await options.renderPage(pathOf(id), {
+            slug: id,
+            page,
+          });
           if (!response.ok) {
             throw new RefusedError(
               `The page did not render: its route answered ${response.status}.`,
@@ -430,7 +469,11 @@ export function createCarrelAdapter(
           body: `<main>${title ? `<h1>${escapeHtml(title)}</h1>` : ""}<div class="page-prose">${html}</div></main>`,
           stylesheets: options.stylesheets ?? [],
           origin: origin(),
-          attributes: documentAttrs({ family: "navy", site: "txasm", theme: "light" }),
+          attributes: documentAttrs({
+            family: "navy",
+            site: "txasm",
+            theme: "light",
+          }),
         });
       },
     },
