@@ -1097,7 +1097,7 @@ export const aiOutcomes = sqliteTable("ai_outcomes", {
 
 // The day each code-written page last changed, for /sitemap.xml's lastmod: one row, Prelum's trackPageDates record, kept by
 // the daily page-dates job (app/lib/page-dates.server.ts) through d1FireStore's get and put.
-export const pageDates = sqliteTable("page_dates", {
+export const pageRecords = sqliteTable("page_dates", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });

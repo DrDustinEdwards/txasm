@@ -1,7 +1,5 @@
 import { kvPageRecord, trackPageDates } from "@drdustinedwards/site-helpers/lastmod";
 import { htmlToMarkdown } from "@drdustinedwards/site-helpers/markdown-copy";
-import { d1FireStore } from "@dustinedwards/site-runtime/routine";
-import { SITE_ORIGIN } from "~/lib/site-meta";
 
 // The day each public page of /sitemap.xml last changed that no row dates (the code-written hubs, and the Carrel pages
 // until they have a publish revision). The daily page-dates job reads each as Markdown, the way a Markdown copy is
@@ -33,23 +31,26 @@ export function setPageRenderer(renderer: PageRenderer): void {
 
 /** The record the job keeps, from its D1 row. */
 export const pageRecordStore = (env: Env) =>
-  kvPageRecord(d1FireStore(env.DB, "page_dates"), PAGE_DATES_KEY);
+  kvPageRecord(
+    {
+      get: () => env.DB.prepare("SELECT value FROM page_dates").first<string>("value"),
+      put: (key, value) =>
+        env.DB.prepare("REPLACE INTO page_dates VALUES (?1, ?2)").bind(key, value).run(),
+    },
+    PAGE_DATES_KEY,
+  );
 
 /** The daily job: date every tracked page. */
-export async function runPageDates(env: Env): Promise<{ rowsProcessed: number }> {
-  if (!renderPage) throw new Error("page-dates: no page renderer is set");
-  const render = renderPage;
+export async function runPageDates(env: Env): Promise<void> {
+  const render = renderPage!;
   const store = pageRecordStore(env);
-  const { record } = await trackPageDates({
+  await trackPageDates({
     paths: TRACKED_PATHS,
     read: async (path) => {
       const html = await render(path, env);
-      if (html === null) return null;
-      const facts = htmlToMarkdown(html, { base: `${SITE_ORIGIN}${path}` });
-      return `${facts.title}\n${facts.description}\n${facts.markdown}`;
+      return html && htmlToMarkdown(html).markdown;
     },
     load: store.load,
     save: store.save,
   });
-  return { rowsProcessed: Object.keys(record).length };
 }
