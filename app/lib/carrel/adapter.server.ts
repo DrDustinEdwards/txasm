@@ -443,7 +443,7 @@ export function createCarrelAdapter(
     preview: {
       async render({ id, source }) {
         const { front, body } = splitSource(source);
-        const { html } = await renderBody(env, body);
+        const { html, renderVersion } = await renderBody(env, body);
         const title = readKey(front, "title").trim();
         if (id && options.renderPage && (await pages.get(id))) {
           const description = readKey(front, "description").trim() || null;
@@ -452,6 +452,7 @@ export function createCarrelAdapter(
             description,
             searchFields: { noindex: true },
             html,
+            renderVersion,
           };
           const response = await options.renderPage(pathOf(id), {
             slug: id,

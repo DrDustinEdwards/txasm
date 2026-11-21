@@ -23,6 +23,7 @@ export interface PublishedPage {
   description: string | null;
   searchFields: PageSearch | null;
   html: string;
+  renderVersion: string;
 }
 
 export function createPages(db: DB) {
@@ -35,6 +36,7 @@ export function createPages(db: DB) {
           description: true,
           searchFields: true,
           html: true,
+          renderVersion: true,
           publishedAt: true,
         },
       });
