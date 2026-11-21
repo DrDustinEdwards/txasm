@@ -144,3 +144,31 @@ export async function rerenderUsing(env: Env, key: string): Promise<number> {
   }
   return done;
 }
+
+/**
+ * Renders again each published page whose stored html is older than Prelum's release (an upgrade left it behind), from
+ * the source its last publish put live, so the page and prelum-content both read the current render. A page that no
+ * longer renders is logged and left as it is. Returns how many pages it rendered again; with none stale it is one read.
+ */
+export async function rerenderStale(env: Env): Promise<number> {
+  const { RENDER_VERSION } = await import("@drdustinedwards/site-helpers/render/nomath");
+  const pages = getCarrelPages(env);
+  let done = 0;
+  for (const page of await pages.list()) {
+    if (!page.publishedAt || page.renderVersion === RENDER_VERSION) continue;
+    try {
+      const published = await pages.publishedSource(page.slug);
+      if (published === null) throw new Error("no publish revision holds its live source");
+      const { html, renderVersion } = await renderBody(env, parseSource(published).body);
+      await pages.rerendered(page.slug, { html, renderVersion, searchFields: page.searchFields });
+      done += 1;
+    } catch (err) {
+      logEvent(
+        "render.stale-failed",
+        { page: page.slug, error: err instanceof Error ? err.message : String(err) },
+        { level: "error" },
+      );
+    }
+  }
+  return done;
+}

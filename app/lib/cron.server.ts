@@ -14,6 +14,8 @@ import { pruneNotFoundJob } from "@dustinedwards/site-runtime/not-found";
 import { pruneAuthEventsJob } from "@dustinedwards/site-runtime/sign-in";
 import { backupUploads, runNightlyBackup } from "~/lib/backup.server";
 import { runCarrelSchedules } from "~/lib/carrel/handler.server";
+import { rerenderStale } from "~/lib/carrel/render.server";
+import { logEvent } from "@dustinedwards/site-runtime/log";
 
 const SCHEDULES_CRON = "* * * * *";
 const DAILY_CRON = "0 3 * * *";
@@ -22,7 +24,19 @@ const FOUR_MINUTES = 4 * 60_000;
 
 export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[]> {
   return {
-    [SCHEDULES_CRON]: [carrelSchedulesJob(() => runCarrelSchedules(env, scheduledTime))],
+    [SCHEDULES_CRON]: [
+      carrelSchedulesJob(() => runCarrelSchedules(env, scheduledTime)),
+      // A page a Prelum upgrade left on an older render is stored again within a minute of the deploy.
+      {
+        name: "rerender-stale",
+        everyMinutes: 1,
+        timeoutMs: 50_000,
+        run: async () => {
+          const done = await rerenderStale(env);
+          if (done) logEvent("render_stale", { pages: done });
+        },
+      },
+    ],
     [DAILY_CRON]: [
       backupJob(() => runNightlyBackup(env)),
       backupJob(() => backupUploads(env), {
