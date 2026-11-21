@@ -24,11 +24,6 @@ export const links: Route.LinksFunction = () => [
   ...iconLinks(),
 ];
 
-// An unmatched address matches only the root, so the error path's title comes from here (WCAG 2.4.2).
-export function meta({ error, loaderData }: Route.MetaArgs) {
-  return error ? [{ title: errorTitle(error, loaderData?.settings?.shortName || SITE_NAME) }] : [];
-}
-
 // Root provides the document, the theme, and the platform settings the shells
 // render (org identity, footer links). The public and admin shells (their own
 // layout routes) read these from the root loader data.
@@ -75,5 +70,10 @@ export default function App() {
 // Capsomer's error page (404, 410, 500 in plain words, noindex, the stack only in development). The public header and
 // footer read loader data the error path does not have, so they are left out, as before.
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  return <ErrorPage error={error} home="/" dev={import.meta.env.DEV} />;
+  return (
+    <>
+      <title>{errorTitle(error, SITE_NAME)}</title>
+      <ErrorPage error={error} home="/" dev={import.meta.env.DEV} />
+    </>
+  );
 }
