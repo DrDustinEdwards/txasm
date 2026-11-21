@@ -43,15 +43,13 @@ export async function loader({ context }: Route.LoaderArgs) {
     }),
   ]);
   const abstractPages = await Promise.all(
-    meetings
-      .filter((m) => m.abstractCount > 0)
-      .map(async (m) => {
-        const listing = await da.publicAbstracts.listForEdition(m.slug);
-        return (listing?.abstracts ?? []).map((a) => ({
-          path: `/meetings/${m.slug}/abstracts/${a.number}`,
-          lastmod: changed.edition.get(m.slug),
-        }));
-      }),
+    meetings.map(
+      async ({ slug }) =>
+        (await da.publicAbstracts.listForEdition(slug))?.abstracts.map((a) => ({
+          path: `/meetings/${slug}/abstracts/${a.number}`,
+          lastmod: changed.edition.get(slug),
+        })) ?? [],
+    ),
   );
   const listed: Record<string, Date | undefined> = {
     "/meetings": newest([...changed.edition.values()]),
