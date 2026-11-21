@@ -29,7 +29,6 @@ txasm.org: a conference and abstract-management platform for the Texas Branch of
 
 Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (`context.get(cloudflareContext).env`, from `app/load-context.ts`).
 
-
 ## Commands
 
 - `npm run dev` - Vite dev server in workerd, bindings available locally
