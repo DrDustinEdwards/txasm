@@ -17,3 +17,11 @@ interface Env extends TxasmSecrets {}
 declare namespace Cloudflare {
   interface Env extends TxasmSecrets {}
 }
+
+declare module "virtual:islands" {
+  export const SITE_SCRIPT: Readonly<{
+    src: string;
+    integrity?: string;
+    crossOrigin?: "anonymous";
+  }>;
+}
