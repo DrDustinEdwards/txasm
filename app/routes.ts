@@ -21,6 +21,8 @@ export default [
     route("sponsorship", "routes/sponsorship.tsx"),
     route("contact", "routes/contact.tsx"),
     route("accessibility", "routes/accessibility.tsx"),
+    // Every other path: 410 for a page removed on purpose, else 404, drawn inside this layout so the header and footer stay.
+    route("*", "routes/not-found.tsx"),
     // The private pages (sign-in, account, submission, review): no Web Analytics (site-runtime PRIVATE_PAGE_HEADERS).
     layout("routes/private.layout.tsx", [
       route(SIGN_IN_PATH.slice(1), "routes/login.tsx"),
@@ -99,6 +101,4 @@ export default [
   route("api/abstracts-search", "routes/api.abstracts-search.ts"),
   route("api/auth/*", "routes/api.auth.$.ts"),
   route("health", "routes/health.ts"),
-  // Every other path: 410 for a page removed on purpose, else 404, drawn by the root ErrorBoundary.
-  route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;
