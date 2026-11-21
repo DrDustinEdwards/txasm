@@ -34,9 +34,9 @@ export function coverArt({ meetingName, dates, title }: CoverInput): string {
 
   return `<section class="cover"><svg class="cover-art" viewBox="0 0 595 842" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="120" height="842" style="fill:var(--brand-blue)" />
-  <rect x="120" y="0" width="475" height="421" style="fill:#ffffff" />
+  <rect x="120" y="0" width="475" height="421" style="fill:#fff" />
   <rect x="120" y="421" width="475" height="421" style="fill:var(--brand-red)" />
-  <path style="fill:#ffffff" d="M 0,311 L 25.9,385.4 L 104.6,387 L 41.8,434.6 L 64.7,510 L 0,465 L -64.7,510 L -41.8,434.6 L -104.6,387 L -25.9,385.4 Z" />
+  <path style="fill:#fff" d="M 0,311 L 25.9,385.4 L 104.6,387 L 41.8,434.6 L 64.7,510 L 0,465 L -64.7,510 L -41.8,434.6 L -104.6,387 L -25.9,385.4 Z" />
   <text x="181.4" y="136" text-anchor="start" font-family="Inter" font-size="44" font-weight="600" letter-spacing="-0.44" style="fill:var(--brand-blue)">Texas</text>
   <svg x="318.8" y="94.7" width="53.3" height="50.6" viewBox="0 0 200 190"><path style="fill:var(--text-muted)" d="${TEXAS_STATE_PATH}" /></svg>
   <text x="388.8" y="136" text-anchor="start" font-family="Inter" font-size="44" font-weight="600" letter-spacing="-0.44" style="fill:var(--brand-red)">Branch</text>
@@ -50,7 +50,7 @@ export function coverArt({ meetingName, dates, title }: CoverInput): string {
   )}</text>
   ${datesLine}
   <svg x="296" y="551" width="122" height="151" viewBox="22.1 22.4 290.3 358.2">${txasmMarkPaths(
-    "#ffffff",
+    "#fff",
   )}</svg>
 </svg></section>`;
 }
