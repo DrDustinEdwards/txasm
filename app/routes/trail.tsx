@@ -1,8 +1,6 @@
 import { Text, Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
-import { useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/trail";
-import type { loader as rootLoader } from "~/root";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
@@ -29,18 +27,12 @@ const MEETING_YEARS = [
 ];
 
 export default function Trail() {
-  const rootData = useRouteLoaderData<typeof rootLoader>("root");
-  const foundingYear = rootData?.settings?.foundingYear ?? null;
-
   return (
     <Stack gap={7}>
       <Stack as="header" gap={4}>
         <Title as="h1" size={2}>
           Host cities of the Texas Branch
         </Title>
-        {foundingYear ? (
-          <p className="cap-muted cap-measure">Twice a year since {foundingYear}.</p>
-        ) : null}
       </Stack>
 
       <Stack as="section" aria-label="Meetings on record">

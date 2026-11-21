@@ -82,9 +82,7 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
 
   return (
     <Stack gap={7}>
-      <EditionPageHead title="Abstract categories" edition={edition}>
-        <p className="cap-muted">Authors choose one of these when they submit an abstract.</p>
-      </EditionPageHead>
+      <EditionPageHead title="Abstract categories" edition={edition} />
 
       {error ? (
         <p role="alert" className="cap-alert">

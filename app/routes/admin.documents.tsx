@@ -404,7 +404,6 @@ function MetaFields({ doc, editions }: { doc?: Doc; editions: Edition[] }) {
           placeholder="fall-1991-newsletter"
           className="cap-input"
         />
-        <p className="tiny cap-muted">Leave blank on a new document to derive it from the title.</p>
       </Stack>
     </div>
   );
