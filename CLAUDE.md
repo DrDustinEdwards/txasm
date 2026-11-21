@@ -1,14 +1,22 @@
 # CLAUDE.md - txasm
 
-Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo. Before writing anything another site might have, read what the sites share: https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md (CI's shared-code check fails on a copy).
+Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo.
 
 ## What this is
 
 txasm.org: a conference and abstract-management platform for the Texas Branch of the American Society for Microbiology, replacing the paid Oxford Abstracts service and the old WordPress site. It runs the full lifecycle of a meeting twice a year: registration and payment, abstract submission and editing, reviewer invitation and rubric scoring, accept/reject decisions, the program schedule, and an auto-generated abstract book PDF. Solo-maintained. Each meeting is an edition; the same code runs every meeting forever.
 
-- Tests: keep the minimal set (a few browser tests for flows that must never break, one integration test per real behavior, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
-- Browser support: devkit's docs/browser-support.md (Baseline Widely available freely; Newly available with a small fallback; Limited only feature-detected; no polyfills).
-- UI copy: let the layout explain. No eyebrows, restating subtitles, "this page lets you" intros, descriptions under obvious buttons, hints a label already gives, repeated captions or empty-state essays; labels, accessible names, errors, one-way warnings and legal text stay (Dustin, 2026-11-18; Capsid capsid/conventions.md).
+## Rules every repo shares
+
+- **Tests.** Keep the minimal set (a few browser tests for flows that must never break, one integration test per real behavior, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
+- **UI copy.** Let the layout explain. No eyebrows, restating subtitles, "this page lets you" intros, descriptions under obvious buttons, hints a label already gives, repeated captions or empty-state essays; labels, accessible names, errors, one-way warnings and legal text stay (Dustin, 2026-11-18; Capsid capsid/conventions.md).
+- **Shared code.** Before writing anything another site might have, read https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md (CI's shared-code check fails on a copy). Change shared code in place and delete what a change replaces in the same PR.
+- **Browser support.** devkit's docs/browser-support.md (Baseline Widely available freely; Newly available with a small fallback; Limited only feature-detected; no polyfills).
+- **Secrets.** Never commit or print a key, token, `.dev.vars` or `.env`.
+- **Reproduce first.** A report that something is broken names a cause; reproduce the failure before fixing it, and report red before and green after.
+- **Deploys.** A merge to the default branch deploys (CI's deploy job); never deploy from a session.
+- **D1.** Migrations are additive: CI applies the ones that only add and refuses a drop, rename or row delete for a hand run; never hand-run production DDL. `wrangler d1 export` fails on FTS5 tables, so back up and restore with d1-dump (its README); never export an `*_fts` table. Checking backups, backing up now and running a scheduled job now are Capsid Admin's, for every site (`/api/operator`, site-runtime `./operator`).
+- **Site copy and AI.** Copy describes only what the current build does. An AI provider key stays on the server, never in a client.
 
 ## Stack (repo-specific additions to the house stack)
 
@@ -25,18 +33,16 @@ Reach D1, R2, KV, the send_email binding, and Browser Rendering through the inje
 
 - `npm run dev` - Vite dev server in workerd, bindings available locally
 - `npm run build` - production build (client + server)
-- `npm run deploy` - wrangler deploy (do not touch txasm.org DNS until cutover). A merge to main deploys: CI's `deploy` job applies the pending D1 migrations that only add (a drop, rename or row delete is refused for a hand run), then deploys, while the repo variable `CF_DEPLOY` is `true`.
 - `npm run typecheck` - wrangler types + react-router typegen + tsc -b
 - `npm run lint` and `npm test` - Oxlint (the shared config, `oxlint.config.ts`), and the node tests in `tests/` (real D1 and R2 in Miniflare)
-- `npm run db:generate` / `db:migrate` / `db:migrate:prod`
+- `npm run db:generate` / `db:migrate` / `db:migrate:prod` - drizzle-kit generates migrations, wrangler applies them. Do not touch txasm.org DNS until cutover.
 
 ## Hard rules
 
-A rule stays here only if it stops a real, costly mistake that nothing else catches. Earlier rulings are in the version history of Capsid `txasm/decisions.md` (retired 2026-10-29).
+A rule stays here only if it stops a real, costly mistake that nothing else catches.
 
 1. D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`; Oxlint refuses other imports of the Drizzle client, and `tests/boundary.test.ts` proves it). Roles are admin, chair, reviewer (explicit grants); author and attendee come from ownership and a paid registration. Conflict of interest is checked at assignment time. Chairs stay out of admin-only config (categories, fees, windows), and the confidential comment is for chairs and admins only, never authors or other reviewers.
 2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive. The rubric is data (rubric_criterion and review_score per edition), not columns, so it changes each meeting with no migration.
-3. Migrations are generated with drizzle-kit, applied with wrangler, and additive only once data exists.
-4. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.
-5. Abstracts are structured text sections with inline formatting limited to `<em>`, `<sup>` and `<sub>`, re-sanitized on every save; no uploads. Image responses keep the sandboxed CSP and nosniff, so an uploaded SVG cannot run script. The category value `brand_image` never changes (only its label), and brand images stay out of the public archive.
-6. Visible copy says "Meeting"; tables, functions, types, route files and URLs stay "edition". A UI redesign is mocked for Dustin before code.
+3. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.
+4. Abstracts are structured text sections with inline formatting limited to `<em>`, `<sup>` and `<sub>`, re-sanitized on every save; no uploads. Image responses keep the sandboxed CSP and nosniff, so an uploaded SVG cannot run script. The category value `brand_image` never changes (only its label), and brand images stay out of the public archive.
+5. Visible copy says "Meeting"; tables, functions, types, route files and URLs stay "edition".
