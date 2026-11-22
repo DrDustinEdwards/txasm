@@ -6,7 +6,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair } from "~/lib/auth.server";
-import { NotFoundError, getDataAccess } from "~/lib/data-access";
+import { orNotFound, getDataAccess } from "~/lib/data-access";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
 import { RichText } from "capsomer/react/trusted-html";
@@ -20,15 +20,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
 
-  let abstract;
-  try {
-    abstract = await da.abstracts.get(actor, params.abstractId);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
-  }
+  const abstract = await orNotFound(da.abstracts.get(actor, params.abstractId));
 
   const reviews = await da.reviews.listForAbstract(actor, params.abstractId);
   return {

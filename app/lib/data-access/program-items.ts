@@ -18,6 +18,34 @@ import {
   publishedBookCodes,
 } from "./program-model";
 
+async function chairSession(db: DB, actor: Actor, sessionId: string) {
+  const session = await db.query.programSession.findFirst({
+    where: eq(schema.programSession.id, sessionId),
+  });
+  if (!session) throw new NotFoundError("session not found");
+  if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+  return session;
+}
+
+async function chairItem(db: DB, actor: Actor, itemId: string) {
+  const item = await db.query.programItem.findFirst({
+    where: eq(schema.programItem.id, itemId),
+  });
+  if (!item) throw new NotFoundError();
+  await chairSession(db, actor, item.sessionId);
+  return item;
+}
+
+async function nextSortOrder(db: DB, sessionId: string) {
+  const last = await db
+    .select({ sortOrder: schema.programItem.sortOrder })
+    .from(schema.programItem)
+    .where(eq(schema.programItem.sessionId, sessionId))
+    .orderBy(desc(schema.programItem.sortOrder))
+    .limit(1);
+  return (last[0]?.sortOrder ?? -1) + 1;
+}
+
 // Program items within a session. Chair/admin. An item is either an accepted
 // abstract or a custom entry; that rule is enforced here.
 export function createProgramItems(db: DB) {
@@ -54,11 +82,7 @@ export function createProgramItems(db: DB) {
       actor: Actor,
       input: { sessionId: string; abstractId: string; kind?: ProgramItemKind },
     ) {
-      const session = await db.query.programSession.findFirst({
-        where: eq(schema.programSession.id, input.sessionId),
-      });
-      if (!session) throw new NotFoundError("session not found");
-      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const session = await chairSession(db, actor, input.sessionId);
       const kind = assertKind(input.kind ?? "talk");
 
       const abs = await db.query.abstract.findFirst({
@@ -94,13 +118,7 @@ export function createProgramItems(db: DB) {
         );
       }
 
-      const last = await db
-        .select({ sortOrder: schema.programItem.sortOrder })
-        .from(schema.programItem)
-        .where(eq(schema.programItem.sessionId, input.sessionId))
-        .orderBy(desc(schema.programItem.sortOrder))
-        .limit(1);
-      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      const nextOrder = await nextSortOrder(db, input.sessionId);
       // One-of rule: an abstract item sets abstractId only, leaving speakerId and
       // customTitle null.
       // The unique index on abstract_id settles a race with another chair: the
@@ -129,11 +147,7 @@ export function createProgramItems(db: DB) {
       actor: Actor,
       input: { sessionId: string; speakerId: string; kind?: ProgramItemKind },
     ) {
-      const session = await db.query.programSession.findFirst({
-        where: eq(schema.programSession.id, input.sessionId),
-      });
-      if (!session) throw new NotFoundError("session not found");
-      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const session = await chairSession(db, actor, input.sessionId);
 
       const speaker = await db.query.invitedSpeaker.findFirst({
         where: eq(schema.invitedSpeaker.id, input.speakerId),
@@ -144,13 +158,7 @@ export function createProgramItems(db: DB) {
       }
       const kind = assertKind(input.kind ?? "keynote");
 
-      const last = await db
-        .select({ sortOrder: schema.programItem.sortOrder })
-        .from(schema.programItem)
-        .where(eq(schema.programItem.sessionId, input.sessionId))
-        .orderBy(desc(schema.programItem.sortOrder))
-        .limit(1);
-      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      const nextOrder = await nextSortOrder(db, input.sessionId);
       const [created] = await db
         .insert(schema.programItem)
         .values({
@@ -173,22 +181,12 @@ export function createProgramItems(db: DB) {
         startsAt?: Date | null;
       },
     ) {
-      const session = await db.query.programSession.findFirst({
-        where: eq(schema.programSession.id, input.sessionId),
-      });
-      if (!session) throw new NotFoundError("session not found");
-      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      await chairSession(db, actor, input.sessionId);
       const title = input.customTitle.trim();
       if (!title) throw new ValidationError("Item title is required.");
       const kind = assertKind(input.kind ?? "other");
 
-      const last = await db
-        .select({ sortOrder: schema.programItem.sortOrder })
-        .from(schema.programItem)
-        .where(eq(schema.programItem.sessionId, input.sessionId))
-        .orderBy(desc(schema.programItem.sortOrder))
-        .limit(1);
-      const nextOrder = (last[0]?.sortOrder ?? -1) + 1;
+      const nextOrder = await nextSortOrder(db, input.sessionId);
       // One-of rule: a custom item sets customTitle only.
       const [created] = await db
         .insert(schema.programItem)
@@ -205,15 +203,7 @@ export function createProgramItems(db: DB) {
     },
 
     async update(actor: Actor, itemId: string, patch: ProgramItemPatch) {
-      const item = await db.query.programItem.findFirst({
-        where: eq(schema.programItem.id, itemId),
-      });
-      if (!item) throw new NotFoundError();
-      const session = await db.query.programSession.findFirst({
-        where: eq(schema.programSession.id, item.sessionId),
-      });
-      if (!session) throw new NotFoundError();
-      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      const item = await chairItem(db, actor, itemId);
 
       const set: Partial<typeof schema.programItem.$inferInsert> = {};
       if (patch.kind !== undefined) set.kind = assertKind(patch.kind);
@@ -235,15 +225,7 @@ export function createProgramItems(db: DB) {
     },
 
     async remove(actor: Actor, itemId: string) {
-      const item = await db.query.programItem.findFirst({
-        where: eq(schema.programItem.id, itemId),
-      });
-      if (!item) throw new NotFoundError();
-      const session = await db.query.programSession.findFirst({
-        where: eq(schema.programSession.id, item.sessionId),
-      });
-      if (!session) throw new NotFoundError();
-      if (!isChair(actor, session.editionId)) throw new ForbiddenError();
+      await chairItem(db, actor, itemId);
       await db.delete(schema.programItem).where(eq(schema.programItem.id, itemId));
       return { id: itemId };
     },

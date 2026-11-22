@@ -37,6 +37,16 @@ export class NotFoundError extends Error {
   }
 }
 
+// A public route's read: a missing row is a 404 response, anything else rethrows.
+export async function orNotFound<T>(read: Promise<T>): Promise<T> {
+  try {
+    return await read;
+  } catch (error) {
+    if (error instanceof NotFoundError) throw new Response("Not found", { status: 404 });
+    throw error;
+  }
+}
+
 // Every refusal of a field that does not parse or is out of bounds is one of these, so each writes one
 // `input_validation_fail` line (OWASP's name, site-runtime ./log) as it is made: the words the user is shown, scrubbed
 // and cut, never more of the request.

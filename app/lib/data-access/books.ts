@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { inList, chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
+import { chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { ABSTRACT_LEVELS, type AbstractFormat, type AbstractLevel } from "../vocab";
@@ -12,6 +12,8 @@ import {
   type BookRenderSection,
   bookSectionCodeRange,
   bookSectionLabel,
+  findBook,
+  loadEntryAbstracts,
   type BookView,
   loadBookView,
   recomputeBookCodes,
@@ -45,13 +47,7 @@ export function createBooks(db: DB) {
       )[0];
       if (!ed) throw new NotFoundError("meeting not found");
 
-      const existing = (
-        await db
-          .select()
-          .from(schema.abstractBook)
-          .where(eq(schema.abstractBook.editionId, editionId))
-          .limit(1)
-      )[0];
+      const existing = await findBook(db, editionId);
       if (existing && existing.status === "published") {
         throw new ValidationError("This book is published. Reopen it to edit before regenerating.");
       }
@@ -213,13 +209,7 @@ export function createBooks(db: DB) {
       arrangement: BookArrangementInput,
     ): Promise<BookView> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const book = (
-        await db
-          .select()
-          .from(schema.abstractBook)
-          .where(eq(schema.abstractBook.editionId, editionId))
-          .limit(1)
-      )[0];
+      const book = await findBook(db, editionId);
       if (!book) throw new NotFoundError("no book for this meeting");
       if (book.status === "published") {
         throw new ValidationError("Reopen the book before editing.");
@@ -283,13 +273,7 @@ export function createBooks(db: DB) {
       included: boolean,
     ): Promise<BookView> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const book = (
-        await db
-          .select()
-          .from(schema.abstractBook)
-          .where(eq(schema.abstractBook.editionId, editionId))
-          .limit(1)
-      )[0];
+      const book = await findBook(db, editionId);
       if (!book) throw new NotFoundError("no book for this meeting");
       if (book.status === "published") {
         throw new ValidationError("Reopen the book before editing.");
@@ -320,13 +304,7 @@ export function createBooks(db: DB) {
     // all-authors-to-codes index. Excluded entries and empty sections are dropped.
     async renderData(actor: Actor, editionId: string): Promise<BookRenderData> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const book = (
-        await db
-          .select()
-          .from(schema.abstractBook)
-          .where(eq(schema.abstractBook.editionId, editionId))
-          .limit(1)
-      )[0];
+      const book = await findBook(db, editionId);
       if (!book) throw new NotFoundError("no book for this meeting");
       const ed = (
         await db
@@ -354,20 +332,7 @@ export function createBooks(db: DB) {
         .orderBy(schema.bookEntry.sortOrder);
       const entries = allEntries.filter((e) => e.included);
 
-      const absRows = await db
-        .select()
-        .from(schema.abstract)
-        .where(
-          inList(
-            schema.abstract.id,
-            entries.map((e) => e.abstractId),
-          ),
-        );
-      const absById = new Map(absRows.map((a) => [a.id, a]));
-      const parts = await assembleBookAbstracts(
-        db,
-        entries.map((e) => e.abstractId),
-      );
+      const { absById, parts } = await loadEntryAbstracts(db, entries);
 
       const bySection = new Map<string, typeof entries>();
       for (const e of entries) {
@@ -466,13 +431,7 @@ export function createBooks(db: DB) {
       publishedHtml: string,
     ): Promise<{ status: "published"; publishedAt: Date }> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const book = (
-        await db
-          .select()
-          .from(schema.abstractBook)
-          .where(eq(schema.abstractBook.editionId, editionId))
-          .limit(1)
-      )[0];
+      const book = await findBook(db, editionId);
       if (!book) throw new NotFoundError("no book for this meeting");
       const now = new Date();
       await db
@@ -492,13 +451,7 @@ export function createBooks(db: DB) {
     // successful re-publish.
     async reopen(actor: Actor, editionId: string): Promise<BookView> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
-      const book = (
-        await db
-          .select()
-          .from(schema.abstractBook)
-          .where(eq(schema.abstractBook.editionId, editionId))
-          .limit(1)
-      )[0];
+      const book = await findBook(db, editionId);
       if (!book) throw new NotFoundError("no book for this meeting");
       await db
         .update(schema.abstractBook)
