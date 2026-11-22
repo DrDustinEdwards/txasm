@@ -312,24 +312,7 @@ export async function recomputeBookCodes(db: DB, bookId: string): Promise<void> 
     .where(eq(schema.bookEntry.bookId, bookId));
   if (entries.length === 0) return;
 
-  const absRows = await db
-    .select({
-      id: schema.abstract.id,
-      level: schema.abstract.level,
-      format: schema.abstract.format,
-    })
-    .from(schema.abstract)
-    .where(
-      inList(
-        schema.abstract.id,
-        entries.map((e) => e.abstractId),
-      ),
-    );
-  const absById = new Map(absRows.map((a) => [a.id, a]));
-  const parts = await assembleBookAbstracts(
-    db,
-    entries.map((e) => e.abstractId),
-  );
+  const { absById, parts } = await loadEntryAbstracts(db, entries);
   const sectionOrder = new Map(sections.map((s, i) => [s.id, i]));
 
   const ordered = [...entries].sort(
@@ -358,15 +341,30 @@ export async function recomputeBookCodes(db: DB, bookId: string): Promise<void> 
   }
 }
 
-// The editor read model for a meeting's book, or null when none exists.
-export async function loadBookView(db: DB, editionId: string): Promise<BookView | null> {
-  const bookRow = (
+// A meeting's book row, or undefined when none exists.
+export async function findBook(db: DB, editionId: string) {
+  return (
     await db
       .select()
       .from(schema.abstractBook)
       .where(eq(schema.abstractBook.editionId, editionId))
       .limit(1)
   )[0];
+}
+
+// The abstracts behind a set of book entries: rows by id, and the assembled parts.
+export async function loadEntryAbstracts(db: DB, entries: { abstractId: string }[]) {
+  const ids = entries.map((e) => e.abstractId);
+  const absRows = await db.select().from(schema.abstract).where(inList(schema.abstract.id, ids));
+  return {
+    absById: new Map(absRows.map((a) => [a.id, a])),
+    parts: await assembleBookAbstracts(db, ids),
+  };
+}
+
+// The editor read model for a meeting's book, or null when none exists.
+export async function loadBookView(db: DB, editionId: string): Promise<BookView | null> {
+  const bookRow = await findBook(db, editionId);
   if (!bookRow) return null;
   const ed = (
     await db

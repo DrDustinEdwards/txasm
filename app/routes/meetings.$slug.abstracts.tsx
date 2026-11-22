@@ -7,15 +7,14 @@ import { Panel } from "capsomer/react/panel";
 import { Link, routerRenderLink } from "capsomer/react/link";
 import { Empty } from "capsomer/react/empty";
 import { Field } from "capsomer/react/field";
+import { LevelFormatFields } from "~/components/level-format-fields";
 import { FilterBar } from "capsomer/react/filter-bar";
 import { countText } from "capsomer/content";
 import type { Route } from "./+types/meetings.$slug.abstracts";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess, type PublicAbstractSummary } from "~/lib/data-access";
 import {
-  ABSTRACT_FORMATS,
   ABSTRACT_FORMAT_LABELS,
-  ABSTRACT_LEVELS,
   ABSTRACT_LEVEL_LABELS,
   SEASON_LABELS,
 } from "~/lib/vocab";
@@ -151,26 +150,7 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
           renderLink={routerRenderLink}
           count={countText(abstracts.length, total, { noun: "abstract", plural: "abstracts" })}
         >
-          <Field label="Level">
-            <select id="level" name="level" defaultValue={filters.level} className="cap-select">
-              <option value="">All levels</option>
-              {ABSTRACT_LEVELS.map((l) => (
-                <option key={l} value={l}>
-                  {ABSTRACT_LEVEL_LABELS[l]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Format">
-            <select id="format" name="format" defaultValue={filters.format} className="cap-select">
-              <option value="">All formats</option>
-              {ABSTRACT_FORMATS.map((f) => (
-                <option key={f} value={f}>
-                  {ABSTRACT_FORMAT_LABELS[f]}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <LevelFormatFields level={filters.level} format={filters.format} />
           <Field label="Topic">
             <select id="topic" name="topic" defaultValue={filters.topic} className="cap-select">
               <option value="">All topics</option>

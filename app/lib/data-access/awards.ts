@@ -180,20 +180,7 @@ export function createAwards(db: DB) {
         where: eq(schema.award.slug, slug),
       });
       if (!awardRow) throw new NotFoundError("award not found");
-      const rows = await db
-        .select({
-          id: schema.awardRecipient.id,
-          year: schema.awardRecipient.year,
-          category: schema.awardRecipient.category,
-          placement: schema.awardRecipient.placement,
-          personName: schema.awardRecipient.personName,
-          institution: schema.awardRecipient.institution,
-          mentor: schema.awardRecipient.mentor,
-          editionId: schema.awardRecipient.editionId,
-        })
-        .from(schema.awardRecipient)
-        .where(eq(schema.awardRecipient.awardId, awardRow.id))
-        .orderBy(schema.awardRecipient.sortOrder, schema.awardRecipient.personName);
+      const rows = await recipientsForAward(db, awardRow.id);
       return { award: awardRow, years: groupRecipientsByYear(rows) };
     },
 
@@ -296,26 +283,32 @@ export function createAwards(db: DB) {
   };
 }
 
+const recipientColumns = {
+  id: schema.awardRecipient.id,
+  year: schema.awardRecipient.year,
+  category: schema.awardRecipient.category,
+  placement: schema.awardRecipient.placement,
+  personName: schema.awardRecipient.personName,
+  institution: schema.awardRecipient.institution,
+  mentor: schema.awardRecipient.mentor,
+  editionId: schema.awardRecipient.editionId,
+};
+
+function recipientsForAward(db: DB, awardId: string): Promise<AwardRecipientView[]> {
+  return db
+    .select(recipientColumns)
+    .from(schema.awardRecipient)
+    .where(eq(schema.awardRecipient.awardId, awardId))
+    .orderBy(schema.awardRecipient.sortOrder, schema.awardRecipient.personName);
+}
+
 // Award recipients. listForAward is public; writes are admin, or a chair of the
 // edition a recipient is tied to (the every-meeting maintenance path). A
 // recipient with no edition is admin-only. personName and year are required.
 export function createAwardRecipients(db: DB) {
   return {
     async listForAward(awardId: string): Promise<AwardRecipientView[]> {
-      return db
-        .select({
-          id: schema.awardRecipient.id,
-          year: schema.awardRecipient.year,
-          category: schema.awardRecipient.category,
-          placement: schema.awardRecipient.placement,
-          personName: schema.awardRecipient.personName,
-          institution: schema.awardRecipient.institution,
-          mentor: schema.awardRecipient.mentor,
-          editionId: schema.awardRecipient.editionId,
-        })
-        .from(schema.awardRecipient)
-        .where(eq(schema.awardRecipient.awardId, awardId))
-        .orderBy(schema.awardRecipient.sortOrder, schema.awardRecipient.personName);
+      return recipientsForAward(db, awardId);
     },
 
     async create(actor: Actor, input: AwardRecipientInput) {
@@ -419,14 +412,7 @@ export function createAwardRecipients(db: DB) {
 
       return db
         .select({
-          id: schema.awardRecipient.id,
-          year: schema.awardRecipient.year,
-          category: schema.awardRecipient.category,
-          placement: schema.awardRecipient.placement,
-          personName: schema.awardRecipient.personName,
-          institution: schema.awardRecipient.institution,
-          mentor: schema.awardRecipient.mentor,
-          editionId: schema.awardRecipient.editionId,
+          ...recipientColumns,
           awardSlug: schema.award.slug,
           awardName: schema.award.name,
         })

@@ -7,7 +7,7 @@ import { jsonLd } from "@drdustinedwards/site-helpers/schema";
 import { meetingLd, pageHead } from "~/lib/site-meta";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import {
-  NotFoundError,
+  orNotFound,
   getDataAccess,
   type ProgramSessionResolved,
   type SpeakerPublic,
@@ -52,15 +52,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
   const da = getDataAccess(env);
 
-  let edition;
-  try {
-    edition = await da.editions.get(params.slug);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
-  }
+  const edition = await orNotFound(da.editions.get(params.slug));
 
   const program = await da.programSessions.getPublicProgram(edition.id);
   return {

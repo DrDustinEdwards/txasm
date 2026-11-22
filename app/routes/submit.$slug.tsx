@@ -10,7 +10,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
 import {
   DeadlinePassedError,
-  NotFoundError,
+  orNotFound,
   ValidationError,
   getActor,
   getDataAccess,
@@ -33,15 +33,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const actor = await getActor(env, user);
   const da = getDataAccess(env);
 
-  let edition;
-  try {
-    edition = await da.editions.get(params.slug);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
-  }
+  const edition = await orNotFound(da.editions.get(params.slug));
 
   const now = Date.now();
   const notYet = !!edition.submissionOpensAt && now < edition.submissionOpensAt.getTime();
@@ -70,15 +62,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const actor = await getActor(env, user);
   const da = getDataAccess(env);
 
-  let edition;
-  try {
-    edition = await da.editions.get(params.slug);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
-  }
+  const edition = await orNotFound(da.editions.get(params.slug));
 
   try {
     const created = await da.abstracts.create(actor, {

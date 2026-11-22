@@ -36,6 +36,7 @@ export {
   DeadlinePassedError,
   ConflictOfInterestError,
   NotFoundError,
+  orNotFound,
   ValidationError,
   AlreadyExistsError,
   isAdmin,
