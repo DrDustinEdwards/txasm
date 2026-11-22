@@ -30,6 +30,7 @@
 import {
   contentVersion,
   NotFoundError,
+  orderAndPage,
   previewDocument,
   RefusedError,
   VersionConflictError,
@@ -283,18 +284,7 @@ export function createCarrelAdapter(
           (!needle || [p.title, p.source].some((t) => t.toLowerCase().includes(needle)))
         );
       });
-      const sort = query.sort ?? "updated";
-      const dir = query.dir ?? (sort === "title" ? "asc" : "desc");
-      const key = ORDER[sort];
-      rows.sort((a, b) => {
-        const [x, y] = [key(a), key(b)];
-        return (
-          (typeof x === "string" ? x.localeCompare(y as string) : x - (y as number)) *
-          (dir === "asc" ? 1 : -1)
-        );
-      });
-      const start = Math.max(0, Number(query.cursor) || 0);
-      const page = rows.slice(start, start + query.limit);
+      const { page, ...rest } = orderAndPage(rows, query, ORDER);
       const items = await Promise.all(
         page.map(async (p) => {
           const update = waitingOf(await pages.scheduled(p.slug));
@@ -304,8 +294,7 @@ export function createCarrelAdapter(
           };
         }),
       );
-      const nextCursor = start + query.limit < rows.length ? String(start + query.limit) : null;
-      return { items, nextCursor, total: rows.length, sorted: { sort, dir } };
+      return { items, ...rest };
     },
 
     async get(id) {
