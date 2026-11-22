@@ -1,4 +1,4 @@
-// /health: site-runtime's healthResponse, 503 only when D1 does not answer: every page, sign-in, submission and review
+// /health: site-runtime's siteHealthResponse, 503 only when D1 does not answer: every page, sign-in, submission and review
 // reads D1, so without it the site is down, and that is the one fail-level check (`ping`). Everything else is "warn"
 // and 200, because the site still serves: a stale or missing dump or uploads copy, a
 // job that failed, stopped or never ran (`cron_runs`, read against the Worker's own job lists), a run of failed
@@ -16,35 +16,28 @@ import {
   authSpikeCheck,
   browserCheck,
   durableObjectCheck,
-  healthResponse,
   aiOutcomeCheck,
   imagesCheck,
   r2Check,
+  siteHealthResponse,
 } from "@dustinedwards/site-runtime/health";
 import { d1FireStore } from "@dustinedwards/site-runtime/routine";
-import { cronCheck } from "@dustinedwards/site-runtime/cron";
 import type { Route } from "./+types/health";
 import { backupStatus } from "~/lib/backup.server";
 import { allCronJobs } from "~/lib/cron.server";
-import { deployedAt, deployedSha } from "@dustinedwards/site-runtime/deploy";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 
 export function loader({ context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
-  return healthResponse({
-    ping: () => env.DB.prepare("select 1").first(),
+  return siteHealthResponse(env, {
     backup: () => backupStatus(env),
-    sha: deployedSha(env),
+    jobs: allCronJobs(env),
     checks: [
       { ...r2Check("uploads", env.UPLOADS), level: "warn" },
       { ...r2Check("books", env.BOOKS), level: "warn" },
       imagesCheck("images", env.IMAGES),
       durableObjectCheck("rate-limiter", env.RATE_LIMITER),
       browserCheck("browser", env.BROWSER),
-      cronCheck(env.DB, {
-        jobs: allCronJobs(env),
-        deployedAt: deployedAt(env),
-      }),
       // A run of failed sign-ins or sign-in mails in the last hour (auth_events), warn only.
       authSpikeCheck(env.DB),
       aiOutcomeCheck("alt-text", d1FireStore(env.DB, "ai_outcomes")),
