@@ -1,6 +1,7 @@
 import { standardFiles } from "@drdustinedwards/site-helpers/files";
 import { markdownCopies } from "@drdustinedwards/site-helpers/markdown-copy";
 import { operatorJobTools } from "@dustinedwards/site-runtime/cron";
+import { renderHtml } from "@dustinedwards/site-runtime/render-html";
 import { isSiteApiRequest } from "@dustinedwards/site-api";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import type { ServerBuild } from "react-router";
@@ -123,7 +124,7 @@ const site = defineSite<Env>({
 });
 
 // The daily page-dates job reads each tracked page as the Renderer would render it (app/lib/page-dates.server.ts).
-setPageRenderer((path, env) => site.renderHtml(new Request(`${SITE_ORIGIN}${path}`), env));
+setPageRenderer((path, env) => renderHtml(site, new Request(`${SITE_ORIGIN}${path}`), env));
 
 export class Renderer extends siteRenderer(WorkerEntrypoint<Env>, site) {}
 
