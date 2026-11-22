@@ -12,11 +12,7 @@ import { LevelFormatFields } from "~/components/level-format-fields";
 import type { Route } from "./+types/meetings";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess } from "~/lib/data-access";
-import {
-  SEASON_LABELS,
-  type AbstractFormat,
-  type AbstractLevel,
-} from "~/lib/vocab";
+import { SEASON_LABELS, type AbstractFormat, type AbstractLevel } from "~/lib/vocab";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { RichText } from "capsomer/react/trusted-html";

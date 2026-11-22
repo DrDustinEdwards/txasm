@@ -13,11 +13,7 @@ import { countText } from "capsomer/content";
 import type { Route } from "./+types/meetings.$slug.abstracts";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { getDataAccess, type PublicAbstractSummary } from "~/lib/data-access";
-import {
-  ABSTRACT_FORMAT_LABELS,
-  ABSTRACT_LEVEL_LABELS,
-  SEASON_LABELS,
-} from "~/lib/vocab";
+import { ABSTRACT_FORMAT_LABELS, ABSTRACT_LEVEL_LABELS, SEASON_LABELS } from "~/lib/vocab";
 import { pageHead } from "~/lib/site-meta";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
