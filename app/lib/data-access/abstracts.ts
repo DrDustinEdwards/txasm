@@ -62,6 +62,16 @@ export interface AffiliationInput {
   country?: string;
 }
 
+async function assertBeforeDeadline(db: DB, editionId: string) {
+  const ed = await db.query.edition.findFirst({
+    where: eq(schema.edition.id, editionId),
+  });
+  if (ed?.submissionDeadline && Date.now() > ed.submissionDeadline.getTime()) {
+    throw new DeadlinePassedError("The submission deadline has passed.");
+  }
+  return ed;
+}
+
 // Shared guard: the abstract exists and the actor may edit it now. A chair of
 // the meeting may edit any time; the submitter may edit only before the
 // submission deadline. Returns the row.
@@ -72,12 +82,7 @@ async function requireEditableAbstract(db: DB, actor: Actor, abstractId: string)
   if (!row) throw new NotFoundError();
   if (isChair(actor, row.editionId)) return row;
   if (row.submitterId !== actor.userId) throw new ForbiddenError();
-  const ed = await db.query.edition.findFirst({
-    where: eq(schema.edition.id, row.editionId),
-  });
-  if (ed?.submissionDeadline && Date.now() > ed.submissionDeadline.getTime()) {
-    throw new DeadlinePassedError("The submission deadline has passed.");
-  }
+  await assertBeforeDeadline(db, row.editionId);
   return row;
 }
 
@@ -377,12 +382,7 @@ export function createAbstracts(db: DB) {
       if (!row) throw new NotFoundError();
       if (row.submitterId !== actor.userId) throw new ForbiddenError();
 
-      const ed = await db.query.edition.findFirst({
-        where: eq(schema.edition.id, row.editionId),
-      });
-      if (ed?.submissionDeadline && Date.now() > ed.submissionDeadline.getTime()) {
-        throw new DeadlinePassedError("The submission deadline has passed.");
-      }
+      const ed = await assertBeforeDeadline(db, row.editionId);
 
       if (isEmptyRichText(row.title)) {
         throw new ValidationError("Add a title before submitting.");
