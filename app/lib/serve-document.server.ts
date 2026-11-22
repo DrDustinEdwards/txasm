@@ -1,4 +1,4 @@
-import { attachmentResponse } from "@dustinedwards/site-runtime/r2-object";
+import { attachmentResponse, retryR2Read } from "@dustinedwards/site-runtime/r2-object";
 import { applyHeaderSet, UPLOAD_HEADERS } from "@dustinedwards/site-runtime/headers";
 import { forbidden, getSessionUser, requireChair } from "./auth.server";
 import { ForbiddenError, NotFoundError, getActor, getDataAccess } from "./data-access";
@@ -38,7 +38,8 @@ export async function serveDocument(
   }
 
   const bucket = doc.source === "generated" ? env.BOOKS : env.UPLOADS;
-  const object = await bucket.get(doc.r2Key);
+  const r2Key = doc.r2Key;
+  const object = await retryR2Read(() => bucket.get(r2Key));
   if (!object) {
     throw new Response("The document file is missing.", { status: 404 });
   }
