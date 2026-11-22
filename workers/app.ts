@@ -123,16 +123,7 @@ const site = defineSite<Env>({
 });
 
 // The daily page-dates job reads each tracked page as the Renderer would render it (app/lib/page-dates.server.ts).
-setPageRenderer(async (path, env) => {
-  const noContext = {
-    waitUntil() {},
-    passThroughOnException() {},
-    props: {},
-  } as unknown as ExecutionContext;
-  const response = await site.render(new Request(`${SITE_ORIGIN}${path}`), env, noContext);
-  const html = (response.headers.get("Content-Type") ?? "").includes("text/html");
-  return response.ok && html ? response.text() : null;
-});
+setPageRenderer((path, env) => site.renderHtml(new Request(`${SITE_ORIGIN}${path}`), env));
 
 export class Renderer extends siteRenderer(WorkerEntrypoint<Env>, site) {}
 
