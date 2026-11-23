@@ -67,7 +67,6 @@ const IDENTITY: FieldSpec[] = [
   },
 ];
 const DEFAULTS: FieldSpec[] = [
-  { key: "defaultCurrency", label: "Default currency", kind: "text", placeholder: "usd" },
   { key: "defaultAbstractWordLimit", label: "Default abstract word limit", kind: "number" },
 ];
 
@@ -86,7 +85,6 @@ export async function action({ request, context }: Route.ActionArgs) {
       contactEmail: String(form.get("contactEmail") ?? ""),
       facebookUrl: String(form.get("facebookUrl") ?? ""),
       footerLinks: parseFooterLinks(form),
-      defaultCurrency: String(form.get("defaultCurrency") ?? ""),
       defaultAbstractWordLimit: parseWordLimit(form.get("defaultAbstractWordLimit")),
     };
     await getDataAccess(env).settings.update(actor, patch);

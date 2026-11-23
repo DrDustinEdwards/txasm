@@ -1,5 +1,5 @@
 import { slugify } from "@drdustinedwards/site-helpers/slug";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { type GeneratedRecord, mayStart } from "capsomer/behavior/generated-file";
 import * as schema from "../../db/schema";
 import {
@@ -100,6 +100,16 @@ async function findGeneratedDoc(db: DB, editionId: string, category: DocumentCat
   });
 }
 
+// A generated document is published once it is ready, and a brand image never (CLAUDE.md, hard rule 4).
+function assertPublishable(row: { source: string; genStatus: string | null; category: string }) {
+  if (row.category === "brand_image") {
+    throw new ValidationError("Brand images are internal and cannot be published.");
+  }
+  if (row.source === "generated" && row.genStatus !== "ready") {
+    throw new ValidationError("Generate the document before publishing it.");
+  }
+}
+
 // Documents: one model for every branch PDF, generated or uploaded. Public
 // reads return published rows only. The generate-record flow writes generated
 // rows (source "generated") and tracks the run through genStatus, keeping the
@@ -139,7 +149,7 @@ export function createDocuments(db: DB) {
       const row = await db.query.document.findFirst({
         where: eq(schema.document.slug, slug),
       });
-      if (!row || row.status !== "published") return null;
+      if (!row || row.status !== "published" || row.category === "brand_image") return null;
       return row;
     },
 
@@ -153,7 +163,8 @@ export function createDocuments(db: DB) {
         where: eq(schema.document.slug, slug),
       });
       if (!row) throw new NotFoundError();
-      if (row.status === "published") return row;
+      // Brand images are internal (CLAUDE.md, hard rule 4): never public, even if a row was published.
+      if (row.status === "published" && row.category !== "brand_image") return row;
       if (!actor) throw new ForbiddenError();
       assertDocumentWrite(actor, row.editionId);
       return row;
@@ -180,7 +191,11 @@ export function createDocuments(db: DB) {
         .select()
         .from(schema.document)
         .where(
-          and(eq(schema.document.editionId, editionId), eq(schema.document.status, "published")),
+          and(
+            eq(schema.document.editionId, editionId),
+            eq(schema.document.status, "published"),
+            ne(schema.document.category, "brand_image"),
+          ),
         )
         .orderBy(schema.document.sortOrder, schema.document.title);
     },
@@ -263,6 +278,9 @@ export function createDocuments(db: DB) {
       if (patch.status !== undefined) {
         if (!DOCUMENT_STATUSES.includes(patch.status)) {
           throw new ValidationError("Choose a valid document status.");
+        }
+        if (patch.status === "published") {
+          assertPublishable({ ...row, ...set });
         }
         set.status = patch.status;
       }
@@ -412,9 +430,7 @@ export function createDocuments(db: DB) {
       });
       if (!row) throw new NotFoundError();
       assertDocumentWrite(actor, row.editionId);
-      if (row.source === "generated" && row.genStatus !== "ready") {
-        throw new ValidationError("Generate the document before publishing it.");
-      }
+      assertPublishable(row);
       await db
         .update(schema.document)
         .set({ status: "published" })

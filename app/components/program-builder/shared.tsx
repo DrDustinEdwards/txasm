@@ -2,8 +2,6 @@ import { Stack } from "capsomer/react/stack";
 import type { DataAccess, ProgramItemKind } from "~/lib/data-access";
 import { PROGRAM_ITEM_KINDS, programKindLabel } from "~/lib/vocab";
 
-export const inputClass = "cap-input";
-
 export type SpeakerOption = Pick<
   Awaited<ReturnType<DataAccess["invitedSpeakers"]["listForEdition"]>>[number],
   "id" | "name" | "role" | "talkTitle"

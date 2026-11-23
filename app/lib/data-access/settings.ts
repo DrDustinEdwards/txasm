@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
-import { DEFAULT_CURRENCY, DEFAULT_WORD_LIMIT } from "../vocab";
+import { DEFAULT_WORD_LIMIT } from "../vocab";
 import {
   type Actor,
   type DB,
@@ -9,7 +9,6 @@ import {
   NotFoundError,
   ValidationError,
 } from "./core";
-import { normalizeCurrency } from "./editions";
 import { isEmail } from "@dustinedwards/site-runtime/email";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
@@ -33,7 +32,6 @@ export interface PlatformSettings {
   contactEmail: string | null;
   facebookUrl: string | null;
   footerLinks: FooterLink[];
-  defaultCurrency: string;
   defaultAbstractWordLimit: number;
 }
 
@@ -46,7 +44,6 @@ export interface PlatformSettingsPatch {
   contactEmail?: string | null;
   facebookUrl?: string | null;
   footerLinks?: FooterLink[];
-  defaultCurrency?: string;
   defaultAbstractWordLimit?: number;
 }
 
@@ -66,11 +63,14 @@ function parseFooterLinks(raw: string | null): FooterLink[] {
     if (entry && typeof entry === "object") {
       const label = String((entry as Record<string, unknown>).label ?? "").trim();
       const url = String((entry as Record<string, unknown>).url ?? "").trim();
-      if (label && url) links.push({ label, url });
+      if (label && isSafeLink(url)) links.push({ label, url });
     }
   }
   return links;
 }
+
+// A footer link is an http(s) address or a path on this site, never a javascript: or data: URL.
+const isSafeLink = (url: string) => /^(https?:\/\/|\/(?!\/))/i.test(url);
 
 // Clean a submitted footerLinks list the same way, for writes.
 function cleanFooterLinks(links: FooterLink[]): FooterLink[] {
@@ -78,7 +78,10 @@ function cleanFooterLinks(links: FooterLink[]): FooterLink[] {
   for (const link of links) {
     const label = (link?.label ?? "").trim();
     const url = (link?.url ?? "").trim();
-    if (label && url) cleaned.push({ label, url });
+    if (!label || !url) continue;
+    if (!isSafeLink(url))
+      throw new ValidationError("A footer link must start with http, https or /.");
+    cleaned.push({ label, url });
   }
   return cleaned;
 }
@@ -95,7 +98,6 @@ export function resolveSettings(
     contactEmail: row.contactEmail,
     facebookUrl: row.facebookUrl,
     footerLinks: parseFooterLinks(row.footerLinks),
-    defaultCurrency: row.defaultCurrency,
     defaultAbstractWordLimit: row.defaultAbstractWordLimit,
   };
 }
@@ -116,7 +118,6 @@ export function createSettings(db: DB) {
         .insert(schema.platformSettings)
         .values({
           id: PLATFORM_SETTINGS_ID,
-          defaultCurrency: DEFAULT_CURRENCY,
           defaultAbstractWordLimit: DEFAULT_WORD_LIMIT,
         })
         .onConflictDoNothing()
@@ -170,9 +171,6 @@ export function createSettings(db: DB) {
       }
       if (patch.footerLinks !== undefined) {
         set.footerLinks = JSON.stringify(cleanFooterLinks(patch.footerLinks));
-      }
-      if (patch.defaultCurrency !== undefined) {
-        set.defaultCurrency = normalizeCurrency(patch.defaultCurrency);
       }
       if (patch.defaultAbstractWordLimit !== undefined) {
         if (

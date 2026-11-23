@@ -26,7 +26,6 @@ import {
   ABSTRACT_LEVELS,
   ABSTRACT_STATUS_LABELS,
   type AbstractLevel,
-  DEFAULT_WORD_LIMIT,
   PRESENTATION_PREFERENCE_LABELS,
   PRESENTATION_PREFERENCES,
   type PresentationPreference,
@@ -103,7 +102,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     edition: {
       name: data.edition.name,
       submissionDeadline: deadline,
-      wordLimit: data.edition.abstractWordLimit ?? DEFAULT_WORD_LIMIT,
+      wordLimit: data.wordLimit,
     },
     categories: categories.map((c) => ({ id: c.id, name: c.name })),
     authors: data.authors.map((a) => ({
