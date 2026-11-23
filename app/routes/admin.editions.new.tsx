@@ -7,7 +7,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import {
   EDITION_STATUSES,
   EDITION_STATUS_LABELS,
@@ -17,7 +17,7 @@ import {
   type Season,
 } from "~/lib/vocab";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "New meeting"));
@@ -59,10 +59,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       status: status as EditionStatus,
     });
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof AlreadyExistsError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return redirect("/admin");

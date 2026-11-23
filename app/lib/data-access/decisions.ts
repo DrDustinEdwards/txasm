@@ -76,28 +76,17 @@ export function createDecisions(db: DB) {
         throw new ValidationError("Only a submitted abstract can be decided.");
       }
 
-      const existing = await db.query.decision.findFirst({
-        where: eq(schema.decision.abstractId, input.abstractId),
-      });
-      const decisionWrite = existing
-        ? db
-            .update(schema.decision)
-            .set({
-              outcome: input.outcome,
-              presentationType,
-              decisionMessage: message,
-              decidedById: actor.userId,
-              decidedAt: new Date(),
-            })
-            .where(eq(schema.decision.id, existing.id))
-        : db.insert(schema.decision).values({
-            editionId: abs.editionId,
-            abstractId: input.abstractId,
-            outcome: input.outcome,
-            presentationType,
-            decisionMessage: message,
-            decidedById: actor.userId,
-          });
+      const fields = {
+        outcome: input.outcome,
+        presentationType,
+        decisionMessage: message,
+        decidedById: actor.userId,
+        decidedAt: new Date(),
+      };
+      const decisionWrite = db
+        .insert(schema.decision)
+        .values({ editionId: abs.editionId, abstractId: input.abstractId, ...fields })
+        .onConflictDoUpdate({ target: schema.decision.abstractId, set: fields });
 
       // The decision and the abstract's status are one batch (a D1 transaction).
       const status =
@@ -134,17 +123,10 @@ export function createDecisions(db: DB) {
         .from(schema.decision)
         .where(inList(schema.decision.abstractId, ids));
 
-      const summaryByAbstract = new Map<
-        string,
-        { accept: number; reject: number; revise: number; total: number }
-      >();
+      const emptySummary = () => ({ accept: 0, reject: 0, revise: 0, total: 0 });
+      const summaryByAbstract = new Map<string, ReturnType<typeof emptySummary>>();
       for (const r of submittedReviews) {
-        const s = summaryByAbstract.get(r.abstractId) ?? {
-          accept: 0,
-          reject: 0,
-          revise: 0,
-          total: 0,
-        };
+        const s = summaryByAbstract.get(r.abstractId) ?? emptySummary();
         s.total += 1;
         if (r.recommendation === "accept") s.accept += 1;
         else if (r.recommendation === "reject") s.reject += 1;
@@ -156,12 +138,7 @@ export function createDecisions(db: DB) {
 
       return rows.map((r) => {
         const decisionRow = decisionByAbstract.get(r.id);
-        const summary = summaryByAbstract.get(r.id) ?? {
-          accept: 0,
-          reject: 0,
-          revise: 0,
-          total: 0,
-        };
+        const summary = summaryByAbstract.get(r.id) ?? emptySummary();
         return {
           id: r.id,
           title: r.title,

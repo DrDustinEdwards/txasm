@@ -25,7 +25,7 @@ import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
 import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 import { GeneratedFile } from "capsomer/react/generated-file";
 import { Status } from "capsomer/react/status";
@@ -117,8 +117,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     }
     return { error: "Unknown action." };
   } catch (error) {
-    if (error instanceof ValidationError) return { error: error.message };
-    throw error;
+    return formError(error);
   }
 }
 
@@ -176,7 +175,10 @@ export default function AbstractBookBuilder({ loaderData }: Route.ComponentProps
     }));
     setBook({ ...book, sections });
     void fetcher.submit(
-      { intent: "reorder", arrangement: JSON.stringify(arrangementFrom(sections)) },
+      {
+        intent: "reorder",
+        arrangement: JSON.stringify(arrangementFrom(sections)),
+      },
       { method: "post" },
     );
   }

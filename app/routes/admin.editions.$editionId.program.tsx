@@ -11,13 +11,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair, requireChairEdition } from "~/lib/auth.server";
-import {
-  AlreadyExistsError,
-  getDataAccess,
-  NotFoundError,
-  type ProgramItemKind,
-  ValidationError,
-} from "~/lib/data-access";
+import { getDataAccess, type ProgramItemKind } from "~/lib/data-access";
 import { renderProgramBook } from "~/lib/program-book";
 import puppeteer from "@cloudflare/puppeteer";
 import { pagedPdf } from "@dustinedwards/site-runtime/print-pdf";
@@ -32,7 +26,7 @@ import { Schedule, ScheduleDayNav } from "capsomer/react/schedule";
 import { GeneratedFile } from "capsomer/react/generated-file";
 import { Status } from "capsomer/react/status";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 import schedule from "capsomer/schedule.css?url";
 import generatedFile from "~/styles/generated-file.css?url";
 
@@ -93,8 +87,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       await da.documents.publish(actor, String(form.get("documentId") ?? ""));
       return { ok: "The program is published." };
     } catch (error) {
-      if (error instanceof ValidationError) return { error: error.message };
-      throw error;
+      return formError(error);
     }
   }
 
@@ -109,8 +102,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       });
       generatingId = claim.id;
     } catch (error) {
-      if (error instanceof ValidationError) return { error: error.message };
-      throw error;
+      return formError(error);
     }
     try {
       const data = await da.program.getProgramData(actor, editionId);
@@ -266,14 +258,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { ok: true };
     }
   } catch (error) {
-    if (
-      error instanceof ValidationError ||
-      error instanceof AlreadyExistsError ||
-      error instanceof NotFoundError
-    ) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };

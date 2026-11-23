@@ -8,9 +8,9 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Abstract categories"));
@@ -41,25 +41,23 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 
     if (intent === "update" || intent === "create") {
       const name = String(form.get("name") ?? "");
-      const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
-      if (!Number.isInteger(sortOrder)) {
-        return { error: "Sort order must be a whole number." };
-      }
+      const sortOrder = parseSortOrder(form.get("sortOrder"));
       if (intent === "update") {
         await da.abstractCategories.update(actor, String(form.get("categoryId") ?? ""), {
           name,
           sortOrder,
         });
       } else {
-        await da.abstractCategories.create(actor, { editionId: params.editionId, name, sortOrder });
+        await da.abstractCategories.create(actor, {
+          editionId: params.editionId,
+          name,
+          sortOrder,
+        });
       }
       return redirect(back);
     }
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof AlreadyExistsError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };
@@ -92,17 +90,14 @@ export default function AbstractCategories({ loaderData }: Route.ComponentProps)
                 <Form method="post" className="cap-cluster" data-align="end">
                   <input type="hidden" name="intent" value="update" />
                   <input type="hidden" name="categoryId" value={category.id} />
-                  <div className="grow cap-stack" data-gap="2">
-                    <label htmlFor={`name-${category.id}`} className="cap-field-label">
-                      Name
-                    </label>
-                    <input
+                  <div className="grow">
+                    <TextField
                       id={`name-${category.id}`}
+                      label="Name"
                       name="name"
                       type="text"
                       defaultValue={category.name}
                       required
-                      className="cap-input"
                     />
                   </div>
                   <div className="tiny-field">

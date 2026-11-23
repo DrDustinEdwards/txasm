@@ -8,12 +8,7 @@ import { ButtonLink } from "capsomer/react/link";
 import type { Route } from "./+types/admin.documents";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  AlreadyExistsError,
-  NotFoundError,
-  ValidationError,
-  getDataAccess,
-} from "~/lib/data-access";
+import { ValidationError, getDataAccess } from "~/lib/data-access";
 import {
   DOCUMENT_CATEGORIES,
   DOCUMENT_CATEGORY_LABELS,
@@ -32,7 +27,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { concatBytes } from "@dustinedwards/site-runtime/encoding";
-import { parseYear, FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseYear, FORM_LIMIT } from "~/lib/form.server";
 import {
   type MultipartPart,
   multipartBoundary,
@@ -271,7 +266,10 @@ async function storeUpload(
   });
   const r2Key = `documents/${created.id}.${extensionForMime(mime)}`;
   try {
-    if (image) await env.UPLOADS.put(r2Key, image, { httpMetadata: { contentType: mime } });
+    if (image)
+      await env.UPLOADS.put(r2Key, image, {
+        httpMetadata: { contentType: mime },
+      });
     else await storeStream(env.UPLOADS, r2Key, mime, file);
   } catch (error) {
     await da.documents.remove(actor, created.id);
@@ -320,14 +318,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       return redirect("/admin/documents");
     }
   } catch (error) {
-    if (
-      error instanceof ValidationError ||
-      error instanceof NotFoundError ||
-      error instanceof AlreadyExistsError
-    ) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };

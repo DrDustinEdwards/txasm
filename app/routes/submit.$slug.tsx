@@ -8,14 +8,9 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
-import {
-  DeadlinePassedError,
-  orNotFound,
-  ValidationError,
-  getActor,
-  getDataAccess,
-} from "~/lib/data-access";
+import { orNotFound, getActor, getDataAccess } from "~/lib/data-access";
 import { DATE_TIME } from "~/lib/format";
+import { formError } from "~/lib/form.server";
 import { formatDate } from "capsomer/behavior/time";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
 import { RichText } from "capsomer/react/trusted-html";
@@ -71,10 +66,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     });
     return redirect(`/abstracts/${created.id}/edit`);
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof DeadlinePassedError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 }
 

@@ -7,17 +7,11 @@ import { Link } from "capsomer/react/link";
 import type { Route } from "./+types/admin.awards.$slug";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  AlreadyExistsError,
-  NotFoundError,
-  ValidationError,
-  getDataAccess,
-  type AwardRecipientView,
-} from "~/lib/data-access";
+import { getDataAccess, type AwardRecipientView } from "~/lib/data-access";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -106,14 +100,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return redirect(back);
     }
   } catch (error) {
-    if (
-      error instanceof ValidationError ||
-      error instanceof NotFoundError ||
-      error instanceof AlreadyExistsError
-    ) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };

@@ -21,7 +21,7 @@ import {
   type PlatformSettingsPatch,
 } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { parseYear, FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseYear, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Platform settings"));
@@ -52,9 +52,24 @@ function parseFooterLinks(form: FormData): FooterLink[] {
 // The settings form's fields, by section. The action reads them itself (parseYear, parseWordLimit) so
 // its messages stay in the admin's words; data-access validates and authorizes the write.
 const IDENTITY: FieldSpec[] = [
-  { key: "shortName", label: "Wordmark (short name)", kind: "text", placeholder: "TXASM" },
-  { key: "orgName", label: "Display name", kind: "text", placeholder: "Texas Branch ASM" },
-  { key: "orgFullName", label: "Full organization name", kind: "text", wide: true },
+  {
+    key: "shortName",
+    label: "Wordmark (short name)",
+    kind: "text",
+    placeholder: "TXASM",
+  },
+  {
+    key: "orgName",
+    label: "Display name",
+    kind: "text",
+    placeholder: "Texas Branch ASM",
+  },
+  {
+    key: "orgFullName",
+    label: "Full organization name",
+    kind: "text",
+    wide: true,
+  },
   { key: "tagline", label: "Tagline", kind: "text", wide: true },
   { key: "foundingYear", label: "Founding year", kind: "number" },
   { key: "contactEmail", label: "Contact email", kind: "email" },
@@ -67,7 +82,11 @@ const IDENTITY: FieldSpec[] = [
   },
 ];
 const DEFAULTS: FieldSpec[] = [
-  { key: "defaultAbstractWordLimit", label: "Default abstract word limit", kind: "number" },
+  {
+    key: "defaultAbstractWordLimit",
+    label: "Default abstract word limit",
+    kind: "number",
+  },
 ];
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -89,10 +108,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     };
     await getDataAccess(env).settings.update(actor, patch);
   } catch (error) {
-    if (error instanceof ValidationError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { ok: "Settings saved." };

@@ -7,10 +7,10 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import { ValidationError, getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
+import { getDataAccess, type RegistrationCategoryPatch } from "~/lib/data-access";
 import { parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Edit category"));
@@ -55,10 +55,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const { env } = context.get(cloudflareContext);
     await getDataAccess(env).registrationCategories.update(actor, params.categoryId, patch);
   } catch (error) {
-    if (error instanceof ValidationError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return redirect(`/admin/editions/${params.editionId}/categories`);

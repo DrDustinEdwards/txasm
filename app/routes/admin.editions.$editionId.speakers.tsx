@@ -9,12 +9,12 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair, requireChairEdition } from "~/lib/auth.server";
-import { NotFoundError, ValidationError, getDataAccess, type SpeakerRole } from "~/lib/data-access";
+import { getDataAccess, type SpeakerRole } from "~/lib/data-access";
 import { SPEAKER_ROLES, speakerRoleLabel } from "~/lib/vocab";
 import { RichTextField } from "capsomer/react/rich-text-field";
 import { BODY_TAGS } from "~/lib/richtext";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 // Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
 import "capsomer/toolbar.css";
@@ -75,10 +75,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return redirect(back);
     }
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };

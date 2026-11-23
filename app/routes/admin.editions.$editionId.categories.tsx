@@ -10,7 +10,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import { AlreadyExistsError, ValidationError, getDataAccess } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import {
   REGISTRATION_CATEGORY_KEYS,
   REGISTRATION_CATEGORY_KEY_LABELS,
@@ -18,7 +18,7 @@ import {
 } from "~/lib/vocab";
 import { formatMoney, parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 // Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
 import "capsomer/table.css";
 
@@ -74,10 +74,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
         sortOrder,
       });
     } catch (error) {
-      if (error instanceof ValidationError || error instanceof AlreadyExistsError) {
-        return { error: error.message };
-      }
-      throw error;
+      return formError(error);
     }
     return redirect(`/admin/editions/${params.editionId}/categories`);
   }
