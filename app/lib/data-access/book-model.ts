@@ -11,7 +11,7 @@ import {
   type Season,
 } from "../vocab";
 import { richTextPlain } from "capsomer/behavior/rich-text-field";
-import { type DB } from "./core";
+import { type DB, runBatch } from "./core";
 
 // Book author and affiliation shapes shared by the arranged renderer. Title and
 // body fields hold the stored sanitized HTML (em/sup/sub only) and are rendered
@@ -330,15 +330,17 @@ export async function recomputeBookCodes(db: DB, bookId: string): Promise<void> 
     };
   });
   const codes = computeBookCodes(numbering);
-  for (const e of ordered) {
-    const code = codes.get(e.id) ?? null;
-    if (code !== e.code) {
-      await db
-        .update(schema.bookEntry)
-        .set({ code, updatedAt: new Date() })
-        .where(eq(schema.bookEntry.id, e.id));
-    }
-  }
+  await runBatch(
+    db,
+    ordered
+      .filter((e) => (codes.get(e.id) ?? null) !== e.code)
+      .map((e) =>
+        db
+          .update(schema.bookEntry)
+          .set({ code: codes.get(e.id) ?? null, updatedAt: new Date() })
+          .where(eq(schema.bookEntry.id, e.id)),
+      ),
+  );
 }
 
 // A meeting's book row, or undefined when none exists.

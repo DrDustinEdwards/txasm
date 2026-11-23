@@ -92,6 +92,8 @@ const site = defineSite<Env>({
       files: ["uploads"],
     }),
   steps: [carrel],
+  // Writes that change what the public pages show: the admin's, an author's edit or withdrawal, and an account's removal.
+  purgeAfter: ["/admin", "/abstracts", "/account"],
   // Never stored: private paths (robots.txt's Disallow list), the media library, documents, and any path with a file
   // extension but .data (robots.txt, sitemap.xml, the feed: their own hour of Cache-Control, which the Workers cache
   // would honor without a purge). A cookie (a session or the chosen theme) already means a live render.

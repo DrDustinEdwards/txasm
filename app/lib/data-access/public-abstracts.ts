@@ -11,7 +11,7 @@ import {
   type Season,
 } from "../vocab";
 import { assembleBookAbstracts, inBookOrder } from "./book-model";
-import type { DB } from "./core";
+import { clampSearchTerm, type DB } from "./core";
 import { PROGRAM_PUBLIC_STATUSES } from "./program-model";
 
 // Public abstract archive. Read-only views over accepted abstracts of editions
@@ -215,7 +215,7 @@ export function createPublicAbstracts(db: DB) {
       query: string,
       filters: PublicAbstractSearchFilters = {},
     ): Promise<PublicAbstractSearchResult[]> {
-      const term = query.trim();
+      const term = clampSearchTerm(query);
       const conditions = [
         eq(schema.abstract.status, "accepted"),
         inArray(schema.edition.status, [...PROGRAM_PUBLIC_STATUSES]),

@@ -10,7 +10,7 @@
 //   npm run seed:abstract-book -- <slug>
 //   npm run seed:abstract-book -- fall-2024
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { argv, exit } from "node:process";
@@ -86,7 +86,7 @@ async function main() {
   // Step 1: run the Python parser
   console.log(`Parsing ${basename(pdfPath)} ...`);
   try {
-    execSync(`python3 "${parserPath}" "${pdfPath}" "${tmpPath}"`, {
+    execFileSync("python3", [parserPath, pdfPath, tmpPath], {
       stdio: "inherit",
       cwd: ROOT,
     });

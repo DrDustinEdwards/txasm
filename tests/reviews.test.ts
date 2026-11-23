@@ -184,3 +184,37 @@ test("a brand image cannot be published", async () => {
     ValidationError,
   );
 });
+
+test("a topic in use cannot be removed", async () => {
+  await dataAccess.abstracts.update(author, "a-1", { categoryId: "cat-a" });
+  await assert.rejects(dataAccess.abstractCategories.remove(admin, "cat-a"), ValidationError);
+});
+
+test("a book generates again and reorders in one batch each", async () => {
+  const first = await dataAccess.books.generate(chair, "ed-a");
+  const again = await dataAccess.books.generate(chair, "ed-a");
+  const entryIds = again.sections.flatMap((s) => s.entries.map((e) => e.entryId));
+  assert.ok(entryIds.length > 0 && first.bookId === again.bookId);
+  const reversed = [...entryIds].reverse();
+  const view = await dataAccess.books.reorder(chair, "ed-a", {
+    sections: [
+      { sectionId: again.sections[0].sectionId, entryIds: reversed },
+      ...again.sections.slice(1).map((s) => ({ sectionId: s.sectionId, entryIds: [] })),
+    ],
+  });
+  assert.equal(view.sections.flatMap((s) => s.entries).length, entryIds.length);
+});
+
+test("the public program leaves out an abstract that is no longer accepted, the builder keeps it", async () => {
+  const session = await dataAccess.programSessions.create(chair, {
+    editionId: "ed-a",
+    title: "Sample session",
+  });
+  await dataAccess.programItems.addAbstract(chair, { sessionId: session.id, abstractId: "a-0" });
+  const shown = async () =>
+    JSON.stringify(await dataAccess.programSessions.getPublicProgram("ed-a")).includes('"a-0"');
+  assert.equal(await shown(), true);
+  await d1.prepare("UPDATE abstract SET status = 'withdrawn' WHERE id = 'a-0'").run();
+  assert.equal(await shown(), false);
+  assert.equal((await dataAccess.programSessions.listForEdition(chair, "ed-a"))[0].items.length, 1);
+});

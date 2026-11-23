@@ -173,7 +173,7 @@ async function upload(bytes: Uint8Array, name: string, extra: Record<string, str
   });
   return call(`${PREFIX}/media?${query}`, {
     method: "POST",
-    body: bytes,
+    body: bytes as BodyInit,
     headers: { "Content-Type": "image/png" },
   });
 }
@@ -274,7 +274,7 @@ test("a draft stays off the live page, a publish puts it there, and each write i
   ]);
   // Each revision names the person Carrel signed in, and the oldest one still opens.
   const revisions = (await json(await call("/api/carrel/v1/content/award-nominations/revisions")))
-    .items as Array<{ version: string; author: string }>;
+    .items as unknown as Array<{ version: string; author: string }>;
   assert.deepEqual([...new Set(revisions.map((r) => r.author))].sort(), [
     "Dustin Edwards",
     "Julie Edwards",

@@ -335,6 +335,14 @@ test("award search matches %, _ and backslash as typed, in the term and the inst
   assert.deepEqual(await ids("50"), ["ar-1", "ar-2"]);
 });
 
+test("a very long search term returns no results instead of failing the query", async () => {
+  for (const char of ["x", "%", "é", "細"]) {
+    const long = char.repeat(200);
+    assert.deepEqual(await dataAccess.publicAbstracts.search(long), []);
+    assert.deepEqual(await dataAccess.awardRecipients.search(long), []);
+  }
+});
+
 // Two chairs adding the same abstract at once: the check alone lets both through, the unique index on
 // program_item.abstract_id lets exactly one row land.
 test("an abstract can be placed in the program only once, even when added concurrently", async () => {

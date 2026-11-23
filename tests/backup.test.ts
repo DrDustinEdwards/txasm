@@ -22,7 +22,7 @@ let mf: Miniflare;
 let db: D1Like;
 let scratchDb: D1Like;
 let bucket: R2Like;
-let env: { DB: D1Like; BOOKS: R2Like };
+let env: Parameters<typeof runNightlyBackup>[0];
 
 before(async () => {
   mf = new Miniflare({
@@ -34,7 +34,7 @@ before(async () => {
   db = (await mf.getD1Database("DB")) as unknown as D1Like;
   scratchDb = (await mf.getD1Database("SCRATCH")) as unknown as D1Like;
   bucket = (await mf.getR2Bucket("BOOKS")) as unknown as R2Like;
-  env = { DB: db, BOOKS: bucket };
+  env = { DB: db, BOOKS: bucket } as unknown as typeof env;
 
   await applyMigrations(db);
 
@@ -145,12 +145,12 @@ const goodDump = () => ({
 const siteOptions = { exclude: [...EXCLUDED_TABLES], required: [...REQUIRED_TABLES] };
 
 test("a good dump has no problems", () => {
-  assert.deepEqual(siteProblems(goodDump()), []);
+  assert.deepEqual(siteProblems(goodDump() as never), []);
 });
 
 test("an excluded table in the dump is refused", () => {
   const dump = goodDump();
-  dump.tables.push({ name: "verification", rows: 1 });
+  dump.tables.push({ name: "verification" as never, rows: 1 });
   assert.match(
     standardProblems(dump as never, siteOptions).join(";"),
     /verification is in the dump/,

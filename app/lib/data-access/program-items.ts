@@ -5,6 +5,7 @@ import {
   type Actor,
   AlreadyExistsError,
   type DB,
+  runBatch,
   ForbiddenError,
   isChair,
   NotFoundError,
@@ -249,10 +250,7 @@ export function createProgramItems(db: DB) {
             .set({ sortOrder: order })
             .where(eq(schema.programItem.id, id)),
         );
-      // One D1 batch: all rows reorder together or not at all.
-      if (updates.length > 0) {
-        await db.batch(updates as [(typeof updates)[number], ...typeof updates]);
-      }
+      await runBatch(db, updates);
       return { sessionId };
     },
   };

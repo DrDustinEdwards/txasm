@@ -142,7 +142,7 @@ function parseEntryLine(line: string): DatasetRecipient | null {
 
 // Walk a page's HTML in document order, tracking the current year (h2) and
 // category (h3), and collect one recipient per list item or paragraph beneath.
-export function parseRecipientsFromHtml(html: string): DatasetRecipient[] {
+function parseRecipientsFromHtml(html: string): DatasetRecipient[] {
   const recipients: DatasetRecipient[] = [];
   let currentYear: string | null = null;
   let currentCategory: string | null = null;

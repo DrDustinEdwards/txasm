@@ -10,7 +10,7 @@ import { capitalize } from "@drdustinedwards/site-helpers/text";
 import puppeteer from "@cloudflare/puppeteer";
 import { pagedPdf } from "@dustinedwards/site-runtime/print-pdf";
 import { renderArrangedBook } from "./book";
-import type { Actor, DataAccess } from "./data-access";
+import { type Actor, type DataAccess, ValidationError } from "./data-access";
 import { PDF_MIME_TYPE } from "./vocab";
 
 // The PDF outcome of a publish: the new arranged PDF was produced, the previous
@@ -45,8 +45,10 @@ export async function publishArrangedBook(
       category: "abstract_book",
     });
     claimId = claim.id;
-  } catch {
-    // A concurrent generation holds the slot; the HTML is already frozen.
+  } catch (error) {
+    // A concurrent generation holds the slot (a ValidationError); the HTML is already frozen. Anything else is logged.
+    if (!(error instanceof ValidationError))
+      console.error("[book] could not claim the pdf slot", error);
     return "pending";
   }
 

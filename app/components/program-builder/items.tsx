@@ -10,8 +10,8 @@ import { DateTimeField, TextField } from "capsomer/react/field";
 import { richTextPlain } from "capsomer/behavior/rich-text-field";
 import { Pill } from "capsomer/react/status";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
+import { ProgramItemTitle } from "~/components/program-item-title";
 import { KindSelect, type SpeakerOption } from "./shared";
-import { RichText } from "capsomer/react/trusted-html";
 
 type Item = ProgramSessionResolved["items"][number];
 
@@ -80,29 +80,12 @@ export function SessionItems({
   );
 }
 
-// What the item is: its kind, its title or speaker, and its note.
+// What the item is: its kind, its title, and its note.
 function ItemBody({ item }: { item: Item }) {
   return (
     <div className="small">
       <Pill variant="secondary">{programKindLabel(item.kind)}</Pill>
-      {item.abstractId ? (
-        <p>
-          {item.abstractCode ? <span className="strong">{item.abstractCode} </span> : null}
-          <RichText as="span" html={item.abstractTitle} fallback="Abstract" />
-          {item.presentingAuthorName ? (
-            <span className="cap-muted"> . {item.presentingAuthorName}</span>
-          ) : null}
-        </p>
-      ) : item.speakerId ? (
-        <p>
-          <span className="strong">{item.speakerName ?? "Invited speaker"}</span>
-          {item.speakerTalkTitle ? (
-            <span className="cap-muted"> . {item.speakerTalkTitle}</span>
-          ) : null}
-        </p>
-      ) : (
-        <p className="strong">{item.customTitle}</p>
-      )}
+      <ProgramItemTitle item={item} />
       {item.note ? <p className="cap-muted">{item.note}</p> : null}
     </div>
   );

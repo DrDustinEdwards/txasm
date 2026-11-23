@@ -42,6 +42,7 @@ export function createInstitutions(db: DB) {
     ) {
       const name = input.name.trim();
       if (!name) throw new ValidationError("Institution name is required.");
+      if (name.length > 200) throw new ValidationError("Institution name is too long.");
       const normalized = normalizeInstitutionName(name);
 
       const existing = await db.query.institution.findFirst({
