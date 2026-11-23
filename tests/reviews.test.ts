@@ -1,7 +1,13 @@
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
-import { type Actor, getDataAccess } from "../app/lib/data-access";
+import {
+  type Actor,
+  ConflictOfInterestError,
+  ForbiddenError,
+  ValidationError,
+  getDataAccess,
+} from "../app/lib/data-access";
 import { applyMigrations } from "./d1";
 
 // A review and its scores are one write: a rubric with more criteria than D1 binds in one
@@ -11,7 +17,14 @@ let d1: D1Database;
 let dataAccess: ReturnType<typeof getDataAccess>;
 
 const CRITERIA = 40;
-const reviewer: Actor = { userId: "u-reviewer", grants: [] } as Actor;
+const reviewer: Actor = {
+  userId: "u-reviewer",
+  grants: [{ role: "reviewer", editionId: "ed-a" }],
+} as Actor;
+const revoked: Actor = { userId: "u-reviewer", grants: [] } as Actor;
+const chair: Actor = { userId: "u-chair", grants: [{ role: "chair", editionId: "ed-a" }] } as Actor;
+const admin: Actor = { userId: "u-chair", grants: [{ role: "admin", editionId: null }] } as Actor;
+const author: Actor = { userId: "u-author", grants: [] } as Actor;
 const criterionIds = Array.from({ length: CRITERIA }, (_, i) => `c-${i}`);
 
 before(async () => {
@@ -28,13 +41,28 @@ before(async () => {
       "INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-reviewer', 'reviewer@example.com', 1, 1)",
     ),
     db.prepare(
-      "INSERT INTO edition (id, slug, name, season, year, status, created_at, updated_at) VALUES ('ed-a', 'spring-2026', 'Sample meeting', 'spring', 2026, 'scheduled', 1, 1)",
+      "INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-author', 'author@example.com', 1, 1), ('u-chair', 'chair@example.com', 1, 1)",
+    ),
+    db.prepare(
+      "INSERT INTO edition (id, slug, name, season, year, status, created_at, updated_at) VALUES ('ed-a', 'spring-2026', 'Sample meeting', 'spring', 2026, 'scheduled', 1, 1), ('ed-b', 'fall-2026', 'Other meeting', 'fall', 2026, 'scheduled', 1, 1)",
+    ),
+    db.prepare(
+      "INSERT INTO abstract_category (id, edition_id, name, created_at) VALUES ('cat-a', 'ed-a', 'Sample topic', 1), ('cat-b', 'ed-b', 'Other topic', 1)",
+    ),
+    db.prepare(
+      "INSERT INTO abstract (id, edition_id, submitter_id, title, status, created_at, updated_at) VALUES ('a-1', 'ed-a', 'u-author', 'Second abstract', 'submitted', 1, 1), ('a-draft', 'ed-a', 'u-author', 'Draft abstract', 'draft', 1, 1), ('a-2', 'ed-a', 'u-author', 'Third abstract', 'submitted', 1, 1)",
+    ),
+    db.prepare(
+      "INSERT INTO author (id, abstract_id, first_name, last_name, email, ordinal, is_presenting, created_at) VALUES ('au-1', 'a-1', 'Sam', 'Author', 'Reviewer@Example.com', 1, 1, 1)",
     ),
     db.prepare(
       "INSERT INTO abstract (id, edition_id, submitter_id, title, status, created_at, updated_at) VALUES ('a-0', 'ed-a', 'u-reviewer', 'Sample abstract', 'accepted', 1, 1)",
     ),
     db.prepare(
       "INSERT INTO review_assignment (id, edition_id, abstract_id, reviewer_id, assigned_at, created_at) VALUES ('as-0', 'ed-a', 'a-0', 'u-reviewer', 1, 1)",
+    ),
+    db.prepare(
+      "INSERT INTO review_assignment (id, edition_id, abstract_id, reviewer_id, assigned_at, created_at) VALUES ('as-2', 'ed-a', 'a-2', 'u-reviewer', 1, 1)",
     ),
     ...criterionIds.map((id) =>
       db
@@ -89,4 +117,70 @@ test("a submit that fails on its scores leaves no review without them", async ()
     .prepare("SELECT status FROM review_assignment")
     .first<{ status: string }>();
   assert.equal(assignment?.status, "assigned");
+});
+
+test("a reviewer whose grant was revoked can neither open nor submit an assignment", async () => {
+  await assert.rejects(dataAccess.reviews.getAssignmentForReview(revoked, "as-0"), ForbiddenError);
+  await assert.rejects(
+    dataAccess.reviews.submit(revoked, {
+      assignmentId: "as-0",
+      recommendation: "accept",
+      scores: [],
+    }),
+    ForbiddenError,
+  );
+});
+
+test("an assigned reviewer cannot open the edit form that carries author emails", async () => {
+  await assert.rejects(dataAccess.abstracts.getForEdit(reviewer, "a-2"), ForbiddenError);
+  assert.ok(await dataAccess.abstracts.getForEdit(author, "a-2"));
+});
+
+test("the conflict check on an author's email ignores case", async () => {
+  await assert.rejects(
+    dataAccess.reviews.assignReviewer(chair, { abstractId: "a-1", reviewerId: "u-reviewer" }),
+    ConflictOfInterestError,
+  );
+});
+
+test("a topic from another meeting is dropped from an abstract", async () => {
+  await dataAccess.abstracts.update(author, "a-1", { categoryId: "cat-a" });
+  assert.equal(
+    (await dataAccess.abstracts.update(author, "a-1", { categoryId: "cat-b" })).categoryId,
+    null,
+  );
+});
+
+test("a decision moves the status with it, and a decided abstract cannot be submitted again", async () => {
+  const status = async (id: string) =>
+    (await d1
+      .prepare("SELECT status FROM abstract WHERE id = ?")
+      .bind(id)
+      .first<{ status: string }>())!.status;
+  const accept = {
+    abstractId: "a-1",
+    outcome: "accept" as const,
+    presentationType: "oral" as const,
+  };
+  await dataAccess.decisions.setDecision(chair, accept);
+  assert.equal(await status("a-1"), "accepted");
+  await assert.rejects(dataAccess.abstracts.submit(author, "a-1"), ValidationError);
+  await dataAccess.decisions.setDecision(chair, { abstractId: "a-1", outcome: "revise" });
+  assert.equal(await status("a-1"), "submitted");
+  await assert.rejects(
+    dataAccess.decisions.setDecision(chair, { ...accept, abstractId: "a-draft" }),
+    ValidationError,
+  );
+});
+
+test("a brand image cannot be published", async () => {
+  const doc = await dataAccess.documents.create(admin, {
+    category: "brand_image",
+    title: "Sample logo",
+  });
+  await assert.rejects(dataAccess.documents.publish(admin, doc.id), ValidationError);
+  await assert.rejects(
+    dataAccess.documents.update(admin, doc.id, { status: "published" }),
+    ValidationError,
+  );
 });

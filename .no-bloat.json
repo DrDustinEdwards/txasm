@@ -7,7 +7,7 @@
     "measured_at": "a8ce7f0",
     "knip": {
       "dependencies": 1,
-      "exports": 3,
+      "exports": 2,
       "types": 1
     },
     "jscpd": {
@@ -23,16 +23,13 @@
     "legacy": {},
     "size": {
       "app/db/schema.ts": 1126,
-      "app/lib/data-access/abstracts.ts": 501,
-      "app/lib/data-access/editions.ts": 509,
-      "app/lib/data-access/reviews.ts": 509,
       "app/routes/account.tsx": 593,
       "app/routes/admin.documents.tsx": 570,
       "public/pagedjs/paged.polyfill-0.4.3.js": 33251
     },
     "tests": {
       "files": 9,
-      "cases": 36
+      "cases": 42
     },
     "comments": {
       "lines": 4087,

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { inList, chunked, rowsPerInsert } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
@@ -10,7 +10,6 @@ import {
   type DB,
   DeadlinePassedError,
   ForbiddenError,
-  isAdmin,
   isChair,
   isReviewer,
   NotFoundError,
@@ -23,20 +22,6 @@ export interface ReviewSubmission {
   scores: Array<{ criterionId: string; score: number }>;
   overallComment?: string;
   confidentialComment?: string;
-}
-
-export type GrantableRole = "chair" | "reviewer";
-
-export interface RoleGrantInput {
-  editionId: string;
-  email: string;
-  role: GrantableRole;
-}
-
-export interface RoleRevokeInput {
-  editionId: string;
-  userId: string;
-  role: GrantableRole;
 }
 
 export function createReviews(db: DB) {
@@ -67,7 +52,9 @@ export function createReviews(db: DB) {
       const isOwnAuthor =
         abs.submitterId === input.reviewerId ||
         authors.some(
-          (a) => a.userId === input.reviewerId || (!!a.email && a.email === reviewerRow.email),
+          (a) =>
+            a.userId === input.reviewerId ||
+            (!!a.email && a.email.toLowerCase() === reviewerRow.email.toLowerCase()),
         );
       if (isOwnAuthor) throw new ConflictOfInterestError("reviewer is an author");
 
@@ -101,7 +88,9 @@ export function createReviews(db: DB) {
         where: eq(schema.reviewAssignment.id, input.assignmentId),
       });
       if (!assignment) throw new NotFoundError();
-      if (assignment.reviewerId !== actor.userId) throw new ForbiddenError();
+      if (assignment.reviewerId !== actor.userId || !isReviewer(actor, assignment.editionId)) {
+        throw new ForbiddenError();
+      }
 
       if (!REVIEW_RECOMMENDATIONS.includes(input.recommendation)) {
         throw new ValidationError("Choose a recommendation.");
@@ -193,7 +182,9 @@ export function createReviews(db: DB) {
         where: eq(schema.reviewAssignment.id, assignmentId),
       });
       if (!assignment) throw new NotFoundError();
-      if (assignment.reviewerId !== actor.userId) throw new ForbiddenError();
+      if (assignment.reviewerId !== actor.userId || !isReviewer(actor, assignment.editionId)) {
+        throw new ForbiddenError();
+      }
 
       const abs = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, assignment.abstractId),
@@ -424,86 +415,6 @@ export function createReviews(db: DB) {
         );
 
       return { ok: true };
-    },
-  };
-}
-
-// Roles: admins grant and revoke chair and reviewer per meeting. admin itself
-// is not grantable here; it is the ADMIN_EMAIL and CO_OWNER_EMAILS roster (getActor). Accounts are created
-// on first sign-in, so a grant needs the person to have signed in once.
-export function createRoles(db: DB) {
-  return {
-    async listForEdition(actor: Actor, editionId: string) {
-      if (!isAdmin(actor)) throw new ForbiddenError();
-      return db
-        .select({
-          userId: schema.roleGrant.userId,
-          role: schema.roleGrant.role,
-          name: schema.user.name,
-          email: schema.user.email,
-          createdAt: schema.roleGrant.createdAt,
-        })
-        .from(schema.roleGrant)
-        .innerJoin(schema.user, eq(schema.roleGrant.userId, schema.user.id))
-        .where(
-          and(
-            eq(schema.roleGrant.editionId, editionId),
-            eq(schema.roleGrant.status, "active"),
-            inArray(schema.roleGrant.role, ["chair", "reviewer"]),
-          ),
-        )
-        .orderBy(asc(schema.roleGrant.role), asc(schema.user.email));
-    },
-
-    async grant(actor: Actor, input: RoleGrantInput) {
-      if (!isAdmin(actor)) throw new ForbiddenError();
-      if (input.role !== "chair" && input.role !== "reviewer") {
-        throw new ValidationError("Role must be chair or reviewer.");
-      }
-      const email = input.email.trim().toLowerCase();
-      if (!email) throw new ValidationError("Enter an email address.");
-
-      const person = await db.query.user.findFirst({
-        where: eq(schema.user.email, email),
-      });
-      if (!person) {
-        throw new NotFoundError(
-          "No account with that email yet. Ask the person to sign in once first, then grant the role.",
-        );
-      }
-
-      await db
-        .insert(schema.roleGrant)
-        .values({
-          userId: person.id,
-          role: input.role,
-          editionId: input.editionId,
-          grantedById: actor.userId,
-        })
-        .onConflictDoNothing();
-
-      return { userId: person.id, role: input.role };
-    },
-
-    // Delete the grant rather than mark it revoked, so a later grant of the same
-    // role reinstates cleanly through onConflictDoNothing. admin grants are never
-    // touched here: role is constrained to chair or reviewer and the delete is
-    // scoped to a single edition.
-    async revoke(actor: Actor, input: RoleRevokeInput) {
-      if (!isAdmin(actor)) throw new ForbiddenError();
-      if (input.role !== "chair" && input.role !== "reviewer") {
-        throw new ValidationError("Role must be chair or reviewer.");
-      }
-      await db
-        .delete(schema.roleGrant)
-        .where(
-          and(
-            eq(schema.roleGrant.userId, input.userId),
-            eq(schema.roleGrant.role, input.role),
-            eq(schema.roleGrant.editionId, input.editionId),
-          ),
-        );
-      return { userId: input.userId, role: input.role };
     },
   };
 }

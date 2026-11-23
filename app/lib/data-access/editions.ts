@@ -1,5 +1,5 @@
 import { and, count, desc, eq, inArray } from "drizzle-orm";
-import { inList, likeContains } from "@dustinedwards/site-runtime/d1";
+import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import {
   DEFAULT_CURRENCY,
@@ -37,6 +37,8 @@ export interface EditionPatch {
   registrationClosesAt?: Date | null;
   submissionOpensAt?: Date | null;
   submissionDeadline?: Date | null;
+  reviewDeadline?: Date | null;
+  abstractWordLimit?: number | null;
   meetingStartsAt?: Date | null;
   meetingEndsAt?: Date | null;
   venueName?: string | null;
@@ -67,16 +69,9 @@ function assertAmountCents(amountCents: number) {
   }
 }
 
-export function normalizeCurrency(currency?: string) {
+function normalizeCurrency(currency?: string) {
   const value = currency?.trim().toLowerCase();
   return value && value.length > 0 ? value : DEFAULT_CURRENCY;
-}
-
-// Institution dedup key: lowercased, trimmed, whitespace collapsed, and LIKE
-// wildcards removed so it is safe to interpolate into a search pattern. The seed
-// and the ensure path use this same function so the unique index lines up.
-function normalizeInstitutionName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, " ").replace(/[%_]/g, "");
 }
 
 export function createEditions(db: DB) {
@@ -187,6 +182,16 @@ export function createEditions(db: DB) {
       }
       if (patch.submissionDeadline !== undefined) {
         set.submissionDeadline = patch.submissionDeadline;
+      }
+      if (patch.reviewDeadline !== undefined) set.reviewDeadline = patch.reviewDeadline;
+      if (patch.abstractWordLimit !== undefined) {
+        if (
+          patch.abstractWordLimit !== null &&
+          (!Number.isInteger(patch.abstractWordLimit) || patch.abstractWordLimit < 1)
+        ) {
+          throw new ValidationError("The word limit must be a whole number of one or more.");
+        }
+        set.abstractWordLimit = patch.abstractWordLimit;
       }
       if (patch.meetingStartsAt !== undefined) {
         set.meetingStartsAt = patch.meetingStartsAt;
@@ -445,65 +450,6 @@ export function createAbstractCategories(db: DB) {
       if (!row) throw new NotFoundError();
       await db.delete(schema.abstractCategory).where(eq(schema.abstractCategory.id, id));
       return { id };
-    },
-  };
-}
-
-// Institution master list. Part of authoring, so any signed-in user may search
-// it and append to it (read-and-append only, no admin gating). The affiliation
-// autocomplete searches it; ensure is the self-grow path when an author types a
-// new institution. Dedup is by normalized_name.
-export function createInstitutions(db: DB) {
-  return {
-    // Up to ten matches by substring on the normalized name, ordered by name.
-    async search(actor: Actor, query: string) {
-      const normalized = normalizeInstitutionName(query);
-      if (!normalized) return [];
-      return db
-        .select({
-          id: schema.institution.id,
-          name: schema.institution.name,
-          city: schema.institution.city,
-          region: schema.institution.region,
-          country: schema.institution.country,
-        })
-        .from(schema.institution)
-        .where(likeContains(schema.institution.normalizedName, normalized))
-        .orderBy(schema.institution.name)
-        .limit(10);
-    },
-
-    // Find by normalized name or insert a new one, then return it. Used on submit
-    // when an author picked a free-text institution not already in the list.
-    async ensure(
-      actor: Actor,
-      input: { name: string; city?: string; region?: string; country?: string },
-    ) {
-      const name = input.name.trim();
-      if (!name) throw new ValidationError("Institution name is required.");
-      const normalized = normalizeInstitutionName(name);
-
-      const existing = await db.query.institution.findFirst({
-        where: eq(schema.institution.normalizedName, normalized),
-      });
-      if (existing) return existing;
-
-      await db
-        .insert(schema.institution)
-        .values({
-          name,
-          city: input.city?.trim() || null,
-          region: input.region?.trim() || null,
-          country: input.country?.trim() || "USA",
-          normalizedName: normalized,
-        })
-        .onConflictDoNothing();
-
-      const row = await db.query.institution.findFirst({
-        where: eq(schema.institution.normalizedName, normalized),
-      });
-      if (!row) throw new ValidationError("Could not save the institution.");
-      return row;
     },
   };
 }

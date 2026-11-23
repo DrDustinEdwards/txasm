@@ -8,7 +8,9 @@ import { adminEmails } from "@dustinedwards/site-runtime/access";
 import { getDb } from "../db/index.server";
 import { type Actor, type DB, loadActor } from "./data-access/core";
 import { createAbstracts } from "./data-access/abstracts";
-import { createReviews, createRoles } from "./data-access/reviews";
+import { createReviews } from "./data-access/reviews";
+import { createInstitutions } from "./data-access/institutions";
+import { createRoles } from "./data-access/roles";
 import { createDecisions } from "./data-access/decisions";
 import { createBooks } from "./data-access/books";
 import { createProgram, createProgramSessions } from "./data-access/program";
@@ -17,7 +19,6 @@ import { createPublicAbstracts } from "./data-access/public-abstracts";
 import {
   createAbstractCategories,
   createEditions,
-  createInstitutions,
   createRegistrationCategories,
 } from "./data-access/editions";
 import { createInvitedSpeakers, createSponsors } from "./data-access/speakers-sponsors";
@@ -45,7 +46,7 @@ export {
 } from "./data-access/core";
 export type { Actor } from "./data-access/core";
 export type { AuthorInput, AffiliationInput } from "./data-access/abstracts";
-export type { GrantableRole } from "./data-access/reviews";
+export type { GrantableRole } from "./data-access/roles";
 export type {
   BookAuthor,
   BookAffiliation,

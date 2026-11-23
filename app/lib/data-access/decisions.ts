@@ -3,7 +3,12 @@ import { inList } from "@dustinedwards/site-runtime/d1";
 import * as schema from "../../db/schema";
 import { isEmptyRichText } from "capsomer/behavior/rich-text-field";
 import { sanitizeBody } from "../richtext";
-import { DECISION_OUTCOMES, type DecisionOutcome, type PresentationType } from "../vocab";
+import {
+  DECISION_OUTCOMES,
+  type AbstractStatus,
+  type DecisionOutcome,
+  type PresentationType,
+} from "../vocab";
 import { submittedAbstracts } from "./abstracts";
 import {
   type Actor,
@@ -27,12 +32,24 @@ export interface DecisionInput {
 // Decisions: the chair reads the reviews and records accept/reject/revise per
 // abstract. One decision per abstract. Email is deferred, so the decision is
 // shown to the author in-app; notifyState stays none until mail is built.
+// The status an abstract returns to when it has no accept or reject: under_review while reviewers are
+// assigned, otherwise submitted. An abstract already in one of those stays there.
+async function statusWithoutDecision(db: DB, abs: { id: string; status: AbstractStatus }) {
+  if (abs.status === "submitted" || abs.status === "under_review") return abs.status;
+  const assigned = await db.query.reviewAssignment.findFirst({
+    columns: { id: true },
+    where: eq(schema.reviewAssignment.abstractId, abs.id),
+  });
+  return assigned ? ("under_review" as const) : ("submitted" as const);
+}
+
 export function createDecisions(db: DB) {
   return {
     // Chair/admin of the meeting records or updates the decision for one
     // abstract. presentationType is required on accept and dropped otherwise.
     // The message is sanitized with the body allowlist. Side effect on the
-    // abstract status: accept -> accepted, reject -> rejected, revise leaves it.
+    // abstract status: accept -> accepted, reject -> rejected, revise -> back to
+    // under_review or submitted. A draft or withdrawn abstract has no decision.
     async setDecision(actor: Actor, input: DecisionInput) {
       const abs = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, input.abstractId),
@@ -55,44 +72,44 @@ export function createDecisions(db: DB) {
       const sanitized = input.decisionMessage ? sanitizeBody(input.decisionMessage) : null;
       const message = sanitized && !isEmptyRichText(sanitized) ? sanitized : null;
 
+      if (abs.status === "draft" || abs.status === "withdrawn") {
+        throw new ValidationError("Only a submitted abstract can be decided.");
+      }
+
       const existing = await db.query.decision.findFirst({
         where: eq(schema.decision.abstractId, input.abstractId),
       });
-      if (existing) {
-        await db
-          .update(schema.decision)
-          .set({
+      const decisionWrite = existing
+        ? db
+            .update(schema.decision)
+            .set({
+              outcome: input.outcome,
+              presentationType,
+              decisionMessage: message,
+              decidedById: actor.userId,
+              decidedAt: new Date(),
+            })
+            .where(eq(schema.decision.id, existing.id))
+        : db.insert(schema.decision).values({
+            editionId: abs.editionId,
+            abstractId: input.abstractId,
             outcome: input.outcome,
             presentationType,
             decisionMessage: message,
             decidedById: actor.userId,
-            decidedAt: new Date(),
-          })
-          .where(eq(schema.decision.id, existing.id));
-      } else {
-        await db.insert(schema.decision).values({
-          editionId: abs.editionId,
-          abstractId: input.abstractId,
-          outcome: input.outcome,
-          presentationType,
-          decisionMessage: message,
-          decidedById: actor.userId,
-        });
-      }
+          });
 
-      // Move the abstract to match an accept or reject. A revise decision leaves
-      // the abstract as it is (submitted or under_review) so the author can act.
-      if (input.outcome === "accept") {
-        await db
-          .update(schema.abstract)
-          .set({ status: "accepted" })
-          .where(eq(schema.abstract.id, input.abstractId));
-      } else if (input.outcome === "reject") {
-        await db
-          .update(schema.abstract)
-          .set({ status: "rejected" })
-          .where(eq(schema.abstract.id, input.abstractId));
-      }
+      // The decision and the abstract's status are one batch (a D1 transaction).
+      const status =
+        input.outcome === "accept"
+          ? "accepted"
+          : input.outcome === "reject"
+            ? "rejected"
+            : await statusWithoutDecision(db, abs);
+      await db.batch([
+        decisionWrite,
+        db.update(schema.abstract).set({ status }).where(eq(schema.abstract.id, input.abstractId)),
+      ]);
 
       return this.getForAbstract(actor, input.abstractId);
     },
@@ -215,9 +232,8 @@ export function createDecisions(db: DB) {
       return new Map(rows.map(({ abstractId, ...decision }) => [abstractId, decision]));
     },
 
-    // Chair/admin removes a decision, for corrections, and reverts the abstract
-    // status to under_review when reviewers are still assigned, otherwise to
-    // submitted.
+    // Chair/admin removes a decision, for corrections. An accepted or rejected abstract goes back to
+    // under_review when reviewers are assigned, otherwise to submitted; any other status stays.
     async clearDecision(actor: Actor, abstractId: string) {
       const abs = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, abstractId),
@@ -225,17 +241,18 @@ export function createDecisions(db: DB) {
       if (!abs) throw new NotFoundError();
       if (!isChair(actor, abs.editionId)) throw new ForbiddenError();
 
-      await db.delete(schema.decision).where(eq(schema.decision.abstractId, abstractId));
-
-      const assignments = await db
-        .select({ id: schema.reviewAssignment.id })
-        .from(schema.reviewAssignment)
-        .where(eq(schema.reviewAssignment.abstractId, abstractId));
-      const revert = assignments.length > 0 ? "under_review" : "submitted";
-      await db
-        .update(schema.abstract)
-        .set({ status: revert })
-        .where(eq(schema.abstract.id, abstractId));
+      const clear = db.delete(schema.decision).where(eq(schema.decision.abstractId, abstractId));
+      if (abs.status === "accepted" || abs.status === "rejected") {
+        await db.batch([
+          clear,
+          db
+            .update(schema.abstract)
+            .set({ status: await statusWithoutDecision(db, abs) })
+            .where(eq(schema.abstract.id, abstractId)),
+        ]);
+      } else {
+        await clear;
+      }
 
       return { abstractId };
     },

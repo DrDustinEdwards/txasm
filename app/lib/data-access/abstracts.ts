@@ -10,6 +10,7 @@ import {
   type AbstractLevel,
   DEFAULT_WORD_LIMIT,
 } from "../vocab";
+import { cleanAffiliations, cleanAuthors } from "./abstract-input";
 import {
   type Actor,
   type DB,
@@ -72,6 +73,15 @@ async function assertBeforeDeadline(db: DB, editionId: string) {
   return ed;
 }
 
+// The word limit for a meeting: its own, else the platform default the admin sets in settings.
+async function wordLimitFor(db: DB, edition: { abstractWordLimit: number | null }) {
+  if (edition.abstractWordLimit) return edition.abstractWordLimit;
+  const settings = await db.query.platformSettings.findFirst({
+    columns: { defaultAbstractWordLimit: true },
+  });
+  return settings?.defaultAbstractWordLimit ?? DEFAULT_WORD_LIMIT;
+}
+
 // Shared guard: the abstract exists and the actor may edit it now. A chair of
 // the meeting may edit any time; the submitter may edit only before the
 // submission deadline. Returns the row.
@@ -84,59 +94,6 @@ async function requireEditableAbstract(db: DB, actor: Actor, abstractId: string)
   if (row.submitterId !== actor.userId) throw new ForbiddenError();
   await assertBeforeDeadline(db, row.editionId);
   return row;
-}
-
-// A text field from the form's JSON: a string, or nothing. Anything else (a
-// number, an object) is refused before the save writes a row.
-function textField(value: unknown, what: string): string {
-  if (value === undefined || value === null) return "";
-  if (typeof value !== "string") throw new ValidationError(`Could not read ${what}.`);
-  return value.trim();
-}
-
-function listOf(value: unknown, what: string): Record<string, unknown>[] {
-  if (!Array.isArray(value) || !value.every((v) => v !== null && typeof v === "object")) {
-    throw new ValidationError(`Could not read the ${what}.`);
-  }
-  return value as Record<string, unknown>[];
-}
-
-// The affiliations as stored: trimmed, blank optional fields null, rows with no
-// institution dropped.
-function cleanAffiliations(input: unknown) {
-  return listOf(input, "affiliations")
-    .map((a, i) => {
-      const what = `affiliation ${i + 1}`;
-      return {
-        institution: textField(a.institution, what),
-        department: textField(a.department, what) || null,
-        city: textField(a.city, what) || null,
-        country: textField(a.country, what) || null,
-      };
-    })
-    .filter((a) => a.institution.length > 0);
-}
-
-// The authors as stored: trimmed, rows with no name dropped, affiliation
-// ordinals whole numbers.
-function cleanAuthors(input: unknown) {
-  return listOf(input, "authors")
-    .map((a, i) => {
-      const what = `author ${i + 1}`;
-      const ordinals = a.affiliationOrdinals ?? [];
-      if (!Array.isArray(ordinals) || !ordinals.every((n) => Number.isInteger(n))) {
-        throw new ValidationError(`Could not read ${what}'s affiliations.`);
-      }
-      return {
-        firstName: textField(a.firstName, what),
-        lastName: textField(a.lastName, what),
-        email: textField(a.email, what) || null,
-        isPresenting: !!a.isPresenting,
-        isCorresponding: !!a.isCorresponding,
-        affiliationOrdinals: ordinals as number[],
-      };
-    })
-    .filter((a) => a.firstName.length > 0 || a.lastName.length > 0);
 }
 
 export function createAbstracts(db: DB) {
@@ -166,9 +123,13 @@ export function createAbstracts(db: DB) {
     },
 
     // The abstract plus its authors (with the affiliation numbers attached to
-    // each) and affiliations, for the edit form. Authorized like get.
+    // each) and affiliations, for the edit form. The submitter or a chair only.
     async getForEdit(actor: Actor, abstractId: string) {
       const abstract = await this.get(actor, abstractId);
+      // The form carries author emails, so an assigned reviewer, who reads blind, is not let in.
+      if (!isChair(actor, abstract.editionId) && abstract.submitterId !== actor.userId) {
+        throw new ForbiddenError();
+      }
       const edition = await db.query.edition.findFirst({
         where: eq(schema.edition.id, abstract.editionId),
       });
@@ -208,6 +169,7 @@ export function createAbstracts(db: DB) {
       return {
         abstract,
         edition,
+        wordLimit: await wordLimitFor(db, edition),
         authors: authors.map((a) => ({
           ...a,
           affiliationOrdinals: (ordinalsByAuthor.get(a.id) ?? []).sort((x, y) => x - y),
@@ -278,7 +240,7 @@ export function createAbstracts(db: DB) {
     // Edit until deadline. Sanitizes the title (em only) and section text
     // (em, sup, sub) on every write. editionId and status are not editable here.
     async update(actor: Actor, abstractId: string, patch: Partial<AbstractInput>) {
-      await requireEditableAbstract(db, actor, abstractId);
+      const row = await requireEditableAbstract(db, actor, abstractId);
 
       const set: Partial<typeof schema.abstract.$inferInsert> = {};
       if (patch.title !== undefined) set.title = sanitizeTitle(patch.title);
@@ -297,7 +259,16 @@ export function createAbstracts(db: DB) {
         set.presentationPreference = patch.presentationPreference;
       }
       if (patch.categoryId !== undefined) {
-        set.categoryId = patch.categoryId ? patch.categoryId : null;
+        // A topic of another meeting would drop the abstract from the listing, program and book.
+        const category = patch.categoryId
+          ? await db.query.abstractCategory.findFirst({
+              where: and(
+                eq(schema.abstractCategory.id, patch.categoryId),
+                eq(schema.abstractCategory.editionId, row.editionId),
+              ),
+            })
+          : null;
+        set.categoryId = category?.id ?? null;
       }
       if (patch.level !== undefined) {
         if (patch.level !== null && !ABSTRACT_LEVELS.includes(patch.level)) {
@@ -381,6 +352,10 @@ export function createAbstracts(db: DB) {
       });
       if (!row) throw new NotFoundError();
       if (row.submitterId !== actor.userId) throw new ForbiddenError();
+      // A decided or withdrawn abstract stays as it is. A draft, or one sent back for revision, is submitted again.
+      if (row.status === "accepted" || row.status === "rejected" || row.status === "withdrawn") {
+        throw new ValidationError("This abstract can no longer be submitted.");
+      }
 
       const ed = await assertBeforeDeadline(db, row.editionId);
 
@@ -397,7 +372,7 @@ export function createAbstracts(db: DB) {
       if (!row.bodyText || isEmptyRichText(row.bodyText)) {
         throw new ValidationError("Add the abstract body before submitting.");
       }
-      const wordLimit = ed?.abstractWordLimit ?? DEFAULT_WORD_LIMIT;
+      const wordLimit = await wordLimitFor(db, ed ?? { abstractWordLimit: null });
       if (richTextWords(row.bodyText) > wordLimit) {
         throw new ValidationError(`The abstract body is over the ${wordLimit} word limit.`);
       }

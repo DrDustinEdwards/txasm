@@ -35,6 +35,15 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   return { edition };
 }
 
+// An empty field uses the platform default word limit (null); anything else must be a whole number.
+function parseWordLimit(value: FormDataEntryValue | null): number | null {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  if (!Number.isInteger(n)) throw new ValidationError("The word limit must be a whole number.");
+  return n;
+}
+
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireAdmin(request);
   const form = await readForm(request, FORM_LIMIT);
@@ -51,6 +60,8 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       registrationClosesAt: parseDateTime(form.get("registrationClosesAt")),
       submissionOpensAt: parseDateTime(form.get("submissionOpensAt")),
       submissionDeadline: parseDateTime(form.get("submissionDeadline")),
+      reviewDeadline: parseDateTime(form.get("reviewDeadline")),
+      abstractWordLimit: parseWordLimit(form.get("abstractWordLimit")),
       meetingStartsAt: parseDateTime(form.get("meetingStartsAt")),
       meetingEndsAt: parseDateTime(form.get("meetingEndsAt")),
       venueName: String(form.get("venueName") ?? ""),
@@ -209,6 +220,21 @@ export default function EditEdition({ loaderData }: Route.ComponentProps) {
               name="submissionDeadline"
               label="Deadline"
               defaultDate={edition.submissionDeadline}
+            />
+            <TextField
+              id="abstractWordLimit"
+              label="Abstract word limit"
+              name="abstractWordLimit"
+              type="number"
+              min={1}
+              defaultValue={edition.abstractWordLimit ?? ""}
+              placeholder="Platform default"
+            />
+            <DateTimeField
+              id="reviewDeadline"
+              name="reviewDeadline"
+              label="Review deadline"
+              defaultDate={edition.reviewDeadline}
             />
           </Stack>
         </Panel>

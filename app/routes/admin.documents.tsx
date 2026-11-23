@@ -41,9 +41,7 @@ import {
 } from "@dustinedwards/site-runtime/body";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
-// File picker hint: allow every accepted type so images are selectable for the
-// brand_image category. The real gate is the per-category MIME check in the
-// action; accept only filters the OS dialog.
+// Only filters the OS dialog; the per-category MIME check in the action is the gate.
 const UPLOAD_ACCEPT = [PDF_MIME_TYPE, ...IMAGE_MIME_TYPES].join(",");
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -191,7 +189,8 @@ async function createDocument(request: Request, env: Env, da: DataAccess, actor:
     throw error;
   }
   if (!createdId) throw new ValidationError("Choose a file to upload.");
-  if (fields.get("publish")) await da.documents.publish(actor, createdId);
+  const publish = fields.get("publish") && fields.get("category") !== "brand_image";
+  if (publish) await da.documents.publish(actor, createdId);
   return redirect("/admin/documents");
 }
 
@@ -307,15 +306,16 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (intent === "update") {
       const id = String(form.get("documentId") ?? "");
+      const category = String(form.get("category") ?? "") as DocumentCategory;
       await da.documents.update(actor, id, {
-        category: String(form.get("category") ?? "") as DocumentCategory,
+        category,
         title: String(form.get("title") ?? ""),
         year: parseYear(form.get("year")),
         season: seasonValue(form.get("season")),
         editionId: optionalId(form.get("editionId")),
         editor: optionalText(form.get("editor")),
         slug: optionalText(form.get("slug")),
-        status: form.get("publish") ? "published" : "draft",
+        status: form.get("publish") && category !== "brand_image" ? "published" : "draft",
       });
       return redirect("/admin/documents");
     }
