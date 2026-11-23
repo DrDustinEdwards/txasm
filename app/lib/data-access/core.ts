@@ -136,14 +136,5 @@ export function isReviewerAnywhere(actor: Actor): boolean {
 }
 
 // D1 refuses a LIKE pattern over 50 bytes. likeContains wraps the term in two % and puts a backslash before %, _ and \,
-// so a search term is cut to the 48 bytes left, counted the same way, rather than to a number of characters.
-export function clampSearchTerm(query: string) {
-  let bytes = 0;
-  let term = "";
-  for (const char of query.trim()) {
-    bytes += new TextEncoder().encode(char).length + ("%_\\".includes(char) ? 1 : 0);
-    if (bytes > 48) break;
-    term += char;
-  }
-  return term;
-}
+// so a term is cut to 16 UTF-16 units: at most 3 bytes each is the 48 bytes left.
+export const clampSearchTerm = (query: string) => query.trim().slice(0, 16);

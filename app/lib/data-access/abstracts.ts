@@ -409,7 +409,7 @@ export function createAbstracts(db: DB) {
     // Chair/admin dashboard: every abstract in the meeting that is no longer a
     // draft (submitted, under review, decided, or withdrawn), with author names
     // and the count of reviewer assignments and submitted reviews. Not for
-    // reviewers; they see only their own assignments through reviews.listAssigned.
+    // reviewers; they see only their own assignments through reviews.listAssignedAll.
     async listForEdition(actor: Actor, editionId: string) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);
