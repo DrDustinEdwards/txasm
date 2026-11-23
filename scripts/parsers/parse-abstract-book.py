@@ -85,6 +85,15 @@ ORAL_CODE_RE   = re.compile(r'[A-Z]*O\d|^O\d', re.IGNORECASE)
 
 WITHDRAWN_RE = re.compile(r'\bwithdrawn\b', re.IGNORECASE)
 
+
+def is_withdrawn(ab):
+    """A withdrawn abstract says so in its title, or is a body that is only that notice. A real abstract may
+    use the word in its text ("samples were withdrawn"), so a long body is not enough."""
+    if WITHDRAWN_RE.search(ab['title_html']):
+        return True
+    body = re.sub(r'<[^>]+>', '', ab['body_html'])
+    return bool(WITHDRAWN_RE.search(body)) and len(body.strip()) < 80
+
 CAREER_RE = re.compile(
     r'\b(career\s+talk|keynote|plenary|award\s+lecture|invited\s+speaker|goldschmidt|symposium\s+lecture)\b',
     re.IGNORECASE
@@ -637,7 +646,7 @@ class AbstractBookParser:
             # Remove internal keys
             del ab['_rflags']
 
-            if WITHDRAWN_RE.search(ab['title_html']) or WITHDRAWN_RE.search(ab['body_html']):
+            if is_withdrawn(ab):
                 withdrawn.append(ab)
             else:
                 abstracts.append(ab)
@@ -778,6 +787,7 @@ class AbstractBookParser:
             ab = current
             current = None
             saw_ref = ab.pop('_saw_ref', False)
+            ab.pop('_affil_seen', None)
             ab['title_html'] = ' '.join(ab.pop('_title_html_parts')).strip()
             ab['body_html'] = ' '.join(ab.pop('_body_parts')).strip()
             ab['affiliations'] = parse_affiliations(ab.pop('_affil_raw'))
@@ -788,7 +798,7 @@ class AbstractBookParser:
             del ab['_rflags']
             if not (ab['title_html'] or ab['body_html']):
                 return
-            if WITHDRAWN_RE.search(ab['title_html']) or WITHDRAWN_RE.search(ab['body_html']):
+            if is_withdrawn(ab):
                 withdrawn.append(ab)
             else:
                 abstracts.append(ab)

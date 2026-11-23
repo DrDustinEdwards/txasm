@@ -248,30 +248,6 @@ export function createReviews(db: DB) {
       };
     },
 
-    // Reviewer view: abstracts assigned to the acting reviewer in one edition,
-    // with the assignment status, due date, and whether a review is in yet.
-    async listAssigned(actor: Actor, editionId: string) {
-      return db
-        .select({
-          assignmentId: schema.reviewAssignment.id,
-          status: schema.reviewAssignment.status,
-          dueAt: schema.reviewAssignment.dueAt,
-          abstractId: schema.abstract.id,
-          title: schema.abstract.title,
-          reviewStatus: schema.review.status,
-        })
-        .from(schema.reviewAssignment)
-        .innerJoin(schema.abstract, eq(schema.reviewAssignment.abstractId, schema.abstract.id))
-        .leftJoin(schema.review, eq(schema.review.assignmentId, schema.reviewAssignment.id))
-        .where(
-          and(
-            eq(schema.reviewAssignment.reviewerId, actor.userId),
-            eq(schema.reviewAssignment.editionId, editionId),
-          ),
-        )
-        .orderBy(asc(schema.reviewAssignment.dueAt));
-    },
-
     // Reviewer dashboard across every meeting: the acting reviewer's assignments
     // with meeting name, status, due date, and whether a review is submitted.
     async listAssignedAll(actor: Actor) {

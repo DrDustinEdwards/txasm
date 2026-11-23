@@ -29,7 +29,7 @@ VALUES (
   1941,
   NULL,
   'https://www.facebook.com/groups/texasbranchasm',
-  '[{"label":"Officers","url":"/officers"},{"label":"Awards","url":"/awardees"},{"label":"Contact","url":"/contact"}]',
+  '[{"label":"Officers","url":"/branch-officers"},{"label":"Awards","url":"/awardees"},{"label":"Contact","url":"/contact"}]',
   'usd',
   250,
   (CAST(strftime('%s','now') AS INTEGER) * 1000),

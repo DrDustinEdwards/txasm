@@ -228,19 +228,37 @@ export async function acceptedAbstractsInBookOrder(
 // Turn raw session and item rows into the resolved shape the builder and the
 // public view render. Abstract items get their presentation code from the
 // published book's book_entry.code (absent until the book is published) and
-// their title and presenting author from a direct fetch, so an item whose
-// abstract is no longer accepted still shows a title (with a null code).
+// their title and presenting author from a direct fetch, so the builder still
+// shows an item whose abstract is no longer accepted (with a null code). The
+// public program (publicOnly) leaves such an item out.
 async function resolveProgram(
   db: DB,
   editionId: string,
   sessions: Array<typeof schema.programSession.$inferSelect>,
-  items: Array<typeof schema.programItem.$inferSelect>,
+  allItems: Array<typeof schema.programItem.$inferSelect>,
+  publicOnly: boolean,
 ): Promise<ProgramSessionResolved[]> {
   const codeById = await publishedBookCodes(db, editionId);
 
   // Invited-speaker items: resolve name and talk title from a direct fetch, so
   // an item whose speaker was later removed (speaker_id set null) still renders
   // by its kind label.
+  const refIds = [
+    ...new Set(allItems.map((i) => i.abstractId).filter((x): x is string => x !== null)),
+  ];
+  const absRows = await db
+    .select({
+      id: schema.abstract.id,
+      title: schema.abstract.title,
+      status: schema.abstract.status,
+    })
+    .from(schema.abstract)
+    .where(inList(schema.abstract.id, refIds));
+  const notAccepted = new Set(absRows.filter((a) => a.status !== "accepted").map((a) => a.id));
+  const items = publicOnly
+    ? allItems.filter((i) => !i.abstractId || !notAccepted.has(i.abstractId))
+    : allItems;
+
   const speakerRefIds = [
     ...new Set(items.map((i) => i.speakerId).filter((x): x is string => x !== null)),
   ];
@@ -261,13 +279,6 @@ async function resolveProgram(
     }
   }
 
-  const refIds = [
-    ...new Set(items.map((i) => i.abstractId).filter((x): x is string => x !== null)),
-  ];
-  const absRows = await db
-    .select({ id: schema.abstract.id, title: schema.abstract.title })
-    .from(schema.abstract)
-    .where(inList(schema.abstract.id, refIds));
   const titleById = new Map(absRows.map((a) => [a.id, a.title]));
   const presentingById = await presentingAuthorNames(db, refIds);
 
@@ -317,6 +328,7 @@ async function resolveProgram(
 export async function loadResolvedProgram(
   db: DB,
   editionId: string,
+  { publicOnly = false } = {},
 ): Promise<ProgramSessionResolved[]> {
   const sessions = await db
     .select()
@@ -334,7 +346,7 @@ export async function loadResolvedProgram(
       ),
     )
     .orderBy(schema.programItem.sortOrder);
-  return resolveProgram(db, editionId, sessions, items);
+  return resolveProgram(db, editionId, sessions, items, publicOnly);
 }
 
 // The invited speakers and sponsors of an edition, in display order, as the

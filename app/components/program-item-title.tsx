@@ -1,6 +1,7 @@
 import { Text } from "capsomer/react/text";
 import { RichText } from "capsomer/react/trusted-html";
 import type { ProgramSessionResolved } from "~/lib/data-access";
+import { programKindLabel } from "~/lib/vocab";
 
 type Item = ProgramSessionResolved["items"][number];
 
@@ -41,5 +42,6 @@ export function ProgramItemTitle({ item }: { item: Item }) {
       </p>
     );
   }
-  return <Text weight="strong">{item.customTitle}</Text>;
+  // An item whose abstract or speaker was removed keeps its slot and shows its kind.
+  return <Text weight="strong">{item.customTitle ?? programKindLabel(item.kind)}</Text>;
 }

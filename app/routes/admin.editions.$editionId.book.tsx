@@ -47,6 +47,22 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { edition, book, pdf };
 }
 
+function parseArrangement(text: string): BookArrangementInput {
+  try {
+    const parsed = JSON.parse(text);
+    const sections: unknown = parsed?.sections;
+    if (
+      Array.isArray(sections) &&
+      sections.every((s) => typeof s?.sectionId === "string" && Array.isArray(s.entryIds))
+    ) {
+      return parsed;
+    }
+  } catch {
+    // Not JSON: the same refusal as a wrong shape.
+  }
+  throw new ValidationError("Could not read the arrangement. Try again.");
+}
+
 // Generate, arrange, and publish are the builder. publish also produces the
 // arranged PDF (best-effort, gated on Browser Rendering) and delivers it through
 // the document/R2 path; pdf-publish flips that PDF to public in the archive.
@@ -64,9 +80,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { ok: "Draft book generated from the accepted abstracts.", book };
     }
     if (intent === "reorder") {
-      const arrangement = JSON.parse(
-        String(form.get("arrangement") ?? "{}"),
-      ) as BookArrangementInput;
+      const arrangement = parseArrangement(String(form.get("arrangement") ?? ""));
       const book = await da.books.reorder(actor, editionId, arrangement);
       return { book };
     }

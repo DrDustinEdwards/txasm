@@ -50,6 +50,7 @@ const CATEGORY_META: Record<
     titleSuffix: "Abstract Book",
   },
   program: { keyword: "program", slugSuffix: "program", titleSuffix: "Program" },
+  brand_image: { keyword: "", slugSuffix: "brand-image", titleSuffix: "Brand image" },
   other: { keyword: "", slugSuffix: "document", titleSuffix: "Document" },
 };
 

@@ -7,6 +7,7 @@ import { sanitizeBody } from "../richtext";
 import {
   type Actor,
   AlreadyExistsError,
+  clampSearchTerm,
   type DB,
   ForbiddenError,
   isAdmin,
@@ -385,7 +386,7 @@ export function createAwardRecipients(db: DB) {
     // _ and backslash are escaped (site-runtime likeContains, ESCAPE '\\'), so "50%"
     // or "E_coli" is not a wildcard, as in public-abstracts.ts.
     async search(query: string, filters: AwardSearchFilters = {}): Promise<AwardSearchResult[]> {
-      const term = query.trim();
+      const term = clampSearchTerm(query);
       const conditions = [];
       const contains = (column: AnyColumn, value: string): SQL => likeContains(column, value);
       if (term) {

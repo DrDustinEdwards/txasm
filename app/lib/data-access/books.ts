@@ -21,6 +21,7 @@ import {
 import {
   type Actor,
   type DB,
+  runBatch,
   ForbiddenError,
   isChair,
   NotFoundError,
@@ -164,30 +165,33 @@ export function createBooks(db: DB) {
         })),
       );
 
-      if (existing) {
-        // Regenerate replaces a draft arrangement; deleting sections cascades to
-        // their entries.
-        await db.delete(schema.bookSection).where(eq(schema.bookSection.bookId, bookId));
-        await db
-          .update(schema.abstractBook)
-          .set({ status: "draft", generatedById: actor.userId, updatedAt: new Date() })
-          .where(eq(schema.abstractBook.id, bookId));
-      } else {
-        await db.insert(schema.abstractBook).values({
-          id: bookId,
-          editionId,
-          status: "draft",
-          generatedById: actor.userId,
-        });
-      }
-      // A row binds one parameter per column (timestamps included), so each
-      // batch stays under D1's limit of 100.
-      for (const batch of chunked(sectionRows, rowsPerInsert(9))) {
-        await db.insert(schema.bookSection).values(batch);
-      }
-      for (const batch of chunked(entryRows, rowsPerInsert(9))) {
-        await db.insert(schema.bookEntry).values(batch);
-      }
+      // Regenerate replaces a draft arrangement (deleting sections cascades to their entries). The whole rewrite is one
+      // batch, so a failure leaves the old arrangement. A row binds one parameter per column (timestamps included), so
+      // each insert stays under D1's limit of 100.
+      await runBatch(db, [
+        ...(existing
+          ? [
+              db.delete(schema.bookSection).where(eq(schema.bookSection.bookId, bookId)),
+              db
+                .update(schema.abstractBook)
+                .set({ status: "draft", generatedById: actor.userId, updatedAt: new Date() })
+                .where(eq(schema.abstractBook.id, bookId)),
+            ]
+          : [
+              db.insert(schema.abstractBook).values({
+                id: bookId,
+                editionId,
+                status: "draft",
+                generatedById: actor.userId,
+              }),
+            ]),
+        ...chunked(sectionRows, rowsPerInsert(9)).map((rows) =>
+          db.insert(schema.bookSection).values(rows),
+        ),
+        ...chunked(entryRows, rowsPerInsert(9)).map((rows) =>
+          db.insert(schema.bookEntry).values(rows),
+        ),
+      ]);
       await recomputeBookCodes(db, bookId);
 
       const view = await loadBookView(db, editionId);
@@ -251,12 +255,15 @@ export function createBooks(db: DB) {
         throw new ValidationError("arrangement must include every entry once");
       }
 
-      for (const p of placements) {
-        await db
-          .update(schema.bookEntry)
-          .set({ sectionId: p.sectionId, sortOrder: p.sortOrder, updatedAt: new Date() })
-          .where(eq(schema.bookEntry.id, p.entryId));
-      }
+      await runBatch(
+        db,
+        placements.map((p) =>
+          db
+            .update(schema.bookEntry)
+            .set({ sectionId: p.sectionId, sortOrder: p.sortOrder, updatedAt: new Date() })
+            .where(eq(schema.bookEntry.id, p.entryId)),
+        ),
+      );
       await recomputeBookCodes(db, book.id);
 
       const view = await loadBookView(db, editionId);

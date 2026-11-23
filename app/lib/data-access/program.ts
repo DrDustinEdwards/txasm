@@ -3,6 +3,7 @@ import * as schema from "../../db/schema";
 import {
   type Actor,
   type DB,
+  runBatch,
   ForbiddenError,
   isChair,
   NotFoundError,
@@ -109,15 +110,17 @@ export function createProgramSessions(db: DB) {
         .from(schema.programSession)
         .where(eq(schema.programSession.editionId, editionId));
       const validIds = new Set(existing.map((s) => s.id));
-      let order = 0;
-      for (const id of orderedSessionIds) {
-        if (!validIds.has(id)) continue;
-        await db
-          .update(schema.programSession)
-          .set({ sortOrder: order })
-          .where(eq(schema.programSession.id, id));
-        order += 1;
-      }
+      await runBatch(
+        db,
+        orderedSessionIds
+          .filter((id) => validIds.has(id))
+          .map((id, order) =>
+            db
+              .update(schema.programSession)
+              .set({ sortOrder: order })
+              .where(eq(schema.programSession.id, id)),
+          ),
+      );
       return { editionId };
     },
 
@@ -131,7 +134,7 @@ export function createProgramSessions(db: DB) {
       });
       if (!ed) return null;
       if (!PROGRAM_PUBLIC_STATUSES.includes(ed.status)) return null;
-      const resolved = await loadResolvedProgram(db, editionId);
+      const resolved = await loadResolvedProgram(db, editionId, { publicOnly: true });
 
       const sponsorRows = await listEditionSponsors(db, editionId);
 
@@ -219,7 +222,7 @@ export function createProgram(db: DB) {
       });
       const identity = settingsRow ? resolveSettings(settingsRow) : null;
 
-      const resolved = await loadResolvedProgram(db, editionId);
+      const resolved = await loadResolvedProgram(db, editionId, { publicOnly: true });
 
       const speakers = await listEditionSpeakers(db, editionId);
 

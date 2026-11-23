@@ -49,11 +49,14 @@ before(async () => {
 
   // A signed-in reader: their user and session rows, and the signed cookie a sign-in would have set.
   const ctx = await (await auth.getAuth(workerEnv as unknown as Env)).$context;
-  const user = await ctx.internalAdapter.createUser({
-    email: "reader@example.com",
-    name: "Sample Reader",
-    emailVerified: true,
-  });
+  const user = await ctx.internalAdapter.createUser(
+    {
+      email: "reader@example.com",
+      name: "Sample Reader",
+      emailVerified: true,
+    },
+    { method: "magic-link" },
+  );
   const session = await ctx.internalAdapter.createSession(user.id);
   const key = await crypto.subtle.importKey(
     "raw",

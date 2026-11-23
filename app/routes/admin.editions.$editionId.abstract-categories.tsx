@@ -39,28 +39,20 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return redirect(back);
     }
 
-    if (intent === "update") {
-      const id = String(form.get("categoryId") ?? "");
+    if (intent === "update" || intent === "create") {
       const name = String(form.get("name") ?? "");
       const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
       if (!Number.isInteger(sortOrder)) {
         return { error: "Sort order must be a whole number." };
       }
-      await da.abstractCategories.update(actor, id, { name, sortOrder });
-      return redirect(back);
-    }
-
-    if (intent === "create") {
-      const name = String(form.get("name") ?? "");
-      const sortOrder = Number(String(form.get("sortOrder") ?? "0").trim() || "0");
-      if (!Number.isInteger(sortOrder)) {
-        return { error: "Sort order must be a whole number." };
+      if (intent === "update") {
+        await da.abstractCategories.update(actor, String(form.get("categoryId") ?? ""), {
+          name,
+          sortOrder,
+        });
+      } else {
+        await da.abstractCategories.create(actor, { editionId: params.editionId, name, sortOrder });
       }
-      await da.abstractCategories.create(actor, {
-        editionId: params.editionId,
-        name,
-        sortOrder,
-      });
       return redirect(back);
     }
   } catch (error) {

@@ -1,6 +1,7 @@
 import { logEvent, OWASP_EVENTS } from "@dustinedwards/site-runtime/log";
 import { and, eq, inArray } from "drizzle-orm";
 import * as schema from "../../db/schema";
+import type { BatchItem } from "drizzle-orm/batch";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 // This file is the only place allowed to import ./schema and the Drizzle client.
@@ -8,6 +9,12 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 // nothing queries Drizzle directly outside this layer.
 
 export type DB = DrizzleD1Database<typeof schema>;
+
+// Statements run as one D1 batch, a transaction: all land or none do, and the lot counts as one subrequest.
+export async function runBatch(db: DB, statements: BatchItem<"sqlite">[]) {
+  if (statements.length > 0)
+    await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
+}
 
 export class ForbiddenError extends Error {
   constructor(message = "forbidden") {
@@ -127,3 +134,7 @@ export function isReviewer(actor: Actor, editionId: string): boolean {
 export function isReviewerAnywhere(actor: Actor): boolean {
   return actor.grants.some((g) => g.role === "reviewer");
 }
+
+// D1 refuses a LIKE pattern over 50 bytes. likeContains wraps the term in two % and puts a backslash before %, _ and \,
+// so a term is cut to 16 UTF-16 units: at most 3 bytes each is the 48 bytes left.
+export const clampSearchTerm = (query: string) => query.trim().slice(0, 16);

@@ -448,6 +448,13 @@ export function createAbstractCategories(db: DB) {
         where: eq(schema.abstractCategory.id, id),
       });
       if (!row) throw new NotFoundError();
+      // abstract.category_id has no ON DELETE, so a topic in use is refused rather than failing the foreign key.
+      const used = await db.query.abstract.findFirst({
+        columns: { id: true },
+        where: eq(schema.abstract.categoryId, id),
+      });
+      if (used)
+        throw new ValidationError("This topic is in use by abstracts, so it cannot be removed.");
       await db.delete(schema.abstractCategory).where(eq(schema.abstractCategory.id, id));
       return { id };
     },
