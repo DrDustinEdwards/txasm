@@ -82,7 +82,7 @@
       "esbuild": "0.28.2"
     },
     "miniflare": {
-      "undici": "7.30.2",
+      "undici": "8.13.1",
       "sharp": "0.35.5"
     }
   }
