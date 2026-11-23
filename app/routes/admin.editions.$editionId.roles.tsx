@@ -9,14 +9,9 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  NotFoundError,
-  ValidationError,
-  getDataAccess,
-  type GrantableRole,
-} from "~/lib/data-access";
+import { getDataAccess, type GrantableRole } from "~/lib/data-access";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Chairs and reviewers"));
@@ -66,10 +61,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return redirect(back);
     }
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };
@@ -139,7 +131,12 @@ function RoleList({
 }: {
   title: string;
   empty: string;
-  grants: Array<{ userId: string; role: string; name: string | null; email: string }>;
+  grants: Array<{
+    userId: string;
+    role: string;
+    name: string | null;
+    email: string;
+  }>;
 }) {
   return (
     <Stack as="section" gap={4}>

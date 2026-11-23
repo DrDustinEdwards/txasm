@@ -1,7 +1,25 @@
 // The form body ceiling (read with site-runtime's readForm), and the field parsers the admin actions share. Each
 // parser throws ValidationError, in words for the admin, when a field does not parse.
 import { fromDateTimeLocal } from "capsomer/behavior/field";
-import { ValidationError } from "./data-access";
+import {
+  AlreadyExistsError,
+  DeadlinePassedError,
+  NotFoundError,
+  ValidationError,
+} from "./data-access";
+
+// An action's catch: an error the admin can act on becomes the page's message, any other error is rethrown.
+export function formError(error: unknown, extra?: { abstractId: string }) {
+  if (
+    error instanceof ValidationError ||
+    error instanceof NotFoundError ||
+    error instanceof AlreadyExistsError ||
+    error instanceof DeadlinePassedError
+  ) {
+    return { error: error.message, ...extra };
+  }
+  throw error;
+}
 
 /** A form of text fields: sign-in, an abstract, a review, an admin setting. */
 export const FORM_LIMIT = 1024 * 1024;

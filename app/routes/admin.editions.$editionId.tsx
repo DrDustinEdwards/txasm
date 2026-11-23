@@ -7,12 +7,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import {
-  NotFoundError,
-  ValidationError,
-  getDataAccess,
-  type EditionPatch,
-} from "~/lib/data-access";
+import { ValidationError, getDataAccess, type EditionPatch } from "~/lib/data-access";
 import {
   EDITION_STATUSES,
   EDITION_STATUS_LABELS,
@@ -22,7 +17,7 @@ import {
 } from "~/lib/vocab";
 import { DateTimeField, TextField } from "capsomer/react/field";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT, parseDateTime } from "~/lib/form.server";
+import { formError, FORM_LIMIT, parseDateTime } from "~/lib/form.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Edit meeting"));
@@ -71,10 +66,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     const { env } = context.get(cloudflareContext);
     await getDataAccess(env).editions.update(actor, params.editionId, patch);
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return redirect("/admin");

@@ -6,12 +6,12 @@ import { Disclosure } from "capsomer/react/disclosure";
 import type { Route } from "./+types/admin.officers";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireAdmin } from "~/lib/auth.server";
-import { getDataAccess, NotFoundError, ValidationError } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import { OFFICER_SECTION_LABELS, OFFICER_SECTIONS, type OfficerSection } from "~/lib/vocab";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -60,10 +60,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       return redirect("/admin/officers");
     }
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };

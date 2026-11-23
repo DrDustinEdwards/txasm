@@ -10,7 +10,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair, requireChairEdition } from "~/lib/auth.server";
-import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import {
   ABSTRACT_STATUS_LABELS,
   DECISION_OUTCOMES,
@@ -25,7 +25,7 @@ import { RichTextField } from "capsomer/react/rich-text-field";
 import { BODY_TAGS } from "~/lib/richtext";
 import { decisionEmail, sendEmail } from "~/lib/email.server";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { FORM_LIMIT } from "~/lib/form.server";
+import { formError, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 import { RichText } from "capsomer/react/trusted-html";
 // Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
@@ -89,10 +89,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return { ok: "Decision saved.", abstractId };
     }
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
-      return { error: error.message, abstractId };
-    }
-    throw error;
+    return formError(error, { abstractId });
   }
 
   return { error: "Unknown action.", abstractId };
@@ -123,7 +120,12 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
       <EditionPageHead
         title="Decisions"
         edition={edition}
-        links={[{ to: `/admin/editions/${edition.id}/review`, label: "Assign reviewers" }]}
+        links={[
+          {
+            to: `/admin/editions/${edition.id}/review`,
+            label: "Assign reviewers",
+          },
+        ]}
       >
         <p className="cap-muted">Authors see a decision as soon as you save it.</p>
       </EditionPageHead>
@@ -284,7 +286,10 @@ function DecisionRow({ editionId, abstract }: { editionId: string; abstract: Abs
               type="submit"
               disabled={submitting}
               onClick={(e) =>
-                confirmSubmit(e, { title: "Clear this decision?", action: "Clear decision" })
+                confirmSubmit(e, {
+                  title: "Clear this decision?",
+                  action: "Clear decision",
+                })
               }
               className="cap-btn"
               data-variant="link"

@@ -7,8 +7,8 @@
     "measured_at": "a8ce7f0",
     "knip": {
       "dependencies": 1,
-      "exports": 2,
-      "types": 1
+      "exports": 0,
+      "types": 0
     },
     "jscpd": {
       "clones": 19,

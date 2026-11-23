@@ -9,10 +9,10 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireChair, requireChairEdition } from "~/lib/auth.server";
-import { NotFoundError, ValidationError, getDataAccess } from "~/lib/data-access";
+import { getDataAccess } from "~/lib/data-access";
 import { SPONSOR_TIERS } from "~/lib/vocab";
 import { readForm } from "@dustinedwards/site-runtime/body";
-import { parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
+import { formError, parseSortOrder, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -60,10 +60,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
       return redirect(back);
     }
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
-      return { error: error.message };
-    }
-    throw error;
+    return formError(error);
   }
 
   return { error: "Unknown action." };
