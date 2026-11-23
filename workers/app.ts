@@ -15,7 +15,7 @@ import { withSecurityHeaders } from "../app/lib/security-headers";
 import { carrelRequestApi } from "../app/lib/carrel/handler.server";
 import { pagePreviewContext } from "../app/lib/preview-context";
 import { allCronJobs, cronJobs } from "../app/lib/cron.server";
-import { setPageRenderer } from "../app/lib/page-dates.server";
+import { setPageRenderer } from "@drdustinedwards/site-helpers/lastmod";
 import { backupStatus } from "../app/lib/backup.server";
 import { FONT_PRELOADS } from "../app/lib/preloads";
 import { getDataAccess } from "../app/lib/data-access";

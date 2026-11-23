@@ -1,5 +1,5 @@
-import { kvPageRecord, trackPageDates } from "@drdustinedwards/site-helpers/lastmod";
-import { htmlToMarkdown } from "@drdustinedwards/site-helpers/markdown-copy";
+import { kvPageRecord, trackRenderedPageDates } from "@drdustinedwards/site-helpers/lastmod";
+import { SITE_ORIGIN } from "~/lib/site-meta";
 
 // The day each public page of /sitemap.xml last changed that no row dates (the code-written hubs, and the Carrel pages
 // until they have a publish revision). The daily page-dates job reads each as Markdown, the way a Markdown copy is
@@ -22,13 +22,6 @@ export const TRACKED_PATHS = [
   "/accessibility",
 ];
 
-/** Renders a path through the Worker's own page handler and returns its HTML, or null when it is not a page. workers/app.ts sets it. */
-export type PageRenderer = (path: string, env: Env) => Promise<string | null>;
-let renderPage: PageRenderer | undefined;
-export function setPageRenderer(renderer: PageRenderer): void {
-  renderPage = renderer;
-}
-
 /** The record the job keeps, from its D1 row. */
 export const pageRecordStore = (env: Env) =>
   kvPageRecord(
@@ -42,15 +35,10 @@ export const pageRecordStore = (env: Env) =>
 
 /** The daily job: date every tracked page. */
 export async function runPageDates(env: Env): Promise<void> {
-  const render = renderPage!;
-  const store = pageRecordStore(env);
-  await trackPageDates({
+  await trackRenderedPageDates({
     paths: TRACKED_PATHS,
-    read: async (path) => {
-      const html = await render(path, env);
-      return html && htmlToMarkdown(html).markdown;
-    },
-    load: store.load,
-    save: store.save,
+    origin: SITE_ORIGIN,
+    env,
+    ...pageRecordStore(env),
   });
 }
