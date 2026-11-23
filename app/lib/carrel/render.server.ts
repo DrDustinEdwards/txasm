@@ -150,7 +150,7 @@ export async function rerenderUsing(env: Env, key: string): Promise<number> {
  * the source its last publish put live, so the page and prelum-content both read the current render. A page that no
  * longer renders is logged and left as it is. Returns how many pages it rendered again; with none stale it is one read.
  */
-export async function rerenderStale(env: Env): Promise<number> {
+export async function rerenderStalePages(env: Env): Promise<number> {
   const { RENDER_VERSION } = await import("@drdustinedwards/site-helpers/render/nomath");
   const pages = getCarrelPages(env);
   let done = 0;

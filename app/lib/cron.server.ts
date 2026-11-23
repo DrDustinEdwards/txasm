@@ -19,7 +19,7 @@ import { pruneNotFoundJob } from "@dustinedwards/site-runtime/not-found";
 import { pruneAuthEventsJob } from "@dustinedwards/site-runtime/sign-in";
 import { backupUploads, runNightlyBackup } from "~/lib/backup.server";
 import { runCarrelSchedules } from "~/lib/carrel/handler.server";
-import { rerenderStale } from "~/lib/carrel/render.server";
+import { rerenderStalePages } from "~/lib/carrel/render.server";
 import { logEvent } from "@dustinedwards/site-runtime/log";
 import { runPageDates } from "~/lib/page-dates.server";
 
@@ -38,7 +38,7 @@ export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[
         everyMinutes: 1,
         timeoutMs: 50_000,
         run: async () => {
-          const done = await rerenderStale(env);
+          const done = await rerenderStalePages(env);
           if (done) logEvent("render_stale", { pages: done });
         },
       },
