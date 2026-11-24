@@ -207,7 +207,12 @@ test("an abstract's authors and affiliations are replaced together or not at all
     affiliations: [{ institution: "Example College" }, { institution: "Sample University" }],
     authors: [
       { firstName: "Ada", lastName: "Lovelace", affiliationOrdinals: [2, 1, 1] },
-      { firstName: "Sam", lastName: "Sample", email: "U-Stranger@example.com", affiliationOrdinals: [2, 9] },
+      {
+        firstName: "Sam",
+        lastName: "Sample",
+        email: "U-Stranger@example.com",
+        affiliationOrdinals: [2, 9],
+      },
     ],
   });
   const linked = await d1
