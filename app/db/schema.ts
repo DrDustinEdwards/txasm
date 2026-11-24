@@ -194,7 +194,6 @@ export const roleGrant = sqliteTable(
   },
   (t) => [
     unique("uq_role_grant").on(t.userId, t.role, t.editionId),
-    index("ix_role_grant_user").on(t.userId),
     index("ix_role_grant_edition").on(t.editionId),
   ],
 );
@@ -272,7 +271,6 @@ export const registration = sqliteTable(
   },
   (t) => [
     unique("uq_registration_user_edition").on(t.editionId, t.userId), // one per user per edition
-    index("ix_registration_edition").on(t.editionId),
   ],
 );
 
@@ -719,7 +717,6 @@ export const bookEntry = sqliteTable(
   },
   (t) => [
     unique("uq_book_entry").on(t.bookId, t.abstractId),
-    index("ix_book_entry_book").on(t.bookId),
     index("ix_book_entry_section").on(t.sectionId),
   ],
 );

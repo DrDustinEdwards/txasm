@@ -281,6 +281,13 @@
       "when": 1795301524392,
       "tag": "0039_page_dates",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "6",
+      "when": 1795526774768,
+      "tag": "0040_drop_redundant_indexes",
+      "breakpoints": true
     }
   ]
 }
