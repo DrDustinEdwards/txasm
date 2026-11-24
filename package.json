@@ -30,7 +30,7 @@
     "@base-ui/react": "1.9.0",
     "@better-auth/passkey": "1.7.27",
     "@cloudflare/puppeteer": "2.0.1",
-    "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.67.0",
+    "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.67.1",
     "@dustinedwards/d1-dump": "github:DrDustinEdwards/d1-dump#v0.17.1",
     "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.49.0",
     "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#v0.181.2",
