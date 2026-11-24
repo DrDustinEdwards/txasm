@@ -16,8 +16,6 @@ export const EXCLUDED_TABLES = [
   // hash column. Sign-in is a passkey or an email link, so the table holds no data the
   // site needs back; a user signs in again and the row is recreated.
   "account",
-  // Reviewer and chair invitations carry a live one-time accept token.
-  "invitation",
   // Carrel's preview links (site-api's store): the hash of each link's token. Restoring an older copy would bring
   // back a link revoked since; a lost link is made again in Carrel.
   "preview_links",
@@ -30,15 +28,13 @@ export const CREDENTIAL_ALLOW: Record<string, string> = {
     "a passkey's public id, sent to every browser that signs in with it; the private key never leaves the device, and a restore must keep it or every passkey stops working",
 };
 
-// The irreplaceable data: people, registrations (payment state lives on
-// registration), abstracts and their authors, reviews and decisions, and the
+// The irreplaceable data: people, abstracts and their authors, reviews and decisions, and the
 // edition and platform settings every page reads. Each must be dumped and match
 // the live row count, read straight after the dump (d1-dump's `counted`).
 export const REQUIRED_TABLES = [
   "user",
   "edition",
   "platform_settings",
-  "registration",
   "abstract",
   "author",
   "review",

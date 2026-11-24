@@ -41,6 +41,8 @@
     "0036_ai_outcomes.sql": "773a3c83112ed08cf7a559ed01786e65320fabeea5df6c793f8561c4a48015c7",
     "0037_footer_awards_link.sql": "4e2620048d56000bb555d03418252076cb93b44f46b8bc5e0203de67c1553b66",
     "0038_page_revision_actor.sql": "2330d9caf57826a9ada091afa8a71bfadb5e40663df4fb687a7e14e41b33e6bc",
-    "0039_page_dates.sql": "67a87c559499d9296706f357991a532db2d2c34e52081f856a85c90312e3f329"
+    "0039_page_dates.sql": "67a87c559499d9296706f357991a532db2d2c34e52081f856a85c90312e3f329",
+    "0040_drop_redundant_indexes.sql": "bd87d54608d5ea693d90a996ac0f66838758a5bc43909e86afcfd7ad7c62505a",
+    "0041_drop_unused_tables_and_columns.sql": "f218a4732f542a8eb8cb87c2145e26fbd2169bb87ca4abd3e6054401cfd8356a"
   }
 }

@@ -309,8 +309,19 @@ export function createAbstracts(db: DB) {
         ordinal: i + 1,
       }));
       const cleaned = cleanAuthors(input.authors);
+      // An author who has an account is linked to it, so the conflict-of-interest
+      // check and account erase find them by id, not only by email.
+      const emails = [...new Set(cleaned.flatMap((a) => (a.email ? [a.email.toLowerCase()] : [])))];
+      const accounts = emails.length
+        ? await db
+            .select({ id: schema.user.id, email: schema.user.email })
+            .from(schema.user)
+            .where(inList(schema.user.email, emails))
+        : [];
+      const userByEmail = new Map(accounts.map((u) => [u.email.toLowerCase(), u.id]));
       const authors = cleaned.map((a, i) => ({
         id: crypto.randomUUID(),
+        userId: a.email ? (userByEmail.get(a.email.toLowerCase()) ?? null) : null,
         abstractId,
         ordinal: i + 1,
         firstName: a.firstName,
