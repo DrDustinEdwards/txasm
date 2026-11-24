@@ -1122,5 +1122,3 @@ export {
   webmentionTargets,
 } from "@dustinedwards/site-api/drizzle";
 
-// Deferred to later phases, named here so the shape is visible but kept out of
-// this review: officer, newsletter. Add once the core above is agreed.

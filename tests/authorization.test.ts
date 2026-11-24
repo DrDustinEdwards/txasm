@@ -207,9 +207,17 @@ test("an abstract's authors and affiliations are replaced together or not at all
     affiliations: [{ institution: "Example College" }, { institution: "Sample University" }],
     authors: [
       { firstName: "Ada", lastName: "Lovelace", affiliationOrdinals: [2, 1, 1] },
-      { firstName: "Sam", lastName: "Sample", affiliationOrdinals: [2, 9] },
+      { firstName: "Sam", lastName: "Sample", email: "U-Stranger@example.com", affiliationOrdinals: [2, 9] },
     ],
   });
+  const linked = await d1
+    .prepare("SELECT last_name, user_id FROM author WHERE abstract_id = 'b-0' ORDER BY ordinal")
+    .all()
+    .then((r) => r.results);
+  assert.deepEqual(linked, [
+    { last_name: "Lovelace", user_id: null },
+    { last_name: "Sample", user_id: "u-stranger" },
+  ]);
   assert.deepEqual(await lines(), [
     { name: "Lovelace", institution: "Example College" },
     { name: "Lovelace", institution: "Sample University" },
