@@ -5,9 +5,9 @@ import type { DB } from "./core";
 
 // What deleting a person does. The sign-in side goes: sessions, passkeys, linked
 // accounts and the user row itself, with the email and name. What the person put
-// into a Meeting stays, because abstracts, reviews, registrations and the work done
+// into a Meeting stays, because abstracts, reviews and the work done
 // for a meeting belong to that meeting and its archive (CLAUDE.md hard rule 2): the
-// abstract with its author line as typed, the scores, the payment row. Each of those
+// abstract with its author line as typed and the scores. Each of those
 // rows is handed to a "Deleted account" user made for the person (handOverRecords),
 // so nothing is orphaned and no foreign key breaks. An active admin, chair or
 // reviewer grant still blocks deletion: someone who runs a meeting hands that over
@@ -16,16 +16,12 @@ import type { DB } from "./core";
 // Every column that refers to user.id without a cascade. tests/authorization.test.ts
 // checks this against the real foreign keys, so a new reference cannot be missed.
 export const ACCOUNT_REFERENCES: ReadonlyArray<[SQLiteTable, SQLiteColumn]> = [
-  [schema.registration, schema.registration.userId],
   [schema.abstract, schema.abstract.submitterId],
   [schema.author, schema.author.userId],
-  [schema.abstractFile, schema.abstractFile.uploadedById],
   [schema.reviewAssignment, schema.reviewAssignment.reviewerId],
   [schema.reviewConflict, schema.reviewConflict.reviewerId],
   [schema.review, schema.review.reviewerId],
   [schema.roleGrant, schema.roleGrant.grantedById],
-  [schema.invitation, schema.invitation.invitedById],
-  [schema.invitation, schema.invitation.acceptedUserId],
   [schema.reviewAssignment, schema.reviewAssignment.assignedById],
   [schema.reviewConflict, schema.reviewConflict.declaredById],
   [schema.decision, schema.decision.decidedById],
@@ -48,7 +44,7 @@ export function createAccount(db: DB) {
     // Run just before the user row is deleted. Makes the "Deleted account" user for this
     // person (kept if a first attempt got this far), clears the contact email on their
     // author rows (the name on the abstract stays), and points every record at the new
-    // user in one batch. Per person, because a meeting allows one registration per user.
+    // user in one batch..
     async handOverRecords(userId: string): Promise<void> {
       const heir = `deleted-${userId}`;
       const repoint = ACCOUNT_REFERENCES.map(([table, column]) => {

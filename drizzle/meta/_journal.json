@@ -288,6 +288,13 @@
       "when": 1795526774768,
       "tag": "0040_drop_redundant_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1795527013476,
+      "tag": "0041_drop_unused_tables_and_columns",
+      "breakpoints": true
     }
   ]
 }

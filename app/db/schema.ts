@@ -198,31 +198,6 @@ export const roleGrant = sqliteTable(
   ],
 );
 
-// Email invitations for chair/reviewer roles. Accepting one issues a role_grant.
-export const invitation = sqliteTable(
-  "invitation",
-  {
-    id: pk(),
-    editionId: text("edition_id")
-      .notNull()
-      .references(() => edition.id, { onDelete: "cascade" }),
-    email: text("email").notNull(),
-    role: text("role", { enum: ["chair", "reviewer"] }).notNull(),
-    token: text("token").notNull().unique(),
-    status: text("status", {
-      enum: ["pending", "accepted", "expired", "revoked"],
-    })
-      .notNull()
-      .default("pending"),
-    invitedById: text("invited_by_id").references(() => user.id),
-    expiresAt: tsMs("expires_at").notNull(),
-    acceptedAt: tsMs("accepted_at"),
-    acceptedUserId: text("accepted_user_id").references(() => user.id),
-    createdAt: createdAt(),
-  },
-  (t) => [index("ix_invitation_edition").on(t.editionId), index("ix_invitation_email").on(t.email)],
-);
-
 // Registration. Categories and fees are per edition.
 
 export const registrationCategory = sqliteTable(
@@ -241,37 +216,6 @@ export const registrationCategory = sqliteTable(
     createdAt: createdAt(),
   },
   (t) => [unique("uq_reg_category").on(t.editionId, t.key)],
-);
-
-export const registration = sqliteTable(
-  "registration",
-  {
-    id: pk(),
-    editionId: text("edition_id")
-      .notNull()
-      .references(() => edition.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id),
-    categoryId: text("category_id")
-      .notNull()
-      .references(() => registrationCategory.id),
-    status: text("status", {
-      enum: ["pending", "paid", "refunded", "cancelled"], // codespell:ignore (a stored value)
-    })
-      .notNull()
-      .default("pending"),
-    amountCents: integer("amount_cents").notNull(),
-    currency: text("currency").notNull().default("usd"),
-    paypalOrderId: text("paypal_order_id"),
-    paypalCaptureId: text("paypal_capture_id"),
-    paidAt: tsMs("paid_at"),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-  (t) => [
-    unique("uq_registration_user_edition").on(t.editionId, t.userId), // one per user per edition
-  ],
 );
 
 // Abstracts and authorship. Authorship is modeled for the book: author rows
@@ -401,27 +345,6 @@ export const authorAffiliation = sqliteTable(
       .references(() => affiliation.id, { onDelete: "cascade" }),
   },
   (t) => [primaryKey({ columns: [t.authorId, t.affiliationId] })],
-);
-
-// R2 uploads: figures, camera-ready files, supplements. r2Key is the object key.
-export const abstractFile = sqliteTable(
-  "abstract_file",
-  {
-    id: pk(),
-    abstractId: text("abstract_id")
-      .notNull()
-      .references(() => abstract.id, { onDelete: "cascade" }),
-    kind: text("kind", {
-      enum: ["figure", "camera_ready", "supplement"],
-    }).notNull(),
-    r2Key: text("r2_key").notNull().unique(),
-    fileName: text("file_name").notNull(),
-    contentType: text("content_type"),
-    sizeBytes: integer("size_bytes"),
-    uploadedById: text("uploaded_by_id").references(() => user.id),
-    createdAt: createdAt(),
-  },
-  (t) => [index("ix_abstract_file_abstract").on(t.abstractId)],
 );
 
 // Review. Open review, so author identities are visible. The rubric is data,
@@ -673,7 +596,6 @@ export const abstractBook = sqliteTable("abstract_book", {
   status: text("status", { enum: ["draft", "published"] })
     .notNull()
     .default("draft"),
-  numberingScheme: text("numbering_scheme").notNull().default("prefix"),
   publishedHtml: text("published_html"), // frozen render, set on publish
   publishedAt: tsMs("published_at"),
   generatedById: text("generated_by_id").references(() => user.id),
@@ -741,7 +663,6 @@ export const invitedSpeaker = sqliteTable(
     }),
     talkTitle: text("talk_title"),
     bio: text("bio"), // sanitized HTML (em/sup/sub)
-    headshotR2Key: text("headshot_r2_key"), // upload deferred; key stays nullable
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -759,7 +680,6 @@ export const sponsor = sqliteTable(
     name: text("name").notNull(),
     tier: text("tier"), // e.g. "Gold", free text per meeting
     url: text("url"),
-    logoR2Key: text("logo_r2_key"), // upload deferred; key stays nullable
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -877,7 +797,6 @@ export const platformSettings = sqliteTable("platform_settings", {
   contactEmail: text("contact_email"),
   facebookUrl: text("facebook_url"),
   footerLinks: text("footer_links"), // JSON array of { label, url }
-  defaultCurrency: text("default_currency").notNull().default("usd"),
   defaultAbstractWordLimit: integer("default_abstract_word_limit").notNull().default(250),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

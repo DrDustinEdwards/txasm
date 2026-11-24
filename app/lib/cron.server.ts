@@ -58,6 +58,17 @@ export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[
       },
       pruneNotFoundJob(env.DB),
       pruneAuthEventsJob(env.DB),
+      // Better Auth's sign-in counts mean nothing after their window; it never deletes them itself.
+      {
+        name: "prune-rate-limit",
+        everyMinutes: DAILY_MINUTES,
+        timeoutMs: 60_000,
+        run: async () => {
+          await env.DB.prepare("DELETE FROM rate_limit WHERE last_request < ?1")
+            .bind(Date.now() - 24 * 60 * 60_000)
+            .run();
+        },
+      },
     ],
   };
 }

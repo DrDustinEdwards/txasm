@@ -15,7 +15,6 @@ INSERT INTO platform_settings (
   contact_email,
   facebook_url,
   footer_links,
-  default_currency,
   default_abstract_word_limit,
   created_at,
   updated_at
@@ -30,7 +29,6 @@ VALUES (
   NULL,
   'https://www.facebook.com/groups/texasbranchasm',
   '[{"label":"Officers","url":"/branch-officers"},{"label":"Awards","url":"/awardees"},{"label":"Contact","url":"/contact"}]',
-  'usd',
   250,
   (CAST(strftime('%s','now') AS INTEGER) * 1000),
   (CAST(strftime('%s','now') AS INTEGER) * 1000)
