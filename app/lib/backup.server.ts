@@ -17,7 +17,7 @@
 // bindings (counters of a minute). The site has no KV namespace.
 // It is a system job with no acting user, so like the auth helpers it reads the
 // D1 binding directly (it never imports the schema or the Drizzle client).
-// The UPLOADS bucket (figures, camera-ready files, the media library) is copied
+// The UPLOADS bucket (the media library) is copied
 // beside the dumps under files/uploads/ by d1-dump's backupFiles.
 import { createSiteBackup } from "@dustinedwards/d1-dump";
 import { logEvent } from "@dustinedwards/site-runtime/log";

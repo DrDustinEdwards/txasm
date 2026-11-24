@@ -373,7 +373,6 @@ export function listEditionSponsors(db: DB, editionId: string) {
       name: schema.sponsor.name,
       tier: schema.sponsor.tier,
       url: schema.sponsor.url,
-      logoR2Key: schema.sponsor.logoR2Key,
     })
     .from(schema.sponsor)
     .where(eq(schema.sponsor.editionId, editionId))

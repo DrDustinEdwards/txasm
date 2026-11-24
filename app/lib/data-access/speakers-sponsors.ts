@@ -59,7 +59,6 @@ export interface SponsorPublic {
   name: string;
   tier: string | null;
   url: string | null;
-  logoR2Key: string | null;
 }
 
 // Public invited-speaker shape for the program page. name, affiliation, and

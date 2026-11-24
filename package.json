@@ -30,13 +30,13 @@
     "@base-ui/react": "1.9.0",
     "@better-auth/passkey": "1.7.27",
     "@cloudflare/puppeteer": "2.0.1",
-    "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.65.0",
+    "@drdustinedwards/site-helpers": "github:DrDustinEdwards/prelum#v0.67.0",
     "@dustinedwards/d1-dump": "github:DrDustinEdwards/d1-dump#v0.17.1",
-    "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.48.6",
-    "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#v0.179.0",
+    "@dustinedwards/site-api": "github:DrDustinEdwards/site-api#v0.49.0",
+    "@dustinedwards/site-runtime": "github:DrDustinEdwards/site-runtime#v0.181.2",
     "@fontsource-variable/inter": "5.3.0",
     "better-auth": "1.7.27",
-    "capsomer": "github:DrDustinEdwards/capsomer#v0.164.7",
+    "capsomer": "github:DrDustinEdwards/capsomer#v0.164.10",
     "drizzle-orm": "0.45.4",
     "hast-util-to-mdast": "10.1.4",
     "hast-util-to-string": "3.0.1",
@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.70.1",
-    "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.59.2",
+    "@dustinedwards/devkit": "github:DrDustinEdwards/devkit#v0.59.5",
     "@react-router/dev": "8.5.2",
     "@types/node": "22.20.5",
     "@types/react": "19.3.0",
@@ -82,7 +82,7 @@
       "esbuild": "0.28.2"
     },
     "miniflare": {
-      "undici": "7.30.2",
+      "undici": "8.13.1",
       "sharp": "0.35.5"
     }
   }
