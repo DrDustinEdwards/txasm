@@ -1,17 +1,8 @@
-// The shared book/program cover. One parameterized piece so the abstract book
-// and the program can never drift: they differ by a single title word today
-// ("Abstract Book" vs "Program"). It takes primitives, not the book or program
-// data shapes, so it stays decoupled from both. Pure strings, no
-// server imports, so it lives outside the data boundary and runs in the same
-// pure renderers as book.ts and program-book.ts.
+// The shared book/program cover, one parameterized piece so the two can never drift (they differ by a title word). It
+// takes primitives, not the book or program shapes, and is pure strings with no server imports.
 //
-// The artwork is the finalized cover: A4 in points (viewBox 0 0 595 842), the
-// Texas flag cropped so the page left edge passes through the star center (blue
-// field left, white stripe top-right, red stripe bottom-right), the wordmark
-// lockup and tagline centered on one axis, the title block in the book serif,
-// and the starburst mark white in the red stripe. SVG fills and strokes use
-// inline style so the brand tokens resolve (var() does not resolve in SVG
-// presentation attributes, only inline style).
+// A4 in points (viewBox 0 0 595 842), the Texas flag cropped so the left edge passes through the star center. SVG fills
+// and strokes use inline style because var() does not resolve in SVG presentation attributes.
 
 import { TEXAS_STATE_PATH, txasmMarkPaths } from "./brand-svg";
 import { escapeHtml } from "@dustinedwards/site-runtime/html";

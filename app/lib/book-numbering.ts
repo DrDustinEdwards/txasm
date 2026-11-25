@@ -1,18 +1,9 @@
-// The book numbering reflow. Pure and deterministic, no I/O: given a book's
-// entries in final book order (section order, then position within section), it
-// assigns each entry its presentation code. The data-access layer calls this to
-// (re)assign codes whenever the arrangement changes, and freezes the result on
-// publish.
+// The book numbering reflow: pure, no I/O. Given a book's entries in final book order, it assigns each its
+// presentation code; the data-access layer calls it whenever the arrangement changes and freezes the result on publish.
 //
-// The scheme is the prefix convention (3 of the 4 archived books use it), whose
-// letters live in ./vocab so nothing is hardcoded here:
-//   prefix = LEVEL_CODE_LETTERS[level] + FORMAT_CODE_LETTERS[format]  (e.g. UP, GO)
-//   number = a running count PER PREFIX, continuous across sections in book order
-// Posters and orals are separate prefixes, so they number independently (UP board
-// numbers, UO speaking order), exactly as the archive shows. An entry with no
-// level or no format, or one the chair excluded, gets no code and does NOT consume
-// a number (v1 exclude behavior; the withdrawn-placeholder gap convention is a
-// deferred option per the book-builder spec).
+// prefix = LEVEL_CODE_LETTERS[level] + FORMAT_CODE_LETTERS[format] (./vocab, e.g. UP, GO); number = a running count per
+// prefix, continuous across sections. An entry with no level or format, or one the chair excluded, gets no code and
+// does not consume a number.
 
 import {
   FORMAT_CODE_LETTERS,

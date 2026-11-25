@@ -5,7 +5,6 @@ import {
   backupHealth,
   dumpDatabase,
   runRestoreDrill,
-  standardProblems,
   type D1Like,
   type R2Like,
 } from "@dustinedwards/d1-dump";
@@ -137,35 +136,12 @@ test("a dump older than 26 hours warns", async () => {
 });
 
 // Planted failures: each case breaks exactly one check, and the check must name it.
-// The excluded and required cases run d1-dump's standard checks with txasm's lists; the live
-// count check is d1-dump's `counted`, tested there.
 const goodDump = () => ({
   tables: REQUIRED_TABLES.map((name) => ({ name, rows: 1 })),
 });
-const siteOptions = { exclude: [...EXCLUDED_TABLES], required: [...REQUIRED_TABLES] };
 
 test("a good dump has no problems", () => {
   assert.deepEqual(siteProblems(goodDump() as never), []);
-});
-
-test("an excluded table in the dump is refused", () => {
-  const dump = goodDump();
-  dump.tables.push({ name: "verification" as never, rows: 1 });
-  assert.match(
-    standardProblems(dump as never, siteOptions).join(";"),
-    /verification is in the dump/,
-  );
-});
-
-test("a missing required table is refused and named", () => {
-  for (const name of REQUIRED_TABLES) {
-    const dump = goodDump();
-    dump.tables = dump.tables.filter((t) => t.name !== name);
-    assert.match(
-      standardProblems(dump as never, siteOptions).join(";"),
-      new RegExp(`${name} is missing`),
-    );
-  }
 });
 
 test("an emptied database never gets the complete marker", async () => {

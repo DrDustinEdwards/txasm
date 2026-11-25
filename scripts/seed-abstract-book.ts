@@ -1,14 +1,8 @@
-// Orchestrates the two-step abstract-book seeding pipeline:
-//   1. Python parser  -> raw JSON bundle (scripts/seed-data/<slug>.json)
-//   2. Metadata merge -> fills meeting placeholders from seed-configs/<slug>.json
+// Two-step abstract-book seeding: the Python parser writes scripts/seed-data/<slug>.json, then the metadata merge fills
+// the meeting placeholders from seed-configs/<slug>.json. It does not import to D1: review the JSON (parse flags, poster
+// levels), then `npm run import:meeting -- scripts/seed-data/<slug>.json`.
 //
-// Does NOT import to D1. After this script finishes, review the output JSON
-// (especially parse flags and level fields on poster abstracts), then run:
-//   npm run import:meeting -- scripts/seed-data/<slug>.json
-//
-// Usage:
 //   npm run seed:abstract-book -- <slug>
-//   npm run seed:abstract-book -- fall-2024
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";

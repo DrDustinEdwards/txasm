@@ -1,28 +1,20 @@
-// Carrel's media group: the library of pictures the pages use, as site-api's mediaLibrary (v0.24.0) over this site's
-// index (app/lib/data-access/media.ts, its MediaLibraryStore) and the UPLOADS bucket. Files are under media/ (the R2
-// key is the media id, and the path /<key> is its address, app/routes/media.$.ts). This file keeps only what is the
-// site's own; the versions, writes, history, lists and change log are the library's.
+// Carrel's media group: the pictures the pages use, as site-api's mediaLibrary over this site's index
+// (app/lib/data-access/media.ts) and the UPLOADS bucket. Files are under media/ (the R2 key is the media id, its
+// address /<key>, app/routes/media.$.ts). Only what is the site's own lives here; versions, writes, history, lists and
+// the change log are the library's.
 //
-// USE. A file is used where a page's working source or published html names its /media/ path:
-// scanned from the pages themselves, never recorded beside them, so the count cannot drift. A scan
-// that cannot run refuses a delete. A page publishes only library pictures (adapter.server.ts), sized from this index.
+// A file is used where a page's working source or published html names its /media/ path, scanned from the pages
+// themselves so the count cannot drift; a scan that cannot run refuses a delete.
 //
-// SIZE. Pages store their html, with each picture's width, height and srcset, at publish. So a replace keeps the
-// picture's size (replaceKeepsSize) and a quarter turn of a picture that is not square is stored as a new file. Since
-// site-api v0.22.0 a stored picture may still be shrunk in place (the resize pass): the package checks the shrink keeps
-// its proportions and only makes it smaller, the address carries no size, and the pages that show it are rendered again.
+// Pages store html with each picture's width, height and srcset, so a replace keeps the picture's size
+// (replaceKeepsSize) and a quarter turn of a non-square picture is a new file. A stored picture may be shrunk in place
+// (the package checks it only gets smaller, same proportions). After any byte change the published pages that show the
+// file are rendered again so their addresses carry its new version (render.server.ts).
 //
-// HISTORY. The bytes a file no longer has are kept in UPLOADS under media-history/, which the /media route never serves
-// (it serves only keys under media/, app/lib/media/images.ts MEDIA_ADDRESS). Copies made before v0.24.0 are at
-// media-history/<iso>/<key>, named by their revision rows; newer ones at media-history/<key>/<sha256>.
+// Old bytes are kept in UPLOADS under media-history/, which /media never serves (only keys under media/, MEDIA_ADDRESS
+// in app/lib/media/images.ts). Older copies are media-history/<iso>/<key>; newer ones media-history/<key>/<sha256>.
 //
-// AFTER A BYTE CHANGE (replace, turn in place, revert, shrink), the published pages that show the file are rendered
-// again, so their addresses carry its new version (render.server.ts).
-//
-// NOT ACCEPTED: SVG and PDF. The library is pictures for pages, and the archive keeps the PDFs (admin/documents).
-//
-// COVERS. The abstract book and program covers are inline SVG (app/lib/cover.ts), not files, and
-// nothing here reads or writes them.
+// SVG and PDF are not accepted (the archive keeps PDFs). The covers are inline SVG (app/lib/cover.ts), not files.
 import { slugify } from "@drdustinedwards/site-helpers/slug";
 import {
   PICTURE_RESIZE,
