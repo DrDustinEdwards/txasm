@@ -29,8 +29,6 @@ export interface EditionInput {
   status?: EditionStatus;
 }
 
-// Edition edit patch. Only the registration and submission windows and the
-// lifecycle status are editable here. Dates are optional; null clears a date.
 export interface EditionPatch {
   status?: EditionStatus;
   registrationOpensAt?: Date | null;
@@ -76,8 +74,6 @@ function normalizeCurrency(currency?: string) {
 
 export function createEditions(db: DB) {
   return {
-    // Admin view: every edition, newest first. The public listing (listPublic)
-    // is a separate, narrower query added later.
     async list(actor: Actor) {
       if (!isAdmin(actor)) throw new ForbiddenError();
       return db.select().from(schema.edition).orderBy(desc(schema.edition.meetingStartsAt));
@@ -117,7 +113,6 @@ export function createEditions(db: DB) {
       return created;
     },
 
-    // Admin read of a single edition by id, for the edit and category screens.
     // Chair-readable: chair-gated pages (program, speakers, book) load their
     // edition through this. isChair already includes platform admins.
     async getById(actor: Actor, editionId: string) {
@@ -261,8 +256,6 @@ export function createEditions(db: DB) {
   };
 }
 
-// Registration categories and fees, per edition. Admin only. Money is stored
-// in cents; the UI formats to dollars.
 export function createRegistrationCategories(db: DB) {
   return {
     async listForEdition(actor: Actor, editionId: string) {

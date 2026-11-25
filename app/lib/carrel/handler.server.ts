@@ -54,7 +54,6 @@ function carrelApi(
   });
 }
 
-/** Carrel's API for one of its requests, with the Prelum render its meta names: the renderer loads only here. */
 export async function carrelRequestApi(env: Env, stylesheets: string[], renderPage: RenderPage) {
   const { RENDER_VERSION } = await import("@drdustinedwards/site-helpers/render/nomath");
   return carrelApi(env, { renderVersion: RENDER_VERSION, stylesheets, renderPage });

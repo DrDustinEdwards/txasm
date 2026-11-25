@@ -27,5 +27,4 @@ export const images = defineImages({
   },
 });
 
-/** The path a library key is served at. */
 export const mediaPath = (key: string) => `/${key}`;

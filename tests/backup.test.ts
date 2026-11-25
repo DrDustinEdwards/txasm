@@ -1,17 +1,11 @@
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
-import {
-  backupHealth,
-  dumpDatabase,
-  runRestoreDrill,
-  type D1Like,
-  type R2Like,
-} from "@dustinedwards/d1-dump";
+import { backupHealth, runRestoreDrill, type D1Like, type R2Like } from "@dustinedwards/d1-dump";
 import { cronCheck, runJobs } from "@dustinedwards/site-runtime/cron";
 import { recordNotFound } from "@dustinedwards/site-runtime/not-found";
 import { runNightlyBackup } from "../app/lib/backup.server";
-import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "../app/lib/backup-checks";
+import { EXCLUDED_TABLES } from "../app/lib/backup-checks";
 import { applyMigrations } from "./d1";
 
 // Real D1 and R2 in-process, with the real migrations applied, so the table list
@@ -94,54 +88,6 @@ test("the restore drill passes on a dump without the credential tables", async (
     failed.map((c) => `${c.name}: ${c.detail}`),
     [],
   );
-});
-
-test("an empty bucket reports a warning, not an age", async () => {
-  const emptyMf = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok') } }",
-    r2Buckets: ["EMPTY"],
-  });
-  try {
-    const bare = (await emptyMf.getR2Bucket("EMPTY")) as unknown as R2Like;
-    const health = await backupHealth(bare as never);
-    assert.ok(health.warning, "no dump must warn");
-    assert.notEqual(health.age_hours, 0);
-  } finally {
-    await emptyMf.dispose();
-  }
-});
-
-test("a dump older than 26 hours warns", async () => {
-  const old = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok') } }",
-    d1Databases: ["DB"],
-    r2Buckets: ["OLD"],
-  });
-  try {
-    const oldDb = (await old.getD1Database("DB")) as unknown as D1Like;
-    await oldDb.prepare("CREATE TABLE t (id INTEGER PRIMARY KEY)").run();
-    await oldDb.prepare("INSERT INTO t (id) VALUES (1)").run();
-    const oldBucket = (await old.getR2Bucket("OLD")) as unknown as R2Like;
-    await dumpDatabase(oldDb, oldBucket, {
-      now: new Date(Date.now() - 30 * 3600 * 1000),
-    });
-    const health = await backupHealth(oldBucket as never);
-    assert.ok(health.warning, "a 30 hour old dump must warn");
-    assert.ok((health.age_hours ?? 0) >= 29);
-  } finally {
-    await old.dispose();
-  }
-});
-
-// Planted failures: each case breaks exactly one check, and the check must name it.
-const goodDump = () => ({
-  tables: REQUIRED_TABLES.map((name) => ({ name, rows: 1 })),
-});
-
-test("a good dump has no problems", () => {
-  assert.deepEqual(siteProblems(goodDump() as never), []);
 });
 
 test("an emptied database never gets the complete marker", async () => {

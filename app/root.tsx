@@ -24,9 +24,6 @@ export const links: Route.LinksFunction = () => [
   ...iconLinks(),
 ];
 
-// Root provides the document, the theme, and the platform settings the shells
-// render (org identity, footer links). The public and admin shells (their own
-// layout routes) read these from the root loader data.
 export async function loader({ request, context }: Route.LoaderArgs) {
   const theme = readThemeCookie(request, THEME_COOKIE);
   const settings = await getDataAccess(context.get(cloudflareContext).env).settings.get();
@@ -62,7 +59,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// The skip link is the site header's (the public and admin shells).
 export default function App() {
   return <Outlet />;
 }

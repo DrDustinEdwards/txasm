@@ -19,7 +19,6 @@ export const ARCHIVE_SEGMENTS: Record<string, DocumentCategory> = {
   programs: "program",
 };
 
-// A slim view of a document for the archive list and per-document pages.
 export interface ArchiveDoc {
   slug: string;
   title: string;
@@ -28,7 +27,6 @@ export interface ArchiveDoc {
   editor: string | null;
 }
 
-// A human subtitle for a document: "Fall 1991" plus the editor when present.
 export function documentSubtitle(doc: ArchiveDoc): string {
   const season = doc.season ? SEASON_LABELS[doc.season] : "";
   const when = [season, doc.year ? String(doc.year) : ""].filter(Boolean).join(" ");
@@ -38,7 +36,6 @@ export function documentSubtitle(doc: ArchiveDoc): string {
   return parts.join(" · ");
 }
 
-// Previous and Next within an ordered category list, as the pager names them.
 export function neighbors(
   list: Array<{ slug: string; title: string }>,
   slug: string,

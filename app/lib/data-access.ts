@@ -71,9 +71,6 @@ export type { FooterLink, PlatformSettings, PlatformSettingsPatch } from "./data
 export type { Page, PageSearch, PageWrite, PublishedPage } from "./data-access/pages";
 export type { MediaRow } from "./data-access/media";
 
-// The controlled-vocabulary types live in ./vocab (client-safe, one source).
-// Re-export the ones callers reach for through the data-access layer so their
-// imports keep resolving here.
 export type { AbstractFormat, AbstractLevel, ProgramItemKind, Season, SpeakerRole } from "./vocab";
 
 function createDataAccess(db: DB) {
@@ -107,14 +104,10 @@ function createDataAccess(db: DB) {
 export type DataAccess = ReturnType<typeof createDataAccess>;
 
 // Entry point for loaders and actions: build the data-access layer from the
-// request environment (context.cloudflare.env). This is the only data path the
-// rest of the app imports; nothing else reaches the Drizzle client or schema.
 export function getDataAccess(env: Env) {
   return createDataAccess(getDb(env));
 }
 
-// Resolve the acting user's grants through the data-access layer. Used by the
-// auth helpers to decide admin access without touching the Drizzle client.
 // Platform admin is ADMIN_EMAIL or a CO_OWNER_EMAILS address, read on every
 // request as the other sites do; chair and reviewer are grants in D1.
 export function getActor(env: Env, user: { id: string; email: string }): Promise<Actor> {
@@ -123,8 +116,6 @@ export function getActor(env: Env, user: { id: string; email: string }): Promise
   });
 }
 
-// Build the importer from the environment, parallel to getDataAccess. Server
-// only; the offline import script is the only caller.
 export function getMeetingImporter(env: Env) {
   return createMeetingImporter(getDb(env));
 }

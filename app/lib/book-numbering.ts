@@ -19,7 +19,6 @@ export interface NumberingEntry {
   included: boolean;
 }
 
-// The prefix for an entry, or null when it carries no code (missing level/format).
 function codePrefix(level: AbstractLevel | null, format: AbstractFormat | null): string | null {
   if (level === null || format === null) return null;
   return LEVEL_CODE_LETTERS[level] + FORMAT_CODE_LETTERS[format];

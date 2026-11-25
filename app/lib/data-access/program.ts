@@ -147,10 +147,6 @@ export function createProgramSessions(db: DB) {
       };
     },
 
-    // Chair/admin builder read: the full schedule grouped by day and concurrency
-    // (the same deterministic grouping the public view uses, so builder and
-    // public agree), plus the meeting date range for the day tabs. Includes every
-    // session regardless of edition status.
     async getScheduleForEdition(actor: Actor, editionId: string): Promise<ProgramSchedule> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const ed = await db.query.edition.findFirst({
@@ -204,10 +200,6 @@ export function createProgramSessions(db: DB) {
   };
 }
 
-// Program document data. Assembles the front matter, the day-and-concurrency
-// schedule (moderators and items resolved), the invited speakers, and the
-// sponsors for the printable program. Chair/admin only. The return is plain
-// data so renderProgramBook in ./program-book is a pure function of it.
 export function createProgram(db: DB) {
   return {
     async getProgramData(actor: Actor, editionId: string): Promise<ProgramBookData> {

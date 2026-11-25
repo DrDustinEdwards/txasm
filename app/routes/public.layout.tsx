@@ -16,9 +16,6 @@ import { THEME_COOKIE, THEME_PREF_KEY, type Theme } from "~/lib/theme";
 import { FEED_PATH, SITE_NAME } from "~/lib/site-meta";
 import { ErrorPage, errorTitle } from "capsomer/react/error-page";
 
-// Public shell: Capsomer's site header and txasm's footer around every public
-// page. Auth state is read the same way as before; only the presentation
-// changed. No loader, action, or gating on the wrapped routes is touched.
 export async function loader({ request }: Route.LoaderArgs) {
   const { user, isAdmin, isReviewer } = await getUserContext(request);
   return { email: user?.email ?? null, isAdmin, isReviewer };

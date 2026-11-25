@@ -9,16 +9,14 @@ import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { forbidden, requireUser } from "~/lib/auth.server";
+import { refuse, requireUser } from "~/lib/auth.server";
 import {
   type AffiliationInput,
   type AuthorInput,
   DeadlinePassedError,
-  ForbiddenError,
   getActor,
   getDataAccess,
   isChair,
-  NotFoundError,
   ValidationError,
 } from "~/lib/data-access";
 import {
@@ -48,11 +46,9 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 import { RichText } from "capsomer/react/trusted-html";
-// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
 import "capsomer/toolbar.css";
 import "capsomer/rich-text-field.css";
 
-// An app: the abstract editor. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -69,13 +65,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   try {
     data = await da.abstracts.getForEdit(actor, params.abstractId);
   } catch (error) {
-    if (error instanceof ForbiddenError) {
-      throw forbidden(request, "abstract");
-    }
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
+    refuse(error, request, "abstract");
   }
 
   const categories = await da.abstractCategories.listForSubmission(data.abstract.editionId);
@@ -177,7 +167,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     });
 
     if (intent === "submit") {
-      // Self-grow the institution master list from any new institutions typed.
       const affRows = affiliations as Array<{
         institution?: string;
         city?: string;
@@ -203,13 +192,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     if (error instanceof ValidationError || error instanceof DeadlinePassedError) {
       return { error: error.message };
     }
-    if (error instanceof ForbiddenError) {
-      throw forbidden(request, "abstract");
-    }
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
+    refuse(error, request, "abstract");
   }
 }
 

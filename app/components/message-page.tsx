@@ -2,7 +2,6 @@ import { Title } from "capsomer/react/text";
 import { Stack } from "capsomer/react/stack";
 import type { ReactNode } from "react";
 
-// A page that is one message and one way onward: the title, a line of text when there is one and the action under them.
 export function MessagePage({
   title,
   text,

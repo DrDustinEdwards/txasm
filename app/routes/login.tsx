@@ -23,7 +23,6 @@ import { SIGN_IN_PATH } from "@dustinedwards/site-runtime/sign-in-path";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { FORM_LIMIT } from "~/lib/form.server";
 
-// The sign-in form: passkeys, Turnstile and the email link run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -42,7 +41,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const next = nextPath(new URL(request.url).searchParams.get("next"));
   const user = await getSessionUser(request);
   if (user && !next) throw redirect("/");
-  // Set by /account after the person deleted their account.
   const deleted = new URL(request.url).searchParams.has("deleted");
   return {
     turnstileSiteKey: signInMethods(context.get(cloudflareContext).env).turnstileSiteKey,

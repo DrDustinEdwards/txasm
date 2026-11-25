@@ -10,6 +10,8 @@ import { emailConfirmURL, sessionLookup, signInOptions } from "@dustinedwards/si
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
+  ForbiddenError,
+  NotFoundError,
   getActor,
   getDataAccess,
   isAdmin,
@@ -215,7 +217,13 @@ export function forbidden(request: Request, need: string): Response {
   return new Response("Forbidden", { status: 403 });
 }
 
-// Redirect to sign-in when there is no session.
+/** A data-access refusal as the route's response: 403 for a missing grant, 404 for a missing row, any other error rethrown. */
+export function refuse(error: unknown, request: Request, need: string): never {
+  if (error instanceof ForbiddenError) throw forbidden(request, need);
+  if (error instanceof NotFoundError) throw new Response("Not found", { status: 404 });
+  throw error;
+}
+
 export async function requireUser(request: Request): Promise<SessionUser> {
   const user = await getSessionUser(request);
   if (!user) throw redirect(SIGN_IN_PATH);
@@ -263,7 +271,6 @@ export async function requireChairEdition(request: Request, editionId: string) {
   return { actor, da, edition: { id, name } };
 }
 
-// For chrome that adapts to auth state (the header). Never throws.
 export async function getUserContext(request: Request): Promise<UserContext> {
   const user = await getSessionUser(request);
   if (!user) return { user: null, isAdmin: false, isReviewer: false };

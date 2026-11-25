@@ -19,7 +19,6 @@ let mf: Miniflare;
 let db: D1Database;
 let uploads: R2Bucket;
 let api: ReturnType<typeof createSiteApi>;
-/** What the publish hooks heard, as IndexNow, the page purge and the webmentions would. */
 const heard: PublishEvent[] = [];
 
 const call = (path: string, init: RequestInit = {}) => {
@@ -31,7 +30,6 @@ const call = (path: string, init: RequestInit = {}) => {
   for (const [name, value] of new Headers(init.headers)) headers.set(name, value);
   return api.handle(new Request(BASE + path, { ...init, headers }));
 };
-/** The response fields these tests read, as site-api's contract writes them. */
 interface Body {
   id: string;
   version: string;
@@ -88,7 +86,6 @@ function png({ width, height }: Size, text: Record<string, string> = {}): Uint8A
  * output differs from the input and is measured as the steps say (a quarter turn swaps the edges, a maxEdge fits them).
  */
 const MARK = "|steps:";
-/** The bytes before the mark and the steps after it (latin1: one character per byte). */
 function stepsOf(bytes: Uint8Array): { base: Uint8Array; steps: unknown[] } {
   const at = new TextDecoder("latin1").decode(bytes).lastIndexOf(MARK);
   if (at === -1) return { base: bytes, steps: [] };

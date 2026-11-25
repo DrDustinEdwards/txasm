@@ -36,11 +36,9 @@ export function seasonValue(value: FormDataEntryValue | null): "spring" | "fall"
   return raw === "spring" || raw === "fall" ? raw : null;
 }
 
-// A request to the upload form: the 50 MB PDF (vocab.ts) and room for the fields around it.
 const MAX_UPLOAD_REQUEST = maxUploadBytesForKind("pdf") + 1024 * 1024;
 const PDF_MAGIC = new TextEncoder().encode("%PDF-");
 
-// A file's chunks, refused past `max` bytes as they arrive.
 async function* capped(chunks: AsyncGenerator<Uint8Array>, max: number) {
   let total = 0;
   for await (const chunk of chunks) {
@@ -53,7 +51,6 @@ async function* capped(chunks: AsyncGenerator<Uint8Array>, max: number) {
   }
 }
 
-// The bytes already read, then the rest of the file.
 async function* prepend(head: Uint8Array, rest: AsyncGenerator<Uint8Array>) {
   if (head.length) yield head;
   for (let next = await rest.next(); !next.done; next = await rest.next()) yield next.value;

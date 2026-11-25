@@ -72,7 +72,6 @@ export function SessionFields({
   );
 }
 
-// One session in the builder's Schedule: its facts, its items and its controls.
 // `level` is the heading level Capsomer's Schedule gives the session's title.
 export function SessionCard({
   session,
@@ -182,8 +181,6 @@ export function SessionCard({
   );
 }
 
-// The form under a slot's tracks that adds a parallel track: a session with the
-// slot's first session's day and times, in another room.
 export function ConcurrentSessionForm({
   slot,
   busy,

@@ -26,8 +26,6 @@ import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import schedule from "capsomer/schedule.css?url";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
-// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
-// Capsomer stylesheets only this page uses, so no other page downloads them (devkit-route-weight counts them).
 export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: schedule }];
 
 export const headers = () => publicPageHeaders();
@@ -90,8 +88,6 @@ function ProgramItemView({ item }: { item: ProgramSessionResolved["items"][numbe
   );
 }
 
-// One session in its slot: the slot gives the time and the room; the session
-// says who moderates and lists its items.
 function SessionBlock({ session, level }: { session: ProgramSessionResolved; level: 3 | 4 | 5 }) {
   return (
     <ScheduleSession

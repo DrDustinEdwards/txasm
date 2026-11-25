@@ -11,7 +11,6 @@ import { wrapRendered } from "@drdustinedwards/site-helpers/stored-render";
 // The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
-// The page's text is edited in Carrel (app/lib/carrel) and stored in D1.
 export async function loader({ context }: Route.LoaderArgs) {
   const preview = context.get(pagePreviewContext);
   if (preview?.slug === "award-nominations") return preview.page;

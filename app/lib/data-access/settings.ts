@@ -12,10 +12,6 @@ import {
 import { isEmail } from "@dustinedwards/site-runtime/email";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
-// Platform settings. A single row of org identity and tunable defaults, read by
-// the shell and edited on the admin settings screen. footerLinks is stored as a
-// JSON array and returned parsed. The single row is enforced by a fixed id.
-
 export const PLATFORM_SETTINGS_ID = "default";
 
 export interface FooterLink {
@@ -47,8 +43,6 @@ export interface PlatformSettingsPatch {
   defaultAbstractWordLimit?: number;
 }
 
-// Parse the stored footerLinks JSON into a clean {label,url} array, dropping
-// anything malformed so a bad value never breaks the shell.
 function parseFooterLinks(raw: string | null): FooterLink[] {
   if (!raw) return [];
   let parsed: unknown;
@@ -72,7 +66,6 @@ function parseFooterLinks(raw: string | null): FooterLink[] {
 // A footer link is an http(s) address or a path on this site, never a javascript: or data: URL.
 const isSafeLink = (url: string) => /^(https?:\/\/|\/(?!\/))/i.test(url);
 
-// Clean a submitted footerLinks list the same way, for writes.
 function cleanFooterLinks(links: FooterLink[]): FooterLink[] {
   const cleaned: FooterLink[] = [];
   for (const link of links) {
@@ -102,9 +95,6 @@ export function resolveSettings(
   };
 }
 
-// Platform settings: the single org-identity-and-defaults row. get() is a
-// public read used by the shell, creating the row with named defaults on first
-// read if it is missing. update() is platform-admin only.
 export function createSettings(db: DB) {
   return {
     async get(): Promise<PlatformSettings> {
@@ -184,7 +174,6 @@ export function createSettings(db: DB) {
         set.defaultAbstractWordLimit = patch.defaultAbstractWordLimit;
       }
 
-      // Ensure the row exists, then apply. get() handles create-on-first-read.
       await this.get();
       if (Object.keys(set).length > 0) {
         await db

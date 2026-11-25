@@ -6,8 +6,6 @@
 // both sides of the boundary. The Drizzle enum columns in app/db/schema.ts must
 // stay in sync with the arrays here.
 
-// Tunable defaults. Named config, never bare numbers in the code.
-
 export const DEFAULT_WORD_LIMIT = 250;
 export const DEFAULT_CURRENCY = "usd";
 
@@ -39,8 +37,6 @@ export const EDITION_STATUS_LABELS: Record<EditionStatus, string> = {
   complete: "Complete",
   archived: "Archived",
 };
-
-// Abstracts: status, level (presenter standing), format, presentation preference.
 
 const ABSTRACT_STATUSES = [
   "draft",

@@ -15,7 +15,6 @@ import { formatDate } from "capsomer/behavior/time";
 import { ABSTRACT_STATUS_LABELS } from "~/lib/vocab";
 import { RichText } from "capsomer/react/trusted-html";
 
-// An app: abstract submission. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 export function meta({ matches }: Route.MetaArgs) {

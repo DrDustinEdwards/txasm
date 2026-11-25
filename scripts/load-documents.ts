@@ -25,7 +25,6 @@ import {
   type Season,
 } from "../app/lib/vocab";
 
-// Per-category filename shape and the slug/title suffix used for the archive.
 const CATEGORY_META: Record<
   DocumentCategory,
   { keyword: string; slugSuffix: string; titleSuffix: string }

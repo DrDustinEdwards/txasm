@@ -13,7 +13,6 @@ import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { RichText } from "capsomer/react/trusted-html";
 
-// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
 export function meta({ params, matches, location, loaderData }: Route.MetaArgs) {
@@ -47,8 +46,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 export default function AbstractPage({ loaderData }: Route.ComponentProps) {
   const { edition, abstract } = loaderData;
-  // Prefer the stored book code (for example UP37); fall back to the 1..n
-  // ordinal only when no code is stored.
   const codeLabel = abstract.code ?? String(abstract.number);
   const metaLabel = joinParts([
     abstract.level ? ABSTRACT_LEVEL_LABELS[abstract.level] : null,

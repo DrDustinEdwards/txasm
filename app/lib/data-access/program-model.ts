@@ -32,8 +32,6 @@ export interface ProgramSessionPatch {
   moderator?: string | null;
 }
 
-// The ProgramItemKind vocabulary lives in ./vocab (imported above). Validate a
-// raw kind string against it before writing.
 export function assertKind(kind: string): ProgramItemKind {
   if (!PROGRAM_ITEM_KINDS.includes(kind as ProgramItemKind)) {
     throw new ValidationError("Choose a valid item kind.");
@@ -94,18 +92,12 @@ export interface PublicProgram {
   speakers: SpeakerPublic[];
 }
 
-// The chair/admin builder view of the schedule: the same day-and-concurrency
-// grouping the public program uses, plus the meeting date range so the builder
-// can offer a day tab for every meeting day even before a session exists on it.
 export interface ProgramSchedule {
   days: ProgramDay[];
   meetingStartsAt: Date | null;
   meetingEndsAt: Date | null;
 }
 
-// Everything the printable program document needs, assembled by
-// program.getProgramData and turned into HTML by the pure renderProgramBook in
-// ./program-book. Front matter comes from the edition and platform settings;
 // title and bio fields hold stored sanitized HTML rendered verbatim, plain text
 // (rooms, moderators, names) is escaped by the renderer.
 export interface ProgramBookData {
@@ -349,8 +341,6 @@ export async function loadResolvedProgram(
   return resolveProgram(db, editionId, sessions, items, publicOnly);
 }
 
-// The invited speakers and sponsors of an edition, in display order, as the
-// public program and the printable program show them.
 export function listEditionSpeakers(db: DB, editionId: string) {
   return db
     .select({

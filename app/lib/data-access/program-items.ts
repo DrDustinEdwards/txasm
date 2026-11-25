@@ -47,12 +47,8 @@ async function nextSortOrder(db: DB, sessionId: string) {
   return (last[0]?.sortOrder ?? -1) + 1;
 }
 
-// Program items within a session. Chair/admin. An item is either an accepted
-// abstract or a custom entry; that rule is enforced here.
 export function createProgramItems(db: DB) {
   return {
-    // Accepted abstracts in the meeting not yet placed in any session, for the
-    // add-to-session picker, in book order.
     async listUnplacedAbstracts(actor: Actor, editionId: string): Promise<ProgramAbstractOption[]> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const ordered = await acceptedAbstractsInBookOrder(db, editionId);

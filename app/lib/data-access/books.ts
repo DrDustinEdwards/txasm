@@ -28,14 +28,8 @@ import {
   ValidationError,
 } from "./core";
 
-// Abstract book builder and reader. Chair/admin only. The read model and the
-// arranged render data are plain structures so the pure ./book renderer stays a
-// function of them.
 export function createBooks(db: DB) {
   return {
-    // Generate (or regenerate) the draft book for a meeting from its accepted
-    // abstracts: bucket by (level, format, category) into sections, order each
-    // section alphabetically by presenting author last name, and assign codes.
     // A published book is not clobbered; the chair reopens it first.
     async generate(actor: Actor, editionId: string): Promise<BookView> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
@@ -199,14 +193,11 @@ export function createBooks(db: DB) {
       return view;
     },
 
-    // The editor read model for a meeting's book, or null when none exists.
     async get(actor: Actor, editionId: string): Promise<BookView | null> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       return loadBookView(db, editionId);
     },
 
-    // Apply a drag-drop arrangement (sections in order, each with its entry ids
-    // in order), re-sequence positions, and reflow the affected prefix runs.
     async reorder(
       actor: Actor,
       editionId: string,
@@ -271,8 +262,6 @@ export function createBooks(db: DB) {
       return view;
     },
 
-    // Exclude or re-include one entry (e.g. a post-acceptance withdrawal), then
-    // close or reopen the affected prefix run.
     async setIncluded(
       actor: Actor,
       editionId: string,
@@ -305,10 +294,6 @@ export function createBooks(db: DB) {
       return view;
     },
 
-    // The pure data the arranged renderer in ./book consumes on preview and
-    // publish: sections in order, included entries with their codes, ordered
-    // authors and numbered affiliations, sanitized title/body, and the
-    // all-authors-to-codes index. Excluded entries and empty sections are dropped.
     async renderData(actor: Actor, editionId: string): Promise<BookRenderData> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const book = await findBook(db, editionId);
@@ -454,8 +439,6 @@ export function createBooks(db: DB) {
       return { status: "published", publishedAt: now };
     },
 
-    // Reopen a published book for editing. The last publishedHtml is kept until a
-    // successful re-publish.
     async reopen(actor: Actor, editionId: string): Promise<BookView> {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const book = await findBook(db, editionId);

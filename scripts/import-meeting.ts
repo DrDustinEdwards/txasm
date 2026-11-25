@@ -195,7 +195,6 @@ async function main() {
       );
     }
 
-    // Edition.
     const edition = await importer.createArchivedEdition(actor, {
       slug: data.meeting.slug,
       name: data.meeting.name,
@@ -209,7 +208,6 @@ async function main() {
     });
     summary.editionsCreated += 1;
 
-    // Topics as abstract categories, mapped by topic string to id.
     const categoryByTopic = new Map<string, string>();
     let topicSort = 0;
     for (const topic of topics) {

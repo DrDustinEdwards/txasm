@@ -16,7 +16,6 @@ function normalizeInstitutionName(name: string): string {
 // new institution. Dedup is by normalized_name.
 export function createInstitutions(db: DB) {
   return {
-    // Up to ten matches by substring on the normalized name, ordered by name.
     async search(actor: Actor, query: string) {
       const normalized = normalizeInstitutionName(query);
       if (!normalized) return [];
@@ -34,8 +33,6 @@ export function createInstitutions(db: DB) {
         .limit(10);
     },
 
-    // Find by normalized name or insert a new one, then return it. Used on submit
-    // when an author picked a free-text institution not already in the list.
     async ensure(
       actor: Actor,
       input: { name: string; city?: string; region?: string; country?: string },

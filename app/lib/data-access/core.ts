@@ -4,10 +4,6 @@ import * as schema from "../../db/schema";
 import type { BatchItem } from "drizzle-orm/batch";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
-// This file is the only place allowed to import ./schema and the Drizzle client.
-// Enforce with an Oxlint no-restricted-imports rule on every other module so
-// nothing queries Drizzle directly outside this layer.
-
 export type DB = DrizzleD1Database<typeof schema>;
 
 // Statements run as one D1 batch, a transaction: all land or none do, and the lot counts as one subrequest.
@@ -16,33 +12,21 @@ export async function runBatch(db: DB, statements: BatchItem<"sqlite">[]) {
     await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
 }
 
-export class ForbiddenError extends Error {
-  constructor(message = "forbidden") {
-    super(message);
-    this.name = "ForbiddenError";
-  }
-}
+const errorClass = (name: string, fallback: string) =>
+  class extends Error {
+    constructor(message = fallback) {
+      super(message);
+      this.name = name;
+    }
+  };
 
-export class DeadlinePassedError extends Error {
-  constructor(message = "deadline passed") {
-    super(message);
-    this.name = "DeadlinePassedError";
-  }
-}
-
-export class ConflictOfInterestError extends Error {
-  constructor(message = "reviewer has a conflict of interest") {
-    super(message);
-    this.name = "ConflictOfInterestError";
-  }
-}
-
-export class NotFoundError extends Error {
-  constructor(message = "not found") {
-    super(message);
-    this.name = "NotFoundError";
-  }
-}
+export class ForbiddenError extends errorClass("ForbiddenError", "forbidden") {}
+export class DeadlinePassedError extends errorClass("DeadlinePassedError", "deadline passed") {}
+export class ConflictOfInterestError extends errorClass(
+  "ConflictOfInterestError",
+  "reviewer has a conflict of interest",
+) {}
+export class NotFoundError extends errorClass("NotFoundError", "not found") {}
 
 // A public route's read: a missing row is a 404 response, anything else rethrows.
 export async function orNotFound<T>(read: Promise<T>): Promise<T> {
@@ -69,12 +53,7 @@ export class ValidationError extends Error {
   }
 }
 
-export class AlreadyExistsError extends Error {
-  constructor(message = "already exists") {
-    super(message);
-    this.name = "AlreadyExistsError";
-  }
-}
+export class AlreadyExistsError extends errorClass("AlreadyExistsError", "already exists") {}
 
 // Actor and authorization helpers. Grants are loaded once per request.
 // author and attendee are not roles; they are derived from ownership and a paid
@@ -127,9 +106,6 @@ export function isReviewer(actor: Actor, editionId: string): boolean {
   return actor.grants.some((g) => g.role === "reviewer" && g.editionId === editionId);
 }
 
-// True when the actor holds a reviewer grant in any edition. Used only to decide
-// whether to show the Review link in the header; per-edition access is still
-// checked with isReviewer everywhere it matters.
 export function isReviewerAnywhere(actor: Actor): boolean {
   return actor.grants.some((g) => g.role === "reviewer");
 }

@@ -15,8 +15,6 @@ function listOf(value: unknown, what: string): Record<string, unknown>[] {
   return value as Record<string, unknown>[];
 }
 
-// The affiliations as stored: trimmed, blank optional fields null, rows with no
-// institution dropped.
 export function cleanAffiliations(input: unknown) {
   return listOf(input, "affiliations")
     .map((a, i) => {
@@ -31,8 +29,6 @@ export function cleanAffiliations(input: unknown) {
     .filter((a) => a.institution.length > 0);
 }
 
-// The authors as stored: trimmed, rows with no name dropped, affiliation
-// ordinals whole numbers.
 export function cleanAuthors(input: unknown) {
   return listOf(input, "authors")
     .map((a, i) => {

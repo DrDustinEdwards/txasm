@@ -48,7 +48,6 @@ async function main() {
     exit(1);
   }
 
-  // Load seed config
   const configPath = resolve(ROOT, "seed-configs", `${slug}.json`);
   if (!existsSync(configPath)) {
     console.error(`Config not found: ${configPath}`);
@@ -69,7 +68,6 @@ async function main() {
     exit(1);
   }
 
-  // Paths
   const seedDataDir = resolve(ROOT, "scripts", "seed-data");
   const outPath = resolve(seedDataDir, `${slug}.json`);
   const tmpPath = resolve(seedDataDir, `${slug}.tmp.json`);
@@ -113,7 +111,6 @@ async function main() {
   writeFileSync(outPath, JSON.stringify(bundle, null, 2) + "\n", "utf8");
   rmSync(tmpPath, { force: true });
 
-  // Summary
   const nTopics = bundle.topics.length;
   const nAbstracts = bundle.abstracts.length;
   const nWithdrawn = bundle.withdrawn.length;

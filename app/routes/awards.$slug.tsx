@@ -18,7 +18,6 @@ import { goneResponse, renameRedirect } from "@dustinedwards/site-runtime/url";
 import { GONE } from "~/lib/site-meta";
 import { RichText } from "capsomer/react/trusted-html";
 
-// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location, loaderData }: Route.MetaArgs) {

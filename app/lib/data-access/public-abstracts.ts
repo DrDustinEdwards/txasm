@@ -145,7 +145,6 @@ async function buildNumberedAbstracts(
   }));
 }
 
-// The public edition summary shape, from a raw edition row.
 export function publicEditionSummary(ed: typeof schema.edition.$inferSelect): PublicEditionSummary {
   return {
     slug: ed.slug,
@@ -159,15 +158,8 @@ export function publicEditionSummary(ed: typeof schema.edition.$inferSelect): Pu
   };
 }
 
-// Public abstract archive. All reads are gated to editions at a public stage
-// (scheduled, complete, archived), the same rule as the public program. A live
-// or in-progress meeting's abstracts stay private: these return null or an
-// empty result rather than exposing them.
 export function createPublicAbstracts(db: DB) {
   return {
-    // The meeting's accepted abstracts, numbered like the book, with the distinct
-    // topics present (in category order). Null when the edition is missing or not
-    // at a public stage.
     async listForEdition(slug: string): Promise<PublicAbstractListing | null> {
       const ed = await db.query.edition.findFirst({
         where: eq(schema.edition.slug, slug),
@@ -193,8 +185,6 @@ export function createPublicAbstracts(db: DB) {
       return { edition: publicEditionSummary(ed), abstracts, topics };
     },
 
-    // One abstract by its book number within a public-stage edition. Null when
-    // the edition is not public or the number does not match an accepted abstract.
     async getOne(editionSlug: string, number: number): Promise<PublicAbstractPage | null> {
       if (!Number.isInteger(number) || number < 1) return null;
       const ed = await db.query.edition.findFirst({

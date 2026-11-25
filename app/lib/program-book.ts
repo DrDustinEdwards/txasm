@@ -4,9 +4,6 @@
 // already sanitized HTML (em/sup/sub only) and are placed verbatim; every plain
 // text field (rooms, moderators, names, talk titles) is escaped.
 //
-// Pagination, page numbers, and the running header are handled by Paged.js in
-// the browser, the same way the abstract book does. The stored PDF runs this
-// HTML through the shared Browser Rendering renderer (site-runtime pagedPdf).
 
 import type {
   ProgramBookData,

@@ -65,7 +65,6 @@ export type RenderPage = (
   preview: { slug: string; page: PublishedPage },
 ) => Promise<Response>;
 
-/** What waits on a page, as the contract shows it beside the live version. */
 type Waiting = Pick<ScheduledUpdate, "publishAt" | "changeId"> | null;
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
@@ -86,7 +85,6 @@ const versionOf = (
     ...(update ? [update.publishAt, update.changeId] : []),
   ]);
 
-// A page's path is its slug, and the home page is the site root.
 const pathOf = (slug: string) => (slug === "home" ? "/" : `/${slug}`);
 
 function summaryOf(p: Page, update: Waiting): ContentSummary {
@@ -103,7 +101,6 @@ function summaryOf(p: Page, update: Waiting): ContentSummary {
   };
 }
 
-/** The list's orderings: the dates newest first and titles A to Z unless `dir` says otherwise. */
 const ORDER = {
   updated: (p: Page) => p.updatedAt.getTime(),
   published: (p: Page) => p.publishedAt?.getTime() ?? 0,
@@ -167,7 +164,6 @@ export function createCarrelAdapter(
   type Change = Pick<PageWrite, "fields" | "schedule">;
   type Meta = { changeId: string; expectedVersion: string | null; actor?: { name: string } };
 
-  /** Checks the version, then writes the change, its schedule change and its audit row together. */
   async function write(
     slug: string,
     event: PageWrite["event"],
