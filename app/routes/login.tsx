@@ -10,12 +10,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { SIGN_IN_EXPIRES_IN_WORDS, signInMethods } from "@dustinedwards/site-runtime/sign-in";
-import {
-  SIGN_IN_WORDS,
-  requestSignInLink,
-  signInWithCode,
-  type CodeRefusal,
-} from "@dustinedwards/site-runtime/sign-in-form";
+import { signInFormAction } from "@dustinedwards/site-runtime/sign-in-form";
 import { getAuth, getSessionUser } from "~/lib/auth.server";
 import { authClient, signalAfterPasskeySignIn } from "~/lib/auth-client.client";
 import { signInWithPasskey as passkeySignIn } from "@dustinedwards/site-runtime/sign-in-client";
@@ -49,76 +44,21 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   };
 }
 
-type ActionResult = { ok: true; email: string; codeError?: string } | { ok: false; error: string };
-
-// The six-digit code from the same mail, typed on the "Check your inbox" screen.
-// The link signs in the browser that opens it, often the mail app's, not this
-// tab; the code signs in this one. site-runtime ./sign-in-form checks it through
-// Better Auth's handler (its limiter runs) and logs a refusal; this maps the
-// refusal to the page's words.
-const CODE_REFUSALS: Record<CodeRefusal, string> = {
-  limited: "Too many tries. Wait a minute, or use the link in the email.",
-  "email-limited": "Too many tries. Try again later, or use the link in the email.",
-  // The per-address code counter is down, so a typed code is refused; the link in the same mail still works.
-  unavailable:
-    "Codes can't be checked right now. Use the link in the email, or try again in a few minutes.",
-  wrong: "That code is not right. Check the email and try again.",
-  expired: `That code has expired: a code works for ${SIGN_IN_EXPIRES_IN_WORDS}. Send yourself a new one.`,
-  spent:
-    "That code was tried three times, so it no longer works. Use the link in the same email, or send a new one.",
-  disposable: "That sign-in did not complete. Try again, or use the link in the email.",
-  "other-browser": SIGN_IN_WORDS.code["other-browser"],
-  failed: "That sign-in did not complete. Try again, or use the link in the email.",
-};
-
-// The link's refusals in the shared words, but for the address's own limit, which this page words without "for this address".
-const LINK_REFUSALS = {
-  ...SIGN_IN_WORDS.link,
-  "email-limited": "Too many sign-in requests. Try again later.",
-};
-
-async function codeSignIn(
-  env: Env,
-  request: Request,
-  email: string,
-  code: string,
-  landing: string,
-): Promise<ActionResult> {
-  const result = await signInWithCode(await getAuth(env), request, { email, code });
-  if (result.status === "signed-in") throw redirect(landing, { headers: result.headers });
-  return { ok: true, email, codeError: CODE_REFUSALS[result.status] };
-}
-
+// The whole action is site-runtime's (./sign-in-form): the code, the link, the limiter, the captcha check and the
+// words. A signed-in code redirects; the page otherwise shows the state and status it answers with. The mail's cookie
+// ties its code to this browser, so a sent answer carries its headers.
 export async function action({ request, context }: Route.ActionArgs) {
-  const formData = await readForm(request, FORM_LIMIT);
-  const email = String(formData.get("email") ?? "").trim();
-  if (!email) {
-    return { ok: false, error: "Enter your email address." };
-  }
-
   const { env } = context.get(cloudflareContext);
-  // The link and the code land on /account, which offers a passkey to someone who has none and
-  // sends everyone else on home; or back on the page that asked for a new sign-in.
-  const landing = nextPath(formData.get("next")) ?? "/account?welcome=1";
-  const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
-  if (formData.get("intent") === "code") {
-    if (!/^\d{6}$/.test(code))
-      return { ok: true, email, codeError: "Enter the six-digit code from the email." };
-    return codeSignIn(env, request, email, code, landing);
-  }
-  // Through Better Auth's HTTP handler, not auth.api: only the handler runs the rate limiter, so a direct api call let
-  // the form skip it. The Turnstile widget's token goes to the captcha plugin
-  // (app/lib/auth.server.ts). A spent or expired link comes back to the confirm page, which says which from the time
-  // the mailed link carries (site-runtime confirmLinkURL and signInLinkProblem).
-  const result = await requestSignInLink(await getAuth(env), request, {
-    email,
-    captchaToken: String(formData.get("cf-turnstile-response") ?? ""),
-    callbackURL: landing,
-  });
-  // The sent mail's cookie ties its code to this browser (site-runtime codeBrowser): without it the code is refused.
-  if (result.status === "sent")
-    return data<ActionResult>({ ok: true, email }, { headers: result.headers });
-  return { ok: false, error: LINK_REFUSALS[result.status] } satisfies ActionResult;
+  const result = await signInFormAction(
+    await getAuth(env),
+    request,
+    await readForm(request, FORM_LIMIT),
+    // The link and the code land on /account, which offers a passkey to someone who has none and sends everyone else
+    // on home; or back on the page that asked for a new sign-in.
+    { landing: (next) => next, next: { fallback: "/account?welcome=1", within: ["/account"] } },
+  );
+  if ("location" in result) throw redirect(result.location, { headers: result.headers });
+  return data(result.state, { status: result.status, headers: result.headers });
 }
 
 export default function SignIn({ loaderData }: Route.ComponentProps) {
@@ -131,8 +71,8 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
   const turnstileRef = useRef<HTMLDivElement>(null);
   const { turnstileSiteKey: siteKey, next, deleted } = loaderData;
 
-  const sent = actionData?.ok === true;
-  const error = actionData && !actionData.ok ? actionData.error : null;
+  const sent = actionData?.sent ?? null;
+  const error = actionData?.error ?? null;
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
 
   // A passkey sign-in sets the session cookie, so a full load reads it. False
@@ -190,7 +130,7 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
         <Stack as={Form} method="post" noValidate>
           <input type="hidden" name="intent" value="code" />
           {next ? <input type="hidden" name="next" value={next} /> : null}
-          <input type="hidden" name="email" value={actionData.email} />
+          <input type="hidden" name="email" value={sent} />
           <div className="cap-field">
             <label htmlFor="code" className="cap-field-label">
               Code
@@ -204,13 +144,13 @@ export default function SignIn({ loaderData }: Route.ComponentProps) {
               pattern="[0-9]*"
               maxLength={6}
               required
-              aria-invalid={actionData.codeError ? true : undefined}
-              aria-describedby={actionData.codeError ? "code-error" : undefined}
+              aria-invalid={actionData?.codeError ? true : undefined}
+              aria-describedby={actionData?.codeError ? "code-error" : undefined}
               className="cap-input"
             />
-            {actionData.codeError ? (
+            {actionData?.codeError ? (
               <p id="code-error" role="alert" className="cap-field-error">
-                {actionData.codeError}
+                {actionData?.codeError}
               </p>
             ) : null}
           </div>
