@@ -7,7 +7,7 @@ import type { DB } from "./core";
 // Site pages (schema.ts, page). The public routes read a page's published
 // title, description and html. Carrel writes them through the site API, a
 // machine caller with no acting user, so its writes are their own path here
-// (hard rule 3's pattern): reached only from app/lib/carrel, each write and its
+// (the PayPal webhook's pattern): reached only from app/lib/carrel, each write and its
 // page_revision row go in one batch, and the revision names Carrel's change id.
 // An update Carrel schedules on a page is site-api's scheduled_updates row
 // (d1ScheduledUpdates), stored, applied or dropped in that same batch.

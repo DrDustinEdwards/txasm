@@ -1,7 +1,7 @@
 import { defineConfig } from "oxlint";
 import { base, react, node, ignorePatterns } from "@dustinedwards/devkit/oxlint";
 
-// The data-access layer is the security boundary (CLAUDE.md hard rule 1). D1 has
+// The data-access layer is the security boundary (CLAUDE.md, Data access). D1 has
 // no row-level security, so authorization lives in application code, and every
 // read and write must go through createDataAccess in app/lib/data-access.ts.
 //

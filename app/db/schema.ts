@@ -893,7 +893,7 @@ export const awardRecipient = sqliteTable(
 // the site: Carrel edits, schedules and publishes, never creates or takes one down. source
 // is Carrel's working copy (front matter and markdown); title, description and
 // html are what the route shows, set only on publish, html rendered by Prelum at
-// renderVersion. page_revision is the machine path's audit log (hard rule 4's
+// renderVersion. page_revision is the machine path's audit log (the PayPal webhook's
 // pattern): every Carrel write appends one, in the same batch, naming the change
 // (a schedule and its cancel included, with the page's source as it stands).
 /** A page's published search fields beside its description; image is a library path, sized from the library. */
