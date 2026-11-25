@@ -50,7 +50,7 @@ export async function serveDocument(
   const response = fileResponse(object, doc.fileName, defaultFileName, disposition, contentType);
 
   // An uploaded SVG opened on its own would run its script: images get UPLOAD_HEADERS
-  // (nosniff and a sandboxed load-nothing policy, hard rule 5). PDFs are left as they
+  // (nosniff and a sandboxed load-nothing policy, CLAUDE.md, Uploads). PDFs are left as they
   // are, because a sandbox breaks the browser's own viewer.
   if (doc.fileKind === "image") applyHeaderSet(response.headers, UPLOAD_HEADERS);
 

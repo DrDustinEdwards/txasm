@@ -100,7 +100,7 @@ async function findGeneratedDoc(db: DB, editionId: string, category: DocumentCat
   });
 }
 
-// A generated document is published once it is ready, and a brand image never (CLAUDE.md, hard rule 4).
+// A generated document is published once it is ready, and a brand image never (CLAUDE.md, Uploads).
 function assertPublishable(row: { source: string; genStatus: string | null; category: string }) {
   if (row.category === "brand_image") {
     throw new ValidationError("Brand images are internal and cannot be published.");
@@ -163,7 +163,7 @@ export function createDocuments(db: DB) {
         where: eq(schema.document.slug, slug),
       });
       if (!row) throw new NotFoundError();
-      // Brand images are internal (CLAUDE.md, hard rule 4): never public, even if a row was published.
+      // Brand images are internal (CLAUDE.md, Uploads): never public, even if a row was published.
       if (row.status === "published" && row.category !== "brand_image") return row;
       if (!actor) throw new ForbiddenError();
       assertDocumentWrite(actor, row.editionId);
