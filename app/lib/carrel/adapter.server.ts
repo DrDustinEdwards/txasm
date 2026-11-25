@@ -1,32 +1,20 @@
-// The site's side of Carrel's contract (@dustinedwards/site-api): an adapter over the site pages
-// in D1 (schema.ts, page), reached only through the data-access layer's Carrel path
-// (getCarrelPages), which writes each change with its audit row.
+// The site's side of Carrel's contract (@dustinedwards/site-api): an adapter over the site pages in D1, reached only
+// through the data-access layer's Carrel path (getCarrelPages), which writes each change with its audit row.
 //
-// SCOPE. The pages the site has a route for, seeded by migration 0019. Carrel saves drafts,
-// publishes, schedules and unpublishes; it cannot create a page (no route would show it), and the
-// adapter has no rename, trash or delete (a deleted page could never come back), so the package
-// answers those routes 501 and meta.capabilities leaves them out. An unpublished page keeps its
-// working source and goes back live with a publish: its route answers 404, or on home the
-// site's own welcome.
+// Only pages the site has a route for exist (seeded by migration 0019): Carrel cannot create, rename, trash or delete
+// one (a deleted page could never come back), so the package answers those routes 501. An unpublished page keeps its
+// working source; its route answers 404, or on home the site's own welcome.
 //
-// SCHEDULES. Every page is live, so a schedule is site-api's scheduled update (v0.10.0): its own
-// source in scheduled_updates (migration 0026), with the page still "published" and the update in
-// scheduledUpdate until publish_at. The per-minute cron (workers/app.ts) runs the package's
-// runSchedules, which puts the update's source live through `schedules.apply`, recorded under the
-// change id that scheduled it, and fires the hooks a Carrel publish fires. A save leaves the update
-// waiting (its source replaces the saved one when it runs, which Carrel warns of); a publish drops it.
+// A schedule is site-api's scheduled update: its own source in scheduled_updates, the page still "published". The
+// per-minute cron (workers/app.ts) runs runSchedules, which applies it through `schedules.apply` and fires the hooks a
+// Carrel publish fires. A save leaves the update waiting (it replaces the saved source when it runs); a publish drops it.
 //
-// IDS AND VERSIONS. A content id is the page's slug. A version is a hash of the working source and
-// the published html, and the waiting update's time and change id while one waits, so a save, a
-// publish and a schedule each give a new one, and a page with nothing waiting keeps the version it
-// had before schedules existed.
+// A content id is the page's slug. A version hashes the working source and published html, plus the waiting update's
+// time and change id.
 //
-// RENDER. Prelum's markdown pipeline (assertSafe on), run on publish, schedule and preview only; the
-// routes show the stored html, and meta says which Prelum render that is. A page's pictures come
-// from the media library (media-adapter.server.ts), at their /media/ paths: each is sized from the
-// library's index and gets its responsive sizes (site-runtime ./image) in the html stored at
-// publish. Any other image is refused, so a page never hotlinks or shows a picture the library
-// cannot account for.
+// Prelum renders (assertSafe on) on publish, schedule and preview only; routes show the stored html. A page's pictures
+// come only from the media library (media-adapter.server.ts), so a page never hotlinks a picture the library cannot
+// account for.
 import {
   contentVersion,
   NotFoundError,

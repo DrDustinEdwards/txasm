@@ -58,20 +58,7 @@ const { chromium } = require("playwright");
   const base = process.argv[2];
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  const errors = [];
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
-  page.on("pageerror", (e) => errors.push(String(e)));
-  const log = [];
-  async function step(name, fn) {
-    try {
-      await fn();
-      log.push(`ok   ${name}`);
-    } catch (e) {
-      log.push(`FAIL ${name}: ${e.message.split("\n")[0]}`);
-      await page.screenshot({ path: "fail.png", fullPage: true });
-      throw e;
-    }
-  }
+  // errors, log and step(): the helpers in devkit docs/verify.md
   try {
     await step("open the home page", async () => {
       const r = await page.goto(base);
@@ -132,21 +119,12 @@ npx tsx --test tests/authorization.test.ts
 Run the other checks your change can trip (`typecheck`, `lint`, `format:check`,
 `check:console`, `check:migrations`, `check:session`) before the pull request.
 
-## Rules
+## Rules and report
 
-A failed step is a finding about the change: fix the code and rerun the same script;
-no sleeps, no looser selectors.
+Follow the Rules and the report in [devkit's docs/verify.md](https://github.com/DrDustinEdwards/devkit/blob/main/docs/verify.md). For this repo:
 
-## The report
-
-Put this in the reply and the pull request body:
-
-- First line: verified, partly verified (and what was not), or failed.
-- Each step's ok or FAIL line, the console errors line, the end-state screenshot
-  attached, and the test run's summary lines (`tests`, `pass`, `fail`).
-- Not verified: signed-in flows, email (`EMAIL_ENABLED=false`), PayPal, Turnstile,
-  Cloudflare Access (`ACCESS_DEV_BYPASS` only skips the check), the book PDF, Images
-  resizing, the edge cache. The live check runs after the merge: CI's `deploy`
+- Anything local cannot show (signed-in flows, email, PayPal, Access, the book
+  PDF), named as not verified. The live check runs after the merge: CI's `deploy`
   job (`.github/workflows/ci.yml`) waits for `/health` to report the commit,
   fetches the home page and rolls back if it does not answer 200; look at
   https://txasm.dustin-edwards.workers.dev/health and the home page after it.

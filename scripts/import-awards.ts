@@ -1,29 +1,12 @@
-// Awards import seed script. Reuses the parse-to-JSON-to-seed pattern of the
-// meeting importer: a reviewable dataset (scripts/seed-data/awards.json) is the
-// single source of truth, and seeding inserts it through the data-access layer so
-// the same sanitization (namesake bio and description to the em/sup/sub allowlist)
-// and validation (personName and year required) run as for live admin edits.
+// Awards import seed script: scripts/seed-data/awards.json is the reviewable source, and seeding inserts it through
+// the data-access layer so the same sanitization and validation run as for live admin edits.
 //
-// Two modes:
+//   npm run import:awards -- --parse    refresh the dataset from the live txasm.org pages (needs network; recipients are
+//                                       replaced, definitions kept; review before seeding)
+//   npm run import:awards [-- <file>]   seed LOCAL D1; idempotent per award slug (an existing award is deleted and reinserted)
 //
-//   Parse (refresh the dataset from the live pages, for review before seeding):
-//     npm run import:awards -- --parse
-//   Fetches each award's live txasm.org page, parses the WordPress HTML (h2
-//   years, h3 categories, list items with placement/name/institution/mentor), and
-//   replaces that award's recipients in awards.json. Definitions are kept. The
-//   result is committed and reviewed before any seed. Requires network.
-//
-//   Seed (default, LOCAL D1 only):
-//     npm run import:awards
-//     npm run import:awards -- scripts/seed-data/awards.json
-//   Reads the dataset and inserts through the data-access layer. Idempotent per
-//   award slug: an existing award is deleted (its recipients cascade) and
-//   reinserted, so a re-run converges to the file.
-//
-// Remote is deliberately NOT supported here. Production seeding is done later,
-// once reviewed, through the proven `wrangler d1 execute txasm --remote` channel
-// (never getPlatformProxy against a remote binding, which has silently hit local
-// before). This script only ever writes local D1.
+// Remote is deliberately not supported: getPlatformProxy against a remote binding has silently hit local before.
+// Production is seeded later through `wrangler d1 execute txasm --remote`.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";

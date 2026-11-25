@@ -21,16 +21,12 @@ import { emailChangeEmail, magicLinkEmail, securityNoticeEmail, sendEmail } from
 import { EMAIL_CONFIRM_PATH } from "./site-meta";
 import { adminAccessOk } from "./access.server";
 
-// Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime
-// ./sign-in): a passkey first, an emailed link before one exists, Turnstile on
-// the link (it fails closed without its keys), no passwords. No Google or Apple: academics use
-// many providers, so the inbox is the way in. Sessions and the sign-in rate
-// limit are in D1 (app/db/schema.ts).
+// Better Auth on D1/Drizzle, with the family's one sign-in (site-runtime ./sign-in): a passkey first, an emailed link
+// before one exists, Turnstile on the link (fails closed without its keys), no passwords, no Google or Apple. Sessions
+// and the sign-in rate limit are in D1.
 //
-// The instance is built once per environment and the promise kept, since the
-// worker env is stable within an isolate. The adapter needs the schema and the
-// Drizzle client, which is why this file sits inside the data/auth boundary
-// alongside the data-access layer and app/db/index.server.ts.
+// The instance is built once per environment (the worker env is stable within an isolate). The adapter needs the schema
+// and Drizzle client, which is why this file sits inside the data/auth boundary.
 async function buildAuth(env: Env) {
   const db = getDb(env);
   const signIn = await signInOptions(env, {
