@@ -1,20 +1,11 @@
-// Back-catalog document loader. Reads PDFs from the local folder named by --dir, parses the season and year from each filename, uploads the
-// file to R2, and records it through the data-access layer as an uploaded,
-// published document. Built for the eight branch newsletters first, but the
-// category is a flag so abstract books and programs can be loaded the same way
-// later.
+// Back-catalog document loader. Reads PDFs from --dir, parses the season and year from each filename, uploads each to
+// R2 and records it through the data-access layer as a published document (--category: newsletter, abstract book...).
 //
-// Run (LOCAL D1 and R2 only, the default):
 //   npm run load:documents -- --dir <folder of PDFs> --category newsletter
 //
-// Idempotent per slug: an existing document with the same slug is removed (and
-// its R2 object deleted) before the file is loaded again, so a re-run converges.
-//
-// Remote is deliberately NOT supported here. Production is loaded later, once
-// reviewed: the metadata rows through the proven `wrangler d1 execute txasm
-// --remote` channel (never getPlatformProxy against a remote binding, which has
-// silently hit local before), and the R2 objects through `wrangler r2 object
-// put`. This script only ever writes local D1 and local R2.
+// Idempotent per slug: an existing document is removed (and its R2 object deleted) first. LOCAL D1 and R2 only;
+// getPlatformProxy against a remote binding has silently hit local before, so production goes through `wrangler d1
+// execute txasm --remote` and `wrangler r2 object put`.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";

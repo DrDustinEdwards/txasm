@@ -1,30 +1,13 @@
-// Reusable meeting-import seed script. It reads a standard dataset JSON bundle
-// (see scripts/seed-data/) and inserts a full archived meeting through the
-// data-access layer, so the seeded abstracts run the same title and body
-// sanitizers and the same validation as live submissions. This is a permanent
-// tool for importing the ~23 past abstract books, not a one-off: all
-// meeting-specific values come from the data file, never from this code.
+// Reusable meeting-import seed script. It reads a dataset JSON bundle (scripts/seed-data/) and inserts a full archived
+// meeting through the data-access layer, so seeded abstracts run the same sanitizers and validation as live ones.
 //
-// Run (local D1, the default):
-//   npm run import:meeting -- scripts/seed-data/spring-2026.json
-//   npm run import:meeting -- scripts/seed-data/spring-2026.json --clear
+//   npm run import:meeting -- scripts/seed-data/spring-2026.json [--clear]
 //
-// It is idempotent per meeting slug: if the edition slug already exists it
-// refuses, unless --clear is passed, which deletes the existing meeting by slug
-// first (the edition row cascades to categories, abstracts, authors,
-// affiliations, and program rows). To clear without re-importing:
-//   npx wrangler d1 execute txasm --local --command "DELETE FROM edition WHERE slug='spring-2026';"
-//
-// This script writes the LOCAL D1 only (getPlatformProxy binds to the local
-// simulator; its remote-binding path does not reliably reach production D1, so it
-// is not offered here). To seed PRODUCTION, run this against local, then copy the
-// verified rows up with wrangler's remote channel:
-//   npx wrangler d1 export txasm --local --no-schema --table edition --table \
-//     abstract_category --table abstract --table author --table affiliation \
-//     --table author_affiliation --output meeting.sql
-//   (prepend an INSERT OR IGNORE for the system-import user; see seed-data/README)
-//   npx wrangler d1 execute txasm --remote --file meeting.sql
-// then verify counts with npx wrangler d1 execute txasm --remote.
+// Idempotent per edition slug: an existing slug is refused unless --clear deletes that meeting first (the edition row
+// cascades). Writes the LOCAL D1 only (getPlatformProxy's remote path does not reliably reach production). To seed
+// production, export the local rows with `wrangler d1 export txasm --local --no-schema --table <each import table>`,
+// prepend an INSERT OR IGNORE for the system-import user (seed-data/README), and run it with `wrangler d1 execute
+// txasm --remote --file meeting.sql`.
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
