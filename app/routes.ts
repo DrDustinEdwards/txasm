@@ -21,6 +21,7 @@ export default [
     route("sponsorship", "routes/sponsorship.tsx"),
     route("contact", "routes/contact.tsx"),
     route("accessibility", "routes/accessibility.tsx"),
+    route("privacy", "routes/privacy.tsx"),
     // Every other path: 410 for a page removed on purpose, else 404, drawn inside this layout so the header and footer stay.
     route("*", "routes/not-found.tsx"),
     // The private pages (sign-in, account, submission, review): no Web Analytics (site-runtime PRIVATE_PAGE_HEADERS).
