@@ -67,10 +67,6 @@ export default function Awardees({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Awardees
         </Title>
-        <p className="cap-muted cap-measure">
-          Named awards for outstanding student, faculty and service work, presented at the branch's
-          meetings.
-        </p>
       </Stack>
 
       <Panel>

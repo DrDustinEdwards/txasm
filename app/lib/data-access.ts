@@ -45,6 +45,7 @@ export {
   isReviewerAnywhere,
 } from "./data-access/core";
 export type { Actor } from "./data-access/core";
+export { submissionWindow } from "./data-access/abstracts";
 export type { AuthorInput, AffiliationInput } from "./data-access/abstracts";
 export type { GrantableRole } from "./data-access/roles";
 export type {

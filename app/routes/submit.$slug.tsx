@@ -8,7 +8,7 @@ import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 import { requireUser } from "~/lib/auth.server";
-import { orNotFound, getActor, getDataAccess } from "~/lib/data-access";
+import { orNotFound, getActor, getDataAccess, submissionWindow } from "~/lib/data-access";
 import { DATE_TIME } from "~/lib/format";
 import { formError } from "~/lib/form.server";
 import { formatDate } from "capsomer/behavior/time";
@@ -29,10 +29,10 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 
   const edition = await orNotFound(da.editions.get(params.slug));
 
-  const now = Date.now();
-  const notYet = !!edition.submissionOpensAt && now < edition.submissionOpensAt.getTime();
-  const closed = !!edition.submissionDeadline && now > edition.submissionDeadline.getTime();
-  const open = !notYet && !closed;
+  const window = submissionWindow(edition);
+  const notYet = window === "notYet";
+  const closed = window === "closed";
+  const open = window === "open";
 
   const mine = await da.abstracts.listMine(actor, edition.id);
 

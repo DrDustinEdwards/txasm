@@ -15,7 +15,7 @@ txasm.org: the meeting platform for the Texas Branch of the American Society for
 
 - **Data access.** D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`). Conflict of interest is checked at assignment; the confidential comment is for chairs and admins only.
 - **Editions.** Every domain row carries `edition_id`, and past editions stay queryable.
-- **PayPal.** The webhook verifies its signature before acting. PayPal keys never reach the client.
+- **PayPal.** Not built yet. When it is, the webhook verifies its signature before acting, and PayPal keys never reach the client.
 - **Uploads.** Abstracts allow only `<em>`, `<sup>` and `<sub>`, re-sanitized on every save. Image responses keep the sandboxed CSP and nosniff. The category value `brand_image` never changes, and brand images stay out of the public archive.
 - **Cutover.** Never touch the old WordPress site or txasm.org DNS until cutover.
 

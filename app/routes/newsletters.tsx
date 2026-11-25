@@ -46,9 +46,6 @@ export default function Newsletters({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           Newsletters
         </Title>
-        <p className="cap-muted cap-measure">
-          Meeting recaps, award announcements and news from member institutions across Texas.
-        </p>
       </Stack>
 
       {documents.length === 0 ? (
