@@ -9,7 +9,7 @@ import { cloudflareContext } from "@dustinedwards/site-runtime/context";
 // The pages' addresses carry the file's version (`v`, render.server.ts), so one with it is cached
 // for good; without it (an address a person copied), a day, so a replaced file shows through
 // within one (serve's default policy).
-// Hard rule 5: every answer, refusals too, carries UPLOAD_HEADERS (nosniff and the sandboxed CSP),
+// CLAUDE.md, Uploads: every answer, refusals too, carries UPLOAD_HEADERS (nosniff and the sandboxed CSP),
 // so no file runs script.
 export function loader({ request, context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);

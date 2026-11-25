@@ -15,8 +15,8 @@ import { ACCOUNT_REFERENCES } from "../app/lib/data-access/account";
 import { getTableName } from "drizzle-orm";
 import { applyMigrations } from "./d1";
 
-// The data-access layer is the security boundary (CLAUDE.md hard rule 1) and
-// every listing is a per-edition query (hard rule 2), so both are tested against
+// The data-access layer is the security boundary (CLAUDE.md, Data access) and
+// every listing is a per-edition query (CLAUDE.md, Editions), so both are tested against
 // real D1 with the real migrations. Meeting A has more accepted abstracts than
 // D1 binds in one query (100), as real meetings do (spring 2026 had 108), and
 // meeting B has its own, which must never show up in A's lists.
