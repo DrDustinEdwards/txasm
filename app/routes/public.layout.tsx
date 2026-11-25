@@ -141,10 +141,13 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
   const orgFullName = settings?.orgFullName ?? "";
   const copyrightName = settings?.orgName || orgFullName;
   const footerLinks = settings?.footerLinks ?? [];
-  // Contact is always offered; an admin's own /contact link stands in for it.
-  const hasContact = footerLinks.some((link) => link.url === "/contact");
-  // So is the accessibility statement (devkit-a11y S6).
-  const hasAccessibility = footerLinks.some((link) => link.url === "/accessibility");
+  // Contact, the accessibility statement (devkit-a11y S6) and privacy are always offered; an admin's own link to the
+  // same path stands in for each.
+  const standing = [
+    { label: "Contact", url: "/contact" },
+    { label: "Accessibility", url: "/accessibility" },
+    { label: "Privacy", url: "/privacy" },
+  ].filter((link) => !footerLinks.some((own) => own.url === link.url));
 
   return (
     <footer className="cap-site-footer" data-tone="raised">
@@ -153,8 +156,9 @@ function PublicFooter({ settings }: { settings: PlatformSettings | undefined }) 
           {footerLinks.map((link) => (
             <FooterLink key={`${link.label}-${link.url}`} label={link.label} url={link.url} />
           ))}
-          {hasContact ? null : <FooterLink label="Contact" url="/contact" />}
-          {hasAccessibility ? null : <FooterLink label="Accessibility" url="/accessibility" />}
+          {standing.map((link) => (
+            <FooterLink key={link.url} label={link.label} url={link.url} />
+          ))}
           {settings?.facebookUrl ? (
             <FooterLink label="Facebook group" url={settings.facebookUrl} />
           ) : null}
