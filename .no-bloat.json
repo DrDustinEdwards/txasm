@@ -4,13 +4,13 @@
     "jscpd": "jscpd@4.3.0"
   },
   "baseline": {
-    "measured_at": "07e01fe",
+    "measured_at": "d5bcdd6",
     "knip": {
       "dependencies": 1
     },
     "jscpd": {
       "clones": 19,
-      "lines": 186,
+      "lines": 184,
       "percentage": 0.64,
       "unread": 1
     },
@@ -21,7 +21,7 @@
     "legacy": {},
     "size": {
       "app/db/schema.ts": 1039,
-      "app/routes/account.tsx": 587,
+      "app/routes/account.tsx": 583,
       "public/pagedjs/paged.polyfill-0.4.3.js": 33251
     },
     "tests": {
@@ -29,9 +29,9 @@
       "cases": 44
     },
     "comments": {
-      "lines": 3974,
+      "lines": 3586,
       "code": 49174,
-      "percentage": 7.48
+      "percentage": 6.8
     }
   }
 }

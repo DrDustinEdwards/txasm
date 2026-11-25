@@ -8,6 +8,7 @@ import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { RichText } from "capsomer/react/trusted-html";
 import { wrapRendered } from "@drdustinedwards/site-helpers/stored-render";
 
+// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
 export async function loader({ context }: Route.LoaderArgs) {

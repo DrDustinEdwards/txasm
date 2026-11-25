@@ -62,6 +62,9 @@ function parseArrangement(text: string): BookArrangementInput {
   throw new ValidationError("Could not read the arrangement. Try again.");
 }
 
+// Generate, arrange, and publish are the builder. publish also produces the
+// arranged PDF (best-effort, gated on Browser Rendering) and delivers it through
+// the document/R2 path; pdf-publish flips that PDF to public in the archive.
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);
