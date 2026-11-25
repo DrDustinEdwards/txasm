@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type {
   MediaLibraryStore,
   MediaRecord,
@@ -114,6 +114,16 @@ export function createCarrelMedia(db: DB) {
 
     all: async () =>
       (await db.select().from(media).orderBy(desc(media.uploadedAt), asc(media.key))).map(recordOf),
+
+    twins: async (sha256, exceptKey, limit) =>
+      (
+        await db
+          .select()
+          .from(media)
+          .where(and(eq(media.sha256, sha256), ne(media.key, exceptKey)))
+          .orderBy(desc(media.uploadedAt), asc(media.key))
+          .limit(limit)
+      ).map(recordOf),
 
     async byHash(sha256) {
       const current = await db.query.media.findFirst({
