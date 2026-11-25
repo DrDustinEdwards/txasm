@@ -93,8 +93,7 @@ export interface Actor {
 }
 
 // `admin` comes from the env's admin list (getActor in ../data-access.ts), never
-// from D1: role_grant rows with role "admin", seeded once at sign-up before
-// 2026-10-31, are read past, so taking an address off the list ends its admin.
+// from D1: role_grant rows with role "admin", seeded once at sign-up, are read past, so taking an address off the list ends its admin.
 export async function loadActor(
   db: DB,
   userId: string,

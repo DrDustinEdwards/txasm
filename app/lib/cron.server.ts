@@ -1,14 +1,11 @@
 // The scheduled jobs, keyed by the cron that fires them (wrangler.jsonc triggers.crons). workers/app.ts runs the list
-// for the cron it receives through site-runtime's runJobs, and /health's cronCheck reads every list (names and
-// intervals only), so a job whose trigger never fires warns as "never ran".
+// for the cron it receives through runJobs, and /health's cronCheck reads every list, so a job whose trigger never
+// fires warns as "never ran".
 //
-// Every minute: the updates Carrel scheduled go live (handler.server.ts), with 50 seconds, so a hung run never runs
-// into the next minute's. Daily, at 03:00 UTC like the other sites: the nightly D1 backup, the uploads copy beside it
-// (a pass stops itself at three minutes and goes on the next day), the 404 count's pruning and the auth event rows'
-// (a year, or 30 days for one with no user; site-runtime ./sign-in), eleven minutes in all, inside a scheduled
-// invocation's 15. The dump must land before capsid-backups' 11:23 UTC Amazon copy: at 13:00 the copy took the
-// day before's dump and aged past 30 hours (offaccount-late-txasm). The deadline jobs and reminders (submission and
-// review deadline reminders, status transitions) join the daily list when they are wired per edition.
+// Every minute: Carrel's scheduled updates go live, with 50 seconds so a hung run never runs into the next minute's.
+// Daily at 03:00 UTC: the nightly D1 backup, the uploads copy, and the 404 and auth-event pruning, eleven minutes in
+// all inside a scheduled invocation's 15. The dump must land before capsid-backups' 11:23 UTC Amazon copy, or the copy
+// takes the day before's dump and ages past 30 hours. Deadline jobs and reminders join the daily list when wired.
 import {
   backupJob,
   carrelSchedulesJob,

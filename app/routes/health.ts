@@ -1,17 +1,12 @@
-// /health: site-runtime's siteHealthResponse, 503 only when D1 does not answer: every page, sign-in, submission and review
-// reads D1, so without it the site is down, and that is the one fail-level check (`ping`). Everything else is "warn"
-// and 200, because the site still serves: a stale or missing dump or uploads copy, a
-// job that failed, stopped or never ran (`cron_runs`, read against the Worker's own job lists), a run of failed
-// sign-ins or sign-in mails in the last hour (`auth_events`), and each binding below.
-// The two buckets were fail level until 31 Oct 2026; they are warn by choice: with UPLOADS down, only figures,
-// camera-ready files and the media library's pictures fail to load, and with BOOKS down only the generated books and
-// the backup, while pages, sign-in, submission and review go on.
+// /health: site-runtime's siteHealthResponse, 503 only when D1 does not answer (`ping`, the one fail-level check):
+// every page, sign-in, submission and review reads D1. Everything else is "warn" and 200 because the site still serves:
+// a stale or missing dump or uploads copy, a failed, stopped or never-run job (`cron_runs`), a run of failed sign-ins or
+// sign-in mails in the last hour (`auth_events`), and each binding below. The two buckets are warn by choice: with
+// UPLOADS down only figures, camera-ready files and library pictures fail, with BOOKS down only generated books and the
+// backup.
 //
-// Not probed: the two rate limit bindings (CARREL_RATE_LIMIT, CSP_REPORT_RATE_LIMIT), which have no read that does
-// not spend a request's count. BROWSER is checked as bound only; a real probe would open a billed browser session.
-//
-// `sha` is the deployed commit, which CI's deploy passes as DEPLOY_SHA (devkit's worker-deploy.yml; a manual deploy has
-// none). No table names, counts or keys.
+// Not probed: the two rate limit bindings (a read spends the count) and BROWSER (a probe opens a billed session).
+// `sha` is the deployed commit, passed by CI's deploy as DEPLOY_SHA. No table names, counts or keys.
 import {
   authSpikeCheck,
   browserCheck,

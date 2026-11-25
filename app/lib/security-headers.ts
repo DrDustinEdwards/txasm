@@ -20,7 +20,7 @@ import { isPrivatePath } from "./site-meta";
 const CSP_ENDPOINT = "csp-endpoint";
 const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 
-// What the pages load beyond 'self', read from the code (2026-10-30):
+// What the pages load beyond 'self', read from the code:
 // - style, font: nothing. Inter is bundled (app/app.css); the serif faces and PDF.js (its module, worker, wasm,
 //   fonts, cmaps) are self-hosted in public/.
 // - img: 'self' (the favicon, /documents/<slug>/inline, the media library at /media/), and data: for the tiny
@@ -33,9 +33,8 @@ const SINK = { reportUri: CSP_REPORT_PATH, reportTo: CSP_ENDPOINT };
 // - script, frame: Cloudflare Turnstile on the sign-in form (app/routes/login.tsx).
 // - style attributes: React style={{...}} props (brand marks, the program grid), which a nonce
 //   cannot cover.
-// - The Cloudflare Web Analytics beacon, allowed like every family site. On workers.dev the edge injects
-//   none; once txasm.org is on the zone, it does.
-// - Trusted Types, enforced (site-runtime 0.132.0): a string never reaches an injection sink, and only the shared
+// - The Cloudflare Web Analytics beacon, allowed like every family site.
+// - Trusted Types, enforced: a string never reaches an injection sink, and only the shared
 //   policy names exist.
 // Beside it, the same policy with default-src 'none' as Report-Only (the registry stages it), so the reports name each
 // kind a page loads that the policy does not name.
