@@ -4,13 +4,6 @@ import { forbidden, getSessionUser, requireChair } from "./auth.server";
 import { ForbiddenError, NotFoundError, getActor, getDataAccess } from "./data-access";
 import { type DocumentCategory, extensionForMime, PDF_MIME_TYPE } from "./vocab";
 
-// Stream a document's stored file from R2 for the inline viewer or a download.
-// Gating lives in the data-access layer (published is public, draft/generated is
-// chair/admin); this resolves the optional actor, picks the bucket by source
-// (generated books live in BOOKS, uploaded files in UPLOADS), and returns a 404
-// when the row, its key, or the object is missing. The Content-Type follows the
-// stored MIME so images serve as images and PDFs as PDFs; only the
-// Content-Disposition differs between inline and download.
 export async function serveDocument(
   request: Request,
   env: Env,

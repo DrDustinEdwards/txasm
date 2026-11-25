@@ -19,9 +19,6 @@ import {
   ValidationError,
 } from "./core";
 
-// ConflictReason, the review recommendations, DecisionOutcome, and
-// PresentationType vocabularies live in ./vocab and are imported above.
-
 export interface DecisionInput {
   abstractId: string;
   outcome: DecisionOutcome;
@@ -103,9 +100,6 @@ export function createDecisions(db: DB) {
       return this.getForAbstract(actor, input.abstractId);
     },
 
-    // Chair/admin dashboard: every non-draft abstract in the meeting with its
-    // decision (if any), the author names, the count of submitted reviews, and a
-    // compact tally of review recommendations so the chair can decide at a glance.
     async listForEdition(actor: Actor, editionId: string) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);

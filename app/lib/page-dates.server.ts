@@ -22,7 +22,6 @@ export const TRACKED_PATHS = [
   "/accessibility",
 ];
 
-/** The record the job keeps, from its D1 row. */
 export const pageRecordStore = (env: Env) =>
   kvPageRecord(
     {
@@ -33,7 +32,6 @@ export const pageRecordStore = (env: Env) =>
     PAGE_DATES_KEY,
   );
 
-/** The daily job: date every tracked page. */
 export async function runPageDates(env: Env): Promise<void> {
   await trackRenderedPageDates({
     paths: TRACKED_PATHS,

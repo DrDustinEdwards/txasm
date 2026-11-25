@@ -8,9 +8,6 @@ import { graph, thing, website } from "@drdustinedwards/site-helpers/schema";
 import type { PageSearch, PlatformSettings } from "./data-access";
 import { CATEGORY_PATHS } from "./document-nav";
 
-// The root loader (settings) is always in the matches chain. Pull the org short
-// name from there so page titles track the settings value instead of hardcoding
-// the branch name in every route. Type-only import, erased at build.
 type RootData = { settings?: PlatformSettings; origin?: string };
 type Matches = ReadonlyArray<{ id: string; loaderData?: unknown } | undefined>;
 
@@ -35,7 +32,6 @@ export const SITE_ORIGIN = "https://txasm.org";
 /** The site's IndexNow key, public by the protocol's design: served as /<key>.txt and sent with each changed page. */
 export const INDEXNOW_KEY = "5e48c50f124668e3b36677ac35cee9de";
 
-/** The site's RSS feed: new newsletters, abstract books and programs (app/routes/rss.ts). */
 export const FEED_PATH = "/rss.xml";
 
 /** Where an email change's two links open (app/lib/auth.server.ts): under /account, so it is private. */
@@ -71,7 +67,6 @@ export function isPrivatePath(pathname: string): boolean {
   );
 }
 
-/** The section pages a page's breadcrumb trail passes through. */
 const SECTIONS: Record<string, string> = {
   "/meetings": "Meetings",
   ...Object.fromEntries(Object.values(CATEGORY_PATHS).map((c) => [c.basePath, c.title])),

@@ -5,7 +5,6 @@ import type { Route } from "./+types/sponsorship";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
-// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -17,11 +16,8 @@ export function meta({ matches }: Route.MetaArgs) {
   });
 }
 
-// The external Sponsor Registration form hosted on formsmarts.
 const SPONSOR_REGISTRATION_URL = "https://www.formsmarts.com/form/2fql";
 
-// Sponsorship tiers carried over from the current site: level, contribution
-// amount, who the level suits, and the benefits at that level.
 type SponsorTier = {
   name: string;
   amount: string;

@@ -5,7 +5,6 @@
 // formatDate, capsomer/behavior/time).
 export const DATE_TIME = { style: "medium", time: true, zoneName: true } as const;
 
-// The non-empty parts, trimmed, joined with ", ".
 export function joinParts(parts: Array<string | null>): string {
   return parts
     .map((p) => (p ? p.trim() : ""))

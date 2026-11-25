@@ -6,7 +6,6 @@ import type { loader as rootLoader } from "~/root";
 import { pageHead } from "~/lib/site-meta";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 
-// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -18,8 +17,6 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 export default function Contact() {
-  // Contact email and the Facebook group come from platform settings so this
-  // page tracks the configured values rather than hardcoding them.
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
   const settings = rootData?.settings;
   const contactEmail = settings?.contactEmail ?? null;

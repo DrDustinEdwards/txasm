@@ -22,10 +22,6 @@ import {
   ValidationError,
 } from "./core";
 
-// Documents. Helpers and shapes for the one-model-for-every-PDF layer, shared by
-// the generate-record flow (source "generated") and the uploaded archive
-// (source "uploaded").
-
 function assertDocumentCategory(value: string): DocumentCategory {
   if (!DOCUMENT_CATEGORIES.includes(value as DocumentCategory)) {
     throw new ValidationError("Choose a valid document category.");
@@ -87,9 +83,6 @@ export interface DocumentPatch {
   sortOrder?: number;
 }
 
-// The single generated document for a meeting in one category (abstract book
-// or program), whatever its status. One row per (edition, category) with
-// source "generated"; a regenerate reuses it.
 async function findGeneratedDoc(db: DB, editionId: string, category: DocumentCategory) {
   return db.query.document.findFirst({
     where: and(
@@ -110,17 +103,8 @@ function assertPublishable(row: { source: string; genStatus: string | null; cate
   }
 }
 
-// Documents: one model for every branch PDF, generated or uploaded. Public
-// reads return published rows only. The generate-record flow writes generated
-// rows (source "generated") and tracks the run through genStatus, keeping the
-// one-per-category-per-edition rule so a regenerate updates the same row and
-// an existing PDF stays downloadable until the new one is ready. publish flips
-// a ready generated row (or an uploaded row) to published. create/update/
-// remove maintain uploaded archive documents. Writes are admin, or a chair of
-// the document's meeting; a document with no meeting is admin-only.
 export function createDocuments(db: DB) {
   return {
-    // Every published document in a category, for a public archive page.
     async listByCategory(category: DocumentCategory) {
       return db
         .select()
@@ -129,7 +113,6 @@ export function createDocuments(db: DB) {
         .orderBy(schema.document.sortOrder, desc(schema.document.year), schema.document.title);
     },
 
-    // The newest published documents across categories, newest added first, for the RSS feed.
     async listRecent(categories: readonly DocumentCategory[], limit: number) {
       return db
         .select()
@@ -144,7 +127,6 @@ export function createDocuments(db: DB) {
         .limit(limit);
     },
 
-    // One published document by its unique slug, or null. Viewing writes nothing.
     async getBySlug(slug: string) {
       const row = await db.query.document.findFirst({
         where: eq(schema.document.slug, slug),
@@ -170,8 +152,6 @@ export function createDocuments(db: DB) {
       return row;
     },
 
-    // Admin archive management: every document (any status), optionally filtered
-    // to one category. Admin only. Newest first within a category.
     async listAll(actor: Actor, category?: DocumentCategory) {
       if (!isAdmin(actor)) throw new ForbiddenError();
       const where = category
@@ -184,8 +164,6 @@ export function createDocuments(db: DB) {
         .orderBy(schema.document.category, desc(schema.document.year), schema.document.title);
     },
 
-    // Published documents tied to a meeting (its book, program, and any uploaded
-    // archive PDFs), for the meeting's public archive section.
     async listForEdition(editionId: string) {
       return db
         .select()
@@ -200,8 +178,6 @@ export function createDocuments(db: DB) {
         .orderBy(schema.document.sortOrder, schema.document.title);
     },
 
-    // Chair/admin read of a meeting's generated document in one category, for the
-    // admin panel and the download route. Null when nothing is generated yet.
     async getGeneratedForEdition(actor: Actor, editionId: string, category: DocumentCategory) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const row = await findGeneratedDoc(db, editionId, category);
@@ -226,8 +202,6 @@ export function createDocuments(db: DB) {
       };
     },
 
-    // Create an uploaded archive document. The R2 write happens in the route;
-    // this stores the metadata row.
     async create(actor: Actor, input: DocumentUploadInput) {
       assertDocumentWrite(actor, input.editionId ?? null);
       const category = assertDocumentCategory(input.category);
@@ -316,8 +290,6 @@ export function createDocuments(db: DB) {
       return db.query.document.findFirst({ where: eq(schema.document.id, id) });
     },
 
-    // Remove a document row. Returns its r2Key and source so the route can delete
-    // the R2 object from the right bucket; this layer touches metadata only.
     async remove(actor: Actor, id: string) {
       const row = await db.query.document.findFirst({
         where: eq(schema.document.id, id),
@@ -407,8 +379,6 @@ export function createDocuments(db: DB) {
       return { id };
     },
 
-    // Mark a generated document failed so the UI can show it and the chair can
-    // retry.
     async recordFailed(actor: Actor, id: string) {
       const row = await db.query.document.findFirst({
         where: eq(schema.document.id, id),
@@ -422,8 +392,6 @@ export function createDocuments(db: DB) {
       return { id };
     },
 
-    // Flip a document to published. A generated document must be ready first; an
-    // uploaded document can publish directly.
     async publish(actor: Actor, id: string) {
       const row = await db.query.document.findFirst({
         where: eq(schema.document.id, id),

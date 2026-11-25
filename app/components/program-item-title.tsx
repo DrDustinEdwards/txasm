@@ -5,9 +5,6 @@ import { programKindLabel } from "~/lib/vocab";
 
 type Item = ProgramSessionResolved["items"][number];
 
-// What a program item is, in one line: an abstract's code, title and presenter, an invited
-// speaker and the talk, or the item's own title. The public program and the program builder
-// both show it.
 export function ProgramItemTitle({ item }: { item: Item }) {
   if (item.abstractId) {
     return (

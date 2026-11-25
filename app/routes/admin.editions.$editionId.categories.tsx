@@ -19,7 +19,6 @@ import {
 import { formatMoney, parseMoneyInput } from "@dustinedwards/site-runtime/money";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { formError, FORM_LIMIT } from "~/lib/form.server";
-// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
 import "capsomer/table.css";
 
 export function meta({ matches }: Route.MetaArgs) {

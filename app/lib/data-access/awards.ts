@@ -16,11 +16,6 @@ import {
   ValidationError,
 } from "./core";
 
-// Awards. Definition and recipient inputs. namesakeBio/description are sanitized
-// to the abstract body allowlist (em/sup/sub) on write. A recipient always has a
-// personName and a year; everything else is optional. editionId ties a recipient
-// to the meeting where the award was given when that meeting is in the system.
-
 export interface AwardInput {
   slug: string;
   name: string;
@@ -68,7 +63,6 @@ export interface AwardSearchFilters {
   institution?: string;
 }
 
-// One recipient row grouped under a category within a year on the award page.
 export interface AwardRecipientView {
   id: string;
   year: string;
@@ -88,7 +82,6 @@ export interface AwardYearGroup {
   }>;
 }
 
-// A search hit: the recipient plus the award it belongs to, for linking back.
 export interface AwardSearchResult extends AwardRecipientView {
   awardSlug: string;
   awardName: string;
@@ -118,9 +111,6 @@ function groupRecipientsByYear(rows: AwardRecipientView[]): AwardYearGroup[] {
   return years;
 }
 
-// Sanitize an award's namesake bio or description to the abstract body allowlist
-// (em/sup/sub), collapsing an empty result to null so blank fields do not store
-// stray markup.
 function sanitizeAwardHtml(value: string | null | undefined): string | null {
   if (value == null) return null;
   const html = sanitizeBody(value);
@@ -135,7 +125,6 @@ function requireRecipientWriter(actor: Actor, editionId: string | null): void {
   throw new ForbiddenError();
 }
 
-// Validate and normalize a new recipient's fields (personName and year required).
 function validateRecipient(input: AwardRecipientInput) {
   const personName = input.personName.trim();
   if (!personName) throw new ValidationError("Recipient name is required.");
@@ -153,10 +142,6 @@ function validateRecipient(input: AwardRecipientInput) {
   };
 }
 
-// Awards. The branch's named awards. Definitions are a public read (the
-// awardees index and per-award pages); create/update/remove are platform-admin
-// only. namesakeBio/description are sanitized to the em/sup/sub allowlist on
-// write, so stored HTML is safe to render verbatim.
 export function createAwards(db: DB) {
   return {
     async listAll() {
@@ -175,7 +160,6 @@ export function createAwards(db: DB) {
       return row?.slug ?? null;
     },
 
-    // One award plus its recipients grouped by year and category. Public.
     async getBySlug(slug: string) {
       const awardRow = await db.query.award.findFirst({
         where: eq(schema.award.slug, slug),
@@ -303,9 +287,6 @@ function recipientsForAward(db: DB, awardId: string): Promise<AwardRecipientView
     .orderBy(schema.awardRecipient.sortOrder, schema.awardRecipient.personName);
 }
 
-// Award recipients. listForAward is public; writes are admin, or a chair of the
-// edition a recipient is tied to (the every-meeting maintenance path). A
-// recipient with no edition is admin-only. personName and year are required.
 export function createAwardRecipients(db: DB) {
   return {
     async listForAward(awardId: string): Promise<AwardRecipientView[]> {

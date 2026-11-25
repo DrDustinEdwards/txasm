@@ -14,8 +14,6 @@ type CoverInput = {
   title: string;
 };
 
-// The cover section: a full-bleed inline SVG. meetingName, dates, and title are
-// the only variable inputs; everything else is the fixed brand artwork.
 export function coverArt({ meetingName, dates, title }: CoverInput): string {
   const datesLine = dates
     ? `<text x="357.5" y="336" text-anchor="middle" font-family="Source Serif 4" font-size="16" style="fill:var(--text-muted)">${escapeHtml(

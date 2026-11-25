@@ -28,7 +28,6 @@ import { readForm } from "@dustinedwards/site-runtime/body";
 import { formError, FORM_LIMIT } from "~/lib/form.server";
 import { confirmSubmit } from "capsomer/behavior/confirm-dialog";
 import { RichText } from "capsomer/react/trusted-html";
-// Capsomer styles only this page draws, loaded with it rather than on every page (app.css).
 import "capsomer/toolbar.css";
 import "capsomer/rich-text-field.css";
 
@@ -95,9 +94,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   return { error: "Unknown action.", abstractId };
 }
 
-// Imperative labels for the decision action UI, deliberately distinct from the
-// past-tense author-facing DECISION_OUTCOME_LABELS in vocab. Ordered for the
-// radio group.
 const OUTCOME_ACTION_LABELS: Record<DecisionOutcome, string> = {
   accept: "Accept",
   revise: "Revise",
@@ -145,7 +141,6 @@ export default function Decisions({ loaderData }: Route.ComponentProps) {
   );
 }
 
-// Deliberate radio order for the decision action, labeled from the action map.
 const OUTCOME_OPTIONS = (["accept", "revise", "reject"] as const).map((value) => ({
   value,
   label: OUTCOME_ACTION_LABELS[value],

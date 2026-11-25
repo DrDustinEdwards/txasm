@@ -42,7 +42,6 @@ import { formatDate } from "capsomer/behavior/time";
 import { readForm } from "@dustinedwards/site-runtime/body";
 import { useHydrated } from "capsomer/react/hooks";
 
-// An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
 
 const signInHref = (next: string) => `${SIGN_IN_PATH}?next=${encodeURIComponent(next)}`;
@@ -51,7 +50,6 @@ export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Account"));
 }
 
-// A security history row's kind (site-runtime securityHistory), in words; a sign-in says how.
 const HISTORY_WORDS: Record<string, string> = {
   "passkey-added": "Passkey added",
   "passkey-removed": "Passkey removed",
@@ -116,8 +114,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   };
 }
 
-// Signs another device out by its session id, so no session token reaches the page (site-runtime ./sign-in),
-// records a "Not now" on the passkey offer, or deletes the account.
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
   const auth = await getAuth(env);

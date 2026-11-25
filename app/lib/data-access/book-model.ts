@@ -32,12 +32,6 @@ export interface BookAffiliation {
   country: string | null;
 }
 
-// Book builder (new-meeting arrangement). The chair generates a draft from the
-// accepted abstracts, drag-drops them within and between sections, and publishes.
-// Codes live on book_entry (computed by ./book-numbering), never on abstract.code.
-// BookView is the editor's read model; BookRenderData is what the pure arranged
-// renderer in ./book consumes on preview and publish.
-
 interface BookEntryView {
   entryId: string;
   abstractId: string;
@@ -67,8 +61,6 @@ export interface BookView {
   includedCount: number;
 }
 
-// The desired arrangement the editor persists: sections in order, each listing
-// its entry ids in order. Section order is the array order.
 export interface BookArrangementInput {
   sections: Array<{ sectionId: string; entryIds: string[] }>;
 }
@@ -112,9 +104,6 @@ export interface BookRenderData {
   entryCount: number; // included entries
 }
 
-// Starting label for a (level, format, category) section, e.g. "Undergraduate
-// Posters" or "Graduate Orals - Medical Microbiology". The chair can rename a
-// section after generate; this is only the derived starting label.
 export function bookSectionLabel(
   level: AbstractLevel | null,
   format: AbstractFormat | null,
@@ -126,9 +115,6 @@ export function bookSectionLabel(
   return categoryName ? `${base} - ${categoryName}` : base;
 }
 
-// A compact per-section code range for the TOC nicety, e.g. "UP 1-12". A
-// section is one (level, format) bucket, so its codes share one prefix; returns
-// null when the section has no codes or mixes prefixes.
 export function bookSectionCodeRange(codes: Array<string | null>): string | null {
   const parsed = codes
     .filter((c): c is string => Boolean(c))
@@ -162,8 +148,6 @@ export function inBookOrder<R extends { categoryId: string | null; title: string
   return [...categories.flatMap((c) => group(c.id)), ...group(null)];
 }
 
-// Each abstract's presenting author ("First Last"), or its first author when
-// none is marked, or null when it has none.
 export async function presentingAuthorNames(
   db: DB,
   abstractIds: string[],
@@ -187,10 +171,6 @@ export async function presentingAuthorNames(
   );
 }
 
-// Per-abstract book parts (authors with affiliation ordinals, affiliation
-// blocks, decided presentation type, presenting author name) for a set of
-// accepted abstracts. Shared by the builder read model, the arranged renderer
-// and the public archive.
 export async function assembleBookAbstracts(
   db: DB,
   abstractIds: string[],
@@ -297,9 +277,6 @@ export async function assembleBookAbstracts(
   return out;
 }
 
-// Recompute and persist every entry's code for a book, in book order (sections
-// by sortOrder, then entries by sortOrder), via the pure ./book-numbering
-// reflow. Called after any mutation that can shift a prefix run.
 export async function recomputeBookCodes(db: DB, bookId: string): Promise<void> {
   const sections = await db
     .select()
@@ -343,7 +320,6 @@ export async function recomputeBookCodes(db: DB, bookId: string): Promise<void> 
   );
 }
 
-// A meeting's book row, or undefined when none exists.
 export async function findBook(db: DB, editionId: string) {
   return (
     await db
@@ -354,7 +330,6 @@ export async function findBook(db: DB, editionId: string) {
   )[0];
 }
 
-// The abstracts behind a set of book entries: rows by id, and the assembled parts.
 export async function loadEntryAbstracts(db: DB, entries: { abstractId: string }[]) {
   const ids = entries.map((e) => e.abstractId);
   const absRows = await db.select().from(schema.abstract).where(inList(schema.abstract.id, ids));
@@ -364,7 +339,6 @@ export async function loadEntryAbstracts(db: DB, entries: { abstractId: string }
   };
 }
 
-// The editor read model for a meeting's book, or null when none exists.
 export async function loadBookView(db: DB, editionId: string): Promise<BookView | null> {
   const bookRow = await findBook(db, editionId);
   if (!bookRow) return null;

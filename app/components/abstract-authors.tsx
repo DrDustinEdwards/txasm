@@ -17,7 +17,6 @@ const ComboboxFreeText = lazy(() =>
   import("capsomer/react/combobox").then((m) => ({ default: m.ComboboxFreeText })),
 );
 
-// A suggestion from the institution master list (/api/institutions).
 export interface InstitutionSuggestion {
   id: string;
   name: string;
@@ -42,9 +41,6 @@ async function findInstitutions(query: string, signal: AbortSignal): Promise<Com
   }));
 }
 
-// The author and affiliation editors of the abstract form, on Capsomer's repeatable rows (SortableList's
-// stack layout with useRows): drag, the keyboard or Move up and Move down reorder, Remove drops a row and
-// Add appends one. The form owns the state (authors link to affiliations by ordinal); these render it.
 export interface AuthorState {
   firstName: string;
   lastName: string;

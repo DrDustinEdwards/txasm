@@ -13,12 +13,6 @@ import {
 } from "./core";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
-// Invited speakers and sponsors. Both are per-edition and chair/admin managed.
-// Speaker bios are sanitized to the abstract body allowlist (em/sup/sub); the
-// remaining text fields are plain and escaped at render time. Image r2 keys stay
-// out of the write path for now (upload UI is deferred).
-
-// The SpeakerRole vocabulary lives in ./vocab and is imported above.
 export interface InvitedSpeakerInput {
   editionId: string;
   name: string;
@@ -53,7 +47,6 @@ export interface SponsorPatch {
   sortOrder?: number;
 }
 
-// Public sponsor shape for the program page. Plain text, escaped at render time.
 export interface SponsorPublic {
   id: string;
   name: string;
@@ -61,8 +54,6 @@ export interface SponsorPublic {
   url: string | null;
 }
 
-// Public invited-speaker shape for the program page. name, affiliation, and
-// talkTitle are plain text escaped at render time; bio is stored sanitized HTML.
 export interface SpeakerPublic {
   id: string;
   name: string;
@@ -72,10 +63,6 @@ export interface SpeakerPublic {
   bio: string | null;
 }
 
-// Invited speakers, per edition. Chair/admin only. The bio is sanitized to the
-// abstract body allowlist (em/sup/sub); name, affiliation, and talk title are
-// plain text and escaped at render time. The headshot r2 key is not written
-// here; upload is deferred.
 export function createInvitedSpeakers(db: DB) {
   return {
     async listForEdition(actor: Actor, editionId: string) {
@@ -175,9 +162,6 @@ function sponsorUrl(raw: string | null | undefined): string | null {
   return url;
 }
 
-// Sponsors, per edition. Chair/admin only. Name and tier are plain text and
-// escaped at render time; the link must be http or https. The logo r2 key is not
-// written here; upload is deferred.
 export function createSponsors(db: DB) {
   return {
     async listForEdition(actor: Actor, editionId: string) {

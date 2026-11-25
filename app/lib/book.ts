@@ -45,8 +45,6 @@ function affiliationsBlock(affiliations: BookAffiliation[]): string {
   return `<div class="affiliations">${items}</div>`;
 }
 
-// The abstract body fields bodyBlock renders (structured sections with a bodyText
-// fallback). Matches the corresponding fields on BookRenderEntry.
 type BookBodyFields = {
   background: string | null;
   methods: string | null;
@@ -76,10 +74,6 @@ function bodyBlock(abstract: BookBodyFields): string {
   }
   return "";
 }
-
-// The renderer builds: cover, sections-only TOC (page numbers via Paged.js
-// target-counter), abstracts with their codes, and an all-authors index keyed by
-// code. bodyBlock, authorLine, and affiliationsBlock above are shared helpers.
 
 function arrangedCover(data: BookRenderData): string {
   return coverArt({

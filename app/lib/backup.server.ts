@@ -39,5 +39,4 @@ export async function backupUploads(env: BackupEnv): Promise<void> {
     logEvent("files_backed_up", { ...pass });
 }
 
-/** /health's backup: the newest dump's age, with the uploads copy's; the first warning is reported. */
 export const backupStatus = (env: BackupEnv) => backup.status(env);

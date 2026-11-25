@@ -63,7 +63,6 @@ export interface ImportAbstractInput {
 }
 
 export function createMeetingImporter(db: DB) {
-  // Upsert the system import user and return its id. Safe to call repeatedly.
   async function ensureSystemUser(): Promise<string> {
     await db
       .insert(schema.user)
@@ -168,9 +167,6 @@ export function createMeetingImporter(db: DB) {
     return created;
   }
 
-  // Delete a seeded meeting and everything under it by slug (edition cascades to
-  // categories, abstracts, authors, affiliations, program, and so on). Admin
-  // only. Used to make a re-run reversible.
   async function clearMeetingBySlug(actor: Actor, slug: string) {
     if (!isAdmin(actor)) throw new ForbiddenError();
     const ed = await db.query.edition.findFirst({

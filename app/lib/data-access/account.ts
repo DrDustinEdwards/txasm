@@ -41,10 +41,6 @@ export function createAccount(db: DB) {
       return n > 0 ? ["role"] : [];
     },
 
-    // Run just before the user row is deleted. Makes the "Deleted account" user for this
-    // person (kept if a first attempt got this far), clears the contact email on their
-    // author rows (the name on the abstract stays), and points every record at the new
-    // user in one batch..
     async handOverRecords(userId: string): Promise<void> {
       const heir = `deleted-${userId}`;
       const repoint = ACCOUNT_REFERENCES.map(([table, column]) => {

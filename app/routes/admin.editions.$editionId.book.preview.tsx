@@ -6,13 +6,6 @@ import { NotFoundError, getDataAccess } from "~/lib/data-access";
 import { renderArrangedBook } from "~/lib/book";
 import { bookPolicy } from "~/lib/security-headers";
 
-// Print-ready preview of the chair's ARRANGED abstract book, served as a full
-// HTML document so a chair can open it, let Paged.js lay it out, and print to PDF
-// from the browser. books.renderData assembles the arranged data (sections,
-// codes, all-authors index); renderArrangedBook is a pure function of it.
-//
-// Part B (gated on the Workers plan) will render this same HTML to a stored PDF
-// via the BROWSER binding. Nothing here writes a row.
 export async function loader({ request, context, params }: Route.LoaderArgs) {
   const { actor } = await requireChair(request, params.editionId);
   const { env } = context.get(cloudflareContext);

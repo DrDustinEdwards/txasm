@@ -3,7 +3,6 @@ import { Form, useNavigation, useSubmit } from "react-router";
 import { Disclosure } from "capsomer/react/disclosure";
 import { Panel } from "capsomer/react/panel";
 import { SortableList } from "capsomer/react/sortable-list";
-// Capsomer's sortable list styles, loaded with the routes that use it rather than on every page.
 import "capsomer/sortable-list.css";
 import type { ProgramAbstractOption, ProgramSessionResolved } from "~/lib/data-access";
 import { DateTimeField, TextField } from "capsomer/react/field";
@@ -22,9 +21,6 @@ const itemLabel = (item: Item) =>
       ? (item.speakerName ?? "Invited speaker")
       : (item.customTitle ?? programKindLabel(item.kind));
 
-// A session's items in order, on Capsomer's SortableList: drag, the keyboard or Move up and Move down
-// reorder them, and Remove deletes one. Each change posts to the program action (item-reorder,
-// item-delete), and the list shows the posted order until the reloaded program arrives.
 export function SessionItems({
   session,
   busy,
@@ -80,7 +76,6 @@ export function SessionItems({
   );
 }
 
-// What the item is: its kind, its title, and its note.
 function ItemBody({ item }: { item: Item }) {
   return (
     <div className="small">
@@ -91,7 +86,6 @@ function ItemBody({ item }: { item: Item }) {
   );
 }
 
-// "Edit item", under the item's title and its buttons, in Capsomer's unboxed inline disclosure.
 function ItemEdit({ item, busy }: { item: Item; busy: boolean }) {
   const isCustom = item.abstractId === null && item.speakerId === null;
   return (

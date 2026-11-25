@@ -19,7 +19,6 @@ import { Breadcrumb } from "capsomer/react/breadcrumb";
 import { publicPageHeaders } from "@dustinedwards/site-runtime/edge-cache";
 import { RichText } from "capsomer/react/trusted-html";
 
-// The same for every reader, so the edge stores it (workers/app.ts); admin and Carrel writes purge it.
 export const headers = () => publicPageHeaders();
 
 export function meta({ matches, location, loaderData }: Route.MetaArgs) {
@@ -34,7 +33,6 @@ export function meta({ matches, location, loaderData }: Route.MetaArgs) {
   });
 }
 
-// Sentinel for the untopiced (oral) group in the topic filter.
 const NO_TOPIC = "none";
 
 export async function loader({ context, params, request }: Route.LoaderArgs) {

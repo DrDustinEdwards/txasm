@@ -15,7 +15,6 @@ import { getCarrelMedia, getCarrelPages, type MediaRow } from "../data-access";
 import { MEDIA_ADDRESS, images, mediaPath } from "../media/images";
 import { parseSource } from "./source";
 
-/** A library file's address, versioned: the original with no width, else the size a use asks for. */
 export const versionedPath = (row: Pick<MediaRow, "key" | "sha256">) =>
   images.url(mediaPath(row.key), { version: row.sha256 });
 

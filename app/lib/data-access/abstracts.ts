@@ -22,11 +22,6 @@ import {
   ValidationError,
 } from "./core";
 
-// Module contracts. Every function takes the acting Actor first. The
-// security-critical functions are implemented in full below; the rest are
-// declared as signatures so the contract can be reviewed before the bodies
-// are written.
-
 // The three organizing axes: topic (categoryId), level, and format. bodyText is
 // the single freeform body. The four section fields are still accepted for now
 // but are optional and unused by default. The level and format vocabularies live
@@ -45,8 +40,6 @@ export interface AbstractInput {
   presentationPreference?: "oral" | "poster" | "either";
 }
 
-// The submission form sends the whole author and affiliation lists; the
-// data-access layer replaces them as a set, assigning ordinals by position.
 export interface AuthorInput {
   firstName: string;
   lastName: string;
@@ -73,7 +66,6 @@ async function assertBeforeDeadline(db: DB, editionId: string) {
   return ed;
 }
 
-// The word limit for a meeting: its own, else the platform default the admin sets in settings.
 async function wordLimitFor(db: DB, edition: { abstractWordLimit: number | null }) {
   if (edition.abstractWordLimit) return edition.abstractWordLimit;
   const settings = await db.query.platformSettings.findFirst({
@@ -122,8 +114,6 @@ export function createAbstracts(db: DB) {
       throw new ForbiddenError();
     },
 
-    // The abstract plus its authors (with the affiliation numbers attached to
-    // each) and affiliations, for the edit form. The submitter or a chair only.
     async getForEdit(actor: Actor, abstractId: string) {
       const abstract = await this.get(actor, abstractId);
       // The form carries author emails, so an assigned reviewer, who reads blind, is not let in.
@@ -178,7 +168,6 @@ export function createAbstracts(db: DB) {
       };
     },
 
-    // The actor's own abstracts in one meeting, drafts and submitted.
     async listMine(actor: Actor, editionId: string) {
       return db
         .select()
@@ -192,8 +181,6 @@ export function createAbstracts(db: DB) {
         .orderBy(desc(schema.abstract.updatedAt));
     },
 
-    // The actor's abstracts across every meeting, with meeting name and slug,
-    // for the author dashboard.
     async listMineAll(actor: Actor) {
       return db
         .select({
@@ -401,7 +388,6 @@ export function createAbstracts(db: DB) {
       return this.get(actor, abstractId);
     },
 
-    // The submitter or a chair withdraws the abstract.
     async withdraw(actor: Actor, abstractId: string) {
       const row = await db.query.abstract.findFirst({
         where: eq(schema.abstract.id, abstractId),
@@ -417,10 +403,6 @@ export function createAbstracts(db: DB) {
       return this.get(actor, abstractId);
     },
 
-    // Chair/admin dashboard: every abstract in the meeting that is no longer a
-    // draft (submitted, under review, decided, or withdrawn), with author names
-    // and the count of reviewer assignments and submitted reviews. Not for
-    // reviewers; they see only their own assignments through reviews.listAssignedAll.
     async listForEdition(actor: Actor, editionId: string) {
       if (!isChair(actor, editionId)) throw new ForbiddenError();
       const { rows, ids, namesByAbstract } = await submittedAbstracts(db, editionId);

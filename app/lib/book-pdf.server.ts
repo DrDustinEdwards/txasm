@@ -13,9 +13,6 @@ import { renderArrangedBook } from "./book";
 import { type Actor, type DataAccess, ValidationError } from "./data-access";
 import { PDF_MIME_TYPE } from "./vocab";
 
-// The PDF outcome of a publish: the new arranged PDF was produced, the previous
-// PDF was kept because the new render could not run, or no PDF is available yet
-// and one is pending Browser Rendering.
 export type PublishPdfOutcome = "ready" | "kept-previous" | "pending";
 
 // Publish a book: freeze its codes and store the arranged HTML (always, through
@@ -33,10 +30,8 @@ export async function publishArrangedBook(
 ): Promise<PublishPdfOutcome> {
   const data = await da.books.renderData(actor, editionId);
   const html = renderArrangedBook(data);
-  // Freeze codes + store the frozen render. This must succeed for a publish.
   await da.books.publish(actor, editionId, html);
 
-  // Best-effort arranged PDF through the same delivery path the archive reads.
   const prior = await da.documents.getGeneratedForEdition(actor, editionId, "abstract_book");
   let claimId: string;
   try {

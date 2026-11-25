@@ -45,8 +45,6 @@ interface Dataset {
   awards: DatasetAward[];
 }
 
-// Strip HTML tags and decode the handful of entities the pages use, returning
-// trimmed plain text.
 function toText(html: string): string {
   return html
     .replace(/<[^>]+>/g, "")
@@ -123,8 +121,6 @@ function parseEntryLine(line: string): DatasetRecipient | null {
   return { year: "", placement, personName, institution, mentor };
 }
 
-// Walk a page's HTML in document order, tracking the current year (h2) and
-// category (h3), and collect one recipient per list item or paragraph beneath.
 function parseRecipientsFromHtml(html: string): DatasetRecipient[] {
   const recipients: DatasetRecipient[] = [];
   let currentYear: string | null = null;
@@ -196,8 +192,6 @@ async function runParse(dataPath: string): Promise<void> {
     `Wrote ${dataPath}. Review the diff before seeding; run without --parse to seed local D1.`,
   );
 }
-
-// Seed: insert the reviewed dataset through the data-access layer (local D1).
 
 async function runSeed(dataPath: string): Promise<void> {
   const raw = readFileSync(dataPath, "utf8");

@@ -45,7 +45,6 @@ export const REQUIRED_TABLES = [
 // it is an emptied or wrong database, not a quiet one.
 const ALWAYS_NON_EMPTY = "platform_settings";
 
-/** txasm's own check: one message per failure; empty means it passes. */
 export function siteProblems(dump: Pick<DumpResult, "tables">): string[] {
   const rows = dump.tables.find((t) => t.name === ALWAYS_NON_EMPTY)?.rows ?? 0;
   return rows === 0 ? [`${ALWAYS_NON_EMPTY} dumped empty`] : [];

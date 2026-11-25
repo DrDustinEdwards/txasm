@@ -4,10 +4,6 @@ import * as schema from "../../db/schema";
 import type { BatchItem } from "drizzle-orm/batch";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
-// This file is the only place allowed to import ./schema and the Drizzle client.
-// Enforce with an Oxlint no-restricted-imports rule on every other module so
-// nothing queries Drizzle directly outside this layer.
-
 export type DB = DrizzleD1Database<typeof schema>;
 
 // Statements run as one D1 batch, a transaction: all land or none do, and the lot counts as one subrequest.
@@ -127,9 +123,6 @@ export function isReviewer(actor: Actor, editionId: string): boolean {
   return actor.grants.some((g) => g.role === "reviewer" && g.editionId === editionId);
 }
 
-// True when the actor holds a reviewer grant in any edition. Used only to decide
-// whether to show the Review link in the header; per-edition access is still
-// checked with isReviewer everywhere it matters.
 export function isReviewerAnywhere(actor: Actor): boolean {
   return actor.grants.some((g) => g.role === "reviewer");
 }

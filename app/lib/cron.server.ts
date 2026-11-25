@@ -59,7 +59,6 @@ export function cronJobs(env: Env, scheduledTime: Date): Record<string, CronJob[
   };
 }
 
-/** Every job of every cron, for /health's cronCheck (it reads names and intervals; `run` is never called). */
 export function allCronJobs(env: Env): CronJob[] {
   return Object.values(cronJobs(env, new Date())).flat();
 }

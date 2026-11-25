@@ -38,7 +38,6 @@ function newKey(file: MediaKeyInput): string {
   return `${MEDIA_PREFIX}${file.at.slice(0, 4)}/${random}-${name}.${extensionFor(file.contentType, file.filename)}`;
 }
 
-/** Every page's uses of every file, from the pages themselves: the working source, and the html while published. */
 async function pageUses(env: Env): Promise<Map<string, MediaUse[]>> {
   const uses = new Map<string, MediaUse[]>();
   for (const page of await getCarrelPages(env).list()) {

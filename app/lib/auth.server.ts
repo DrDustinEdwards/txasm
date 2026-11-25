@@ -215,7 +215,6 @@ export function forbidden(request: Request, need: string): Response {
   return new Response("Forbidden", { status: 403 });
 }
 
-// Redirect to sign-in when there is no session.
 export async function requireUser(request: Request): Promise<SessionUser> {
   const user = await getSessionUser(request);
   if (!user) throw redirect(SIGN_IN_PATH);
@@ -263,7 +262,6 @@ export async function requireChairEdition(request: Request, editionId: string) {
   return { actor, da, edition: { id, name } };
 }
 
-// For chrome that adapts to auth state (the header). Never throws.
 export async function getUserContext(request: Request): Promise<UserContext> {
   const user = await getSessionUser(request);
   if (!user) return { user: null, isAdmin: false, isReviewer: false };

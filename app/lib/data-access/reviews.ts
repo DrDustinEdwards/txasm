@@ -248,8 +248,6 @@ export function createReviews(db: DB) {
       };
     },
 
-    // Reviewer dashboard across every meeting: the acting reviewer's assignments
-    // with meeting name, status, due date, and whether a review is submitted.
     async listAssignedAll(actor: Actor) {
       const rows = await db
         .select({
@@ -337,8 +335,6 @@ export function createReviews(db: DB) {
         .orderBy(asc(schema.user.email));
     },
 
-    // Chair/admin removes an assignment. The review row, if any, cascades away
-    // with it.
     async unassign(actor: Actor, input: { assignmentId: string }) {
       const assignment = await db.query.reviewAssignment.findFirst({
         where: eq(schema.reviewAssignment.id, input.assignmentId),

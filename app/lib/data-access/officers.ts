@@ -10,9 +10,6 @@ import {
 } from "./core";
 import { OFFICER_SECTIONS, type OfficerSection } from "../vocab";
 
-// Branch officers. The public page reads the current officers, the advisory
-// board and the past officers grouped by office; admins maintain every row.
-
 export interface Officer {
   role: string;
   name: string;

@@ -24,7 +24,6 @@ export function formError(error: unknown, extra?: { abstractId: string }) {
 /** A form of text fields: sign-in, an abstract, a review, an admin setting. */
 export const FORM_LIMIT = 1024 * 1024;
 
-// A sort order: a whole number, 0 when the field is blank.
 export function parseSortOrder(value: FormDataEntryValue | null): number {
   const raw = String(value ?? "0").trim() || "0";
   const n = Number(raw);
