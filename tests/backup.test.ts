@@ -11,7 +11,7 @@ import {
 import { cronCheck, runJobs } from "@dustinedwards/site-runtime/cron";
 import { recordNotFound } from "@dustinedwards/site-runtime/not-found";
 import { runNightlyBackup } from "../app/lib/backup.server";
-import { REQUIRED_TABLES, siteProblems } from "../app/lib/backup-checks";
+import { EXCLUDED_TABLES, REQUIRED_TABLES, siteProblems } from "../app/lib/backup-checks";
 import { applyMigrations } from "./d1";
 
 // Real D1 and R2 in-process, with the real migrations applied, so the table list
