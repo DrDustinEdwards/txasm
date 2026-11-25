@@ -17,6 +17,7 @@ import {
   getActor,
   getDataAccess,
   isChair,
+  submissionWindow,
   ValidationError,
 } from "~/lib/data-access";
 import {
@@ -70,8 +71,8 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 
   const categories = await da.abstractCategories.listForSubmission(data.abstract.editionId);
   const deadline = data.edition.submissionDeadline;
-  const deadlinePassed = !!deadline && Date.now() > deadline.getTime();
-  const editable = isChair(actor, data.abstract.editionId) || !deadlinePassed;
+  const editable =
+    isChair(actor, data.abstract.editionId) || submissionWindow(data.edition) === "open";
 
   const canSeeDecision =
     isChair(actor, data.abstract.editionId) || data.abstract.submitterId === actor.userId;
@@ -111,7 +112,6 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
       country: a.country ?? "",
     })),
     editable,
-    deadlinePassed,
     decision,
   };
 }

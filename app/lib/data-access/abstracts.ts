@@ -9,6 +9,7 @@ import {
   type AbstractFormat,
   type AbstractLevel,
   DEFAULT_WORD_LIMIT,
+  EDITION_STATUSES,
 } from "../vocab";
 import { cleanAffiliations, cleanAuthors } from "./abstract-input";
 import {
@@ -56,13 +57,37 @@ export interface AffiliationInput {
   country?: string;
 }
 
+// Whether authors may start and edit abstracts for a meeting: only at the "submission open" stage, inside the
+// opens-at and deadline times when they are set. Earlier stages are not open yet; later ones, and archived
+// meetings, are closed.
+export function submissionWindow(
+  ed: Pick<
+    typeof schema.edition.$inferSelect,
+    "status" | "submissionOpensAt" | "submissionDeadline"
+  >,
+  now = Date.now(),
+): "notYet" | "open" | "closed" {
+  const stage = EDITION_STATUSES.indexOf(ed.status) - EDITION_STATUSES.indexOf("submission_open");
+  if (stage < 0) return "notYet";
+  if (stage > 0) return "closed";
+  if (ed.submissionOpensAt && now < ed.submissionOpensAt.getTime()) return "notYet";
+  if (ed.submissionDeadline && now > ed.submissionDeadline.getTime()) return "closed";
+  return "open";
+}
+
+function assertSubmissionOpen(ed: Parameters<typeof submissionWindow>[0]) {
+  const window = submissionWindow(ed);
+  if (window === "notYet")
+    throw new ValidationError("Submission is not open yet for this meeting.");
+  if (window === "closed") throw new DeadlinePassedError("The submission deadline has passed.");
+}
+
 async function assertBeforeDeadline(db: DB, editionId: string) {
   const ed = await db.query.edition.findFirst({
     where: eq(schema.edition.id, editionId),
   });
-  if (ed?.submissionDeadline && Date.now() > ed.submissionDeadline.getTime()) {
-    throw new DeadlinePassedError("The submission deadline has passed.");
-  }
+  if (!ed) throw new NotFoundError("meeting not found");
+  assertSubmissionOpen(ed);
   return ed;
 }
 
@@ -198,20 +223,13 @@ export function createAbstracts(db: DB) {
         .orderBy(desc(schema.abstract.updatedAt));
     },
 
-    // Start a new draft owned by the actor. The meeting's submission window must
-    // be open: opens-at (if set) has passed and the deadline (if set) has not.
+    // Start a new draft owned by the actor. The meeting's submission must be open (submissionWindow).
     async create(actor: Actor, input: { editionId: string; title: string }) {
       const ed = await db.query.edition.findFirst({
         where: eq(schema.edition.id, input.editionId),
       });
       if (!ed) throw new NotFoundError("meeting not found");
-      const now = Date.now();
-      if (ed.submissionOpensAt && now < ed.submissionOpensAt.getTime()) {
-        throw new ValidationError("Submission is not open yet for this meeting.");
-      }
-      if (ed.submissionDeadline && now > ed.submissionDeadline.getTime()) {
-        throw new DeadlinePassedError("The submission deadline has passed.");
-      }
+      assertSubmissionOpen(ed);
       const [created] = await db
         .insert(schema.abstract)
         .values({

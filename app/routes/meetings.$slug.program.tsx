@@ -17,7 +17,6 @@ import { DATE_TIME, joinParts } from "~/lib/format";
 import { dateRange, formatDate } from "capsomer/behavior/time";
 import { programKindLabel, speakerRoleLabel } from "~/lib/vocab";
 import { Breadcrumb } from "capsomer/react/breadcrumb";
-import { Empty } from "capsomer/react/empty";
 import { Pill } from "capsomer/react/status";
 import { Schedule, ScheduleDayNav, ScheduleSession } from "capsomer/react/schedule";
 import { RichText } from "capsomer/react/trusted-html";
@@ -53,6 +52,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   const edition = await orNotFound(da.editions.get(params.slug));
 
   const program = await da.programSessions.getPublicProgram(edition.id);
+  if (!program) throw new Response("Not found", { status: 404 });
   return {
     edition: {
       name: edition.name,
@@ -179,16 +179,11 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           {edition.name}
         </Title>
-        <Text size="lead" tone="ink">
-          Program
-        </Text>
         {dateLine ? <p className="cap-muted">{dateLine}</p> : null}
         {venueLine ? <p className="cap-muted">{venueLine}</p> : null}
       </Stack>
 
-      {program === null ? (
-        <Empty kind="nothing-yet" title="The program is not published yet." />
-      ) : program.days.length === 0 ? (
+      {program.days.length === 0 ? (
         <p>No sessions yet.</p>
       ) : (
         <Stack gap={6}>
@@ -217,9 +212,9 @@ export default function PublicProgram({ loaderData }: Route.ComponentProps) {
         </Stack>
       )}
 
-      {program && program.speakers.length > 0 ? <SpeakerList speakers={program.speakers} /> : null}
+      {program.speakers.length > 0 ? <SpeakerList speakers={program.speakers} /> : null}
 
-      {program && program.sponsors.length > 0 ? <SponsorList sponsors={program.sponsors} /> : null}
+      {program.sponsors.length > 0 ? <SponsorList sponsors={program.sponsors} /> : null}
 
       {/* Printable Program PDF hooks in here as a follow-up build: assemble this
           same schedule (days, concurrency groups, items, speakers, sponsors) into

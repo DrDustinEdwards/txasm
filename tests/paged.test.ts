@@ -6,8 +6,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { PAGED_JS_PAGE_TEMPLATE } from "@dustinedwards/site-runtime/print-pdf";
 import { PAGED_JS_PATH } from "../app/lib/paged";
+import { printBaseStyles } from "../app/lib/cover";
 
 test("the self-hosted Paged.js writes the page frame the Trusted Types policy passes", () => {
   const polyfill = readFileSync(new URL(`../public${PAGED_JS_PATH}`, import.meta.url), "utf8");
   assert.ok(polyfill.includes(`const TEMPLATE = \`${PAGED_JS_PAGE_TEMPLATE}\`;`));
+});
+
+test("a meeting name cannot close the book's style element", () => {
+  assert.ok(!printBaseStyles("Spring </style><script>x</script>").includes("</style>"));
 });

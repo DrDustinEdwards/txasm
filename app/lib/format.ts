@@ -14,5 +14,10 @@ export function joinParts(parts: Array<string | null>): string {
 
 // Escape a string for use inside a CSS string literal (a running header).
 export function escapeCssString(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\s+/g, " ").trim();
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/</g, "\\3c ")
+    .replace(/\s+/g, " ")
+    .trim();
 }

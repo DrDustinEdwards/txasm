@@ -376,3 +376,29 @@ test("an abstract can be placed in the program only once, even when added concur
     .first<{ n: number }>();
   assert.equal(rows?.n, 1);
 });
+
+test("a submitter starts and edits an abstract only while the meeting's submission is open", async () => {
+  const set = (status: string) =>
+    d1.prepare("UPDATE edition SET status = ? WHERE id = 'ed-sub'").bind(status).run();
+  await d1
+    .prepare(
+      "INSERT INTO edition (id, slug, name, season, year, status, created_at, updated_at) VALUES ('ed-sub', 'spring-2027', 'Sample meeting', 'spring', 2027, 'draft', 1, 1)",
+    )
+    .run();
+  await d1
+    .prepare(
+      "INSERT INTO user (id, email, created_at, updated_at) VALUES ('u-sub', 'u-sub@example.com', 1, 1)",
+    )
+    .run();
+  const submitter = { userId: "u-sub", grants: [] } as unknown as Actor;
+  const input = { editionId: "ed-sub", title: "Sample" };
+
+  // No open time and no deadline, so only the status can say it is not open.
+  await assert.rejects(dataAccess.abstracts.create(submitter, input), ValidationError);
+  await set("submission_open");
+  const created = await dataAccess.abstracts.create(submitter, input);
+  await set("review");
+  await assert.rejects(dataAccess.abstracts.update(submitter, created.id, { title: "Changed" }));
+  await set("archived");
+  await assert.rejects(dataAccess.abstracts.create(submitter, input));
+});

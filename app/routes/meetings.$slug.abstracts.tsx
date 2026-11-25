@@ -125,9 +125,6 @@ export default function MeetingAbstracts({ loaderData }: Route.ComponentProps) {
         <Title as="h1" size={2}>
           {edition.name}
         </Title>
-        <Text size="lead" tone="ink">
-          Abstracts
-        </Text>
         <Text size="small" tone="muted">
           {`${SEASON_LABELS[edition.season]} ${edition.year}`} ·{" "}
           <Link to={`/meetings/${edition.slug}/program`}>Program</Link>

@@ -1,14 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as schema from "../../db/schema";
 import { DEFAULT_WORD_LIMIT } from "../vocab";
-import {
-  type Actor,
-  type DB,
-  ForbiddenError,
-  isAdmin,
-  NotFoundError,
-  ValidationError,
-} from "./core";
+import { type Actor, type DB, ForbiddenError, isAdmin, ValidationError } from "./core";
 import { isEmail } from "@dustinedwards/site-runtime/email";
 import { isHttpUrl } from "@dustinedwards/site-runtime/url";
 
@@ -80,7 +73,7 @@ function cleanFooterLinks(links: FooterLink[]): FooterLink[] {
 }
 
 export function resolveSettings(
-  row: typeof schema.platformSettings.$inferSelect,
+  row: Omit<typeof schema.platformSettings.$inferSelect, "id" | "createdAt" | "updatedAt">,
 ): PlatformSettings {
   return {
     orgName: row.orgName ?? "",
@@ -101,24 +94,20 @@ export function createSettings(db: DB) {
       const existing = await db.query.platformSettings.findFirst({
         where: eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID),
       });
-      if (existing) return resolveSettings(existing);
-      // First-read fallback for an unseeded database. Identity stays blank for an
-      // admin to fill in; the tunable defaults come from the named vocab config.
-      const [created] = await db
-        .insert(schema.platformSettings)
-        .values({
-          id: PLATFORM_SETTINGS_ID,
+      // Before an admin first saves (or the seed script runs), the blank identity and the named defaults.
+      return resolveSettings(
+        existing ?? {
+          orgName: null,
+          shortName: null,
+          orgFullName: null,
+          tagline: null,
+          foundingYear: null,
+          contactEmail: null,
+          facebookUrl: null,
+          footerLinks: null,
           defaultAbstractWordLimit: DEFAULT_WORD_LIMIT,
-        })
-        .onConflictDoNothing()
-        .returning();
-      if (created) return resolveSettings(created);
-      // A concurrent first read won the insert; read it back.
-      const row = await db.query.platformSettings.findFirst({
-        where: eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID),
-      });
-      if (!row) throw new NotFoundError("settings not found");
-      return resolveSettings(row);
+        },
+      );
     },
 
     async update(actor: Actor, patch: PlatformSettingsPatch): Promise<PlatformSettings> {
@@ -174,12 +163,11 @@ export function createSettings(db: DB) {
         set.defaultAbstractWordLimit = patch.defaultAbstractWordLimit;
       }
 
-      await this.get();
       if (Object.keys(set).length > 0) {
         await db
-          .update(schema.platformSettings)
-          .set(set)
-          .where(eq(schema.platformSettings.id, PLATFORM_SETTINGS_ID));
+          .insert(schema.platformSettings)
+          .values({ id: PLATFORM_SETTINGS_ID, ...set })
+          .onConflictDoUpdate({ target: schema.platformSettings.id, set });
       }
       return this.get();
     },

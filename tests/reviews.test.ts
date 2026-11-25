@@ -144,9 +144,9 @@ test("the conflict check on an author's email ignores case", async () => {
 });
 
 test("a topic from another meeting is dropped from an abstract", async () => {
-  await dataAccess.abstracts.update(author, "a-1", { categoryId: "cat-a" });
+  await dataAccess.abstracts.update(chair, "a-1", { categoryId: "cat-a" });
   assert.equal(
-    (await dataAccess.abstracts.update(author, "a-1", { categoryId: "cat-b" })).categoryId,
+    (await dataAccess.abstracts.update(chair, "a-1", { categoryId: "cat-b" })).categoryId,
     null,
   );
 });
@@ -186,7 +186,7 @@ test("a brand image cannot be published", async () => {
 });
 
 test("a topic in use cannot be removed", async () => {
-  await dataAccess.abstracts.update(author, "a-1", { categoryId: "cat-a" });
+  await dataAccess.abstracts.update(chair, "a-1", { categoryId: "cat-a" });
   await assert.rejects(dataAccess.abstractCategories.remove(admin, "cat-a"), ValidationError);
 });
 
