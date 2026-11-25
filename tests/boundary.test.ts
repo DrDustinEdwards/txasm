@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-// The data-access boundary (CLAUDE.md hard rule 1, oxlint.config.ts): D1 has no row-level security, so a route that
+// The data-access boundary (CLAUDE.md, Data access, oxlint.config.ts): D1 has no row-level security, so a route that
 // imports the schema or a Drizzle client skips every authorization check, and data it leaks cannot be taken back.
 // This runs the repository's own Oxlint config over a module outside the boundary that reaches past it in each of
 // the three ways, and over the boundary itself, which may.
