@@ -10,6 +10,8 @@ import { emailConfirmURL, sessionLookup, signInOptions } from "@dustinedwards/si
 import * as schema from "../db/schema";
 import { getDb } from "../db/index.server";
 import {
+  ForbiddenError,
+  NotFoundError,
   getActor,
   getDataAccess,
   isAdmin,
@@ -213,6 +215,13 @@ export function forbidden(request: Request, need: string): Response {
     { level: "warn" },
   );
   return new Response("Forbidden", { status: 403 });
+}
+
+/** A data-access refusal as the route's response: 403 for a missing grant, 404 for a missing row, any other error rethrown. */
+export function refuse(error: unknown, request: Request, need: string): never {
+  if (error instanceof ForbiddenError) throw forbidden(request, need);
+  if (error instanceof NotFoundError) throw new Response("Not found", { status: 404 });
+  throw error;
 }
 
 export async function requireUser(request: Request): Promise<SessionUser> {

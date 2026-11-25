@@ -9,15 +9,8 @@ import type { Route } from "./+types/review.$assignmentId";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { forbidden, requireUser } from "~/lib/auth.server";
-import {
-  DeadlinePassedError,
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-  getActor,
-  getDataAccess,
-} from "~/lib/data-access";
+import { refuse, requireUser } from "~/lib/auth.server";
+import { DeadlinePassedError, ValidationError, getActor, getDataAccess } from "~/lib/data-access";
 import { DATE_TIME } from "~/lib/format";
 import { formatDate } from "capsomer/behavior/time";
 import { RichTextField } from "capsomer/react/rich-text-field";
@@ -45,13 +38,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     const data = await da.reviews.getAssignmentForReview(actor, params.assignmentId);
     return data;
   } catch (error) {
-    if (error instanceof ForbiddenError) {
-      throw forbidden(request, "review assignment");
-    }
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
+    refuse(error, request, "review assignment");
   }
 }
 
@@ -89,13 +76,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     if (error instanceof ValidationError || error instanceof DeadlinePassedError) {
       return { error: error.message };
     }
-    if (error instanceof ForbiddenError) {
-      throw forbidden(request, "review assignment");
-    }
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
+    refuse(error, request, "review assignment");
   }
 }
 

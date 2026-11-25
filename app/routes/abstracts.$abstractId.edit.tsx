@@ -9,16 +9,14 @@ import type { Route } from "./+types/abstracts.$abstractId.edit";
 import { pageTitle } from "~/lib/site-meta";
 import { privateMeta } from "@drdustinedwards/site-helpers/head";
 import { cloudflareContext } from "@dustinedwards/site-runtime/context";
-import { forbidden, requireUser } from "~/lib/auth.server";
+import { refuse, requireUser } from "~/lib/auth.server";
 import {
   type AffiliationInput,
   type AuthorInput,
   DeadlinePassedError,
-  ForbiddenError,
   getActor,
   getDataAccess,
   isChair,
-  NotFoundError,
   ValidationError,
 } from "~/lib/data-access";
 import {
@@ -67,13 +65,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   try {
     data = await da.abstracts.getForEdit(actor, params.abstractId);
   } catch (error) {
-    if (error instanceof ForbiddenError) {
-      throw forbidden(request, "abstract");
-    }
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
+    refuse(error, request, "abstract");
   }
 
   const categories = await da.abstractCategories.listForSubmission(data.abstract.editionId);
@@ -200,13 +192,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     if (error instanceof ValidationError || error instanceof DeadlinePassedError) {
       return { error: error.message };
     }
-    if (error instanceof ForbiddenError) {
-      throw forbidden(request, "abstract");
-    }
-    if (error instanceof NotFoundError) {
-      throw new Response("Not found", { status: 404 });
-    }
-    throw error;
+    refuse(error, request, "abstract");
   }
 }
 
