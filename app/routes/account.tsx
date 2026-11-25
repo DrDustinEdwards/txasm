@@ -26,6 +26,7 @@ import {
 } from "@dustinedwards/site-runtime/sign-in";
 import {
   canOfferPasskey,
+  signInAgainIfStale,
   signalPasskeys,
   signalUnknownCredential,
 } from "@dustinedwards/site-runtime/sign-in-client";
@@ -43,6 +44,8 @@ import { useHydrated } from "capsomer/react/hooks";
 
 // An app: passkeys and the account forms run in the browser. It hydrates (root.tsx, the `hydrate` handle).
 export const handle = { hydrate: true };
+
+const signInHref = (next: string) => `${SIGN_IN_PATH}?next=${encodeURIComponent(next)}`;
 
 export function meta({ matches }: Route.MetaArgs) {
   return privateMeta(pageTitle(matches, "Account"));
@@ -224,10 +227,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     }
     const result = await authClient.changeEmail({ newEmail });
     // The sign-in got older than FRESH_SECONDS while the page was open: sign in again, then come back.
-    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
-      window.location.assign(`${SIGN_IN_PATH}?next=/account`);
-      return;
-    }
+    if (signInAgainIfStale(result?.error, signInHref)) return;
     if (result?.error) {
       setEmailNote({
         ok: false,
@@ -248,10 +248,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
     const result = await authClient.passkey.addPasskey();
     // A sign-in older than 10 minutes cannot add a passkey (site-runtime ./sign-in, FRESH_SECONDS):
     // sign in again, then come back here.
-    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
-      window.location.assign(`${SIGN_IN_PATH}?next=/account`);
-      return;
-    }
+    if (signInAgainIfStale(result?.error, signInHref)) return;
     setBusy(false);
     if (result?.error) {
       setError("The passkey was not saved. Try again.");
@@ -264,10 +261,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
   async function removePasskey(id: string, credentialId: string) {
     const result = await authClient.passkey.deletePasskey({ id });
     // Removing a passkey needs a sign-in in the last FRESH_SECONDS, as adding one does.
-    if (result?.error && "code" in result.error && result.error.code === "SESSION_NOT_FRESH") {
-      window.location.assign(`${SIGN_IN_PATH}?next=/account`);
-      return;
-    }
+    if (signInAgainIfStale(result?.error, signInHref)) return;
     if (result?.error) {
       setError("The passkey was not removed. Try again.");
       return;
