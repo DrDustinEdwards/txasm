@@ -6,7 +6,7 @@ import type { DB } from "./core";
 // What deleting a person does. The sign-in side goes: sessions, passkeys, linked
 // accounts and the user row itself, with the email and name. What the person put
 // into a Meeting stays, because abstracts, reviews and the work done
-// for a meeting belong to that meeting and its archive (CLAUDE.md, Editions): the
+// for a meeting belong to that meeting and its archive: the
 // abstract with its author line as typed and the scores. Each of those
 // rows is handed to a "Deleted account" user made for the person (handOverRecords),
 // so nothing is orphaned and no foreign key breaks. An active admin, chair or
