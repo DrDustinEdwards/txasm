@@ -1,48 +1,37 @@
 # CLAUDE.md - txasm
 
-Current state is `txasm/core.md` in Capsid. This file holds only what is true of this repo.
-
-## What this is
-
-txasm.org: a conference and abstract-management platform for the Texas Branch of the American Society for Microbiology, replacing the paid Oxford Abstracts service and the old WordPress site. It runs the full lifecycle of a meeting twice a year: registration and payment, abstract submission and editing, reviewer invitation and rubric scoring, accept/reject decisions, the program schedule, and an auto-generated abstract book PDF. Solo-maintained. Each meeting is an edition; the same code runs every meeting forever.
+txasm.org: the meeting platform for the Texas Branch of the American Society for Microbiology (registration, abstracts, review, program, abstract book PDF), replacing Oxford Abstracts and the old WordPress site. Each meeting is an edition; the same code runs every meeting.
 
 ## Rules every repo shares
 
-- **Tests.** Keep the minimal set (a few browser tests for flows that must never break, one integration test per real behavior, unit tests only for tricky logic, shared code tested once where it lives), and remove any test that pins design, repeats coverage or has never caught a real mistake, unless it guards a harm that cannot be undone.
-- **UI copy.** Let the layout explain. No eyebrows, restating subtitles, "this page lets you" intros, descriptions under obvious buttons, hints a label already gives, repeated captions or empty-state essays; labels, accessible names, errors, one-way warnings and legal text stay (Dustin, 2026-11-18; Capsid capsid/conventions.md).
-- **Shared code.** Before writing anything another site might have, read https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md (CI's shared-code check fails on a copy). Change shared code in place and delete what a change replaces in the same PR.
-- **Browser support.** devkit's docs/browser-support.md (Baseline Widely available freely; Newly available with a small fallback; Limited only feature-detected; no polyfills).
+- **Tests.** Keep the minimal set: a few browser tests for flows that must never break, one integration test per real behavior, unit tests only for tricky logic, shared code tested once where it lives. Remove a test that pins design, repeats coverage or never caught a mistake, unless it guards a harm that cannot be undone.
+- **UI copy.** Let the layout explain: no eyebrows, restating subtitles, "this page lets you" intros, hints a label already gives or empty-state essays. Labels, accessible names, errors, one-way warnings and legal text stay (Dustin, 2026-11-18; capsid/conventions.md).
+- **Shared code.** Before writing anything another site might have, check https://github.com/DrDustinEdwards/devkit/blob/shared-list/SHARED.md. Change shared code in place and delete what the change replaces in the same PR.
+- **Browser support.** devkit's docs/browser-support.md: Baseline Widely available freely, Newly available with a small fallback, Limited only feature-detected, no polyfills.
 - **Secrets.** Never commit or print a key, token, `.dev.vars` or `.env`.
-- **Reproduce first.** A report that something is broken names a cause; reproduce the failure before fixing it, and report red before and green after.
-- **Deploys.** A merge to the default branch deploys (CI's deploy job); never deploy from a session.
-- **D1.** Migrations are additive: CI applies the ones that only add and refuses a drop, rename or row delete for a hand run; never hand-run production DDL. `wrangler d1 export` fails on FTS5 tables, so back up and restore with d1-dump (its README); never export an `*_fts` table. Checking backups, backing up now and running a scheduled job now are Capsid Admin's, for every site (`/api/operator`, site-runtime `./operator`).
+- **Reproduce first.** Reproduce a reported failure before fixing it; report red before and green after.
+- **Deploys.** A merge to the default branch deploys; never deploy from a session.
+- **D1.** Never hand-run production DDL; CI applies additive migrations and refuses the rest. Back up and restore with d1-dump, never `wrangler d1 export` (it fails on FTS5 tables).
 - **Site copy and AI.** Copy describes only what the current build does. An AI provider key stays on the server, never in a client.
 
-## Stack (repo-specific additions to the house stack)
+## Stack notes
 
-- React Router v8 + React 19 + TypeScript, Vite with @cloudflare/vite-plugin. Dev server runs in workerd, so local dev mirrors production.
-- D1 via Drizzle, R2 for uploads (figures, camera-ready files, generated books), Cron Triggers for deadline jobs and reminders, Browser Rendering for the book PDF.
-- Better Auth on D1/Drizzle with the family sign-in from site-runtime `./sign-in`: a passkey first, an email link before one exists (Turnstile on it, failing closed), no passwords, no Google or Apple. Sessions and the sign-in rate limit are in D1. Platform admins are ADMIN_EMAIL (the main admin) and CO_OWNER_EMAILS (comma-separated co-owners), checked on every request.
-- PayPal for registration payments: not built yet (only the schema columns exist); checkout and a signature-verified webhook come with it. Cloudflare Email Service via the native send_email binding; email goes live at cutover once txasm.org is on Cloudflare DNS.
-- Capsomer (the family design system, `capsomer` pinned to a release tag) with the navy family and the txasm site layer; plain CSS in `app/app.css`, no Tailwind.
-- Carrel edits the site pages (`page` in D1: home, award-nominations) through `@dustinedwards/site-api` at /api/carrel/v1 (`app/lib/carrel`, its key the CARREL_SITE_KEY secret), rendering markdown with Prelum. Pages show only media-library pictures: Carrel's media group, files in UPLOADS under `media/`, indexed in D1 `media`, served at /media/<key> with responsive sizes through the Images binding (site-runtime `./image`). The abstract book and program covers are inline SVG (`app/lib/cover.ts`), never library files.
-
-Reach D1, R2, KV, the send_email binding, and Browser Rendering through the injected Cloudflare context (`context.get(cloudflareContext).env`, from `app/load-context.ts`).
+- React Router 8 on Workers (Vite in workerd); D1 via Drizzle, R2, Cron Triggers, Browser Rendering for the book PDF. Reach bindings through `context.get(cloudflareContext).env` (`app/load-context.ts`).
+- Sign-in is site-runtime `./sign-in` on Better Auth: passkey first, email link before one exists, no passwords or social logins. Admins are ADMIN_EMAIL and CO_OWNER_EMAILS, checked on every request.
+- PayPal is not built yet (schema columns only). Email goes live at cutover; do not touch txasm.org DNS until then.
+- Look: Capsomer plus the txasm layer in `app/app.css`. Carrel edits the `page` rows through site-api (`app/lib/carrel`); pages show only media-library pictures; book and program covers are inline SVG (`app/lib/cover.ts`).
 
 ## Commands
 
-- `npm run dev` - Vite dev server in workerd, bindings available locally
-- `npm run build` - production build (client + server)
-- `npm run typecheck` - wrangler types + react-router typegen + tsc -b
-- `npm run lint` and `npm test` - Oxlint (the shared config, `oxlint.config.ts`), and the node tests in `tests/` (real D1 and R2 in Miniflare)
-- `npm run db:generate` / `db:migrate` / `db:migrate:prod` - drizzle-kit generates migrations, wrangler applies them. Do not touch txasm.org DNS until cutover.
+- `npm run dev`, `npm run build`, `npm run typecheck`, `npm run lint`, `npm test` (node tests in `tests/`, real D1 and R2 in Miniflare).
+- `npm run db:generate` / `db:migrate` / `db:migrate:prod`: drizzle-kit generates, wrangler applies.
 
 ## Hard rules
 
 A rule stays here only if it stops a real, costly mistake that nothing else catches.
 
-1. D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`; Oxlint refuses other imports of the Drizzle client, and `tests/boundary.test.ts` proves it). Roles are admin, chair, reviewer (explicit grants); author and attendee come from ownership and a paid registration. Conflict of interest is checked at assignment time. Chairs stay out of admin-only config (categories, fees, windows), and the confidential comment is for chairs and admins only, never authors or other reviewers.
-2. Editions are first-class. Every domain row carries `edition_id`. Every listing, deadline, fee, and the book generation is a per-edition query. Keep historical editions queryable for the archive. The rubric is data (rubric_criterion and review_score per edition), not columns, so it changes each meeting with no migration.
-3. Payment webhook integrity. Verify the PayPal webhook signature before acting. The webhook marks a registration paid out of band; it has no acting user, so it does not pass through the actor-scoped data-access functions and must be its own audited path. PayPal keys must never reach the client.
-4. Abstracts are structured text sections with inline formatting limited to `<em>`, `<sup>` and `<sub>`, re-sanitized on every save; no uploads. Image responses keep the sandboxed CSP and nosniff, so an uploaded SVG cannot run script. The category value `brand_image` never changes (only its label), and brand images stay out of the public archive.
-5. Visible copy says "Meeting"; tables, functions, types, route files and URLs stay "edition".
+1. D1 has no row-level security, so every authorization check lives in `getDataAccess(env)` (`app/lib/data-access.ts`). Roles: admin, chair, reviewer by grant; author and attendee by ownership and a paid registration. Conflict of interest is checked at assignment. Chairs stay out of admin-only config, and the confidential comment is for chairs and admins only.
+2. Editions are first-class: every domain row carries `edition_id`, every listing, deadline, fee and book is a per-edition query, and past editions stay queryable. The rubric is data (rubric_criterion, review_score), not columns.
+3. The PayPal webhook verifies its signature before acting and is its own audited path (it has no acting user). PayPal keys never reach the client.
+4. Abstracts are structured text with only `<em>`, `<sup>` and `<sub>`, re-sanitized on every save. Image responses keep the sandboxed CSP and nosniff. The category value `brand_image` never changes, and brand images stay out of the public archive.
+5. Visible copy says "Meeting"; code, tables and URLs say "edition".
