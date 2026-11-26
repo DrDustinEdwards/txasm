@@ -78,12 +78,13 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@86cf052e7b6ec57baa97262b574774b2b7d42fb6 # v0.64.1
+    uses: DrDustinEdwards/devkit/.github/workflows/worker-deploy.yml@2b2966a64e8639c0658241f5d83e9c6b7db94f44 # v0.65.0
     with:
       worker-name: txasm
       # site-runtime withAdminIdle's key, minted once by the deploy and never shown (devkit "generated-secrets").
       generated-secrets: ADMIN_IDLE_SECRET
       health-url: https://txasm.dustin-edwards.workers.dev/health
+      keep-assets: build/client
       verify-command: >-
         code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://txasm.dustin-edwards.workers.dev/ || true);
         echo "home page answered $code";
